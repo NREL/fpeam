@@ -2,7 +2,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from pylab import *
 import matplotlib.pyplot as plt
 from scipy.stats import scoreatpercentile
-
+from matplotlib.ticker import FixedFormatter
 """
 @comments: much of this plotting utility was taken from the following URL:
 http://matplotlib.org/examples/pylab_examples/boxplot_demo2.html
@@ -59,8 +59,12 @@ class EmissionsPerGallon():
                 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
-            plt.yscale('log')
-    
+            plt.setp(bp['medians'], color='black')
+            #plt.yscale('log')
+            plt.semilogy()
+            self.ax1.yaxis.set_major_formatter(FixedFormatter([0.001, 0.01, 0.1, 1, 10, 100]))#for above y-axis
+            #self.ax1.yaxis.set_major_formatter(FixedFormatter([0.00001, 0.0001, 0.001]))#for below y-axis
+            self.ax1.tick_params(axis='y', labelsize=15) #changes font size of y-axis
             plotTitle=pollutantLabels[pNum]
             axisTitle = '%s emissions  (g/gal EtOH)' % (pollutantLabels[pNum])
             
@@ -122,9 +126,9 @@ class EmissionsPerGallon():
         plt.plot((numArray), perc95, '_', markersize=15, color='k')                 
         plt.plot((numArray), perc5, '_', markersize=15, color='k')
         
-        # calculate mean and plot it.
-        means = [mean(dataArray[0]), mean(dataArray[1]), mean(dataArray[2]), mean(dataArray[3]), mean(dataArray[4])]
-        plt.plot((numArray), means, '_', markersize=75, color='b')
+        # calculate mean and plot it.  Means are not used in box plots
+        #means = [mean(dataArray[0]), mean(dataArray[1]), mean(dataArray[2]), mean(dataArray[3]), mean(dataArray[4])]
+        #plt.plot((numArray), means, '_', markersize=75, color='b')
         
         
         
@@ -137,7 +141,9 @@ class EmissionsPerGallon():
                       alpha=0.7)
                       
         #determine limits of axis
-        self.ax1.set_ylim(bottom=1e-03, top=1e02)                  
+        #self.ax1.set_ylim(bottom=1e-03, top=1e02) #old Jeremy way
+        self.ax1.set_ylim(bottom=0.001, top=100) #for above 0.001 y axis
+        #self.ax1.set_ylim(bottom=0.00001, top=0.001) #for below 0.001 y axis
         
         # Hide these grid behind plot objects
         self.ax1.set_axisbelow(True)
@@ -149,19 +155,25 @@ class EmissionsPerGallon():
     
     #    ax1.set_title(plotTitle+' Mg per gallon of EtOH', size=20, style='normal')
         
-#        minVal = min(dataArray[4])[0]
-#        if minVal < 1e-3:
-#            minString='%.0e' % (minVal)
-#            maxString='%.0e' % (max(dataArray[4])[0])
-#    
-#        #value            
-#            self.ax1.annotate(' min='+minString, xy=(4.5, 2.5e-3),size=15) 
-#            self.ax1.annotate('max='+maxString, xy=(4.5, 4.0e-3),size=15) 
-#        #arrow pointing down
-#            self.ax1.annotate('', xy=(4.75, 1.0e-3),
-#                         xytext=(4.75,1.9e-3), 
-#                         arrowprops=dict(arrowstyle="->"))   
+    #-------------------------------------------------------------------------------
+    #This section plots the smallest values that do not show up on the graph
+    #Labeled with an arrow, and the max/min values.
+        positionList = [0, 2, 3, 4, 5]
+        positionData = []
+        for pNum, position in enumerate(positionList):
+            minVal = min(dataArray[pNum])[0]
+            if minVal < 1e-3:
+                minString='%.0e' % (minVal)
+                maxString='%.0e' % (max(dataArray[pNum])[0])
     
+            #Annotates the max and min on the boxplot value            
+                self.ax1.annotate(' min='+minString, xy=(position - 0.25, 2.5e-3),size=12) 
+                self.ax1.annotate('max='+maxString, xy=(position - 0.25, 4.0e-3),size=12) 
+            #arrow pointing down where the value is located
+                self.ax1.annotate('', xy=(position, 1.0e-3),
+                             xytext=(position,1.9e-3), 
+                             arrowprops=dict(arrowstyle="->"))
+                positionData.append(pNum)
     
     
         
@@ -173,7 +185,7 @@ class EmissionsPerGallon():
         for fNum, feedstock in enumerate(feedstockList):
             lines=[ feedstock, pollutant, max(dataArray[fNum])[0],
                  scoreatpercentile(dataArray[fNum],95), 
-                 scoreatpercentile(dataArray[fNum],50),
+                 scoreatpercentile(dataArray[fNum],75),
                  median(dataArray[fNum]),
                  scoreatpercentile(dataArray[fNum],25), 
                  scoreatpercentile(dataArray[fNum],5),

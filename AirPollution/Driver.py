@@ -162,7 +162,7 @@ class Driver:
     of harvest, non-harvest, and transport and weather to calculate them. dict(dict(boolean))
     '''
     def saveData(self, fertFeed, fertDist, pestFeed, operationDict, alloc):
-        print 'Saving results to database...'
+        '''print 'Saving results to database...'
         # initialize database objects
         Fert = Fertilizer.Fertilizer(self.cont, fertFeed, fertDist) 
         Chem = Chemical.Chemical(self.cont, pestFeed)
@@ -242,7 +242,7 @@ class Driver:
                 if count == 4:
                     # on the last go, make a total query for all cellulosic.
                     NEI.createNEIComparison('cellulosic')
-                count += 1
+                count += 1'''
                     
             
     #----------------------------------------------------------------
@@ -252,24 +252,24 @@ class Driver:
             #create graphics and numerical summary 
             
             #Contribution Analysis
-            print 'Creating emissions contribution figure.'
-            ContributionFigure.ContributionAnalysis(self.cont)
+        print 'Creating emissions contribution figure.'
+        ContributionFigure.ContributionAnalysis(self.cont)
             
             #Emissions Per Gallon
-            print 'Creating emissions per gallon figure.'
-            EmissionsPerGalFigure.EmissionsPerGallon(self.cont)
+        print 'Creating emissions per gallon figure.'
+        EmissionsPerGalFigure.EmissionsPerGallon(self.cont)
             
             # Emissions per a acre figure.
-            print 'Creating emissions per acre figure.'
-            EmissionsPerAcreFigure(self.cont)
+        print 'Creating emissions per acre figure.'
+        EmissionsPerAcreFigure(self.cont)
             
             # Emissions per a production lb figure.
-            print 'Creating emissions per lb figure.'
-            EmissionPerProdFigure(self.cont)
+        print 'Creating emissions per lb figure.'
+        EmissionPerProdFigure(self.cont)
             
             
             #Ratio to NEI
-            RatioToNEIFigure.RatioToNEIFig(self.cont)
+        RatioToNEIFigure.RatioToNEIFig(self.cont)
  
         
     #----------------------------------------------------------------

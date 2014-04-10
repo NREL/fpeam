@@ -190,17 +190,17 @@ nh3    float);"""
         #self.nei_data_by_county = self.db.constantsSchema + ".nei_data_by_county"
         # new NEI data from Jeremy.
         # nei_nonroad_nonpoint and nei_total
-        self.nei_data_by_county = "full2008nei.nei_total"
+        self.nei_data_by_county = "full2008nei.nei_nonroad_nonpoint_v3"
         # @change: Change allocation. Allocation is the amount of the feedstock that actually get's used to produce ethanol.
         # 9/3
-        # old code:     self.cellulosicAllocation = 0.34
-        #               self.cornGrainAllocation = 0.54
-        # new code:     allocation = 0.52
+        # old code:     self.cellulosicAllocation = 0.34 demand to meet 16 billion gal of ethonal
+        #               self.cornGrainAllocation = 0.54 demand to meet 15 billion gal of ethonal flipped with cellulosic
+        # new code:     allocation = 0.52 wrong
         # @change: convert NEI data from short tons to metric tons.
         # 9/11
         # old code:     nei.nox
         # new code:     nei.nox * 0.907185
-        allocation = str(0.52)
+        allocation = str(0.52) #for cellulosic
             
         self.__setNEIRatioTable__(feedstock)
         
@@ -242,7 +242,7 @@ nh3    float);"""
                 (nrel.co * """+allocation+""") / (nei.co * 0.907185) as co,
                 (nrel.pm10 * """+allocation+""") / (nei.pm10 * 0.907185) as PM10,
                 (nrel.pm25 * """+allocation+""") / (nei.pm25 * 0.907185) as PM25,
-                (nrel.voc * """+allocation+""") / (nei.voc* 0.907185) as VOC,
+                (nrel.voc * """+allocation+""") / (nei.voc * 0.907185) as VOC,
                 CASE WHEN nei.nh3 > 0 THEN     (nrel.nh3 * """+allocation+""") / (nei.nh3 * 0.907185)
                      ELSE 0.0    
                 END as NH3
@@ -253,7 +253,8 @@ nh3    float);"""
                 """
         
         else:   
-            # query everything 
+            # query everything except cg
+            p = 'Corn Grain'
             query = """
     INSERT INTO """+feedstock+"""_NEIRatio
     WITH
@@ -264,7 +265,8 @@ nh3    float);"""
                        sum(pm25) as pm25,
                        sum(voc) as voc,
                        sum(nh3) as nh3 
-                from sgnew.summedemissions 
+                from sgnew.summedemissions
+                where feedstock not ilike '%"""+p+"""%'
                 GROUP BY fips),
        nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3 
                from """+self.nei_data_by_county+""")
