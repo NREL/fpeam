@@ -1,5 +1,6 @@
-# Functions associated with allocation
-
+"""
+Functions associated with allocation
+"""
 
 
 class Allocate(object):
@@ -8,19 +9,22 @@ class Allocate(object):
     File are written on a state-level basis. 
     """
     def __init__(self, cont):
-        self.path = cont.get('path') + 'ALLOCATE/' 
+        """
+        Initialize the allocation file.
+        @param state: state, used to create unique file name for .alo.
+        @param run_code: run_code, used to create unique file name for .alo.
+        """
+        self.path = cont.get('path') + 'ALLOCATE/'
+        self.episode_year = None
+        self.run_code = None
+        self.inicator_total = 0
+        self.alo_file = None
 
-
-    '''
-    Initialize the allocation file.
-    @param state: state, used to create unique file name for .alo.
-    @param run_code: run_code, used to create unique file name for .alo.
-    '''   
-    def initializeAloFile(self, state, run_code, episodeYear):
-        self.episodeYear = episodeYear         
+    def initialize_alo_file(self, state, run_code, episode_year):
+        self.episode_year = episode_year
         self.run_code = run_code
         # total harvested acre per a state.
-        self.inicatorTotal = 0.0   #acres  
+        self.inicator_total = 0.0   #acres
         self.alo_file = open(self.path + state + '_' + run_code+'.alo', 'w')
         lines = """
 ------------------------------------------------------------------------
@@ -40,48 +44,40 @@ population or land area.  The format is as follows.
 """ 
         self.alo_file.writelines(lines)
 
-
-
-    '''
-    Allocates land usage for each county.
-    This function writes the appropriate information to each line of the file
-    The indicator value is grabbed from the database in Options.py
-    @param fips: County code.
-    @param indicator: Harvested acres per a county. 
-    ''' 
-    def writeIndicator(self, fips, indicator):
+    def write_indicator(self, fips, indicator):
+        """
+        Allocates land usage for each county.
+        This function writes the appropriate information to each line of the file
+        The indicator value is grabbed from the database in Options.py
+        @param fips: County code.
+        @param indicator: Harvested acres per a county.
+        """
         # FR data is in produce, not acres. Need to convert into land use.
         if self.run_code.startswith('FR'):
-            #convert input -> dry ton_s into cubic feet
+            # convert input -> dry ton_s into cubic feet
             # (x dry_ton) * (2000 lbs / ton) * (1 ft^3 / 30 lbs) --> BT2 Report page 18 footnote.
             indicator = float(indicator) * 2000.0 * 1.0 / 30.0
-            lines = """LOG  %s      %s    %s\n""" % (fips, self.episodeYear, indicator)
+            lines = """LOG  %s      %s    %s\n""" % (fips, self.episode_year, indicator)
         # add harvested acres directly to file.
         else:
-            lines = """FRM  %s      %s    %s\n""" % (fips, self.episodeYear, indicator)
-        
+            lines = """FRM  %s      %s    %s\n""" % (fips, self.episode_year, indicator)
+
         self.alo_file.writelines(lines)
 
 #        print indicator, fips
-        self.inicatorTotal += float(indicator)
+        self.inicator_total += float(indicator)
 
+    def write_sum_and_close(self, fips):
+        """
+        This function finishes off the .alo file
+        @param fips: fips code for geographic region
+        """
 
-
-
-    ## This function finishes off the .alo file
-    def writeSumAndClose(self, fips):
         if self.run_code.startswith('FR'):
-            lines = """LOG  %s000      %s    %s\n/END/""" % (fips[0:2], self.episodeYear, self.inicatorTotal)
-
+            lines = """LOG  %s000      %s    %s\n/END/""" % (fips[0:2], self.episode_year, self.inicator_total)
         else:
-            lines = """FRM  %s000      %s    %s \n/END/""" % (fips[0:2], self.episodeYear, self.inicatorTotal)
-            
+            lines = """FRM  %s000      %s    %s \n/END/""" % (fips[0:2], self.episode_year, self.inicator_total)
+
         self.alo_file.writelines(lines)
-        
+
         self.alo_file.close()
-        
-        
-
-
-        
-        

@@ -1,29 +1,31 @@
-import SaveDataHelper
-
 """
 Used to initiate a schema for saving all the results.
 The schema is titled as the name as the scenario title.
 Input run_codes in study and create appropriate tables.
 """
-class UpdateDatabase(SaveDataHelper.SaveDataHelper): 
-    
-    '''
-    Create shcema in database to store results.
-    Schema is titled with the model run title.
-    '''
+
+import SaveDataHelper
+
+
+class UpdateDatabase(SaveDataHelper.SaveDataHelper):
+
     def __init__(self, cont):
+        """
+        Create shcema in database to store results.
+        Schema is titled with the model run title.
+        """
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
-        self.documentFile = "UpdateDatabase"
-        
+        self.document_file = "UpdateDatabase"
+
         query = '''DROP SCHEMA IF EXISTS %s CASCADE;
                    CREATE SCHEMA %s;''' % (cont.get('modelRunTitle'), cont.get('modelRunTitle'))
         self.db.create(query)
-        
-    '''
-    Create tables (based on feedstock)
-    @attention: Insert Primary Keys (from Noah)
-    '''
-    def createTables(self, feedstock): 
+
+    def create_tables(self, feedstock):
+        """
+        Create tables (based on feedstock)
+        @attention: Insert Primary Keys (from Noah)
+        """
         query = """
                         CREATE TABLE %s_raw
                         (
@@ -43,11 +45,9 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         Description    text    ,
                         run_code    text    ,
                         fug_pm10    float    , 
-                        fug_pm25    float)""" % (feedstock)
+                        fug_pm25    float)""" % (feedstock,)
         self._executeQuery(query)
 
-
-        
         if feedstock != 'FR':
             query = """
                             CREATE TABLE %s_NFert
@@ -56,11 +56,9 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                             NOx    float    ,
                             NH3    float    ,
                             SCC    char(10)    ,
-                            description    text)""" % (feedstock)
+                            description    text)""" % (feedstock,)
             self._executeQuery(query)
-            
-            
-        
+
         if feedstock == 'SG' or feedstock == 'CG':
             query = """
                            CREATE TABLE %s_CHEM
@@ -68,12 +66,5 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                            FIPS    char(5),
                            SCC    char(10)    ,
                            VOC    float    ,
-                           description    text)""" % (feedstock)
+                           description    text)""" % (feedstock,)
             self._executeQuery(query)
-            
-    
-    
-    
-    
-    
-    

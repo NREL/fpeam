@@ -4,6 +4,8 @@ Created on Wed Dec 19 09:18:49 2012
 @author: nfisher
 Chooses the sql to grab data for ContributionFigure graph.
 """
+
+
 class ChooseSQL:
 
     def __doc__(self):
@@ -14,51 +16,41 @@ class ChooseSQL:
         self.act = activity
         self.pol = pollutant
         self.feed = feedstock
-        self.queryString = ''
+        self.query_string = ''
 
-        self.rawTable = feedstock + '_raw'
+        self.raw_table = feedstock + '_raw'
         
-        if( pollutant == 'NOx' or pollutant == 'NH3' ):
-            self.fertTable = feedstock + '_nfert'
+        if pollutant == 'NOx' or pollutant == 'NH3':
+            self.fert_table = feedstock + '_nfert'
 
-        if( (pollutant == 'VOC') and
-            (feedstock == 'CG' or feedstock == 'SG') ):
+        if pollutant == 'VOC' and (feedstock == 'CG' or feedstock == 'SG'):
+            self.chem_table = feedstock + '_chem'
 
-            self.chemTable = feedstock + '_chem'
-                
-                
-  
-    """
-    This method chooses which tables to query based on the inputs
-    """
-    def getQuery(self):
-         
-    #-- pre-define the test cases for which there are zero emissions   
+    def get_query(self):
+        """
+        This method chooses which tables to query based on the inputs
+        """
+
+    # -- pre-define the test cases for which there are zero emissions   
         if self.feed == 'FR' and self.act == 'Harvest':
-            return self.__returnFRHarv__() #special case
-    
+            return self.__return_fr_harv__()  # special case
         elif self.feed == 'FR':
-            return self.__returnNull__()
-            
-    #fertilizer only looks at nh3 and nox from fertilizer application
-        elif( ( self.act == 'Fertilizer' ) and 
-                ( self.pol != 'NOx' and self.pol != 'NH3' ) ):
-            return self.__returnNull__()
-    
-    #chemical only looks at voc from herbicide and pesticide
-        elif( self.act == 'Chemical' and self.pol != 'VOC'):
-            return self.__returnNull__()
-             
-    #zero cases for CS and WS
-        elif( ( self.feed == 'CS' or self.feed == 'WS')
-            and 
-            (self.act == 'Non-Harvest' or 
-            self.act == 'Chemical')):     
-            return self.__returnNull__()
-            
-            
-    #--- end of pre-defined cases for which there are zero emissions       
+            return self.__return_null__()
 
+    # fertilizer only looks at nh3 and nox from fertilizer application
+        elif self.act == 'Fertilizer' and (self.pol != 'NOx' and self.pol != 'NH3'):
+            return self.__return_null__()
+    
+    # chemical only looks at voc from herbicide and pesticide
+        elif self.act == 'Chemical' and self.pol != 'VOC':
+            return self.__return_null__()
+
+    # zero cases for CS and WS
+        elif (self.feed == 'CS' or self.feed == 'WS') and (self.act == 'Non-Harvest' or self.act == 'Chemical'):     
+            return self.__return_null__()
+
+    # --- end of pre-defined cases for which there are zero emissions       
+        # @TODO: refactor remaining elif atrocities
         elif( ( ( self.pol == 'CO' or self.pol.startswith('SO') ) 
                     and 
                 ( self.act == 'Non-Harvest' or 
@@ -72,99 +64,76 @@ class ChooseSQL:
               )
             ): 
     
-            #query raw table for sox and co. query raw table for voc only when feedstock
-            #is not corn grain or switchgrass (_chem emissions occur here)
-            return self.__queryRaw__()            
+            # query raw table for sox and co. query raw table for voc only when feedstock
+            # is not corn grain or switchgrass (_chem emissions occur here)
+            return self.__query_raw__()            
 
-    
-        elif( (self.pol.startswith('PM') )
-                and 
-                (self.act == 'Non-Harvest' or 
-                self.act == 'Harvest' or 
-                self.act == 'Transport')): 
-                    
-            return self.__queryRaw__()
-            
-
+        elif self.pol.startswith('PM') and (self.act == 'Non-Harvest' or self.act == 'Harvest' or self.act == 'Transport'):
+            return self.__query_raw__()
         elif( (self.pol == 'NH3' or self.pol == 'NOx' ) ):
             return self.__queryRawFert__()
-       
-        
         elif( (self.pol == 'VOC' )
-                and 
-                (self.feed == 'CG' or self.feed == 'SG' ) 
-            ): 
-        
+                and
+                (self.feed == 'CG' or self.feed == 'SG' )
+            ):
             return self.__queryRawChem__()
-    
-
         else:
-            
-            raise Exception('Error in test structure\nInputs were: %s, %s, %s'%(self.feed, self.pol, self.act))
-        
+            raise Exception('Error in test structure\nInputs were: %s, %s, %s' % (self.feed, self.pol, self.act))
 
-    
-    """
-    Handle cases where there are no values to return
-    """    
-    def __returnNull__(self):
-        self.queryString = 'No activity at this location'
-        
-       
-       
-    """
-    Special case for Forest Residue
-    """
-    def __returnFRHarv__(self):
-        self.queryString = 'FR Harvest'
-       
-       
-        
-    """
-    Assemble queries that need only the '*_raw' tables. 
-    """        
-    def __queryRaw__(self):
+    def __return_null__(self):
+        """
+        Handle cases where there are no values to return
+        """
+        self.query_string = 'No activity at this location'
+
+    def __return_fr_harv__(self):
+        """
+        Special case for Forest Residue
+        """
+        self.query_string = 'FR Harvest'
+
+    def __query_raw__(self):
+        """
+        Assemble queries that need only the '*_raw' tables. 
+        """        
         
         if self.pol.startswith('PM'):
-            sumPollutant = "(sum(%s) + sum(fug_%s))" % (self.pol, self.pol)
+            sum_pollutant = "(sum(%s) + sum(fug_%s))" % (self.pol, self.pol)
+        else:
+            sum_pollutant = "sum(%s)" % (self.pol,)
 
-        else: 
-            sumPollutant = "sum(%s)" % (self.pol)
-        
         if self.act == 'Harvest':
             act = ' ' + self.act
         else:
             act = self.act
-            
-        self.queryString = """
-with
-    activitySum as (select distinct fips, %s as x 
-		from %s.%s where description ilike '%% %s' group by fips),
 
-    totalSum as (select distinct fips, %s as x 
-		from %s.%s group by fips)
-        
-select (a.x/t.x) as x from activitySum a, totalSum t 
-where a.fips = t.fips and t.x > 0.0 and a.x > 0.0;
+        self.query_string = """
+WITH
+    activitySum AS (SELECT DISTINCT fips, %s AS x
+                    FROM %s.%s
+                    WHERE description ILIKE '%% %s'
+                    GROUP BY fips
+                    ),
+    totalSum AS (SELECT DISTINCT fips, %s AS x
+                 FROM %s.%s
+                 GROUP BY fips
+                 )
+SELECT (a.x / t.x) AS x FROM activitySum a, totalSum t
+WHERE a.fips = t.fips AND t.x > 0.0 AND a.x > 0.0;
 
-""" % (sumPollutant, 
-       self.schema, self.rawTable, '%'+act+'%',
-       sumPollutant, 
-       self.schema, self.rawTable)   
+""" % (sum_pollutant, self.schema, self.raw_table, '%' + act + '%', sum_pollutant, self.schema, self.raw_table)
 
 #        if self.feed == 'CG' and (self.pol == 'CO' or self.pol == 'SO2'):
-#            print self.queryString
+#            print self.query_string
 
-
-
-    '''
-    Assemble queries that need the '*_raw' and '*_fert' tables. 
-    
-    This part seems very odd.
-    If you are not actually intersested in fertilizers, but are doing a calculation
-    to get Nox and nh3, shouldnt you not care about fert.x for the ration in the first part?
-    '''
     def __queryRawFert__(self):
+        """
+        Assemble queries that need the '*_raw' and '*_fert' tables. 
+        
+        This part seems very odd.
+        If you are not actually intersested in fertilizers, but are doing a calculation
+        to get Nox and nh3, shouldnt you not care about fert.x for the ration in the first part?
+        """
         if self.act != 'Fertilizer':
             ratio = "(act.x)/(raw.x + fert.x)"
             conditions = ", activitySum act where act.fips = raw.fips and act.fips = fert.fips and act.x > 0.0"
@@ -173,7 +142,7 @@ where a.fips = t.fips and t.x > 0.0 and a.x > 0.0;
             ratio = "(fert.x)/(raw.x+fert.x)"
             conditions = "where raw.fips = fert.fips"
             
-        self.queryString = """
+        self.query_string = """
             WITH
 
                 activitySum as (select distinct fips, sum(%s) as x
@@ -190,21 +159,19 @@ where a.fips = t.fips and t.x > 0.0 and a.x > 0.0;
                 and raw.x > 0.0 and fert.x > 0.0;
 
 
-            """ % (self.pol, self.schema, self.rawTable, '%'+self.act+'%',
-                   self.pol, self.schema, self.rawTable,
+            """ % (self.pol, self.schema, self.raw_table, '%' + self.act + '%',
+                   self.pol, self.schema, self.raw_table,
                    self.pol, self.schema, self.fertTable,
                    ratio,
                    conditions)       
-                   
-          
-    """
-    Assemble queries that need the '*_raw' and '*_chem' tables.
-    
-    Almost identical code to queryRawFert(), kept separate for the sake of 
-    being explicit 
-    """
-    def __queryRawChem__(self):
 
+    def __queryRawChem__(self):
+        """
+        Assemble queries that need the '*_raw' and '*_chem' tables.
+        
+        Almost identical code to queryRawFert(), kept separate for the sake of 
+        being explicit 
+        """
 
         if self.act != 'Chemical':
             ratio = "(act.x)/(raw.x + chem.x)"
@@ -214,29 +181,21 @@ where a.fips = t.fips and t.x > 0.0 and a.x > 0.0;
             ratio = "(chem.x)/(raw.x+chem.x)"      
             conditions = "where raw.fips = chem.fips"
             
-        self.queryString = """
+        self.query_string = """
 WITH
+    activitySum AS (SELECT DISTINCT fips, SUM(%s) AS x
+                    FROM %s.%s
+                    WHERE description ILIKE '%% %s'
+                    GROUP BY fips
+                    ),
+    rawSum AS (SELECT DISTINCT r.fips, SUM(r.%s) AS x
+               FROM %s.%s r
+               GROUP BY r.fips
+               ),
+    chemSum AS (SELECT DISTINCT fips, SUM(%s) AS x
+                FROM %s.%s
+                GROUP BY fips)
+SELECT (%s) AS x
+FROM rawSum raw, chemSum chem %s AND raw.x > 0.0 AND chem.x > 0.0;
 
-    activitySum as (select distinct fips, sum(%s) as x 
-		from %s.%s where description ilike '%% %s' group by fips),
-   
-    rawSum as (select distinct r.fips, sum(r.%s) as x 
-		from %s.%s r group by r.fips),
-
-    chemSum as (select distinct fips, sum(%s) as x 
-		from %s.%s group by fips)
-  
-select (%s) as x 
-		from rawSum raw, chemSum chem %s and raw.x > 0.0 and chem.x > 0.0;
-
- 
-
-""" % (self.pol, self.schema, self.rawTable, '%'+self.act+'%',
-       self.pol, self.schema, self.rawTable,
-       self.pol, self.schema, self.chemTable,
-       ratio,
-       conditions)   
-       
-       
-
- 
+""" % (self.pol, self.schema, self.raw_table, '%' + self.act + '%', self.pol, self.schema, self.raw_table, self.pol, self.schema, self.chem_table, ratio, conditions)
