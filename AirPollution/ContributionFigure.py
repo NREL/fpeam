@@ -138,7 +138,7 @@ if __name__ == "__main__":
     
     title = 'sgNew'
     cont = Container.Container()
-    cont.set('modelRunTitle', title)
+    cont.set('model_run_title', title)
     cont.set('path', 'C:/Nonroad/%s/' % (title,))
     cont.set('db', Database(title))
     

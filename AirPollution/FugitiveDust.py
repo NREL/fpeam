@@ -265,7 +265,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
                 SET 
                     fug_pm10 = """ + str("(" + k10 + "* 10 * 0.907 * ((tfd.silt / 12)^" + a10 + ") * ((" + weight + "/3)^" + b10 + ")) / (((tfd.moisture / 0.2)^" + c10 + ") * 2000)") + """,
                     fug_pm25 = """ + str("(" + k25 + "* 10 * 0.907 * ((tfd.silt / 12)^" + a25 + ") * ((" + weight + "/3)^" + b25 + ")) / (((tfd.moisture / 0.2)^" + c25 + ") * 2000)") + """
-                FROM """ + self.db.constantsSchema + """.transportfugitivedust tfd
+                FROM """ + self.db.constants_schema + """.transportfugitivedust tfd
                 WHERE     (raw.fips ilike tfd.fips || '%') AND 
                           (raw.description ILIKE '""" + str("%transport%") + """') AND 
                           (raw.description ILIKE '""" + str("%" + till_type + "%") + """')"""
@@ -373,7 +373,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                         SET 
                             "fug_pm10" = """ + str("((" + k10 + " * 10 * 0.907 * ((tfd.silt / 12)^" + a10 + ") * ((" + weight + "/ 3)^" + b10 + ")) / (((tfd.moisture / 0.2)^" + c10 + ") * 2000.0)) / 10.0") + """,
                             "fug_pm25" = """ + str("((" + k25 + " * 10 * 0.907 * ((tfd.silt / 12)^" + a25 + ") * ((" + weight + "/ 3)^" + b25 + ")) / (((tfd.moisture / 0.2)^" + c25 + ") * 2000.0)) / 10.0") + """
-                        FROM """ + self.db.constantsSchema + """."transportfugitivedust" tfd
+                        FROM """ + self.db.constants_schema + """."transportfugitivedust" tfd
                         WHERE     (raw."fips" ILIKE tfd."fips" || '%') AND
                                   (raw."run_code" ILIKE '""" + str("%" + self.description + str(year + 1) + "%") + """')"""
 

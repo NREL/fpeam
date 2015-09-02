@@ -46,7 +46,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                 query = self.__switchgrass__(feed)
             # if a query was created, execute it.
             if query:
-                self._executeQuery(query)
+                self._execute_query(query)
 
     def get_frt_distribution(self, fert_distributions):
         """

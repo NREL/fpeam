@@ -47,7 +47,7 @@ nh3    float);"""
         TODO: fr should have a harv_ac.
     
         select ca.fips, ca.st, dat.fed_minus_55 
-        from constantsSchema.county_attributes ca, fr_data dat where dat.fips = ca.fips
+        from constants_schema.county_attributes ca, fr_data dat where dat.fips = ca.fips
         """
         
         if feedstock == 'CG':
@@ -175,7 +175,7 @@ nh3    float);"""
     def create_nei_comparison(self, feedstock):
         
         # Old NEI data from Noah.
-        # self.nei_data_by_county = self.db.constantsSchema + ".nei_data_by_county"
+        # self.nei_data_by_county = self.db.constants_schema + ".nei_data_by_county"
         # new NEI data from Jeremy.
         # nei_nonroad_nonpoint and nei_total
         self.nei_data_by_county = "full2008nei.nei_nonroad_nonpoint_v3"

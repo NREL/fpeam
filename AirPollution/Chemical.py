@@ -17,7 +17,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
 
     def __init__(self, cont, pest_feed):
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
-        self.documentFile = "Chemical"
+        self.document_file = "Chemical"
         # pesticides.
         self.pest_feed = pest_feed
 
@@ -34,7 +34,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
                 query = self.__switchgrass__()
             # if a query was made, execute it.
             if query:
-                self._executeQuery(query)
+                self._execute_query(query)
 
     def __corn_grain__(self):
         """
@@ -56,7 +56,7 @@ INSERT INTO cg_chem
 
     ('Pesticide Emissions') AS "Description"
 
-    FROM """ + self.db.production_schema + """.cg_data cg, """ + self.db.constantsSchema + """.CG_pest_app_factor pest
+    FROM """ + self.db.production_schema + """.cg_data cg, """ + self.db.constants_schema + """.CG_pest_app_factor pest
 
     WHERE substr(fips, 1, 2) = pest.STFIPS
     )"""

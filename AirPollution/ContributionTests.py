@@ -76,7 +76,7 @@ class ChooseSQL:
                 and
                 (self.feed == 'CG' or self.feed == 'SG' )
             ):
-            return self.__queryRawChem__()
+            return self.__query_raw_chem__()
         else:
             raise Exception('Error in test structure\nInputs were: %s, %s, %s' % (self.feed, self.pol, self.act))
 
@@ -161,11 +161,11 @@ WHERE a.fips = t.fips AND t.x > 0.0 AND a.x > 0.0;
 
             """ % (self.pol, self.schema, self.raw_table, '%' + self.act + '%',
                    self.pol, self.schema, self.raw_table,
-                   self.pol, self.schema, self.fertTable,
+                   self.pol, self.schema, self.fert_table,
                    ratio,
                    conditions)       
 
-    def __queryRawChem__(self):
+    def __query_raw_chem__(self):
         """
         Assemble queries that need the '*_raw' and '*_chem' tables.
         

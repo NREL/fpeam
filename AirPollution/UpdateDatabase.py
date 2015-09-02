@@ -18,7 +18,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         self.document_file = "UpdateDatabase"
 
         query = '''DROP SCHEMA IF EXISTS %s CASCADE;
-                   CREATE SCHEMA %s;''' % (cont.get('modelRunTitle'), cont.get('modelRunTitle'))
+                   CREATE SCHEMA %s;''' % (cont.get('model_run_title'), cont.get('model_run_title'))
         self.db.create(query)
 
     def create_tables(self, feedstock):
@@ -46,7 +46,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         run_code    text    ,
                         fug_pm10    float    , 
                         fug_pm25    float)""" % (feedstock,)
-        self._executeQuery(query)
+        self._execute_query(query)
 
         if feedstock != 'FR':
             query = """
@@ -57,7 +57,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                             NH3    float    ,
                             SCC    char(10)    ,
                             description    text)""" % (feedstock,)
-            self._executeQuery(query)
+            self._execute_query(query)
 
         if feedstock == 'SG' or feedstock == 'CG':
             query = """
@@ -67,4 +67,4 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                            SCC    char(10)    ,
                            VOC    float    ,
                            description    text)""" % (feedstock,)
-            self._executeQuery(query)
+            self._execute_query(query)

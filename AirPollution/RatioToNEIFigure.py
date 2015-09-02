@@ -296,7 +296,7 @@ class RatioToNEIFig():
         
         pm2502 AS (SELECT count(fips) AS x FROM %s where pm25 > 0.2),
         pm2501 AS (SELECT count(fips) AS x FROM %s where pm25 > 0.1),
-        pm25005 AS (SELECT count(fips) AS x FROMs %s where pm25 > 0.05)
+        pm25005 AS (SELECT count(fips) AS x FROM %s where pm25 > 0.05)
     
     select nh302.x from co02, nox02, sox02, voc02, nh302, pm1002, pm2502 """ % (query_table, query_table, query_table, 
                                                                                 query_table, query_table, query_table,

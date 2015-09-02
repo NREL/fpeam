@@ -24,7 +24,7 @@ class ScenarioOptions:
         self.path = cont.get('path')  # non-dev directory
         # break flag used to ensure switchgrass database query only happens once. (all other feedstocks need multiple pulls from the database).
         self.querySG = True
-        self.documentFile = "Options"
+        self.document_file = "Options"
         self._create_dir()
         self.run_code = None
         self.data = None
@@ -51,7 +51,7 @@ class ScenarioOptions:
         """        
         fileName = 'Emission Factors'
         for q in query: 
-            data = self.db.output(q, self.db.constantsSchema)
+            data = self.db.output(q, self.db.constants_schema)
             self.qr.documentQuery(fileName, data)     
 
     def get_data(self, run_code):

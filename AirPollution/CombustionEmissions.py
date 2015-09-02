@@ -131,7 +131,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                                 self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
                             # don't change allocation.
                             else: 
-                                self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
+                                self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=None)
                             
                             # change constants back to normal, b/c they can be changes in _get_description()
                             self.lhv = 128450.0 / 1e6  
@@ -151,7 +151,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         @param emmissions: Emmissions from various pollutants. int  
         """
         # multiply the emmissions by allocation constant.
-        if alloc:
+        if alloc is not None:
             fuel_cons, thc, voc, co, nox, co2, so2, pm10, pm25, nh3 = fuel_cons * alloc[feed], thc * alloc[feed], voc * alloc[feed], co * alloc[feed], nox * alloc[feed], co2 * alloc[feed], so2 * alloc[feed], pm10 * alloc[feed], pm25 * alloc[feed], nh3 * alloc[feed]
         writer.writerow((row, scc, hp, fuel_cons, thc, voc, co, nox, co2, so2, pm10, pm25, nh3, run_code,))
         # @TODO: convert to val=dict() format
@@ -209,7 +209,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                     raw."description" AS "description",
                     raw."run_code" AS "run_code", 
                     0 AS "fug_pm10", 0 AS "fug_pm25"
-                FROM """ + self.db.productionSchema + """."sg_data" dat
+                FROM """ + self.db.production_schema + """."sg_data" dat
                 LEFT JOIN raw ON raw."fips" = dat."fips"
                 );"""
         self.db.input(query)
