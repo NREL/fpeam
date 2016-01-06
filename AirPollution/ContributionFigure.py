@@ -14,6 +14,7 @@ from pylab import median, mean
 import matplotlib
 from ContributionTests import ChooseSQL
 # import time
+import os
 
 
 class ContributionAnalysis():
@@ -41,7 +42,7 @@ class ContributionAnalysis():
         activity_list = ['Non-Harvest', 'Fertilizer', 'Chemical', 'Harvest', 'Transport']
         activity_labels = ['Non-Harvest', 'N-Fertilizer', 'Pesticide', 'Harvest', 'Transport']
         
-        self.f = open(self.path + 'Figures/Contribution_numerical.csv', 'w') 
+        self.f = open(self.path + 'Figures' + os.sep + 'Contribution_numerical.csv', 'w')
     # -----------inputs end
         
         index = 0
@@ -84,7 +85,7 @@ class ContributionAnalysis():
         
     #    print figure to a .png file (small file size)
     #    canvas.print_figure('Contribution Analysis.tiff')      
-        fig.savefig(self.path + 'Figures/Contribution_Figure.png', format='png')
+        fig.savefig(self.path + 'Figures' + os.sep + 'Contribution_Figure.png', format='png')
            
         self.f.close()
     #    print time.time() - startTime, ' seconds'

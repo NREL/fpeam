@@ -50,7 +50,7 @@ class EmissionPerProdFigure(object):
             # plot 95% intervals 
             self.__plot_interval__(data_array)
     
-            fig.savefig(self.path + 'Figures/EmissionsPerProd_' + pollutant + '.png', format='png')
+            fig.savefig(self.path + 'Figures' + os.sep + 'EmissionsPerProd_' + pollutant + '.png', format='png')
     
             print pollutant
 
@@ -60,7 +60,7 @@ class EmissionPerProdFigure(object):
 
             # emmissions per production = (pollutant dt) / (total feedstock harvested dt)
             # emmissions = pollutant / prod
-            # TODO: Should harv_ac > 0.0 be here? Should this be in the Options class to eliminate the problem in the first place.
+            # @TODO: Should harv_ac > 0.0 be here? Should this be in the Options class to eliminate the problem in the first place.
 
             feed_abr = f_list[fNum]
             query = """

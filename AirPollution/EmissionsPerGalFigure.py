@@ -8,6 +8,7 @@ from pylab import *
 import matplotlib.pyplot as plt
 from scipy.stats import scoreatpercentile
 from matplotlib.ticker import FixedFormatter
+import os
 
 
 class EmissionsPerGallon():
@@ -29,7 +30,7 @@ class EmissionsPerGallon():
         self.db = cont.get('db')
         self.document_file = "EmissionsPerGallon"
     
-        self.f = open(self.path + 'FIGURES/PerGalEtOH_numerical.csv', 'w')
+        self.f = open(self.path + 'FIGURES' + os.sep + 'PerGalEtOH_numerical.csv', 'w')
         
         self.f.write('feedstock, pollutant, max, 95, 75, median, 25, 5, min, mean \n')
         
@@ -75,7 +76,7 @@ class EmissionsPerGallon():
             # perc95 = self.__plot_interval__(data_array)
             self.__plot_interval__(data_array)
 
-            fig.savefig(self.path + 'Figures/PerGalEtOH_' + pollutant + '.png', format='png')
+            fig.savefig(self.path + 'Figures' + os.sep + 'PerGalEtOH_' + pollutant + '.png', format='png')
 
             print pollutant
 

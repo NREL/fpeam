@@ -1,6 +1,5 @@
 import SaveDataHelper
-
-# What is NEI?
+from utils import config, logger
 
 
 class NEIComparison(SaveDataHelper.SaveDataHelper):
@@ -178,7 +177,7 @@ nh3    float);"""
         # self.nei_data_by_county = self.db.constants_schema + ".nei_data_by_county"
         # new NEI data from Jeremy.
         # nei_nonroad_nonpoint and nei_total
-        self.nei_data_by_county = "full2008nei.nei_nonroad_nonpoint_v3"
+        self.nei_data_by_county = config.get('nei_data_by_county')  #@TODO: remove hard-coding
         # @change: Change allocation. Allocation is the amount of the feedstock that actually get's used to produce ethanol.
         # 9/3
         # old code:     self.cellulosicAllocation = 0.34 demand to meet 16 billion gal of ethonal
@@ -217,7 +216,7 @@ nh3    float);"""
                        sum(pm25) as pm25,
                        sum(voc) as voc,
                        sum(nh3) as nh3 
-                from sgnew.summedemissions 
+                from """ + self.db.schema + """.summedemissions
                 where feedstock ilike '%""" + f + """%'
                 GROUP BY fips),
        nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3 
@@ -252,7 +251,7 @@ nh3    float);"""
                        sum(pm25) as pm25,
                        sum(voc) as voc,
                        sum(nh3) as nh3 
-                from sgnew.summedemissions
+                from """ + self.db.schema + """""" + self.db.schema + """.summedemissions
                 where feedstock not ilike '%""" + p + """%'
                 GROUP BY fips),
        nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3 

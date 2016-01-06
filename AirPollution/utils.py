@@ -3,16 +3,36 @@ import os
 import logging
 import sys
 import datetime
-
+import getpass
 
 # get current date
 cdate = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 
 # get configuration info
-if len(sys.argv) > 1:
-    config = configobj.ConfigObj(os.path.abspath(sys.argv[1]))
-else:
-    config = configobj.ConfigObj(os.path.abspath('config.ini'))
+try:
+    cfile = os.path.abspath(sys.argv[1])
+except IndexError:
+    cfile = os.path.abspath('config.ini')
+
+try:
+    dfile = os.path.abspath(sys.argv[2])
+except IndexError:
+    dfile = os.path.abspath('database.ini')
+
+try:
+    config = configobj.ConfigObj(cfile, file_error=True)
+except (configobj.ConfigObjError, IOError), e:
+    sys.exit('Error with config file {cfile}: {e}'.format(cfile=cfile, e=e))
+
+try:
+    d_config = configobj.ConfigObj(dfile, file_error=True)
+except (configobj.ConfigObjError, IOError), e:
+    sys.exit('Error with database config file {cfile}: {e}'.format(cfile=cfile, e=e))
+
+try:
+    config.merge(d_config)
+except configobj.ConfigObjError, e:
+    sys.exit('Error combining config files {cfile} and {dfile}: {e}'.format(cfile=cfile, e=e, dfile=dfile))
 
 
 def initialize_logger(output_dir=os.getcwd(), level=None):
@@ -24,7 +44,7 @@ def initialize_logger(output_dir=os.getcwd(), level=None):
     :return: main logger object.
     """
 
-    # @TODO: would like to be able to set seperate levels for console and file handlers
+    # @TODO: allow seperate levels for console and file handlers
 
     log_levels = {'CRITICAL': logging.CRITICAL,
                   'ERROR': logging.ERROR,
@@ -51,7 +71,8 @@ def initialize_logger(output_dir=os.getcwd(), level=None):
     logger.addHandler(handler)
 
     # create error file handler
-    handler = logging.FileHandler(os.path.join(output_dir, '%s_%s.log' % (config.filename[:-4], cdate)), 'w', encoding=None, delay='true')
+    log_file = '{u}_{f}_{d}.log'.format(u=getpass.getuser(), f=config.filename[:-4], d=cdate)
+    handler = logging.FileHandler(os.path.join(output_dir, log_file), 'w', encoding=None, delay='true')
     handler.setLevel(log_levels[level])
 
     handler.setFormatter(formatter)

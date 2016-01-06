@@ -23,7 +23,6 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         dust emissions in database.
         Adds pm10, and pm25 emissions.
         @param run_code: Specific run code with info on feedstock and operation.
-        TODO: why does it execute one query then returns another query?
         """
         # Forest Residue fugitive dust emissions
         if run_code.startswith('FR'):

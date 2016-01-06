@@ -11,7 +11,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
     # order of fertilizer list.
     faa, fan, fas, fur, fns = 0, 1, 2, 3, 4
     # order of feed stocks in the fertilizer list.
-    fcs, fws, fcg, fsg = 'CSF', 'WSF', 'CGF', 'SGF'
+    fcs, fws, fcg, fsg = 'CSF', 'WSF', 'CGF', 'SGF'  # @TODO: remove; what is this? Why define these instead of using the strings directly? The strings map to keys that were definied in main.py but now ultimately come from config.ini. Doesn't seem to be used anywhere else.
 
     def __init__(self, cont, fert_feed_stock, fert_dist=None):
         SaveDataHelper.SaveDataHelper.__init__(self, cont=cont)
@@ -35,17 +35,17 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         #    description    text   
         if feed != 'FR':
             # grab all of the queries.
-            query = ''
-            if feed == 'CS' and self.fert_feed_stock[self.fcs]:
+            query = None
+            if feed == 'CS' and self.fert_feed_stock['CSF'] is True:
                 query = self.__corn_stover__(feed)
-            elif feed == 'WS' and self.fert_feed_stock[self.fws]:
+            elif feed == 'WS' and self.fert_feed_stock['WSF'] is True:
                 query = self.__wheat_straw__(feed)
-            elif feed == 'CG' and self.fert_feed_stock[self.fcg]:
+            elif feed == 'CG' and self.fert_feed_stock['CGF'] is True:
                 query = self.__corn_grain__()
-            elif feed == 'SG' and self.fert_feed_stock[self.fsg]:
+            elif feed == 'SG' and self.fert_feed_stock['SGF'] is True:
                 query = self.__switchgrass__(feed)
             # if a query was created, execute it.
-            if query:
+            if query is not None:
                 self._execute_query(query)
 
     def get_frt_distribution(self, fert_distributions):
@@ -84,7 +84,8 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         
         (lbs fertilizer/lb feedstock) * (% NH3) * (mt/lbs) * (lbs feedstock) * (lbs NH3/lbs fertilizer) for (17.0/14.0)? = mt NH3
         """
-        # @TODO: rewriter to use string formatting and make more readable
+        # @TODO: rewrite to use string formatting and make more readable
+        # @TODO: remove feed var. isn't it always the same in each of these 'make query' functions?
         fert_query = """        
 INSERT INTO """ + feed + """_nfert
     (

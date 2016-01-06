@@ -25,7 +25,7 @@ class RatioToNEIFig():
         self.path = cont.get('path')
         self.document_file = "RatioToNEIFig"
     
-        self.f = open(self.path + 'Figures/RatioToNEI_Numerical.csv', 'w')
+        self.f = open(self.path + 'Figures' + os.sep + 'RatioToNEI_Numerical.csv', 'w')
         
         self.f.write('feedstock, pollutant, max, 95, 75, median, 25, 5, min \n')
         
@@ -105,7 +105,7 @@ class RatioToNEIFig():
             self.__set_axis__(plot_title, axis_title, data_array, data_labels)    
 
             # show()
-            fig.savefig(self.path + 'Figures/RatioToNEI_' + query_table + '.png', format='png')
+            fig.savefig(self.path + 'Figures' + os.sep + 'RatioToNEI_' + query_table + '.png', format='png')
 
     #        print figure to a .png file (small file size)
     #        canvas.print_figure(query_table + '.tiff')

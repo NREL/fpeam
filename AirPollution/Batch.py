@@ -5,6 +5,7 @@ for each run code.
 """
 
 from subprocess import Popen
+from utils import config, logger
 
 
 class Batch:
@@ -15,7 +16,7 @@ class Batch:
         @param cont: dictionary containing title, path, etc
         """
         # run title.
-        self.model_run_title = cont.get('model_run_title')
+        self.model_run_title = cont.get(key='model_run_title')
         # path to batch directory.
         self.path = cont.get(key='path') + 'OPT/'
         # path to batch to be used in a batch file.
@@ -43,7 +44,7 @@ class Batch:
         """
         self.scenario_batch_file.write('\n')
         self.batch_file = open(self.path + run_code + '.bat', 'w')
-        self.batch_file.write("cd C:\\NonRoad\n")  # @TODO: remove hardcoding
+        self.batch_file.write("cd %s\n" % (config.get('project_path'), ))
 
     def append(self, state, run_code):
         """
@@ -53,7 +54,11 @@ class Batch:
         @param state: state the batch file is running.
         @param run_code: run code. 
         """
-        lines = "NONROAD.exe " + self.batch_path + run_code + '\\' + state + ".opt\n"
+        # lines = "NONROAD.exe " + self.batch_path + run_code + '\\' + state + ".opt\n"
+        lines = '{nr_path} {batch_path}{run_code}\\{state}.opt\n'.format(nr_path=config.get('nonroad_path'),
+                                                                         batch_path=self.batch_path,
+                                                                         run_code=run_code,
+                                                                         state=state)
         self.batch_file.writelines(lines) 
     
     def finish(self, run_code):

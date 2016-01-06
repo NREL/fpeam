@@ -65,7 +65,7 @@ class EmissionsPerAcreFigure():
             # plot 95% intervals 
             self.__plot_interval__(data_array)
     
-            fig.savefig(self.path + 'Figures/EmissionsPerAcre_' + pollutant + '.png', format='png')
+            fig.savefig(self.path + 'Figures' + os.sep + 'EmissionsPerAcre_' + pollutant + '.png', format='png')
 
             print pollutant
 

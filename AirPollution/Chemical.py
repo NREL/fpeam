@@ -13,7 +13,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
     run the pesticide code for them. dict(string) 
     """
 
-    pcg, psg = 'CGP', 'SGP'
+    pcg, psg = 'CGP', 'SGP'  # @TODO: remove; doesn't seem to be necessary
 
     def __init__(self, cont, pest_feed):
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
@@ -26,15 +26,21 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         Find the feedstock and add emmissions if it is switch grass or corn grain.
         @param feed: Feed stock.
         """
-        query = ''
-        if feed == 'CG' or feed == 'SG': 
-            if feed == 'CG' and self.pest_feed[self.pcg]:
-                query = self.__corn_grain__()
-            elif feed == 'SG' and self.pest_feed[self.psg]:
-                query = self.__switchgrass__()
-            # if a query was made, execute it.
-            if query:
-                self._execute_query(query)
+        # I think this is all horked up:
+        #   self.pcg and self.psg are implicitly defined rather than explicity in __init__
+        #       but not with numbers from the config or anywhere else, but what look like different acronyms
+        #       those acronyms match the acronyms used in main.py (now in config.ini)
+        #       I think that means each line is saying run query if the feedstock matches CG or SG and there are non-NaNs
+        #   but defining query = '' means query is always
+        query = None  # @TODO: remove;  extraneous definition
+#        if feed == 'CG' or feed == 'SG':  # @TODO: remove;  extraneous check
+        if feed == 'CG' and self.pest_feed['CGP'] is True:
+            query = self.__corn_grain__()
+        elif feed == 'SG' and self.pest_feed['SGP'] is True:
+            query = self.__switchgrass__()
+        # if a query was made, execute it.
+        if query is not None:
+            self._execute_query(query)
 
     def __corn_grain__(self):
         """
