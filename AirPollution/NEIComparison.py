@@ -251,7 +251,7 @@ nh3    float);"""
                        sum(pm25) as pm25,
                        sum(voc) as voc,
                        sum(nh3) as nh3 
-                from """ + self.db.schema + """""" + self.db.schema + """.summedemissions
+                from """ + self.db.schema + """.summedemissions
                 where feedstock not ilike '%""" + p + """%'
                 GROUP BY fips),
        nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3 

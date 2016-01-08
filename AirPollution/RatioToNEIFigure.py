@@ -11,7 +11,7 @@ from pylab import *
 import matplotlib.pyplot as plt
 from scipy.stats import scoreatpercentile
 import re
-
+import os
 
 class RatioToNEIFig():
     
