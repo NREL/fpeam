@@ -191,7 +191,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                         sum("pm25") AS "pm25",
                         sum("co")   AS "co",
                         sum("fuel_consumption") AS "fuel_consumption"
-                    FROM "sgnew"."sg_raw"
+                    FROM """ + self.db.schema + """."sg_raw"
                     GROUP BY "fips", "run_code", "description"
                 )
                 (
