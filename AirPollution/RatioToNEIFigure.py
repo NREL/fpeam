@@ -11,7 +11,8 @@ from pylab import *
 import matplotlib.pyplot as plt
 from scipy.stats import scoreatpercentile
 import re
-
+import os
+from src.AirPollution.utils import config, logger
 
 class RatioToNEIFig():
     
@@ -66,7 +67,7 @@ class RatioToNEIFig():
                 
             print query_table
             # Sets Y-Axis label to include (n) county totals---------
-            query_count = 'SELECT COUNT(fips) FROM sgnew.%s' % (query_table,)
+            query_count = 'SELECT COUNT(fips) FROM %s.%s' % (self.db.schema,query_table)
             county_num = self.db.output(query_count, self.db.schema)
             county_fix = ''.join(str(s) for s in str(county_num) if s not in "()L[],")
             axis_title = 'Ratio (R) of %s emissions to 2008 NEI\n (n = %s counties)' % (feedstock_list[feedstock], county_fix)

@@ -7,7 +7,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from pylab import *
 import matplotlib.pyplot as plt
 from scipy.stats import scoreatpercentile
-
+import os
 
 class EmissionsPerAcreFigure():
     """
