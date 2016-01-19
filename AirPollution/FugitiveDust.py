@@ -398,9 +398,8 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                 query = """
                         UPDATE "sg_raw" raw
                         SET 
-                            "fug_pm10 = """ + str("(" + k10 + "* "+ D +" * 0.907/2000 * ((tfd.silt / 12)^" + a10 + ") * ((" + weight + "/3)^" + b10 + "))/"+ rot+"") + """,
-                            "fug_pm25 = """ + str("(" + k25 + "* "+ D +" * 0.907/2000 * ((tfd.silt / 12)^" + a25 + ") * ((" + weight + "/3)^" + b25 + "))/"+ rot+"") + """
-
+                            fug_pm10 = """ + str("(" + k10 + "* "+ D +" * 0.907/2000 * ((tfd.silt / 12)^" + a10 + ") * ((" + weight + "/3)^" + b10 + "))/"+ rot+"") + """,
+                            fug_pm25 = """ + str("(" + k25 + "* "+ D +" * 0.907/2000 * ((tfd.silt / 12)^" + a25 + ") * ((" + weight + "/3)^" + b25 + "))/"+ rot+"") + """
                         FROM """ + self.db.constants_schema + """."transportfugitivedust" tfd
                         WHERE     (raw."fips" ILIKE tfd."fips" || '%') AND
                                   (raw."run_code" ILIKE '""" + str("%" + self.description + str(year + 1) + "%") + """')"""
