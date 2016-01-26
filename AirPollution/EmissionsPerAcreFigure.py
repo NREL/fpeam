@@ -4,10 +4,14 @@ http://matplotlib.org/examples/pylab_examples/boxplot_demo2.html
 """
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from pylab import *
+from pylab import *  # @TODO: remove global scope import
 import matplotlib.pyplot as plt
 from scipy.stats import scoreatpercentile
 import os
+
+# @TODO: refactor to match PEP8 standards
+# @TODO: refactor to use string formatting
+# @TODO: fill out docstrings
 
 class EmissionsPerAcreFigure():
     """
@@ -21,9 +25,11 @@ class EmissionsPerAcreFigure():
     def __init__(self, cont):
         """
         Create emmision graphs per a acre..
-        @param db: Database.
-        @param path: Directory path.
+
+        :param cont:
+        :return:
         """
+
         self.path = cont.get('path')
         self.db = cont.get('db')
         self.document_file = "EmissionsPerAcreFigure"
@@ -35,7 +41,7 @@ class EmissionsPerAcreFigure():
         f_list = ['CG', 'SG', 'CS', 'WS']
         pollutant_list = ['NOx', 'NH3', 'CO', 'SOx', 'VOC', 'PM10', 'PM25']
 
-        query_table = 'summedemissions'
+        query_table = 'summedemissions'  # @TODO: remove hardcoded table name
 
         for p_num, pollutant in enumerate(pollutant_list):
             # -----------------EXTRACT DATA FROM THE DATABASE-----------------    
@@ -67,15 +73,22 @@ class EmissionsPerAcreFigure():
     
             fig.savefig(self.path + 'Figures' + os.sep + 'EmissionsPerAcre_' + pollutant + '.png', format='png')
 
-            print pollutant
+            print pollutant  # @TODO: convert to logger
 
     def __collect_data__(self, query_table, feedstock_list, pollutant):
+        """
+
+        :param query_table:
+        :param feedstock_list:
+        :param pollutant:
+        :return:
+        """
         data = []
         for fNum, feedstock in enumerate(feedstock_list):
 
             # emmissions per acre = (pollutant mt) / (total acres)
             # emmissions = pollutant / harv_ac
-            # @TODO: Should harv_ac > 0.0 be here? Should this be in the Options class to eliminate the problem in the first place.
+            # @TODO: Should harv_ac > 0.0 be here? Should this be in the Options class to eliminate the problem in the first place?
 
             query = """
                     SELECT (%s) / (harv_ac) FROM %s.%s WHERE harv_ac > 0.0 AND feedstock ILIKE '%s';
@@ -86,6 +99,11 @@ class EmissionsPerAcreFigure():
         return data
 
     def __plot_interval__(self, data_array):
+        """
+
+        :param data_array:
+        :return:
+        """
 
         num_feed = 4
         num_array = array([x for x in range(num_feed)]) + 1  # index starts at 1, not zero
@@ -128,14 +146,15 @@ class EmissionsPerAcreFigure():
         self.ax1.set_xticklabels(data_labels, size=25, style='normal')   
         
 if __name__ == "__main__": 
-    from model.Database import Database
-    import Container
-    
-    title = 'sgNew'
-    cont = Container.Container()
-    cont.set('path', 'C:/Nonroad/%s/' % (title))
-    cont.set('db', Database(title))
-    
-    # Emissions per a production acre figure.
-    print 'Creating emissions per acre figure.'
-    EmissionsPerAcreFigure(cont)                      
+    # from model.Database import Database
+    # import Container
+    #
+    # title = 'sgNew'
+    # cont = Container.Container()
+    # cont.set('path', 'C:/Nonroad/%s/' % (title))
+    # cont.set('db', Database(title))
+    #
+    # # Emissions per a production acre figure.
+    # print 'Creating emissions per acre figure.'
+    # EmissionsPerAcreFigure(cont)
+    raise NotImplementedError
