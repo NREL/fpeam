@@ -10,30 +10,35 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from pylab import *
 import matplotlib.pyplot as plt
 from scipy.stats import scoreatpercentile
-import re
+# import re
 import os
 from src.AirPollution.utils import config, logger
+
+
+# @TODO: refactor to match PEP8 standards
+# @TODO: refactor to use string formatting
+# @TODO: fill out docstrings
 
 class RatioToNEIFig():
     
     def __init__(self, cont):
         """
         Create model.
-        @param db: Database.
-        @param path: Path to Directory.
+        :param cont:
         """
+
         self.db = cont.get('db')
         self.path = cont.get('path')
         self.document_file = "RatioToNEIFig"
     
-        self.f = open(self.path + 'Figures' + os.sep + 'RatioToNEI_Numerical.csv', 'w')
+        self.f = open(self.path + 'Figures' + os.sep + 'RatioToNEI_Numerical.csv', 'w')  # @TODO: remove hardcoded filename
         
         self.f.write('feedstock, pollutant, max, 95, 75, median, 25, 5, min \n')
         
-        pollutant_list = ['NH3', 'NOX', 'VOC', 'PM25', 'PM10', 'CO', 'SOX']
+        pollutant_list = ['NH3', 'NOX', 'VOC', 'PM25', 'PM10', 'CO', 'SOX']  # @TODO: remove hardcoded values
         # define inputs/constants:
         data_labels = ['$NH_3$', '$NO_x$', '$VOC$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$']
-        feedstock_list = ['corn grain', 'switchgrass', 'corn stover', 'wheat straw', 'forest residue', 'cellulosic']
+        feedstock_list = ['corn grain', 'switchgrass', 'corn stover', 'wheat straw', 'forest residue', 'cellulosic']  # @TODO: remove hardcoded values
 
         # return number arrays for plotting
         self.num_pollut = 6
@@ -41,7 +46,7 @@ class RatioToNEIFig():
         
         plot_title = ''
     
-        for feedstock in range(6):
+        for feedstock in range(6):  # @TODO: refactor to use dictionary lookup
             # Model Corn Grain Scenario
             if feedstock == 0:
                 query_table = "cg_neiratio"
@@ -65,11 +70,11 @@ class RatioToNEIFig():
             elif feedstock == 5:
                 query_table = "cellulosic_neiratio"
                 
-            print query_table
+            print query_table  # @TODO: convert to logger
             # Sets Y-Axis label to include (n) county totals---------
-            query_count = 'SELECT COUNT(fips) FROM %s.%s' % (self.db.schema,query_table)
+            query_count = 'SELECT COUNT(fips) FROM %s.%s' % (self.db.schema, query_table)
             county_num = self.db.output(query_count, self.db.schema)
-            county_fix = ''.join(str(s) for s in str(county_num) if s not in "()L[],")
+            county_fix = ''.join(str(s) for s in str(county_num) if s not in "()L[],")  # @TODO: replace with standard function
             axis_title = 'Ratio (R) of %s emissions to 2008 NEI\n (n = %s counties)' % (feedstock_list[feedstock], county_fix)
             # PART 1, EXTRACT DATA FROM THE DATABASE-----------------
             data_array = self.__collect_data__(query_table)
@@ -112,7 +117,12 @@ class RatioToNEIFig():
     #        canvas.print_figure(query_table + '.tiff')
 
     def __collect_data__(self, query_table):
-        pollutants = ['nh3', 'nox', 'voc', 'pm25', 'pm10', 'co', 'sox']
+        """
+
+        :param query_table:
+        :return:
+        """
+        pollutants = ['nh3', 'nox', 'voc', 'pm25', 'pm10', 'co', 'sox']  # @TODO: remove hardcoded values
         nei_data = {}
         for poll in pollutants:
             nei_data[poll] = self._make_query(poll, query_table)
@@ -139,6 +149,12 @@ class RatioToNEIFig():
         return [nei_data[p] for p in pollutants]
 
     def _make_query(self, pollutant, query_table):
+        """
+
+        :param pollutant:
+        :param query_table:
+        :return:
+        """
         query = """SELECT """ + pollutant + """
                 FROM """ + self.db.schema + """.""" + query_table + """
                 WHERE """ + pollutant + """ > 0.0;"""  
@@ -151,6 +167,14 @@ class RatioToNEIFig():
         same population (n), the counts between each interval will the the same. i.e.
         the count of counties > the 95% interval will the be same for co as for nox.
         Hence, these statistic calculated here will apply to all of the pollutants.
+
+        :param data_array:
+        :param pollutant_list:
+        :param feedstock_list:
+        :param feedstock:
+
+        :return:
+
         """
         for pNum, pollutant in enumerate(pollutant_list):
             lines = [feedstock_list[feedstock], pollutant, max(data_array[pNum])[0],
@@ -166,7 +190,11 @@ class RatioToNEIFig():
     def __plot_interval__(self, data_array):
         """
         function to calculate and plot the 95% intervals
+
+        :param data_array:
+        :return:
         """
+
         # plot 95% interval
         perc95 = array([scoreatpercentile(data_array[0], 95), scoreatpercentile(data_array[1], 95),
                         scoreatpercentile(data_array[2], 95), scoreatpercentile(data_array[3], 95),
@@ -194,9 +222,17 @@ class RatioToNEIFig():
     def __set_axis__(self, plot_title, axis_title, data_array, data_labels):
         """
         function to set axis titles and plot titles
+
+        :param plot_title:
+        :param axis_title:
+        :param data_array:
+        :param data_labels:
+        :return:
+
         """
-        # Add a horizontal grid to the plot, but make it very light in color
-        # so we can use it for reading data values but not be distracting
+
+        # @TODO: Add a horizontal grid to the plot, but make it very light in color
+        # @TODO: so we can use it for reading data values but not be distracting
         self.ax1.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.7)
         
         # Hide these grid behind plot objects
@@ -269,6 +305,8 @@ class RatioToNEIFig():
         plt.plot(range(9), [0.1] * 9, color='green', alpha=0.8, linestyle='--')
         plt.plot(range(9), [0.05] * 9, color='blue', alpha=0.8, linestyle=':')
 
+        # @TODO: heavens to betsy refactor so we don't have scores of queries that look almost exactly the same
+
         query1 = """
     WITH
         co02 AS (SELECT count(fips) AS x FROM %s where co > 0.2),
@@ -308,7 +346,7 @@ class RatioToNEIFig():
                                                                                 query_table, query_table, query_table)
 
         nh302_data = self.db.output(query1, self.db.schema)
-        nh302_fix = ''.join(str(s) for s in str(nh302_data) if s not in "()L[],")
+        nh302_fix = ''.join(str(s) for s in str(nh302_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(0.8, 0.7e-7, nh302_fix, size=11, color='red')
         # plt.figtext(0.2, 0.2, nh302_fix)
 
@@ -351,7 +389,7 @@ class RatioToNEIFig():
                                                                                 query_table, query_table, query_table)
 
         nox02_data = self.db.output(query2, self.db.schema)
-        nox02_fix = ''.join(str(s) for s in str(nox02_data) if s not in "()L[],")
+        nox02_fix = ''.join(str(s) for s in str(nox02_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(1.8, 0.7e-7, nox02_fix, size=11, color='red')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -394,7 +432,7 @@ class RatioToNEIFig():
                                                                                 query_table, query_table, query_table)
 
         voc02_data = self.db.output(query3, self.db.schema)
-        voc02_fix = ''.join(str(s) for s in str(voc02_data) if s not in "()L[],")
+        voc02_fix = ''.join(str(s) for s in str(voc02_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(2.8, 0.7e-7, voc02_fix, size=11, color='red')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -437,7 +475,7 @@ class RatioToNEIFig():
                                                                                  query_table, query_table, query_table)
 
         pm2502_data = self.db.output(query4, self.db.schema)
-        pm2502_fix = ''.join(str(s) for s in str(pm2502_data) if s not in "()L[],")
+        pm2502_fix = ''.join(str(s) for s in str(pm2502_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(3.8, 0.7e-7, pm2502_fix, size=11, color='red')
         # plt.figtext(0.2, 0.1, pm2502_fix)
 
@@ -480,7 +518,7 @@ class RatioToNEIFig():
                                                                                  query_table, query_table, query_table)
 
         pm1002_data = self.db.output(query5, self.db.schema)
-        pm1002_fix = ''.join(str(s) for s in str(pm1002_data) if s not in "()L[],")
+        pm1002_fix = ''.join(str(s) for s in str(pm1002_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(4.8, 0.7e-7, pm1002_fix, size=11, color='red')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -523,7 +561,7 @@ class RatioToNEIFig():
                                                                                query_table, query_table, query_table)
 
         co02_data = self.db.output(query6, self.db.schema)
-        co02_fix = ''.join(str(s) for s in str(co02_data) if s not in "()L[],")
+        co02_fix = ''.join(str(s) for s in str(co02_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(5.8, 0.7e-7, co02_fix, size=11, color='red')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -566,7 +604,7 @@ class RatioToNEIFig():
                                                                                 query_table, query_table, query_table)
 
         sox02_data = self.db.output(query7, self.db.schema)
-        sox02_fix = ''.join(str(s) for s in str(sox02_data) if s not in "()L[],")
+        sox02_fix = ''.join(str(s) for s in str(sox02_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(6.8, 0.7e-7, sox02_fix, size=11, color='red')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -609,7 +647,7 @@ class RatioToNEIFig():
                                                                                 query_table, query_table, query_table)
 
         nh301_data = self.db.output(query11, self.db.schema)
-        nh301_fix = ''.join(str(s) for s in str(nh301_data) if s not in "()L[],")
+        nh301_fix = ''.join(str(s) for s in str(nh301_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(0.8, 0.4e-7, nh301_fix, size=11, color='green')
         # plt.figtext(0.2, 0.2, nh302_fix)
 
@@ -652,7 +690,7 @@ class RatioToNEIFig():
                                                                                 query_table, query_table, query_table)
 
         nox01_data = self.db.output(query21, self.db.schema)
-        nox01_fix = ''.join(str(s) for s in str(nox01_data) if s not in "()L[],")
+        nox01_fix = ''.join(str(s) for s in str(nox01_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(1.8, 0.4e-7, nox01_fix, size=11, color='green')
         # plt.figtext(0.2, 0.1, nox02_fix)
         
@@ -695,7 +733,7 @@ class RatioToNEIFig():
                                                                                 query_table, query_table, query_table)
 
         voc01_data = self.db.output(query31, self.db.schema)
-        voc01_fix = ''.join(str(s) for s in str(voc01_data) if s not in "()L[],")
+        voc01_fix = ''.join(str(s) for s in str(voc01_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(2.8, 0.4e-7, voc01_fix, size=11, color='green')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -738,7 +776,7 @@ class RatioToNEIFig():
                                                                                  query_table, query_table, query_table)
 
         pm2501_data = self.db.output(query41, self.db.schema)
-        pm2501_fix = ''.join(str(s) for s in str(pm2501_data) if s not in "()L[],")
+        pm2501_fix = ''.join(str(s) for s in str(pm2501_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(3.8, 0.4e-7, pm2501_fix, size=11, color='green')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -781,7 +819,7 @@ class RatioToNEIFig():
                                                                                  query_table, query_table, query_table)
 
         pm1001_data = self.db.output(query51, self.db.schema)
-        pm1001_fix = ''.join(str(s) for s in str(pm1001_data) if s not in "()L[],")
+        pm1001_fix = ''.join(str(s) for s in str(pm1001_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(4.8, 0.4e-7, pm1001_fix, size=11, color='green')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -824,7 +862,7 @@ class RatioToNEIFig():
                                                                                query_table, query_table, query_table)
 
         co01_data = self.db.output(query61, self.db.schema)
-        co01_fix = ''.join(str(s) for s in str(co01_data) if s not in "()L[],")
+        co01_fix = ''.join(str(s) for s in str(co01_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(5.8, 0.4e-7, co01_fix, size=11, color='green')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -867,7 +905,7 @@ class RatioToNEIFig():
                                                                                 query_table, query_table, query_table)
 
         sox01_data = self.db.output(query71, self.db.schema)
-        sox01_fix = ''.join(str(s) for s in str(sox01_data) if s not in "()L[],")
+        sox01_fix = ''.join(str(s) for s in str(sox01_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(6.8, 0.4e-7, sox01_fix, size=11, color='green')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -910,7 +948,7 @@ class RatioToNEIFig():
                                                                                         query_table, query_table, query_table)
 
         nh3005_data = self.db.output(query12, self.db.schema)
-        nh3005_fix = ''.join(str(s) for s in str(nh3005_data) if s not in "()L[],")
+        nh3005_fix = ''.join(str(s) for s in str(nh3005_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(0.8, 0.22e-7, nh3005_fix, size=11, color='blue')
         # plt.figtext(0.2, 0.2, nh302_fix)
         
@@ -953,7 +991,7 @@ class RatioToNEIFig():
                                                                                         query_table, query_table, query_table)
 
         nox005_data = self.db.output(query22, self.db.schema)
-        nox005_fix = ''.join(str(s) for s in str(nox005_data) if s not in "()L[],")
+        nox005_fix = ''.join(str(s) for s in str(nox005_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(1.8, 0.22e-7, nox005_fix, size=11, color='blue')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -996,7 +1034,7 @@ class RatioToNEIFig():
                                                                                         query_table, query_table, query_table)
 
         voc005_data = self.db.output(query32, self.db.schema)
-        voc005_fix = ''.join(str(s) for s in str(voc005_data) if s not in "()L[],")
+        voc005_fix = ''.join(str(s) for s in str(voc005_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(2.8, 0.22e-7, voc005_fix, size=11, color='blue')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -1039,7 +1077,7 @@ class RatioToNEIFig():
                                                                                          query_table, query_table, query_table)
 
         pm25005_data = self.db.output(query42, self.db.schema)
-        pm25005_fix = ''.join(str(s) for s in str(pm25005_data) if s not in "()L[],")
+        pm25005_fix = ''.join(str(s) for s in str(pm25005_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(3.8, 0.22e-7, pm25005_fix, size=11, color='blue')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -1082,7 +1120,7 @@ class RatioToNEIFig():
                                                                                          query_table, query_table, query_table)
 
         pm10005_data = self.db.output(query52, self.db.schema)
-        pm10005_fix = ''.join(str(s) for s in str(pm10005_data) if s not in "()L[],")
+        pm10005_fix = ''.join(str(s) for s in str(pm10005_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(4.8, 0.22e-7, pm10005_fix, size=11, color='blue')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -1125,7 +1163,7 @@ class RatioToNEIFig():
                                                                                        query_table, query_table, query_table)
 
         co005_data = self.db.output(query62, self.db.schema)
-        co005_fix = ''.join(str(s) for s in str(co005_data) if s not in "()L[],")
+        co005_fix = ''.join(str(s) for s in str(co005_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(5.8, 0.22e-7, co005_fix, size=11, color='blue')
         # plt.figtext(0.2, 0.1, nox02_fix)
 
@@ -1168,7 +1206,7 @@ class RatioToNEIFig():
                                                                                         query_table, query_table, query_table)
 
         sox005_data = self.db.output(query72, self.db.schema)
-        sox005_fix = ''.join(str(s) for s in str(sox005_data) if s not in "()L[],")
+        sox005_fix = ''.join(str(s) for s in str(sox005_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(6.8, 0.22e-7, sox005_fix, size=11, color='blue')
         # plt.figtext(0.2, 0.1, nox02_fix)
         
