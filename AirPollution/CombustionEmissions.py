@@ -3,8 +3,12 @@ import csv
 import os
 
 
-class CombustionEmissions(SaveDataHelper.SaveDataHelper):
+# @TODO: refactor to match PEP8 standards
+# @TODO: refactor to use string formatting
+# @TODO: fill out docstrings
+# @TODO: make utils.logger and utils.config available here
 
+class CombustionEmissions(SaveDataHelper.SaveDataHelper):
     """
     Writes raw data for emmisions to a .csv file that can be opened with excel.
     Then saves the data to the db with name <run_code>_raw.
@@ -14,17 +18,24 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
     for quick debugging and error checking.  
     Combustion emmisions associated with harvest and non-harvest methods that use non-road vehicles.
     """
+
     def __init__(self, cont, operation_dict, alloc):
         """
-        @param operation_dict: dictionary containing 3 feedstocks that have harvest, non-harvest, and transport.
+
         Each feedstock contains another dictionary of the harvest methods and weather to do the run with them.
         dict(dict(boolean))
-        {'CS': {'H': True, 'N': True, 'T': True}, 
+        {'CS': {'H': True, 'N': True, 'T': True},
         'WS': {'H': True, 'N': True, 'T': True},
         'CG': {'H': True, 'N': True, 'T': True}}
-        @param alloc: Amount of non harvest emmisions to allocate to cg, cs, and ws. dict(string: int)
-        {'CG': .9, 'CS': .1, 'WS': .1}
+
+        :param cont:
+        :param operation_dict: dictionary containing 3 feedstocks that have harvest, non-harvest, and transport
+        :param alloc: Amount of non harvest emmisions to allocate to cg, cs, and ws. dict(string: int)
+            {'CG': .9, 'CS': .1, 'WS': .1}
+        :return:
+
         """
+
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.document_file = "CombustionEmissions"
         # not used here?
@@ -40,6 +51,11 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         self.pm10topm25 = None
 
     def populate_tables(self, run_codes):
+        """
+
+        :param run_codes:
+        :return:
+        """
         
         # short ton = 0.90718474 metric tonn
         convert_tonne = 0.9071847  # metric ton / dry ton
@@ -84,7 +100,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 reader = csv.reader(open(path + cur_file))
 
                 # account for headers in file, skip the first 10 lines.
-                for i in range(10):
+                for i in range(10):  # @TODO: refactor to use slicing
                     reader.next()
 
                 for row in reader:
@@ -146,17 +162,39 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
     def _record(self, feed, row, scc, hp, fuel_cons, thc, voc, co, nox, co2, so2, pm10, pm25, nh3, description, run_code, writer, queries, alloc=None):
         """
         write data to static files and the database
-        @param feed: Feed stock. string
-        @param alloc: Allocation of non-harvest emmissions between cg, cs, and ws. dict(string: int)
-        @param emmissions: Emmissions from various pollutants. int  
+
+        :param feed: STRING Feed stock
+        :param row:
+        :param scc:
+        :param hp:
+        :param fuel_cons:
+        :param thc:
+        :param voc:
+        :param co:
+        :param nox:
+        :param co2:
+        :param so2:
+        :param pm10:
+        :param pm25:
+        :param nh3:
+        :param description:
+        :param run_code:
+        :param writer:
+        :param queries:
+        :param alloc:
+        :return:
+        @param feed:
+        @param alloc: dict(string: int) Allocation of non-harvest emmissions between cg, cs, and ws
         """
+
         # multiply the emmissions by allocation constant.
         if alloc is not None:
+            # @TODO: refactor to not do multiple assignments on one giant, hopelessly unreadable line
             fuel_cons, thc, voc, co, nox, co2, so2, pm10, pm25, nh3 = fuel_cons * alloc[feed], thc * alloc[feed], voc * alloc[feed], co * alloc[feed], nox * alloc[feed], co2 * alloc[feed], so2 * alloc[feed], pm10 * alloc[feed], pm25 * alloc[feed], nh3 * alloc[feed]
         writer.writerow((row, scc, hp, fuel_cons, thc, voc, co, nox, co2, so2, pm10, pm25, nh3, run_code,))
         # @TODO: convert to val=dict() format
         q = """INSERT INTO %s.%s_raw ("fips", "scc", "hp", "thc", "voc", "co", "nox", "co2", "sox", "pm10", "pm25", "fuel_consumption", "nh3", "description", "run_code") 
-               VALUES ('%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')""" % (self.db.schema, feed, row, scc, hp, thc, voc, co, nox, co2, so2, pm10, pm25, fuel_cons, nh3, description, run_code)
+               VALUES ('%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')""" % (self.db.schema, feed, row, scc, hp, thc, voc, co, nox, co2, so2, pm10, pm25, fuel_cons, nh3, description, run_code)  # @TODO: refactor to use string formatting
         queries.append(q)
 
     def update_sg(self):
@@ -165,9 +203,11 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         This creates multiple rows in the db for each operation year. To remove the duplicate columns,
         for each fips and for each operation year, add all the same ones and make a single row.
         """
+
         # insert added data to sg_raw.
         self._insert_sg_data()
         # delete old data from sg_raw.
+        # @TODO: add logging message here so we know we're deleting data
         self._delete_sg_data()
     
     def _insert_sg_data(self):
@@ -177,6 +217,8 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         by adding together multiple entries from the different hp's. Adds data to sg_raw.
         """
         # when inserting, leave some of the slots blank that do not matter.
+        # @TODO: not sure we should be using 0s for 'blanks'; maybe should use NULL
+        # @TODO: refactor to use string formatting
         query = """
             INSERT INTO """ + self.db.schema + """."sg_raw"
             WITH 
@@ -225,7 +267,15 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         self.db.input(query)
 
     def _get_description(self, run_code, scc, hp):
+        """
+
+        :param run_code:
+        :param scc:
+        :param hp:
+        :return:
+        """
         # cast hp as a number
+        # @TODO: this probably shouldn't be casting to an int; no reason horsepower couldn't be a float
         hp = int(hp)
         # in case operation does not get defined.
         operation = ''
@@ -336,3 +386,6 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             description = tillage + ' - ' + operation    
          
         return description, operation 
+
+if __name__ == '__main__':
+    raise NotImplementedError
