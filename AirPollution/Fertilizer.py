@@ -9,7 +9,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
     """
 
     # order of fertilizer list.
-    faa, fan, fas, fur, fns = 0, 1, 2, 3, 4
+    faa, fan, fas, fur, fns = 0, 1, 2, 3, 4  # @TODO: refactor to remove implicit ordering
     # order of feed stocks in the fertilizer list.
     fcs, fws, fcg, fsg = 'CSF', 'WSF', 'CGF', 'SGF'  # @TODO: remove; what is this? Why define these instead of using the strings directly? The strings map to keys that were definied in main.py but now ultimately come from config.ini. Doesn't seem to be used anywhere else.
 
@@ -52,7 +52,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         """
         Get fertilizer distribution. The user can either input their own distribution, 
         or use the predefined distribution on the db.
-        @param fert_distribution: Distribution of the the five different fertilizers. dict(string: list(string)
+        @param fert_distributions: Distribution of the the five different fertilizers. dict(string: list(string)
         @return: Distribution of the five different fertilizers as a percentage. Must sum up to 1.
         Order: annhydrous_amonia, ammonium_nitrate, ammonium_sulfate, urea, nsol. (list(string))
         """    
