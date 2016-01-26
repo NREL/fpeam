@@ -1,10 +1,19 @@
 import SaveDataHelper
 from utils import config, logger
 
+# @TODO: refactor to match PEP8 standards
+# @TODO: refactor to use string formatting
+# @TODO: fill out docstrings
 
 class NEIComparison(SaveDataHelper.SaveDataHelper):
-    
+    """
+
+    """
+
     def __init__(self, cont):
+        """
+
+        """
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.document_file = "NEIComparison"
         self.nei_data_by_county = None
@@ -27,6 +36,7 @@ CO    float    DEFAULT 0.0);"""
         self._execute_query(query)
 
     def __set_nei_ratio_table__(self, feedstock):
+
         query = """
 CREATE TABLE """ + feedstock + """_NEIRatio
 (
@@ -274,3 +284,6 @@ nh3    float);"""
                 """
 
         self._execute_query(query)
+
+if __name__ == '__main__':
+    raise NotImplementedError
