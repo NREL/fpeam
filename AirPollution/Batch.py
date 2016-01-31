@@ -15,16 +15,22 @@ class Batch:
         Initiate Batch class by recording batch paths and creating the Document.
         @param cont: dictionary containing title, path, etc
         """
+
         # run title.
         self.model_run_title = cont.get(key='model_run_title')
+
         # path to batch directory.
-        self.path = cont.get(key='path') + 'OPT/'
+        self.path = cont.get(key='path') + 'OPT/'  # @TODO: convert to string formatting and os.sep usage
+
         # path to batch to be used in a batch file.
         self.batch_path = self.path.replace('/', '\\') 
+
         # master path to the batch file that keeps track of all the run_code batch files.
-        self.master_path = self.path + cont.get(key='model_run_title') + '.bat'
+        self.master_path = self.path + cont.get(key='model_run_title') + '.bat'  # @TODO: convert to string formatting
+
         # create scenario level batch file. Needs the file directory to be created before creating.
         self.scenario_batch_file = None
+
         # current batch file being made.
         self.batch_file = None
     
@@ -43,7 +49,7 @@ class Batch:
         @param run_code: Name of new batch file.
         """
         self.scenario_batch_file.write('\n')
-        self.batch_file = open(self.path + run_code + '.bat', 'w')
+        self.batch_file = open(self.path + run_code + '.bat', 'w')  # @TODO: convert to string formatting
         self.batch_file.write("cd %s\n" % (config.get('project_path'), ))
 
     def append(self, state, run_code):
@@ -67,7 +73,7 @@ class Batch:
         @param run_code: run code.  
         """
         self.batch_file.close()        
-        self.scenario_batch_file.write("CALL " + "\"" + self.batch_path + run_code + '.bat\"\n')
+        self.scenario_batch_file.write("CALL " + "\"" + self.batch_path + run_code + '.bat\"\n')  # @TODO: convert to string formatting
     
     def run(self, qprocess):
         """

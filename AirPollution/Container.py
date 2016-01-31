@@ -3,6 +3,8 @@ A container to keep track of important variables.
 Is a dictionary that maps a keyword to a variable or class.
 """
 
+# @TODO: drop Container class. Useless container that just replicates dictionary functionality and encourages global variables
+
 
 class Container:
     """
@@ -30,3 +32,11 @@ class Container:
         """
         if self.c.has_key(key):
             return self.c[key]
+
+    def __str__(self):
+        """
+        String representation
+        :return:
+        """
+
+        return '\n'.join('%s: %s' % (k, v) for k, v in self.c.iteritems())
