@@ -30,3 +30,11 @@ class Container:
         """
         if self.c.has_key(key):
             return self.c[key]
+
+    def __str__(self):
+        """
+        String representation
+        :return:
+        """
+
+        return '\n'.join('%s: %s' % (k, v) for k, v in self.c.iteritems())
