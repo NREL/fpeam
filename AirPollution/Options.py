@@ -62,15 +62,18 @@ class ScenarioOptions:
 
         # keep track of current run code.
         self.run_code = run_code
+
         # model all years as 2022 except corn grain = 2011
         if run_code.startswith('CG'):
             self.episode_year = '2011'
         else:
             self.episode_year = '2022' 
-        # query the data and collect it.            
+
+        # query the data and collect it.
         query = self._get_query(run_code)
         if query:
             self.data = self._get_prod_data(query)
+
         # create output directories
         if not os.path.exists(self.path + '/OUT/' + run_code):
             os.makedirs(self.path + '/OPT/' + run_code)
@@ -98,10 +101,10 @@ class ScenarioOptions:
         current from cg_irrigated_new. Updated data was added to this schema
         
         @change: Changed the query so that it can be used for the updated data.
-        Also it is more elegant and readable than the piece of shit code that Noah wrote.
         """
 
         query = None
+
         # corn grain.
         if run_code.startswith('CG'):
             # query conventional till data. For specific state and county.
@@ -123,20 +126,28 @@ class ScenarioOptions:
             # grab data for irrigation.  
             elif run_code.startswith('CG_I'):
 
-                # %s is a place holder for variables listed at the end of the sql query in the ().
                 # subprocess (WITH statment) is querried in the constant cg_irrigated_states. gets data for different
                 # vehicles and their attributes (fuel, horse power.)
-                '''
-                ###########
-                # @attention: %s.cg_data was found to be %s.cdata.
-                # Came to this conclusiong b/c in the CG part.
-                ###########   
-                '''
-                if run_code.endswith('D'): fuel_type = 'diesel'
-                elif run_code.endswith('G'): fuel_type = 'gasoline'
-                elif run_code.endswith('L'): fuel_type = 'lpg'
-                elif run_code.endswith('C'): fuel_type = 'natgas'
-                print fuel_type  # @TODO: convert to logger
+
+                fuel_types = {'D': 'diesel',
+                              'G': 'gasoline',
+                              'L': 'lpg',
+                              'C': 'natgas'}
+
+                fuel_type = fuel_types[run_code[-1]]
+
+                # fuel_type = None
+                # if run_code.endswith('D'):
+                #     fuel_type = 'diesel'
+                # elif run_code.endswith('G'):
+                #     fuel_type = 'gasoline'
+                # elif run_code.endswith('L'):
+                #     fuel_type = 'lpg'
+                # elif run_code.endswith('C'):
+                #     fuel_type = 'natgas'
+
+                # @TODO: convert config usage
+                # @TODO: remove hardcoded schemas
                 query = """
                 WITH IRR AS (
                     SELECT 
@@ -173,7 +184,7 @@ class ScenarioOptions:
             new code: dat.prod  > 0.0
             ######################################################
             '''
-            # what is this var used for?
+            # @TODO: what is this var used for?
             self.queryTable = 'ws_data'
             
             if run_code == 'WS_RT':
@@ -204,6 +215,7 @@ class ScenarioOptions:
 
         return query
 
+
 class NROptionFile:
     """
     functions associated with nonroad input files (*.opt files)
@@ -225,18 +237,18 @@ class NROptionFile:
         # run code.
         self.run_code = run_code
         # path to the .opt file that is saved.
-        self.path = cont.get('path') + 'OPT/' + run_code + '/'
+        self.path = cont.get('path') + 'OPT/' + run_code + '/'  # @TODO: use string formatting and os.sep
         # removed not in use.
         #self.outPathNR = self.path.replace('/', '\\')
         # out path for NONROAD to read.
-        self.out_path_pop_alo = cont.get('path').replace('/', '\\')
+        self.out_path_pop_alo = cont.get('path').replace('/', '\\')  # @TODO: remove once os.sep usage is implemented
         self.episode_year = episode_year
         self.state = state
         self._model_run_title = cont.get('model_run_title')
         # temperatures.
-        self.temp_min = 50.0
-        self.temp_max = 68.8
-        self.temp_mean = 60.0
+        self.temp_min = 50.0  # @TODO: remove hardcoded values
+        self.temp_max = 68.8  # @TODO: remove hardcoded values
+        self.temp_mean = 60.0  # @TODO: remove hardcoded values
         # create .opt file
         self._nr_options(fips)
 

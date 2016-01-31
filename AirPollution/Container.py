@@ -3,6 +3,8 @@ A container to keep track of important variables.
 Is a dictionary that maps a keyword to a variable or class.
 """
 
+# @TODO: drop Container class. Useless container that just replicates dictionary functionality and encourages global variables
+
 
 class Container:
     """
