@@ -2,26 +2,32 @@
 Records queries to a text file for debugging purposes.
 """
 
+# @TODO: drop QueryRecorder class and pipe to logger module because we don't need to reinvent wheels and QueryRecorder seems to have been implemented in code inconsistently
+
 
 class QueryRecorder:
     def __init__(self, _path):
         """
-        Need to know path to save queries to.
-        @param path: Path to where queries are saved.
+
+        @param _path: Path to where queries are saved
         """
+
         # path to directory where queries are recorded.
         self.path = _path + "QUERIES/"
+
         # keep track of what files have allready been created.
         self.files = []
+
         # current file to write to.
         self.doc_file = None
 
     def document_query(self, _file, query):
         """
         Documents query by saving the string to a files.
-        @param file: File's name to save the query to.
+        @param _file: File's name to save the query to.
         @param query: Query string that is being recorded.
         """
+
         self.doc_file = self._open(_file)
         self.doc_file.write(query)
 
