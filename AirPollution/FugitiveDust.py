@@ -189,7 +189,6 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
     def __wheat_straw__(self, run_code):
         """
         Wheat straw fugitive dust emissions. 
-        Bassically the same as corn stover...
         """
         # --emission factors:
         # Wheat straw fugitive dust emissions = 5.6 lbs/acre (assuming harvest activies are the same as for wheat as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
