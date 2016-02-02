@@ -191,10 +191,10 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         Wheat straw fugitive dust emissions. 
         """
         # --emission factors:
-        # Wheat straw fugitive dust emissions = 5.6 lbs/acre (assuming harvest activies are the same as for wheat as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
+        # Wheat straw fugitive dust emissions = 5.8 lbs/acre (assuming harvest activies are the same as for wheat as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
         # Need to convert from lbs to mt
-        pm_redu_till_harv = self.convert_lbs_to_mt(5.6)  # mt / acre 
-        pm_no_till_harv = self.convert_lbs_to_mt(5.6)  # mt / acre 
+        pm_redu_till_harv = self.convert_lbs_to_mt(5.8)  # mt / acre 
+        pm_no_till_harv = self.convert_lbs_to_mt(5.8)  # mt / acre 
         # --     
 
         # choose operation for reduced till
@@ -343,7 +343,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                 0.8,  # year 7
                                 0.8,  # year 8
                                 0.8,  # year 9
-                                0.0  # year 10
+                                0.8  # year 10
                                 ]
             self.description = 'SG_N'
         
