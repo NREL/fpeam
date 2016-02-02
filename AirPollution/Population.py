@@ -555,7 +555,7 @@ class SwitchgrassPop(Population):
 
         # year 5, additional pesticide applications
         elif self.run_code.endswith('N5'):
-            self.hrs_per_ac_60hp = 0.1914  # pesticides are applied in addition to other activities
+            self.hrs_per_ac_60hp = 0.0891  # pesticides are applied in addition to other activities
             self.hrs_per_ac_130hp = 0.0
 
         # years 3-4 & 6-10 all have the same non-harvest activities
