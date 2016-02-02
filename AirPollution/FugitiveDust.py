@@ -263,10 +263,9 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         feed = run_code.lower()[0:2] 
         # factors for equation.
         weight = str(32.01)  # tons
-        k25, k10 = str(0.38), str(2.6)    # constant
-        a25, a10 = str(0.8), str(0.8)     # constant
-        b25, b10 = str(0.4), str(0.4)     # constant
-        c25, c10 = str(0.3), str(0.3)     # constant
+        k25, k10 = str(0.15), str(1.5)    # constant
+        a25, a10 = str(0.9), str(0.9)     # constant
+        b25, b10 = str(0.45), str(0.45)     # constant
         D = str(10) #default value for distance traveled (in vehicle miles traveled)
         # @TODO: convert from lbs to dt
         query = """
@@ -392,10 +391,9 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                 """           
                 # factors for equation.
                 weight = str(32.01)  # tons
-                k25, k10 = str(0.38), str(2.6)    # constant
-                a25, a10 = str(0.8), str(0.8)     # constant
-                b25, b10 = str(0.4), str(0.4)     # constant
-                c25, c10 = str(0.3), str(0.3)     # constant
+                k25, k10 = str(0.15), str(1.5)    # constant
+                a25, a10 = str(0.9), str(0.9)     # constant
+                b25, b10 = str(0.45), str(0.45)     # constant
                 D = str(10) #default value for distance traveled (in vehicle miles traveled)
                 rot = str(10) #number of years in switchgrass rotation 
                 # @TODO: convert from lbs to dt
