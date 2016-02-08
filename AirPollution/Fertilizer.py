@@ -20,6 +20,8 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         # add fert distributions here. List of fertilizers.
         self.fert_dist = self.get_frt_distribution(fert_distributions=fert_dist)
         self.fert_feed_stock = fert_feed_stock
+#        self.n_fert_ef = n_fert_ef 
+#        self.cs_ws_sg_napp = cs_ws_sg_napp
 
     def set_fertilizer(self, feed):
         """
