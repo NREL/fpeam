@@ -1,5 +1,5 @@
 import SaveDataHelper
-
+from src.AirPollution.utils import config
 
 class Fertilizer(SaveDataHelper.SaveDataHelper):
     """
@@ -20,8 +20,9 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         # add fert distributions here. List of fertilizers.
         self.fert_dist = self.get_frt_distribution(fert_distributions=fert_dist)
         self.fert_feed_stock = fert_feed_stock
-#        self.n_fert_ef = n_fert_ef 
-#        self.cs_ws_sg_napp = cs_ws_sg_napp
+        self.n_fert_ef = config['n_fert_ef'] 
+        self.cs_ws_sg_napp = config['cs_ws_sg_napp']
+        self.kvals = {}
 
     def set_fertilizer(self, feed):
         """
@@ -77,249 +78,51 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                 
     def __corn_stover__(self, feed):
         """
-        NOX N_app data is in units of lbs of nox per ton of N nutirnent.
-        NH3 N_app data is in units of % of N volatized as NH3.
+        NOX N_app data is in units of % of N volatilized as NO
+        NH3 N_app data is in units of % of N volatilized as NH3
         
-        All for a specific fertilizer:
-        Nitrogen application for feed stock (lbs fertilizer/lb feedstock) * % of fertilizer * Pollutant emmision * convert lbs to mt * Total feedstock harvested (lbs)
-        (dt fertilizer/lb feedstock) * (lbs NOX / dt fertilizer) * (mt/lbs) * (lbs feedstock) = mt NOX
+        For a specific pollutant (NO or NH3), feedstock, and fertilizer type:
+        Emissions (mt pollutant/county/year)  = Prod (dt feedstock/county/year) * N_applied for feedstock (lb N/dt feedstock) * nitrogen share by fertilizer type (lb N in AA/lb N) * 1/100 * emission factor (amount volatized as pollutant by fertilizer type %; lb N/lb fert) * conversion factor to convert from N to pollutant (i.e., 30/14 for NO and 17/14 for NH3; lb pollutant/lb N) * convert lbs to mt 
+
+        Total emissions are then given by: 
         
-        (lbs fertilizer/lb feedstock) * (% NH3) * (mt/lbs) * (lbs feedstock) * (lbs NH3/lbs fertilizer) for (17.0/14.0)? = mt NH3
+        E_NO  = sum(Prod * N_app * N_share * N_fert_percent_ef/100 * 30/14 * 0.90718474 / 2000.0) over all fertilizer types 
+        E_NH3 = sum(Prod * N_app * N_share * N_fert_percent_ef/100 * 17/14 * 0.90718474 / 2000.0) over all fertilizer types 
+        
         """
         # @TODO: rewrite to use string formatting and make more readable
         # @TODO: remove feed var. isn't it always the same in each of these 'make query' functions?
-        fert_query = """        
-INSERT INTO """ + feed + """_nfert
-    (
-        --------------------------------------------------------------------------
-        --This query returns the urea component 
-        --------------------------------------------------------------------------
-        SELECT feed.fips, 
 
-        ((N_app.""" + feed + """ / 2000.0) * (""" + self.fert_dist[feed][self.fur] + """ * nfert.nox_ur) * 0.90718474 / 2000.0 * feed.prod) AS "NOX", 
-
-        ((N_app.""" + feed + """ * 0.90718474 / 2000.0) * (""" + self.fert_dist[feed][self.fur] + """ * nfert.nh3_ur) * feed.prod * 17.0 / 14.0) AS "NH3",
-
+        ef_nox = 0
+        ef_nh3 = 0
+        for numfert in range(0,5):
+           ef_nox = ef_nox + float(self.cs_ws_sg_napp[feed])*float(self.fert_dist[feed][numfert])*float(self.n_fert_ef['NOX'][numfert])/100 * 30/14 * 0.90718474 / 2000.0 # emission factor: total mt NO per dt feedstock
+           ef_nh3 = ef_nh3 + float(self.cs_ws_sg_napp[feed])*float(self.fert_dist[feed][numfert])*float(self.n_fert_ef['NH3'][numfert])/100 * 17/14 * 0.90718474 / 2000.0 # emission factor: total mt NH3 per dt feedstock 
+        
+        kvals = {}        
+        kvals['nox']=ef_nox
+        kvals['nh3']=ef_nh3
+        
+        fert_query =("""INSERT INTO """ + feed + """_nfert
+        SELECT feed.fips, feed.prod,
+        feed.prod * {nox} AS "NOX",
+        feed.prod * {nh3} AS "NH3",
         (2801700004) AS SCC,
+        'Fertilizer Emissions' AS "Description"
+        FROM """ + self.db.production_schema + '.' + feed + """_data feed
+        GROUP BY feed.fips;""").format(**kvals)
+        
+        return fert_query 
+        
 
-        'Urea Fertilizer Emissions' AS "Description"
-
-        FROM """ + self.db.production_schema + '.' + feed + """_data feed, """ + self.db.constants_schema + """.N_fert_EF nfert, 
-        """ + self.db.constants_schema + """.CS_WS_SG_Napp N_app
-
-        GROUP BY feed.fips, 
-        nfert.nox_ur, nfert.nox_nsol, nfert.nox_as, nfert.nox_an, nfert.nox_aa,
-        nfert.nh3_ur, nfert.nh3_nsol, nfert.nh3_as, nfert.nh3_an, nfert.nh3_aa,
-        feed.prod, N_APP.""" + feed + """
-    )
-    UNION 
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Nitrogen Solutions Component
-        --------------------------------------------------------------------------
-
-        SELECT feed.fips, 
-
-        ((N_app.""" + feed + """ / 2000.0) * (""" + self.fert_dist[feed][self.fns] + """ * nfert.nox_nsol) * 0.90718474 / 2000.0 * feed.prod) AS "NOX", 
-
-        ((N_app.""" + feed + """ * 0.90718474 / 2000.0) * (""" + self.fert_dist[feed][self.fns] + """ * nfert.nh3_nsol) * feed.prod * 17.0 / 14.0) AS "NH3",
-
-        (2801700003) AS SCC,
-
-        'Nitrogen Solutions Fertilizer Emissions' AS "Description"
-
-        FROM """ + self.db.production_schema + '.' + feed + """_data feed, """ + self.db.constants_schema + """.N_fert_EF nfert, 
-        """ + self.db.constants_schema + """.CS_WS_SG_Napp N_app
-
-        GROUP BY feed.fips, 
-        nfert.nox_ur, nfert.nox_nsol, nfert.nox_as, nfert.nox_an, nfert.nox_aa,
-        nfert.nh3_ur, nfert.nh3_nsol, nfert.nh3_as, nfert.nh3_an, nfert.nh3_aa,
-        feed.prod, N_APP.""" + feed + """
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Anhydrous Ammonia Component
-        --------------------------------------------------------------------------
-
-        SELECT feed.fips, 
-
-        ((N_app.""" + feed + """ / 2000.0) * (""" + self.fert_dist[feed][self.faa] + """ * nfert.nox_aa) * 0.90718474 / 2000.0 * feed.prod) AS "NOX", 
-
-        ((N_app.""" + feed + """ * 0.90718474 / 2000.0) * (""" + self.fert_dist[feed][self.faa] + """ * nfert.nh3_aa) * feed.prod * 17.0 / 14.0) AS "NH3",
-
-        (2801700001) AS SCC,
-
-        'Anhydrous Ammonia Fertilizer Emissions' AS "Description"
-
-        FROM """ + self.db.production_schema + '.' + feed + """_data feed, """ + self.db.constants_schema + """.N_fert_EF nfert, 
-        """ + self.db.constants_schema + """.CS_WS_SG_Napp N_app
-
-        GROUP BY feed.fips, 
-        nfert.nox_ur, nfert.nox_nsol, nfert.nox_as, nfert.nox_an, nfert.nox_aa,
-        nfert.nh3_ur, nfert.nh3_nsol, nfert.nh3_as, nfert.nh3_an, nfert.nh3_aa,
-        feed.prod, N_APP.""" + feed + """
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Ammonium Nitrate component
-        --------------------------------------------------------------------------
-
-        SELECT feed.fips, 
-
-        ((N_app.""" + feed + """ / 2000.0) * (""" + self.fert_dist[feed][self.fan] + """ * nfert.nox_an) * 0.90718474 / 2000.0 * feed.prod) AS "NOX", 
-
-        ((N_app.""" + feed + """ * 0.90718474 / 2000.0) * (""" + self.fert_dist[feed][self.fan] + """ * nfert.nh3_an) * feed.prod * 17.0 / 14.0) AS "NH3",
-
-        (2801700005) AS SCC,
-
-        'Ammonium Nitrate Fertilizer Emissions' AS "Description"
-
-        FROM """ + self.db.production_schema + '.' + feed + """_data feed, """ + self.db.constants_schema + """.N_fert_EF nfert, 
-        """ + self.db.constants_schema + """.CS_WS_SG_Napp N_app
-
-        GROUP BY feed.fips, 
-        nfert.nox_ur, nfert.nox_nsol, nfert.nox_as, nfert.nox_an, nfert.nox_aa,
-        nfert.nh3_ur, nfert.nh3_nsol, nfert.nh3_as, nfert.nh3_an, nfert.nh3_aa,
-        feed.prod, N_APP.""" + feed + """
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Ammonium Sulfate component
-        --------------------------------------------------------------------------
-
-        SELECT feed.fips,
-
-        ((N_app.""" + feed + """ / 2000.0) * (""" + self.fert_dist[feed][self.fas] + """ * nfert.nox_as) * 0.90718474 / 2000.0 * feed.prod) AS "NOX", 
-
-        ((N_app.""" + feed + """ * 0.90718474 / 2000.0) * (""" + self.fert_dist[feed][self.fas] + """ * nfert.nh3_as) * feed.prod * 17.0 / 14.0) AS "NH3",
-
-        (2801700006) AS SCC,
-
-        'Ammonium Sulfate Fertilizer Emissions' AS "Description"
-
-        FROM """ + self.db.production_schema + '.' + feed + """_data feed, """ + self.db.constants_schema + """.N_fert_EF nfert, 
-        """ + self.db.constants_schema + """.CS_WS_SG_Napp N_app
-
-        GROUP BY feed.fips, 
-        nfert.nox_ur, nfert.nox_nsol, nfert.nox_as, nfert.nox_an, nfert.nox_aa,
-        nfert.nh3_ur, nfert.nh3_nsol, nfert.nh3_as, nfert.nh3_an, nfert.nh3_aa,
-        feed.prod, N_APP.""" + feed + """
-    )"""
-    
-        return fert_query
-    
     def __wheat_straw__(self, feed):
         return self.__corn_stover__(feed)
 
-    """
-    @TODO: is the GROUP BY correct? sg.fips is the only row that is being selected.
-    sg.prod, nfert.nox_nsol, nfert.nh3_nsol, N_app.SG are not. Should not affect query.
-    Nitrogen solution is the default fertilizer.
-    """
+   
     def __switchgrass__(self, feed):
-        """
-        Nitrogen application (lbs/ton of N nutrients) * harvested lbs * emmisions of nsol * lbs active / lbs fertilizer * evaporation rate
-        
-        (lbs fert/lbs active) * (feedstock lbs) * (pullontant lbs/ ?)? * (lbs active / lbs fert) * (lbs fert/lbs poll)
-        lbs pollutant.
-        """
-        fert_query = """
-    INSERT INTO sg_nfert 
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Nitrogen Solutions Component
-        --------------------------------------------------------------------------
-        
-        SELECT sg.fips,  
-
-        (N_app.""" + feed + """ / 2000.0 * sg.prod * (""" + self.fert_dist[feed][self.fns] + """ * nfert.nox_nsol) * 0.907018474 / 2000.0 * 0.9) AS "NOx",
-
-        (N_app.""" + feed + """ * sg.prod * (""" + self.fert_dist[feed][self.fns] + """ * nfert.nh3_nsol) * 0.907018474 / 2000.0 * 17.0 / 14.0 * 0.9) AS "NH3",
-
-        (2801700003) AS SCC,
-
-        'Nitrogen Solutions Fertilizer Emissions' AS "Description"
-
-        FROM  """ + self.db.production_schema + """.sg_data sg, """ + self.db.constants_schema + """.N_fert_EF nfert, """ + self.db.constants_schema + """.CS_WS_SG_Napp N_app
-
-        GROUP BY sg.fips, sg.prod,
-        nfert.nox_nsol, nfert.nh3_nsol, N_app.SG
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Urea Component
-        --------------------------------------------------------------------------
-        
-        SELECT sg.fips,  
-
-        (N_app.""" + feed + """ / 2000.0 * sg.prod * (""" + self.fert_dist[feed][self.fur] + """ * nfert.nox_ur) * 0.907018474 / 2000.0 * 0.9) AS "NOx",
-
-        (N_app.""" + feed + """ * sg.prod * (""" + self.fert_dist[feed][self.fur] + """ * nfert.nh3_ur) * 0.907018474 / 2000.0 * 17.0 / 14.0 * 0.9) AS "NH3",
-
-        (2801700003) AS SCC,
-
-        'Urea Fertilizer Emissions' AS "Description"
-
-        FROM  """ + self.db.production_schema + """.sg_data sg, """ + self.db.constants_schema + """.N_fert_EF nfert, """ + self.db.constants_schema + """.CS_WS_SG_Napp N_app
-
-        GROUP BY sg.fips, sg.prod,
-        nfert.nox_ur, nfert.nh3_ur, N_app.SG
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Ammonium Nitrate Component
-        --------------------------------------------------------------------------
-        
-        SELECT sg.fips,  
-
-        (N_app.""" + feed + """ / 2000.0 * sg.prod * (""" + self.fert_dist[feed][self.fan] + """ * nfert.nox_an) * 0.907018474 / 2000.0 * 0.9) AS "NOx",
-
-        (N_app.""" + feed + """ * sg.prod * (""" + self.fert_dist[feed][self.fan] + """ * nfert.nh3_an) * 0.907018474 / 2000.0 * 17.0 / 14.0 * 0.9) AS "NH3",
-
-        (2801700003) AS SCC,
-
-        'Ammonium Nitrate Fertilizer Emissions' AS "Description"
-
-        FROM  """ + self.db.production_schema + """.sg_data sg, """ + self.db.constants_schema + """.N_fert_EF nfert, """ + self.db.constants_schema + """.CS_WS_SG_Napp N_app
-
-        GROUP BY sg.fips, sg.prod,
-        nfert.nox_an, nfert.nh3_an, N_app.SG
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Ammonium Sulfate Component
-        --------------------------------------------------------------------------
-        
-        SELECT sg.fips,  
-
-        (N_app.""" + feed + """ / 2000.0 * sg.prod * (""" + self.fert_dist[feed][self.fas] + """ * nfert.nox_as) * 0.907018474 / 2000.0 * 0.9) AS "NOx",
-
-        (N_app.""" + feed + """ * sg.prod * (""" + self.fert_dist[feed][self.fas] + """ * nfert.nh3_as) * 0.907018474 / 2000.0 * 17.0 / 14.0 * 0.9) AS "NH3",
-
-        (2801700003) AS SCC,
-
-        'Amonium Sulfate Fertilizer Emissions' AS "Description"
-
-        FROM  """ + self.db.production_schema + """.sg_data sg, """ + self.db.constants_schema + """.N_fert_EF nfert, """ + self.db.constants_schema + """.CS_WS_SG_Napp N_app
-
-        GROUP BY sg.fips, sg.prod,
-        nfert.nox_as, nfert.nh3_as, N_app.SG
-    )
-    
-"""
-        return fert_query
-
-    """
-    ((dt fertilizer/acre feedstock) * acres feedstock) * (lbs NOX / dt fertilizer) * (mt/lbs) = mt NOX
-        
-    ((dt fertilizer/acre feedstock) * acres feedstock) * (% NH3) * (lbs NH3/lbs fertilizer)*2000->dt for (17.0/14.0) * (mt/lbs) = mt NH3
-    """
+       return self.__corn_stover__(feed)
+   
+   
     def __corn_grain__(self):
         fert_query = """
 INSERT INTO cg_nfert
