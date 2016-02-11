@@ -104,7 +104,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         kvals['nh3']=ef_nh3
         
         fert_query =("""INSERT INTO """ + feed + """_nfert
-        SELECT feed.fips, feed.prod,
+        SELECT feed.fips, 
         feed.prod * {nox} AS "NOX",
         feed.prod * {nh3} AS "NH3",
         (2801700004) AS SCC,
