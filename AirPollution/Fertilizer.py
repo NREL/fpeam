@@ -21,7 +21,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         self.fert_dist = self.get_frt_distribution(fert_distributions=fert_dist)
         self.fert_feed_stock = fert_feed_stock
         self.n_fert_ef = config['n_fert_ef'] 
-        self.cs_ws_sg_napp = config['cs_ws_sg_napp']
+        self.n_fert_app = config['n_fert_app']
         self.kvals = {}
 
     def set_fertilizer(self, feed):
@@ -96,8 +96,8 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         ef_nox = 0
         ef_nh3 = 0
         for numfert in range(0,5):
-           ef_nox = ef_nox + float(self.cs_ws_sg_napp[feed])*float(self.fert_dist[feed][numfert])*float(self.n_fert_ef['NOX'][numfert])/100 * 30/14 * 0.90718474 / 2000.0 # emission factor: total mt NO per dt feedstock
-           ef_nh3 = ef_nh3 + float(self.cs_ws_sg_napp[feed])*float(self.fert_dist[feed][numfert])*float(self.n_fert_ef['NH3'][numfert])/100 * 17/14 * 0.90718474 / 2000.0 # emission factor: total mt NH3 per dt feedstock 
+           ef_nox = ef_nox + float(self.n_fert_app[feed])*float(self.fert_dist[feed][numfert])*float(self.n_fert_ef['NOX'][numfert])/100 * 30/14 * 0.90718474 / 2000.0 # emission factor: total mt NO per dt feedstock
+           ef_nh3 = ef_nh3 + float(self.n_fert_app[feed])*float(self.fert_dist[feed][numfert])*float(self.n_fert_ef['NH3'][numfert])/100 * 17/14 * 0.90718474 / 2000.0 # emission factor: total mt NH3 per dt feedstock 
         
         kvals = {}        
         kvals['nox']=ef_nox
