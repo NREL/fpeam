@@ -86,8 +86,8 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
 
         Total emissions are then given by: 
         
-        E_NO  = sum(Prod * N_app * N_share * N_fert_percent_ef/100 * 30/14 * 0.90718474 / 2000.0) over all fertilizer types 
-        E_NH3 = sum(Prod * N_app * N_share * N_fert_percent_ef/100 * 17/14 * 0.90718474 / 2000.0) over all fertilizer types 
+        E_NO  = sum(Prod * N_app * N_share * N_fert_percent_ef / 100.0 * 30.0 / 14.0 * 0.90718474 / 2000.0) over all fertilizer types 
+        E_NH3 = sum(Prod * N_app * N_share * N_fert_percent_ef / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0) over all fertilizer types 
         
         """
         # @TODO: rewrite to use string formatting and make more readable
@@ -96,12 +96,12 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         ef_nox = 0
         ef_nh3 = 0
         for numfert in range(0,5):
-           ef_nox = ef_nox + float(self.n_fert_app[feed])*float(self.fert_dist[feed][numfert])*float(self.n_fert_ef['NOX'][numfert])/100 * 30/14 * 0.90718474 / 2000.0 # emission factor: total mt NO per dt feedstock
-           ef_nh3 = ef_nh3 + float(self.n_fert_app[feed])*float(self.fert_dist[feed][numfert])*float(self.n_fert_ef['NH3'][numfert])/100 * 17/14 * 0.90718474 / 2000.0 # emission factor: total mt NH3 per dt feedstock 
+           ef_nox = ef_nox + float(self.n_fert_app[feed]) * float(self.fert_dist[feed][numfert]) * float(self.n_fert_ef['NOX'][numfert]) / 100.0 * 30.0 / 14.0 * 0.90718474 / 2000.0 # emission factor: total mt NO per dt feedstock
+           ef_nh3 = ef_nh3 + float(self.n_fert_app[feed]) * float(self.fert_dist[feed][numfert]) * float(self.n_fert_ef['NH3'][numfert]) / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0 # emission factor: total mt NH3 per dt feedstock 
         
         kvals = {}        
-        kvals['nox']=ef_nox
-        kvals['nh3']=ef_nh3
+        kvals['nox'] = ef_nox
+        kvals['nh3'] = ef_nh3
         
         fert_query =("""INSERT INTO """ + feed + """_nfert
         SELECT feed.fips, 
