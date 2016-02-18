@@ -83,7 +83,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             print run_code  # @TODO: convert to logger
             # path to results
             path = self.base_path + 'OUT/%s/' % (run_code,)
-            listing = os.listdir(path)
+            listing = os.listdir(path)  # @TODO: do not use os listing; no way to know what kind of files end up here
 
             feedstock = run_code[0:2] 
 
@@ -283,6 +283,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         tillage = ''
 
         # Switchgrass
+        # @TODO: refactor to use explicit checks instead of relying on lengths
         if run_code.startswith('SG_H'):
             if len(run_code) == 4: 
                 description = "Year %s - Harvest" % (run_code[4])  # year 1-9
