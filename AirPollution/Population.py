@@ -198,7 +198,7 @@ class ForestPop(Population):
         loader_pop = round(self.hrs_per_dt_loader * float(prod) / self.activity_loader, 10)
                 
         lines = """%s       %s 2270007015 Dsl - Forest Eqp - Feller/Bunch/Skidder    100   175   137  4667  DEFAULT         %s
-%s       %s 2270007015 Dsl - Forest Eqp - Feller/Bunch/Skidder    300   600 421.3  7000  DEFAULT         %s
+%s       %s 2270004066 Dsl - Chippers/Stump Grinders (com)    300   600 434.4  7000  DEFAULT         %s
 """ % (fips, self.episode_year, loader_pop, fips, self.episode_year, chipper_pop)
 
         self.pop_file.writelines(lines)
@@ -555,7 +555,7 @@ class SwitchgrassPop(Population):
 
         # year 5, additional pesticide applications
         elif self.run_code.endswith('N5'):
-            self.hrs_per_ac_60hp = 0.1914  # pesticides are applied in addition to other activities
+            self.hrs_per_ac_60hp = 0.0891  # pesticides are applied in addition to other activities
             self.hrs_per_ac_130hp = 0.0
 
         # years 3-4 & 6-10 all have the same non-harvest activities

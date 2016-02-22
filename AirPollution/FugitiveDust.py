@@ -61,10 +61,11 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         Corn grain fugitive dust emissions
         """
         # --emission factors: 
-        # 1.7 lbs/acre, convert to mt.        
-        pm_conv_till_harv = self.convert_lbs_to_mt(2.4)  # mt / acre
-        pm_redu_till_harv = self.convert_lbs_to_mt(2.4)  # mt / acre
-        pm_no_till_harv = self.convert_lbs_to_mt(2.4)  # mt / acre
+        # Corn grain fugitive dust emissions = 1.7 lbs/acre (as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
+        # Need to convert from lbs to mt   
+        pm_conv_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
+        pm_redu_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
+        pm_no_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
 
         pm_conv_till_non_harv = self.convert_lbs_to_mt(8.0)  # mt / acre
         pm_redu_till_non_harv = self.convert_lbs_to_mt(7.2)  # mt / acre
@@ -156,9 +157,11 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         """
         Corn stover fugitive dust emissions.
         """
-        # --emission factors:         
-        pm_redu_till_harv = self.convert_lbs_to_mt(1.8)  # mt / acre 
-        pm_no_till_harv = self.convert_lbs_to_mt(1.8)  # mt / acre 
+        # --emission factors:
+        # Corn stover fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
+        # Need to convert from lbs to mt
+        pm_redu_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre 
+        pm_no_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre 
         # --     
 
         # choose operation for reduced till
@@ -186,11 +189,12 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
     def __wheat_straw__(self, run_code):
         """
         Wheat straw fugitive dust emissions. 
-        Bassically the same as corn stover...
         """
         # --emission factors:
-        pm_redu_till_harv = self.convert_lbs_to_mt(1.8)  # mt / acre 
-        pm_no_till_harv = self.convert_lbs_to_mt(1.8)  # mt / acre 
+        # Wheat straw fugitive dust emissions = 5.8 lbs/acre (assuming harvest activies are the same as for wheat as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
+        # Need to convert from lbs to mt
+        pm_redu_till_harv = self.convert_lbs_to_mt(5.8)  # mt / acre 
+        pm_no_till_harv = self.convert_lbs_to_mt(5.8)  # mt / acre 
         # --     
 
         # choose operation for reduced till
@@ -259,10 +263,9 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         feed = run_code.lower()[0:2] 
         # factors for equation.
         weight = str(32.01)  # tons
-        k25, k10 = str(0.38), str(2.6)    # constant
-        a25, a10 = str(0.8), str(0.8)     # constant
-        b25, b10 = str(0.4), str(0.4)     # constant
-        c25, c10 = str(0.3), str(0.3)     # constant
+        k25, k10 = str(0.15), str(1.5)    # constant
+        a25, a10 = str(0.9), str(0.9)     # constant
+        b25, b10 = str(0.45), str(0.45)     # constant
         D = str(10) #default value for distance traveled (in vehicle miles traveled)
         # @TODO: convert from lbs to dt
         query = """
@@ -314,17 +317,17 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
             self.description = 'SG_T'
             
         elif operation == 'Harvest':
-            # lbs/acre
-            emission_factors = [2.4,  # year 1 harvest emission factor
-                                2.4,  # year 2
-                                2.4,  # year 3
-                                2.4,  # year 4
-                                2.4,  # year 5
-                                2.4,  # year 6
-                                2.4,  # year 7
-                                2.4,  # year 8
-                                2.4,  # year 9
-                                2.4  # year 10
+            # Switchgrass fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)        
+            emission_factors = [1.7,  # year 1 harvest emission factor
+                                1.7,  # year 2
+                                1.7,  # year 3
+                                1.7,  # year 4
+                                1.7,  # year 5
+                                1.7,  # year 6
+                                1.7,  # year 7
+                                1.7,  # year 8
+                                1.7,  # year 9
+                                1.7  # year 10
                                 ]
             self.description = 'SG_H'
             
@@ -339,7 +342,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                 0.8,  # year 7
                                 0.8,  # year 8
                                 0.8,  # year 9
-                                0.0  # year 10
+                                0.8  # year 10
                                 ]
             self.description = 'SG_N'
         
@@ -388,10 +391,9 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                 """           
                 # factors for equation.
                 weight = str(32.01)  # tons
-                k25, k10 = str(0.38), str(2.6)    # constant
-                a25, a10 = str(0.8), str(0.8)     # constant
-                b25, b10 = str(0.4), str(0.4)     # constant
-                c25, c10 = str(0.3), str(0.3)     # constant
+                k25, k10 = str(0.15), str(1.5)    # constant
+                a25, a10 = str(0.9), str(0.9)     # constant
+                b25, b10 = str(0.45), str(0.45)     # constant
                 D = str(10) #default value for distance traveled (in vehicle miles traveled)
                 rot = str(10) #number of years in switchgrass rotation 
                 # @TODO: convert from lbs to dt
