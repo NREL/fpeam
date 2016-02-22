@@ -61,7 +61,7 @@ class Batch:
         @param run_code: run code. 
         """
         # lines = "NONROAD.exe " + self.batch_path + run_code + '\\' + state + ".opt\n"
-        lines = '{nr_path} {batch_path}{run_code}\\{state}.opt\n'.format(nr_path=config.get('nonroad_path'),
+        lines = '{nr_path} {batch_path}{run_code}\\{state}.opt\n'.format(nr_path=config.get('nonroad_path'),  # @TODO: should there be a space in between nr_path and bactch_path?
                                                                          batch_path=self.batch_path,
                                                                          run_code=run_code,
                                                                          state=state)
@@ -78,7 +78,7 @@ class Batch:
     def run(self, qprocess):
         """
         ****************************************
-        **    Acess point to NONROAD model    **
+        **    Access point to NONROAD model   **
         ****************************************
         Call master batch file.
         Runs NONROAD model through function.
@@ -98,7 +98,7 @@ class Batch:
         else:
             p = Popen(self.master_path)
             p.wait()
-    
+
     def get_batch_files(self):
         """
         Get the total number of files that will be run through the subprocess.
