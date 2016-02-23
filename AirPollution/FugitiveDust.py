@@ -15,7 +15,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
     def __init__(self, cont):
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.document_file = "FugitiveDust"
-        self.pm_ratio = 0.20
+        self.pm_ratio = 0.20  # @TODO: remove hardcoded values
 
     def set_emissions(self, run_code):
         """
