@@ -31,25 +31,12 @@ class MOVESModule():
         self.save_path_runspecfiles = save_path_runspecfiles    
         self.server = server
         
-        #check to make sure batch files don't already exist
-        self.importbatch = os.path.join(path_MOVES, 'batch_import.bat')
-        try:
-            os.remove(self.importbatch)
-        except OSError:
-            pass
-        
-        self.runbatch = os.path.join(path_MOVES, 'batch_run.bat')
-        try:
-            os.remove(self.runbatch)
-        except OSError:
-            pass
-
-        
-    def createBatchfiles(self):
+    def createBatchfiles(self, model_run_title):
                 
         for FIPS in self.FIPSlist:
-            batchfile = MB.MOVESBatch(FIPS=FIPS,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles=self.save_path_runspecfiles)
-            batchfile.create_MOVES_batch()
+            batchfile = MB.MOVESBatch(model_run_title,FIPS=FIPS,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles=self.save_path_runspecfiles)
+            batchfile.create_MOVES_batchimport()
+            batchfile.create_MOVES_batchrun()
             
     def createXMLimport(self,mo,bhr,ehr,d, save_path_import):
         

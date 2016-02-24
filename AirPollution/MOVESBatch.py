@@ -21,12 +21,13 @@ import os
 class MOVESBatch:
     "generate batch file for MOVES" 
     
-    def __init__(self,FIPS,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles):
+    def __init__(self,model_run_title,FIPS,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles):
         #county-level input files for MOVES 
-        self.importbatch = os.path.join(path_MOVES, 'batch_import.bat')
+        self.model_run_title = model_run_title
+        self.importbatch = os.path.join(path_MOVES, 'batch_import_FPEAM_' + self.model_run_title +'.bat')
         self.importfilename = os.path.join(save_path_importfiles, FIPS+"_import_"+yr+".mrs") 
         #county-level input files for MOVES 
-        self.runbatch = os.path.join(path_MOVES, 'batch_run.bat')
+        self.runbatch = os.path.join(path_MOVES, 'batch_run_FPEAM_' + self.model_run_title +'.bat')
         self.runfilename = os.path.join(save_path_runspecfiles, FIPS+"_runspec_"+yr+".mrs") 
         self.FIPS = FIPS
         self.yr = yr
@@ -38,7 +39,7 @@ class MOVESBatch:
             batchwriter = csv.writer(csvfile)
             batchwriter.writerow(['echo Running ' + self.FIPS + '_import_' + self.yr +'.mrs'])
             batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i ' + self.importfilename]) 
-
+        
     def create_MOVES_batchrun(self):
 
         #create batch run file
@@ -47,7 +48,3 @@ class MOVESBatch:
             batchwriter.writerow(['echo Running ' + self.FIPS + '_runspec_' + self.yr +'.mrs'])
             batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -r ' + self.runfilename]) 
     
-    def create_MOVES_batch(self):
-        self.create_MOVES_batchimport        
-        self.create_MOVES_batchrun
-        

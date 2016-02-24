@@ -192,7 +192,7 @@ class Driver:
         """
         self.batch.run(qprocess)
 
-    def setup_MOVES(self,FIPSlist, mo, bhr, ehr, d):
+    def setup_MOVES(self,FIPSlist):
         """         
         Set up the MOVES program by creating input data files, XML files for data imports, and XML files for runspecs.
         Also creates batch files to 1) import data using MOVES County Data Manager and 2) run the MOVES program.
@@ -228,7 +228,7 @@ class Driver:
         GenerateMOVESFiles.createXMLrunspec(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_runspec=self.save_path_runspecfiles) 
         
         # create batch files for importing and running MOVES        
-        GenerateMOVESFiles.createBatchfiles()     
+        GenerateMOVESFiles.createBatchfiles(self.model_run_title)     
         
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):
         """
