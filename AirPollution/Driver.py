@@ -28,11 +28,13 @@ import RatioToNEIFigure
 import ContributionFigure
 
 from src.AirPollution.utils import config, logger
+from src.AirPollution import MOVESModule
 
+import os
 
 class Driver:
 
-    def __init__(self, _model_run_title, run_codes, _db):
+    def __init__(self, _model_run_title, run_codes, year, _db):
         """
         Save important variables for the running of the program.
 
@@ -47,6 +49,14 @@ class Driver:
         # add run title
         self.model_run_title = self._check_title(_model_run_title)
 
+        # filepaths and year for MOVES
+        self.path_MOVES = config.get('moves_path')
+        self.save_path_importfiles = os.path.join(config.get('moves_datafiles_path'),'ImportFiles')
+        self.save_path_runspecfiles = os.path.join(config.get('moves_datafiles_path'),'RunSpecs')
+        self.save_path_outputs= os.path.join(config.get('moves_datafiles_path'),'Outputs')
+        self.save_path_countyinputs = os.path.join(config.get('moves_datafiles_path'),'County_Inputs')
+        self.yr = year
+        
         # container to pass info around
         self.cont = Container.Container()
         self.cont.set(key='model_run_title', data=self.model_run_title)
@@ -182,6 +192,44 @@ class Driver:
         """
         self.batch.run(qprocess)
 
+    def setup_MOVES(self,FIPSlist, mo, bhr, ehr, d):
+        """         
+        Set up the MOVES program by creating input data files, XML files for data imports, and XML files for runspecs.
+        Also creates batch files to 1) import data using MOVES County Data Manager and 2) run the MOVES program.
+        """
+        # @TODO: move to config file
+        # timespan for MOVES runs        
+        mo = ["8","9","10"]  # month (1-12)
+        bhr = ["7"]  # begin hour (24 hr)
+        ehr = ["19"]  # end hour (24 hr)
+        d = ["5"]  # day (2=weekend, 5=weekday)
+        
+        # server for MOVES database        
+        server = "localhost"  # @TODO: move to config file
+        
+        # list of file paths for MOVES inputs and outputs   
+        pathlist = [self.save_path_importfiles,self.save_path_runspecfiles,self.save_path_outputs,self.save_path_countyinputs]
+
+        # check to make sure file paths exist, otherwise create them        
+        for path in pathlist: 
+            if not os.path.exists(path):
+                os.makedirs(path)       
+         
+        # initialize MOVESModule
+        GenerateMOVESFiles = MOVESModule.MOVESModule(FIPSlist = FIPSlist,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,server=server)
+
+        # creat county-level data files
+        # @TODO: add county-level data creation to MOVESModule
+
+        # create XML import files          
+        GenerateMOVESFiles.createXMLimport(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_import=self.save_path_importfiles)
+        
+        # create XML runspec files 
+        GenerateMOVESFiles.createXMLrunspec(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_runspec=self.save_path_runspecfiles) 
+        
+        # create batch files for importing and running MOVES        
+        GenerateMOVESFiles.createBatchfiles()     
+        
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):
         """
         Create and populate the schema with the emissions inventory.
