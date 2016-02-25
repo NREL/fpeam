@@ -20,6 +20,8 @@ import GenerateMOVESImport as GenMOVESIm
 import GenerateMOVESRunspec as GenMOVESRun
 import os 
 import csv
+from src.AirPollution.utils import config, logger
+import subprocess
 
 class MOVESModule(): 
     "generates XML files for import and runspec files and creates batch files for importing and running MOVES"
@@ -33,6 +35,8 @@ class MOVESModule():
         self.save_path_runspecfiles = save_path_runspecfiles   
         self.save_path_countyinputs = save_path_countyinputs
         self.server = server
+        self.model_run_title = config.get('title')
+        self.moves_path = config.get('moves_path')
         
     def createcountydata(self):
                 #required inputs 
@@ -101,4 +105,12 @@ class MOVESModule():
             run_filename = os.path.join(save_path_runspec, FIPS+"_runspec_"+self.yr+'_'+self.crop+".mrs") 
             xmlrunspec = GenMOVESRun.GenerateMOVESRunspec(crop=self.crop,FIPS=FIPS,yr=self.yr, months=mo, days=d,beginhour=bhr, endhour=ehr,server=self.server)
             xmlrunspec.create_runspec_files(run_filename)
-        
+    
+    def importdata(self): 
+
+        # master path to the batch file that keeps track of all the run_code batch files.
+        logger.debug('Importing MOVES files')        
+        self.importbatch = os.path.join(self.moves_path, 'batch_import_FPEAM_' + self.model_run_title +'.bat')
+       
+        output= subprocess.Popen(r"C:\Users\Public\EPA\MOVES\MOVES2014a\batch_import_FPEAM_aelocal.bat",cwd="C:\Users\Public\EPA\MOVES\MOVES2014a",stdout=subprocess.PIPE).stdout.read()
+        logger.debug('Moves output: %s' % output)

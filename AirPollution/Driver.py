@@ -204,7 +204,7 @@ class Driver:
         
         # @TODO: move to config file
         # timespan for MOVES runs        
-        mo = ["8","9","10"]  # month (1-12)
+        mo = ["8"]  # month (1-12)
         bhr = ["7"]  # begin hour (24 hr)
         ehr = ["19"]  # end hour (24 hr)
         d = ["5"]  # day (2=weekend, 5=weekday)
@@ -238,7 +238,9 @@ class Driver:
             GenerateMOVESFiles.createXMLrunspec(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_runspec=self.save_path_runspecfiles) 
             
             # create batch files for importing and running MOVES        
-            GenerateMOVESFiles.createBatchfiles(model_run_title = self.model_run_title)     
+            GenerateMOVESFiles.createBatchfiles(model_run_title = self.model_run_title) 
+        
+        GenerateMOVESFiles.importdata()
         
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):
         """
