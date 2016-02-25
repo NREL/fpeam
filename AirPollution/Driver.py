@@ -116,7 +116,7 @@ class Driver:
             # fips, state, productions
             # TODO: should this return the data? And pass the data as a variable in Driver?
             scenario.get_data(run_code=run_code)
-            scenario_year = self.yr(run_code)            
+            scenario_year = self.yr[run_code[0:2]]            
             
             # initialize variables
             state = scenario.data[0][1]
