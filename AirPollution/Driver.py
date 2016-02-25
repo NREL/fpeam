@@ -216,11 +216,11 @@ class Driver:
                 os.makedirs(path)       
          
         # initialize MOVESModule
-        GenerateMOVESFiles = MOVESModule.MOVESModule(FIPSlist = FIPSlist,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,server=server)
+        GenerateMOVESFiles = MOVESModule.MOVESModule(FIPSlist = FIPSlist,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs,server=server)
 
         # creat county-level data files
-        # @TODO: add county-level data creation to MOVESModule
-
+        GenerateMOVESFiles.createcountydata()
+        
         # create XML import files          
         GenerateMOVESFiles.createXMLimport(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_import=self.save_path_importfiles)
         

@@ -19,18 +19,45 @@ import MOVESBatch as MB
 import GenerateMOVESImport as GenMOVESIm
 import GenerateMOVESRunspec as GenMOVESRun
 import os 
+import csv
 
 class MOVESModule(): 
     "generates XML files for import and runspec files and creates batch files for importing and running MOVES"
     
-    def __init__(self,FIPSlist,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles,server): 
+    def __init__(self,FIPSlist,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles,save_path_countyinputs,server): 
         self.FIPSlist = FIPSlist
         self.yr = yr
         self.path_MOVES = path_MOVES
         self.save_path_importfiles = save_path_importfiles
-        self.save_path_runspecfiles = save_path_runspecfiles    
+        self.save_path_runspecfiles = save_path_runspecfiles   
+        self.save_path_countyinputs = save_path_countyinputs
         self.server = server
         
+    def createcountydata(self):
+                #required inputs 
+        for FIPS in self.FIPSlist:         
+            
+            # @TODO: replace vmt_shorthaul with database query to calculate county-level vehicle populations
+            vmt_shorthaul = 10000 #annual vehicle miles traveled by combination short-haul trucks
+            
+            pop_shorthaul = 1 #population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
+                    
+            #county-level input files for MOVES 
+            vmtname = os.path.join(self.save_path_countyinputs, FIPS+'_vehiclemiletraveled_'+self.yr+'.csv')
+            sourcetypename = os.path.join(self.save_path_countyinputs, FIPS+'_sourcetype_'+self.yr+'.csv')
+            
+            #annual vehicle miles traveled by vehicle type 
+            with open(vmtname,'wb') as csvfile:
+                vmtwriter = csv.writer(csvfile, dialect='excel')
+                vmtwriter.writerow(['HPMSVtypeID', 'yearID', 'HPMSBaseYearVMT'])
+                vmtwriter.writerow(['60', self.yr, vmt_shorthaul]) #combination short-haul truck
+            
+            #source type population (number of vehicles by vehicle type)
+            with open(sourcetypename,'wb') as csvfile:
+                popwriter = csv.writer(csvfile, dialect='excel')
+                popwriter.writerow(['yearID', 'sourceTypeID', 'sourceTypePopulation'])
+                popwriter.writerow([self.yr,"61", pop_shorthaul]) #combination short-haul truck
+    
     def createBatchfiles(self, model_run_title):
                 
         for FIPS in self.FIPSlist:
@@ -57,7 +84,7 @@ class MOVESModule():
         metfilename = os.path.join(save_path_nat_inputs,"met_default.txt")
         
         #filepaths for county-level data (i.e., source type popluation and vehicle miles travele) 
-        save_path_county_inputs = "C:/MOVES/County_Inputs/"
+        save_path_county_inputs = self.save_path_countyinputs
 
         
         for FIPS in self.FIPSlist:
