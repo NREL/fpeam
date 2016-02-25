@@ -55,12 +55,12 @@ class GenerateMOVESRunspec:
         #output emissions breakdown (which ouptuts are included)
         outputemissions = etree.Element("outputemissionsbreakdownselection")
         etree.SubElement(outputemissions,"modelyear",selected="false")
-        etree.SubElement(outputemissions,"fueltype",selected="true")
+        etree.SubElement(outputemissions,"fueltype",selected="false")
         etree.SubElement(outputemissions,"fuelsubtype",selected="false")
         etree.SubElement(outputemissions,"emissionprocess",selected="true")
         etree.SubElement(outputemissions,"onroadoffroad",selected="true")
         etree.SubElement(outputemissions,"roadtype",selected="true")
-        etree.SubElement(outputemissions,"sourceusetype",selected="true")
+        etree.SubElement(outputemissions,"sourceusetype",selected="false")
         etree.SubElement(outputemissions,"movesvehicletype",selected="false")
         etree.SubElement(outputemissions,"onroadscc",selected="false")
         estimateduncer = etree.SubElement(outputemissions,"estimateuncertainty",selected="false")
@@ -243,7 +243,7 @@ class GenerateMOVESRunspec:
                 
         return polproc
 
-    def roadtype(self):
+    def roadtypes(self):
         #ROAD TYPE 
         #dictionary for road types 
         roaddict = {"1":"Off-Network",
@@ -258,7 +258,7 @@ class GenerateMOVESRunspec:
             roadtype.set("roadtypename",roaddict[roads])
             roadtype.set("modelCombination","M1")
         
-        return roadtype
+        return roadtypes
     
     def extrainputdatabase(self):
         #blank input database (not required input)
@@ -274,7 +274,7 @@ class GenerateMOVESRunspec:
         geoselect = self.geo_selection
         timespan = self.timespan        
         com_sh_truck = self.vehtype
-        roadtypes = self.roadtype
+        roadtypes = self.roadtypes
         polproc = self.pollutantprocess
         [description,internalcontrol]=GenerateMOVESRunspec.cdata(self)
         extrainputdatabase = self.extrainputdatabase

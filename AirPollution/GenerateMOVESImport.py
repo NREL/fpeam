@@ -37,7 +37,7 @@ class GenerateMOVESImport:
         self.metfile = etree.XML("<filename>"+metfilename+"</filename>", self.parser)
         self.roadtypefile = etree.XML("<filename>"+roadtypefilename+"</filename>", self.parser)
         self.sourcetypefile = etree.XML("<filename>"+sourcetypefilename+"</filename>", self.parser)
-        self.HMPSyearfile = etree.XML("<filename>"+VMTfilename+"</filename>", self.parser)
+        self.HPMSyearfile = etree.XML("<filename>"+VMTfilename+"</filename>", self.parser)
         self.monthVMTfile = etree.XML("<filename>"+monthVMTfilename+"</filename>", self.parser)
         self.dayVMTfile = etree.XML("<filename>"+dayVMTfilename+"</filename>", self.parser)
         self.hourVMTfile = etree.XML("<filename>"+hourVMTfilename+"</filename>", self.parser)
@@ -57,6 +57,7 @@ class GenerateMOVESImport:
         #XML for geographic selection
         geoselect = etree.Element("geographicselection", type="COUNTY")
         geoselect.set("key", self.FIPS)
+        geoselect.set("description","")
         return geoselect
         
     def timespan(self):
@@ -173,7 +174,7 @@ class GenerateMOVESImport:
         
         return polproc
         
-    def roadtype(self):
+    def roadtypes(self):
         #ROAD TYPE 
         #dictionary for road types 
         roaddict = {"1":"Off-Network",
@@ -187,7 +188,7 @@ class GenerateMOVESImport:
             roadtype = etree.SubElement(roadtypes,"roadtype",roadtypeid=roads)
             roadtype.set("roadtypename",roaddict[roads])
             roadtype.set("modelCombination","M1")
-        return roadtype
+        return roadtypes
             
     def databaseinfo(self): 
         #DATABASE INFO
@@ -211,7 +212,7 @@ class GenerateMOVESImport:
         geoselect = self.geo_selection
         timespan = self.timespan        
         com_sh_truck = self.vehtype
-        roadtypes = self.roadtype
+        roadtypes = self.roadtypes
         polproc = self.pollutantprocess
         databasesel = self.databaseinfo
         
@@ -272,7 +273,7 @@ class GenerateMOVESImport:
                 E.vehicletypevmt(
                         etree.XML('<description><![CDATA[]]></description>', self.parser),
                         E.parts(
-                           E.HMPSVtypeYear(self.HMPSyearfile),
+                           E.HPMSVtypeYear(self.HPMSyearfile),
                            E.monthVMTFraction(self.monthVMTfile),
                            E.dayVMTFraction(self.dayVMTfile),
                            E.hourVMTFraction(self.hourVMTfile),

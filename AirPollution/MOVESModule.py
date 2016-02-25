@@ -38,7 +38,7 @@ class MOVESModule():
                 #required inputs 
         for FIPS in self.FIPSlist:         
             
-            # @TODO: replace vmt_shorthaul with database query to calculate county-level vehicle populations
+            # @TODO: replace vmt_shorthaul with database query to calculate county-level vehicle populations (need to import data first)
             vmt_shorthaul = 10000 #annual vehicle miles traveled by combination short-haul trucks
             
             pop_shorthaul = 1 #population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
@@ -69,7 +69,8 @@ class MOVESModule():
     def createXMLimport(self,mo,bhr,ehr,d, save_path_import):
         
         #filepaths for national MOVES defaults 
-        save_path_nat_inputs = "C:/MOVES/National_Inputs/"
+        # @TODO: replace filepaths with database queries that export csv or text files? or put hardcoded values into python classes that generate text files?   
+        save_path_nat_inputs = "C:\MOVESdata\National_Inputs"
         agefilename = os.path.join(save_path_nat_inputs, "default-age-distribution-tool-moves"+self.yr+".txt")
         speedfilename = os.path.join(save_path_nat_inputs,"speed_default.txt")
         fuelsupfilename = os.path.join(save_path_nat_inputs,"fuel_default.txt")
