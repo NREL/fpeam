@@ -28,7 +28,6 @@ class ScenarioOptions:
         self._create_dir()
         self.run_code = None
         self.data = None
-        self.episode_year = None
 
     def _create_dir(self):        
         """
@@ -62,12 +61,6 @@ class ScenarioOptions:
 
         # keep track of current run code.
         self.run_code = run_code
-
-        # model all years as 2022 except corn grain = 2011
-        if run_code.startswith('CG'):
-            self.episode_year = '2011'
-        else:
-            self.episode_year = '2022' 
 
         # query the data and collect it.
         query = self._get_query(run_code)

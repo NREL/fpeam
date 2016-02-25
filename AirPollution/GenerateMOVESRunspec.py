@@ -20,10 +20,10 @@ from lxml.builder import E
 class GenerateMOVESRunspec: 
     "Generate XML file for running MOVES from command line"
 
-    def __init__(self, FIPS, yr, months, days,beginhour, endhour,server):
-        self.db_in = "fips_"+FIPS+"_in" #input database
-        self.db_out = "fips_"+FIPS+"_out" #outputdatabase
-        self.scenid = FIPS #scenario ID for MOVES 
+    def __init__(self, crop, FIPS, yr, months, days,beginhour, endhour,server):
+        self.db_in = "fips_"+FIPS+"_"+crop+"_in" #input database
+        self.db_out = "fips_"+FIPS+"_"+crop+"_out" #outputdatabase
+        self.scenid = FIPS+"_"+crop  #scenario ID for MOVES 
         self.yr = yr
         self.mo = months
         self.d = days

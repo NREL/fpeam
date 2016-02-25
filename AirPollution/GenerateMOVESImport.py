@@ -20,7 +20,7 @@ from lxml.builder import E
 class GenerateMOVESImport: 
     "Generate XML file for using MOVES County Data Manager from command line"
     
-    def __init__(self, FIPS, yr, months, days,beginhour, endhour, agefilename,speedfilename,fuelsupfilename,fuelformfilename,fuelusagefilename,avftfilename,metfilename,roadtypefilename,sourcetypefilename,VMTfilename,monthVMTfilename,dayVMTfilename,hourVMTfilename):
+    def __init__(self, crop, FIPS, yr, months, days,beginhour, endhour, agefilename,speedfilename,fuelsupfilename,fuelformfilename,fuelusagefilename,avftfilename,metfilename,roadtypefilename,sourcetypefilename,VMTfilename,monthVMTfilename,dayVMTfilename,hourVMTfilename):
         #set parser to leave CDATA sections in document 
         self.parser = etree.XMLParser(strip_cdata=False, recover=True)
         
@@ -49,8 +49,8 @@ class GenerateMOVESImport:
         self.bhr = beginhour
         self.ehr = endhour
         
-        self.db_in = "fips_"+FIPS+"_in" #input database
-        self.scenid = FIPS #scenario ID for MOVES 
+        self.db_in = "fips_"+FIPS+"_"+crop+"_in" #input database
+        self.scenid = FIPS+"_"+crop #scenario ID for MOVES 
     
     def geo_selection(self):
         #GEOGRAPHIC SELECTION 

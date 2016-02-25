@@ -24,7 +24,8 @@ import csv
 class MOVESModule(): 
     "generates XML files for import and runspec files and creates batch files for importing and running MOVES"
     
-    def __init__(self,FIPSlist,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles,save_path_countyinputs,server): 
+    def __init__(self,crop,FIPSlist,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles,save_path_countyinputs,server): 
+        self.crop = crop        
         self.FIPSlist = FIPSlist
         self.yr = yr
         self.path_MOVES = path_MOVES
@@ -43,8 +44,8 @@ class MOVESModule():
             pop_shorthaul = 1 #population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
                     
             #county-level input files for MOVES 
-            vmtname = os.path.join(self.save_path_countyinputs, FIPS+'_vehiclemiletraveled_'+self.yr+'.csv')
-            sourcetypename = os.path.join(self.save_path_countyinputs, FIPS+'_sourcetype_'+self.yr+'.csv')
+            vmtname = os.path.join(self.save_path_countyinputs, FIPS+'_vehiclemiletraveled_'+self.yr+'_'+self.crop+'.csv')
+            sourcetypename = os.path.join(self.save_path_countyinputs, FIPS+'_sourcetype_'+self.yr+'_'+self.crop+'.csv')
             
             #annual vehicle miles traveled by vehicle type 
             with open(vmtname,'wb') as csvfile:
@@ -61,7 +62,7 @@ class MOVESModule():
     def createBatchfiles(self, model_run_title):
                 
         for FIPS in self.FIPSlist:
-            batchfile = MB.MOVESBatch(model_run_title,FIPS=FIPS,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles=self.save_path_runspecfiles)
+            batchfile = MB.MOVESBatch(run_code = self.crop, model_run_title=model_run_title,FIPS=FIPS,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles=self.save_path_runspecfiles)
             batchfile.create_MOVES_batchimport()
             batchfile.create_MOVES_batchrun()
             
@@ -88,15 +89,15 @@ class MOVESModule():
 
         
         for FIPS in self.FIPSlist:
-            im_filename = os.path.join(save_path_import, FIPS+"_import_"+self.yr+".mrs")
-            sourcetypefilename = os.path.join(save_path_county_inputs, FIPS + "_sourcetype_"+self.yr+".csv")
-            VMTfilename = os.path.join(save_path_county_inputs, FIPS + "_vehiclemiletraveled_"+self.yr+".csv")
-            xmlimport = GenMOVESIm.GenerateMOVESImport(FIPS=FIPS, yr=self.yr, months=mo, days=d,beginhour=bhr, endhour=ehr, agefilename=agefilename,speedfilename=speedfilename,fuelsupfilename=fuelsupfilename,fuelformfilename=fuelformfilename,fuelusagefilename=fuelusagefilename,avftfilename=avftfilename,metfilename=metfilename,roadtypefilename=roadtypefilename,sourcetypefilename=sourcetypefilename,VMTfilename=VMTfilename,monthVMTfilename=monthVMTfilename,dayVMTfilename=dayVMTfilename,hourVMTfilename=hourVMTfilename)
+            im_filename = os.path.join(save_path_import, FIPS+"_import_"+self.yr+'_'+self.crop+".mrs")
+            sourcetypefilename = os.path.join(save_path_county_inputs, FIPS + "_sourcetype_"+self.yr+'_'+self.crop+".csv")
+            VMTfilename = os.path.join(save_path_county_inputs, FIPS + "_vehiclemiletraveled_"+self.yr+'_'+self.crop+".csv")
+            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop,FIPS=FIPS, yr=self.yr, months=mo, days=d,beginhour=bhr, endhour=ehr, agefilename=agefilename,speedfilename=speedfilename,fuelsupfilename=fuelsupfilename,fuelformfilename=fuelformfilename,fuelusagefilename=fuelusagefilename,avftfilename=avftfilename,metfilename=metfilename,roadtypefilename=roadtypefilename,sourcetypefilename=sourcetypefilename,VMTfilename=VMTfilename,monthVMTfilename=monthVMTfilename,dayVMTfilename=dayVMTfilename,hourVMTfilename=hourVMTfilename)
             xmlimport.create_import_file(im_filename)
             
     def createXMLrunspec(self,mo,bhr,ehr,d, save_path_runspec):
         for FIPS in self.FIPSlist:
-            run_filename = os.path.join(save_path_runspec, FIPS+"_runspec_"+self.yr+".mrs") 
-            xmlrunspec = GenMOVESRun.GenerateMOVESRunspec(FIPS=FIPS,yr=self.yr, months=mo, days=d,beginhour=bhr, endhour=ehr,server=self.server)
+            run_filename = os.path.join(save_path_runspec, FIPS+"_runspec_"+self.yr+'_'+self.crop+".mrs") 
+            xmlrunspec = GenMOVESRun.GenerateMOVESRunspec(crop=self.crop,FIPS=FIPS,yr=self.yr, months=mo, days=d,beginhour=bhr, endhour=ehr,server=self.server)
             xmlrunspec.create_runspec_files(run_filename)
         

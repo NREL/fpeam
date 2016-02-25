@@ -34,18 +34,19 @@ import os
 
 class Driver:
 
-    def __init__(self, _model_run_title, run_codes, year, _db):
+    def __init__(self, _model_run_title, run_codes, year_dict, crop_list, _db):
         """
         Save important variables for the running of the program.
 
         @param _model_run_title: Scenario title.
         @param run_codes: Run codes to keep track of where you are in the program
-        @param _db:
+        @param _db: Instantiation of Database class using scenario title
+        @param year: Scenario year
         """
 
         # add run codes.
         self.run_codes = run_codes
-
+        
         # add run title
         self.model_run_title = self._check_title(_model_run_title)
 
@@ -55,7 +56,10 @@ class Driver:
         self.save_path_runspecfiles = os.path.join(config.get('moves_datafiles_path'),'RunSpecs')
         self.save_path_outputs= os.path.join(config.get('moves_datafiles_path'),'Outputs')
         self.save_path_countyinputs = os.path.join(config.get('moves_datafiles_path'),'County_Inputs')
-        self.yr = year
+        self.yr = year_dict
+        
+        # add crop list for MOVES
+        self.crop_list = crop_list
         
         # container to pass info around
         self.cont = Container.Container()
@@ -97,7 +101,6 @@ class Driver:
         Set up the NONROAD program by creating option, allocation, and population files.
         Also creates batch files to run.
         """
-        # @TODO: maybe should make episode_year to be a global variable in this class instead of Options.
 
         # initialize objects
         scenario = Opt.ScenarioOptions(cont=self.cont)
@@ -108,12 +111,13 @@ class Driver:
         # go to each run code.
         for run_code in self.run_codes:
 
-            logger.info('Processing run code: %s' % (run_code, ))
+            logger.info('Processing NONROAD setup for run code: %s' % (run_code, ))
             # query database for appropriate production data based on run_code:
             # fips, state, productions
             # TODO: should this return the data? And pass the data as a variable in Driver?
             scenario.get_data(run_code=run_code)
-
+            scenario_year = self.yr(run_code)            
+            
             # initialize variables
             state = scenario.data[0][1]
             fips_prior = str(scenario.data[0][0])
@@ -121,20 +125,20 @@ class Driver:
             # New population object created for each run_code
             # Pop is the abstract class and .<type> is the concrete class.
             if run_code.startswith('CG_I'):
-                pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario.episode_year, run_code=run_code)
+                pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
             elif run_code.startswith('SG'):
-                pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario.episode_year, run_code=run_code)
+                pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
             elif run_code.startswith('FR'):
-                pop = Pop.ForestPop(cont=self.cont, episode_year=scenario.episode_year, run_code=run_code)
+                pop = Pop.ForestPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
             elif run_code.startswith('CS'):
-                pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario.episode_year, run_code=run_code)
+                pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
             elif run_code.startswith('WS'):
-                pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario.episode_year, run_code=run_code)
+                pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
             elif run_code.startswith('CG'):
-                pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario.episode_year, run_code=run_code)
+                pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
 
             # is it possible to instantiate new classes each time?
-            alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario.episode_year)
+            alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
             pop.initialize_pop(dat=scenario.data[0])
             self.batch.initialize(run_code)
 
@@ -155,7 +159,7 @@ class Driver:
                 # last time through a state, will close different files, and start new ones.
                 else:
                     # write *.opt file, close allocation file, close *.pop file
-                    Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario.episode_year)
+                    Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
                     alo.write_sum_and_close(fips=fips_prior)
                     pop.finish_pop()
                     self.batch.append(state=state, run_code=run_code)
@@ -164,7 +168,7 @@ class Driver:
                     state = dat[1]
 
                     # initialize new pop and allocation files.
-                    alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario.episode_year)
+                    alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
                     pop.initialize_pop(dat=dat)
                     # indicator is harvested acres. Except for FR when it is produce.
                     indicator = dat[2]
@@ -172,7 +176,7 @@ class Driver:
                     pop.append_pop(fips=fips, dat=dat)
 
                     # close allocation files
-            Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario.episode_year)
+            Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
             alo.write_sum_and_close(fips=fips_prior)
             pop.finish_pop()
             self.batch.append(state=state, run_code=run_code)
@@ -197,6 +201,7 @@ class Driver:
         Set up the MOVES program by creating input data files, XML files for data imports, and XML files for runspecs.
         Also creates batch files to 1) import data using MOVES County Data Manager and 2) run the MOVES program.
         """
+        
         # @TODO: move to config file
         # timespan for MOVES runs        
         mo = ["8","9","10"]  # month (1-12)
@@ -209,26 +214,31 @@ class Driver:
         
         # list of file paths for MOVES inputs and outputs   
         pathlist = [self.save_path_importfiles,self.save_path_runspecfiles,self.save_path_outputs,self.save_path_countyinputs]
-
+        
         # check to make sure file paths exist, otherwise create them        
         for path in pathlist: 
             if not os.path.exists(path):
-                os.makedirs(path)       
-         
-        # initialize MOVESModule
-        GenerateMOVESFiles = MOVESModule.MOVESModule(FIPSlist = FIPSlist,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs,server=server)
+                os.makedirs(path)    
+                
+        for crop in self.crop_list:
 
-        # creat county-level data files
-        GenerateMOVESFiles.createcountydata()
-        
-        # create XML import files          
-        GenerateMOVESFiles.createXMLimport(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_import=self.save_path_importfiles)
-        
-        # create XML runspec files 
-        GenerateMOVESFiles.createXMLrunspec(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_runspec=self.save_path_runspecfiles) 
-        
-        # create batch files for importing and running MOVES        
-        GenerateMOVESFiles.createBatchfiles(self.model_run_title)     
+            logger.info('Processing MOVES setup for crop: %s' % (crop, ))
+            scenario_year = self.yr[crop] 
+            
+            # initialize MOVESModule
+            GenerateMOVESFiles = MOVESModule.MOVESModule(crop = crop, FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs,server=server)
+    
+            # creat county-level data files
+            GenerateMOVESFiles.createcountydata()
+            
+            # create XML import files          
+            GenerateMOVESFiles.createXMLimport(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_import=self.save_path_importfiles)
+            
+            # create XML runspec files 
+            GenerateMOVESFiles.createXMLrunspec(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_runspec=self.save_path_runspecfiles) 
+            
+            # create batch files for importing and running MOVES        
+            GenerateMOVESFiles.createBatchfiles(model_run_title = self.model_run_title)     
         
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):
         """
