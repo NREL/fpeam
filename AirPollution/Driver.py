@@ -226,7 +226,7 @@ class Driver:
             scenario_year = self.yr[crop] 
             
             # initialize MOVESModule
-            GenerateMOVESFiles = MOVESModule.MOVESModule(crop = crop, FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs,server=server)
+            GenerateMOVESFiles = MOVESModule.MOVESModule(crop = crop, FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs)
     
             # creat county-level data files
             GenerateMOVESFiles.createcountydata()
@@ -240,7 +240,7 @@ class Driver:
             # create batch files for importing and running MOVES        
             GenerateMOVESFiles.createBatchfiles(model_run_title = self.model_run_title) 
         
-        GenerateMOVESFiles.importdata()
+            GenerateMOVESFiles.importdata()
         
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):
         """
