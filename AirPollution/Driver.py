@@ -31,6 +31,7 @@ from src.AirPollution.utils import config, logger
 from src.AirPollution import MOVESModule
 
 import os
+import subprocess
 
 class Driver:
 
@@ -200,17 +201,9 @@ class Driver:
         """         
         Set up the MOVES program by creating input data files, XML files for data imports, and XML files for runspecs.
         Also creates batch files to 1) import data using MOVES County Data Manager and 2) run the MOVES program.
+        
+        @param FIPSlist: list of all county FIPS codes
         """
-        
-        # @TODO: move to config file
-        # timespan for MOVES runs        
-        mo = ["8"]  # month (1-12)
-        bhr = ["7"]  # begin hour (24 hr)
-        ehr = ["19"]  # end hour (24 hr)
-        d = ["5"]  # day (2=weekend, 5=weekday)
-        
-        # server for MOVES database        
-        server = "localhost"  # @TODO: move to config file
         
         # list of file paths for MOVES inputs and outputs   
         pathlist = [self.save_path_importfiles,self.save_path_runspecfiles,self.save_path_outputs,self.save_path_countyinputs]
@@ -226,22 +219,40 @@ class Driver:
             scenario_year = self.yr[crop] 
             
             # initialize MOVESModule
-            GenerateMOVESFiles = MOVESModule.MOVESModule(crop = crop, FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs)
+            GenerateMOVESFiles = MOVESModule.MOVESModule(crop = crop,FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs)
     
-            # creat county-level data files
-            GenerateMOVESFiles.createcountydata()
+            # @TODO: replace vmt_shorthaul with database query to calculate county-level vehicle populations (need to get data first - could use sample data to get started)
+            vmt_shorthaul = 10000 #annual vehicle miles traveled by combination short-haul trucks
+            pop_shorthaul = 1 #population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
+            
+            # create county-level data files
+            GenerateMOVESFiles.createcountydata(vmt_shorthaul=vmt_shorthaul,pop_shorthaul=pop_shorthaul)
             
             # create XML import files          
-            GenerateMOVESFiles.createXMLimport(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_import=self.save_path_importfiles)
+            GenerateMOVESFiles.createXMLimport()
             
             # create XML runspec files 
-            GenerateMOVESFiles.createXMLrunspec(mo=mo,bhr=bhr,ehr=ehr,d=d,save_path_runspec=self.save_path_runspecfiles) 
+            GenerateMOVESFiles.createXMLrunspec() 
             
             # create batch files for importing and running MOVES        
-            GenerateMOVESFiles.createBatchfiles(model_run_title = self.model_run_title) 
+            GenerateMOVESFiles.createBatchfiles() 
         
             GenerateMOVESFiles.importdata()
         
+    def run_MOVES(self):
+        """
+        Run MOVES using the batch file generated in setup_MOVES
+        """
+        
+        # path for run batch file (for some reason the string doesn't work for execution using Popen)
+        runbatch = os.path.join(self.path_MOVES, 'batch_run_FPEAM_' + self.model_run_title +'.bat')
+        batch_string = 'r"'+runbatch+'"'
+        
+        # exectute batch file and log output 
+        # @TODO: replace hardcoded path for batch file 
+        output= subprocess.Popen(r"C:\\Users\Public\EPA\MOVES\MOVES2014a\batch_run_FPEAM_aelocal.bat",cwd=self.path_MOVES,stdout=subprocess.PIPE).stdout.read()
+        logger.debug('Command line output: %s' % output)
+    
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):
         """
         Create and populate the schema with the emissions inventory.

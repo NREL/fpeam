@@ -6,11 +6,13 @@ Generates XML files for importing data and running MOVES
 Also creates batch files for executing MOVES imports and runs 
 
 Inputs include: 
+    crop type     
+    list of FIPS codes
     year of scenario
-    FIPS code
     path to MOVES (where batch files are saved for execution)
     path to XML import files
     path to XML runspec files
+    path to county data input files 
 
 @author: aeberle
 """
@@ -25,57 +27,73 @@ import subprocess
 import pymysql
 
 class MOVESModule(): 
-    "generates XML files for import and runspec files and creates batch files for importing and running MOVES"
+    """
+    Generate XML files for import and runspec files and creates batch files for importing and running MOVES
+    """
     
     def __init__(self,crop,FIPSlist,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles,save_path_countyinputs): 
-        self.crop = crop        
-        self.FIPSlist = FIPSlist
-        self.yr = yr
-        self.path_MOVES = path_MOVES
-        self.save_path_importfiles = save_path_importfiles
-        self.save_path_runspecfiles = save_path_runspecfiles   
-        self.save_path_countyinputs = save_path_countyinputs
-        self.model_run_title = config.get('title')
-        self.MOVES_database = config.get('MOVES_database')
-        self.MOVES_db_user = config.get('MOVES_db_user')
-        self.MOVES_db_pass = config.get('MOVES_db_pass')
-        self.MOVES_db_host = config.get('MOVES_db_host')
+        self.crop = crop # crop name   
+        self.FIPSlist = FIPSlist # list of FIPS codes
+        self.yr = yr # scenario year 
+        self.path_MOVES = path_MOVES # path for MOVES program
+        self.save_path_importfiles = save_path_importfiles # path for MOVES import files 
+        self.save_path_runspecfiles = save_path_runspecfiles # path for MOVES runspec files
+        self.save_path_countyinputs = save_path_countyinputs # path for MOVES county data input files
+        self.model_run_title = config.get('title') # scenario title 
+        self.MOVES_database = config.get('MOVES_database') # MOVES database name 
+        self.MOVES_db_user = config.get('MOVES_db_user') # username for MOVES database
+        self.MOVES_db_pass = config.get('MOVES_db_pass') # password for MOVES database
+        self.MOVES_db_host = config.get('MOVES_db_host') # host for MOVES database
+        self.MOVES_timespan = config.get('MOVES_timespan') # timespan for MOVES runs 
         
-    def createcountydata(self):
-                #required inputs 
+    def createcountydata(self, vmt_shorthaul, pop_shorthaul):
+        """
+        Create county-level data for MOVES
+        @param: vmt_shorthaul = annual vehicle miles traveled by combination short-haul trucks
+        @param: pop_shorthaul = population of combination short-haul trucks
+        """
+        'Creating county-level data files for MOVES'        
+        
         for FIPS in self.FIPSlist:         
-            
-            # @TODO: replace vmt_shorthaul with database query to calculate county-level vehicle populations (need to import data first)
-            vmt_shorthaul = 10000 #annual vehicle miles traveled by combination short-haul trucks
-            
-            pop_shorthaul = 1 #population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
                     
-            #county-level input files for MOVES 
+            # county-level input files for MOVES 
             vmtname = os.path.join(self.save_path_countyinputs, FIPS+'_vehiclemiletraveled_'+self.yr+'_'+self.crop+'.csv')
             sourcetypename = os.path.join(self.save_path_countyinputs, FIPS+'_sourcetype_'+self.yr+'_'+self.crop+'.csv')
             
-            #annual vehicle miles traveled by vehicle type 
+            # annual vehicle miles traveled by vehicle type 
             with open(vmtname,'wb') as csvfile:
                 vmtwriter = csv.writer(csvfile, dialect='excel')
                 vmtwriter.writerow(['HPMSVtypeID', 'yearID', 'HPMSBaseYearVMT'])
-                vmtwriter.writerow(['60', self.yr, vmt_shorthaul]) #combination short-haul truck
+                vmtwriter.writerow(['60', self.yr, vmt_shorthaul]) # combination short-haul truck
             
-            #source type population (number of vehicles by vehicle type)
+            # source type population (number of vehicles by vehicle type)
             with open(sourcetypename,'wb') as csvfile:
                 popwriter = csv.writer(csvfile, dialect='excel')
                 popwriter.writerow(['yearID', 'sourceTypeID', 'sourceTypePopulation'])
-                popwriter.writerow([self.yr,"61", pop_shorthaul]) #combination short-haul truck
+                popwriter.writerow([self.yr,"61", pop_shorthaul]) # combination short-haul truck
     
-    def createBatchfiles(self, model_run_title):
-                
+    def createBatchfiles(self):
+        """
+        Create batch files for importing data using MOVES county data manager and running MOVES  
+        """
+        logger.debug('Creating batch files for MOVES runs')        
+        
+        # loop through FIPS codes
         for FIPS in self.FIPSlist:
-            batchfile = MB.MOVESBatch(run_code = self.crop, model_run_title=model_run_title,FIPS=FIPS,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles=self.save_path_runspecfiles)
+            # instantiate MOVESBatch
+            batchfile = MB.MOVESBatch(crop=self.crop, model_run_title=self.model_run_title,FIPS=FIPS,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles=self.save_path_runspecfiles)
+            # create MOVES batch import file            
             batchfile.create_MOVES_batchimport()
+            # create MOVES batch run file
             batchfile.create_MOVES_batchrun()
             
-    def createXMLimport(self,mo,bhr,ehr,d, save_path_import):
+    def createXMLimport(self):
+        """
+        Create XML files for importing data using MOVES county data manager
+        """
+        logger.debug('Creating XML files for importing MOVES data')
         
-        #filepaths for national MOVES defaults 
+        # filepaths for national MOVES defaults 
         # @TODO: replace filepaths with database queries that export csv or text files? or put hardcoded values into python classes that generate text files?   
         save_path_nat_inputs = "C:\MOVESdata\National_Inputs"
         agefilename = os.path.join(save_path_nat_inputs, "default-age-distribution-tool-moves"+self.yr+".txt")
@@ -91,43 +109,62 @@ class MOVESModule():
         
         #meteorology data changes later (dummy file later dropped from database and correct county imported)
         metfilename = os.path.join(save_path_nat_inputs,"met_default.txt")
-        
-        #filepaths for county-level data (i.e., source type popluation and vehicle miles travele) 
-        save_path_county_inputs = self.save_path_countyinputs
-
-        
+              
+        # loop through FIPS codes 
         for FIPS in self.FIPSlist:
-            im_filename = os.path.join(save_path_import, FIPS+"_import_"+self.yr+'_'+self.crop+".mrs")
-            sourcetypefilename = os.path.join(save_path_county_inputs, FIPS + "_sourcetype_"+self.yr+'_'+self.crop+".csv")
-            VMTfilename = os.path.join(save_path_county_inputs, FIPS + "_vehiclemiletraveled_"+self.yr+'_'+self.crop+".csv")
-            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop,FIPS=FIPS, yr=self.yr, months=mo, days=d,beginhour=bhr, endhour=ehr, agefilename=agefilename,speedfilename=speedfilename,fuelsupfilename=fuelsupfilename,fuelformfilename=fuelformfilename,fuelusagefilename=fuelusagefilename,avftfilename=avftfilename,metfilename=metfilename,roadtypefilename=roadtypefilename,sourcetypefilename=sourcetypefilename,VMTfilename=VMTfilename,monthVMTfilename=monthVMTfilename,dayVMTfilename=dayVMTfilename,hourVMTfilename=hourVMTfilename)
+            # create import filename using FIPS code, crop, and scenario year 
+            im_filename = os.path.join(self.save_path_import, FIPS+"_import_"+self.yr+'_'+self.crop+".mrs")
+            # create filename for sourcetype input file using FIPS code, crop, and scenario year 
+            sourcetypefilename = os.path.join(self.save_path_county_inputs, FIPS + "_sourcetype_"+self.yr+'_'+self.crop+".csv")
+            # create filename for VMT input file using FIPS code, crop, and scenario year 
+            VMTfilename = os.path.join(self.save_path_county_inputs, FIPS + "_vehiclemiletraveled_"+self.yr+'_'+self.crop+".csv")
+            # instantiate GenerateMOVESImport class 
+            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop,FIPS=FIPS, yr=self.yr, MOVES_timespan=self.MOVES_timespan, agefilename=agefilename,speedfilename=speedfilename,fuelsupfilename=fuelsupfilename,fuelformfilename=fuelformfilename,fuelusagefilename=fuelusagefilename,avftfilename=avftfilename,metfilename=metfilename,roadtypefilename=roadtypefilename,sourcetypefilename=sourcetypefilename,VMTfilename=VMTfilename,monthVMTfilename=monthVMTfilename,dayVMTfilename=dayVMTfilename,hourVMTfilename=hourVMTfilename)
+            # execute function for creating XML import file             
             xmlimport.create_import_file(im_filename)
             
-    def createXMLrunspec(self,mo,bhr,ehr,d, save_path_runspec):
+    def createXMLrunspec(self, save_path_runspec):
+        """
+        Create XML file for running MOVES
+        """
+        logger.debug('Creating XML files for running MOVES')
+        
+        # loop through FIPS codes 
         for FIPS in self.FIPSlist:
+            # create filename for runspec file using FIPS code, crop, and scenario year
             run_filename = os.path.join(save_path_runspec, FIPS+"_runspec_"+self.yr+'_'+self.crop+".mrs") 
-            xmlrunspec = GenMOVESRun.GenerateMOVESRunspec(crop=self.crop,FIPS=FIPS,yr=self.yr, months=mo, days=d,beginhour=bhr, endhour=ehr,server=self.MOVES_db_host)
+            # instantiate GenerateMOVESRunspec class
+            xmlrunspec = GenMOVESRun.GenerateMOVESRunspec(crop=self.crop,FIPS=FIPS,yr=self.yr, MOVES_timespan=self.MOVES_timespan,server=self.MOVES_db_host)
+            # execute function for creating XML file             
             xmlrunspec.create_runspec_files(run_filename)
     
     def importdata(self): 
-
-        logger.debug('Importing MOVES files')        
+        """
+        Import MOVES data into MySQL database 
+        """
+        logger.debug('Importing MOVES files')  
+        
         # path for import batch file
         self.importbatch = os.path.join(self.path_MOVES, 'batch_import_FPEAM_' + self.model_run_title +'.bat')
        
         # exectute batch file and log output 
-        # @TODO: replace hardcoded values with string
+        # @TODO: replace hardcoded values with string (for some reason string version doesn't work correctly)
         output= subprocess.Popen(r"C:\Users\Public\EPA\MOVES\MOVES2014a\batch_import_FPEAM_aelocal.bat",cwd=self.path_MOVES,stdout=subprocess.PIPE).stdout.read()
         logger.debug('MOVES output: %s' % output)
 
         # modify meteoroology and fuel data using default values in MOVES database         
         logger.debug('Modifying meteorology and fuel data')        
+
+        # initialize kvals for string formatting        
         kvals = {}
         kvals['MOVES_database']=self.MOVES_database        
         
+        # connect to MOVES database
         connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user,password=self.MOVES_db_pass,db=self.MOVES_database)
         cursor = connection.cursor()
         
+        # create query for modifying county-level meteorology (table: zonemonthhour) and fuel (tables: fuelsupply, fuelformulation, fuelusagefraction) data
+        # values are replaced by selecting county-level data from the MOVES default values in MOVES_database schema  
         query = ''
         for FIPS in self.FIPSlist: 
             kvals['year'] = self.yr
@@ -162,6 +199,10 @@ class MOVESModule():
                     AND {MOVES_database}.fuelusagefraction.fuelSupplyFuelTypeID = '2');
                     """).format(**kvals))
         
+        #execute query
         cursor.execute(query)
+        #commit result
         connection.commit()
+        #close connection to database
+        connection.close()
         

@@ -5,12 +5,14 @@ Created on Fri Feb 12 09:49:39 2016
 Generates XML file for MOVES runspec
 
 Inputs include: 
-    year(s), month(s), day(s), and hour(s) for analysis
+    crop type
     FIPS code
-    path for saving (save_path)  
-    servername 
+    scenario year
+    timespan for MOVES analysis (MOVES_timespan: month(s), day(s), and hour(s)) 
+    MOVES server
+    path for saving (filename under function: "create_runspec_files")   
 Output: 
-    formatted xml file with name of FIPS code_runspec.mrs (e.g., "19109_runspec.mrs") 
+    formatted xml file with name of FIPS code_runspec_year_crop.mrs (e.g., "19109_runspec_2015_CG.mrs") 
 
 @author: aeberle
 """
@@ -18,32 +20,38 @@ from lxml import etree
 from lxml.builder import E
 
 class GenerateMOVESRunspec: 
-    "Generate XML file for running MOVES from command line"
+    """
+    Generate XML file for running MOVES from the command line
+    """
 
-    def __init__(self, crop, FIPS, yr, months, days,beginhour, endhour,server):
-        self.db_in = "fips_"+FIPS+"_"+crop+"_in" #input database
-        self.db_out = "fips_"+FIPS+"_"+crop+"_out" #outputdatabase
-        self.scenid = FIPS+"_"+crop  #scenario ID for MOVES 
-        self.yr = yr
-        self.mo = months
-        self.d = days
-        self.bhr = beginhour
-        self.ehr = endhour
-        self.FIPS = FIPS 
-        self.server = server 
+    def __init__(self, crop, FIPS, yr, MOVES_timespan,server):
+        self.db_in = "fips_"+FIPS+"_"+crop+"_in" # input database
+        self.db_out = "fips_"+FIPS+"_"+crop+"_out" # output database
+        self.scenid = FIPS+"_"+crop  # scenario ID for MOVES 
+        self.yr = yr # scenario year
+        self.mo = MOVES_timespan['mo'] # month(s) for analysis
+        self.d = MOVES_timespan['d'] # days(s) for analysis
+        self.bhr = MOVES_timespan['bhr'] # beginning hour(s) for analysis
+        self.ehr = MOVES_timespan['ehr'] # ending hour(s) for analysis
+        self.FIPS = FIPS # FIPS code
+        self.server = server # host for MOVES server
         
         #set parser to leave CDATA sections in document 
         self.parser = etree.XMLParser(strip_cdata=False)
 
     def cdata(self):
-        #create XML for elements with CDATA
+        """
+        Create XML element tree for elements with MOVES inputs with CDATA
+        """
         description = etree.XML('<description><![CDATA[]]></description>', self.parser)
         internalcontrol = etree.XML('<internalcontrolstrategy classname="gov.epa.otaq.moves.master.implementation.ghg.internalcontrolstrategies.rateofprogress.RateOfProgressStrategy"><![CDATA[useParameters	No]]></internalcontrolstrategy>', self.parser)
         
         return description, internalcontrol
     
     def uncertaintyparam(self):
-        #undertainty parameters
+        """
+        Create XML element tree for MOVES uncertainty parameters
+        """
         uncertaintyparam = etree.Element("uncertaintyparameters",uncertaintymodeenabled="false")
         uncertaintyparam.set("numberofrunspersimulation","0")
         uncertaintyparam.set("numberofsimulations","0")
@@ -51,8 +59,9 @@ class GenerateMOVESRunspec:
         return uncertaintyparam
     
     def emissionbreakdown(self):
-        
-        #output emissions breakdown (which ouptuts are included)
+        """
+        Create XML element tree for MOVES output emissions breakdown, which specifies which outputs are included in MOVES analysis
+        """
         outputemissions = etree.Element("outputemissionsbreakdownselection")
         etree.SubElement(outputemissions,"modelyear",selected="false")
         etree.SubElement(outputemissions,"fueltype",selected="false")
@@ -75,7 +84,9 @@ class GenerateMOVESRunspec:
         return outputemissions
         
     def outputdatabase(self):
-        #output database information 
+        """
+        Create XML element tree for MOVES output database information
+        """
         outputdatabase = etree.Element("outputdatabase",servername=self.server)
         outputdatabase.set("databasename",self.db_out)
         outputdatabase.set("description","")
@@ -83,7 +94,9 @@ class GenerateMOVESRunspec:
         return outputdatabase
     
     def inputdatabase(self):
-        #input database information 
+        """
+        Create XML element tree for MOVES input database information
+        """
         scaleinput = etree.Element("scaleinputdatabase",servername=self.server)
         scaleinput.set("databasename",self.db_in)
         scaleinput.set("description","")
@@ -91,7 +104,9 @@ class GenerateMOVESRunspec:
         return scaleinput 
         
     def units(self):
-        #output factors (units)
+        """
+        Create XML element tree for units used for MOVES output
+        """
         outputfactors = etree.Element("outputfactors")
         timefac = etree.SubElement(outputfactors,"timefactors",selected="true")
         timefac.set("units","Hours")
@@ -104,13 +119,16 @@ class GenerateMOVESRunspec:
         return outputfactors 
     
     def other(self):
-        #generate database with other outputs (leave empty)
+        """
+        Create XML element trees for other MOVES runspec inputs
+        """
+        # generate database with other outputs (leave empty)
         gendata = etree.Element("generatordatabase",shouldsave="false")
         gendata.set("servername","")
         gendata.set("databasename","")
         gendata.set("description","")
         
-        #lookupflags for database
+        # lookupflags for database
         lookupflag = etree.Element("lookuptableflags",scenarioid=self.scenid)
         lookupflag.set("truncateoutput","true")
         lookupflag.set("truncateactivity","true")
@@ -119,8 +137,9 @@ class GenerateMOVESRunspec:
         return gendata, lookupflag
 
     def geo_selection(self):
-        #GEOGRAPHIC SELECTION 
-        #XML for geographic selection
+        """
+        Create XML element tree for MOVES geographic selection
+        """
         geoselect = etree.Element("geographicselection", type="COUNTY")
         geoselect.set("key", self.FIPS)
         geoselect.set("description","")
@@ -128,7 +147,9 @@ class GenerateMOVESRunspec:
         return geoselect
         
     def timespan(self):
-        #TIMESPAN 
+        """
+        Create XML element tree for MOVES timespan
+        """
         #XML for timespan 
         timespan = etree.Element("timespan")
         #set year
@@ -151,8 +172,10 @@ class GenerateMOVESRunspec:
         return timespan
 
     def vehtype(self):
-
-        #VEHICLE TYPE 
+        """
+        Create XML element tree for MOVES vehicle type
+        Currently only for combination short-haul truck 
+        """ 
         #XML for vehicle type selections
         #combination short-haul truck
         com_sh_truck = etree.Element("onroadvehicleselection", fueltypeid="2")
@@ -169,8 +192,11 @@ class GenerateMOVESRunspec:
         return com_sh_truck
 
     def pollutantprocess(self): 
-        #POLLUTANT PROCESSES 
-        #dictionary of pollutant shorthand to MOVES name
+        """
+        Create XML element tree for MOVES pollutant processes
+        Currently includes: CO, NH3, PM10, PM2.5, SO2, NOX, VOC, and prerequisites 
+        """
+        # dictionary of pollutant shorthand to MOVES name
         polname = {"NH3":"Ammonia (NH3)",
                    "CO":"Carbon Monoxide (CO)", 
                    "ECPM":"Composite - NonECPM", 
@@ -185,7 +211,7 @@ class GenerateMOVESRunspec:
                    "TEC":"Total Energy Consumption",
                    "THC":"Total Gaseous Hydrocarbons",
                    "VOC":"Volatile Organic Compounds"}       
-        #dictionary of pollutant shorthand to MOVES pollutantid
+        # dictionary of pollutant shorthand to MOVES pollutantid
         polkey = {"NH3":"30", 
                   "CO":"2",
                   "ECPM":"118",
@@ -200,7 +226,7 @@ class GenerateMOVESRunspec:
                   "TEC":"91",
                   "THC":"1",
                   "VOC":"87"}
-        #dictionary of MOVES pollutant process numbers to MOVES pollutant process descriptions
+        # dictionary of MOVES pollutant process numbers to MOVES pollutant process descriptions
         procname = {"1":"Running Exhaust", 
                     "2":"Start Exhaust", 
                     "11":"Evap Permeation",
@@ -214,7 +240,7 @@ class GenerateMOVESRunspec:
                     "90":"Extended Idle Exhaust", 
                     "91":"Auxiliary Power Exhaust"}
           
-        #dictionary of shorthand pollutant names to applicable MOVES pollutant process numbers          
+        # dictionary of shorthand pollutant names to applicable MOVES pollutant process numbers          
         prockey = {"NH3":["1","2","15","16","17","90","91"], 
                   "CO":["1","2","15","16","17","90","91"],
                   "ECPM":["1","2","90","91"],
@@ -230,12 +256,12 @@ class GenerateMOVESRunspec:
                   "THC":["1","2","11","12","13","18","19","90","91"],
                   "VOC":["1","2","11","12","13","15","16","17","18","19","90","91"]}
         
-        #XML for pollutant process associations       
-        #create element for pollutat process associations 
+        # XML for pollutant process associations       
+        # create element for pollutat process associations 
         polproc = etree.Element("pollutantprocessassociations")
-        #populate subelements for pollutant processes
+        # populate subelements for pollutant processes
         for pol in polname: #loop through all pollutants
-            for proc in prockey[pol]: #loop through all processes associated with each pollutant
+            for proc in prockey[pol]: # loop through all processes associated with each pollutant
                 pollutant = etree.SubElement(polproc,"pollutantprocessassociation", pollutantkey=polkey[pol])
                 pollutant.set("pollutantname", polname[pol])
                 pollutant.set("processkey", proc)
@@ -244,14 +270,16 @@ class GenerateMOVESRunspec:
         return polproc
 
     def roadtypes(self):
-        #ROAD TYPE 
-        #dictionary for road types 
+        """
+        Create XML element tree for MOVES road types
+        """
+        # dictionary for road types 
         roaddict = {"1":"Off-Network",
                     "2":"Rural Restricted Access",
                     "3":"Rural Unrestricted Access",
                     "4":"Urban Restricted Access",
                     "5":"Urban Unrestricted Access"}
-        #XML for road types 
+        # XML for road types 
         roadtypes = etree.Element("roadtypes",{"separateramps":"false"})
         for roads in roaddict:  
             roadtype = etree.SubElement(roadtypes,"roadtype",roadtypeid=roads)
@@ -261,7 +289,9 @@ class GenerateMOVESRunspec:
         return roadtypes
     
     def extrainputdatabase(self):
-        #blank input database (not required input)
+        """
+        Create XML element tree for extra database information (leave empty)
+        """
         inputdatabase = etree.Element("inputdatabase",servername="")
         inputdatabase.set("databasename","")
         inputdatabase.set("description","")
@@ -269,8 +299,9 @@ class GenerateMOVESRunspec:
         return inputdatabase
 
     def fullrunspec(self):
-        #GENERATE FULL RUNSPEC 
-    
+        """
+        Create full element tree for MOVES import file
+        """
         geoselect = self.geo_selection
         timespan = self.timespan        
         com_sh_truck = self.vehtype
@@ -338,13 +369,14 @@ class GenerateMOVESRunspec:
         return runspecfile 
     
     def create_runspec_files(self,filename): 
-        
+        """
+        Transform element tree to string and save to file
+        """   
+        # generate XML element tree        
         runspecfilestring = GenerateMOVESRunspec.fullrunspec(self)
-        
-        #CREATE STRING FROM ELEMENT TREE           
+        # create string from element tree           
         stringout = etree.tostring(runspecfilestring,pretty_print=True,encoding='utf8') 
-        
-        #SAVE XML TREE TO FILE     
+        # save string to file      
         fileout = open(filename, "w")
         fileout.write(stringout)
         fileout.close()
