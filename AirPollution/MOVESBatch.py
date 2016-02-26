@@ -30,9 +30,9 @@ class MOVESBatch:
         self.crop = crop # crop name
         self.model_run_title = model_run_title # scenario name
         self.importbatch = os.path.join(path_MOVES, 'batch_import_FPEAM_' + self.model_run_title +'.bat') # path for batch import file
-        self.importfilename = os.path.join(save_path_importfiles, FIPS+"_import_"+yr+'_'+self.run_code+".mrs") # path for XML import files 
+        self.importfilename = os.path.join(save_path_importfiles, FIPS+"_import_"+yr+'_'+self.crop+".mrs") # path for XML import files 
         self.runbatch = os.path.join(path_MOVES, 'batch_run_FPEAM_' + self.model_run_title +'.bat') # path for batch run file
-        self.runfilename = os.path.join(save_path_runspecfiles, FIPS+"_runspec_"+yr+'_'+self.run_code+".mrs") # path for XML runspec files
+        self.runfilename = os.path.join(save_path_runspecfiles, FIPS+"_runspec_"+yr+'_'+self.crop+".mrs") # path for XML runspec files
         self.FIPS = FIPS # FIPS code
         self.yr = yr # scenario year
         

@@ -113,17 +113,17 @@ class MOVESModule():
         # loop through FIPS codes 
         for FIPS in self.FIPSlist:
             # create import filename using FIPS code, crop, and scenario year 
-            im_filename = os.path.join(self.save_path_import, FIPS+"_import_"+self.yr+'_'+self.crop+".mrs")
+            im_filename = os.path.join(self.save_path_importfiles, FIPS+"_import_"+self.yr+'_'+self.crop+".mrs")
             # create filename for sourcetype input file using FIPS code, crop, and scenario year 
-            sourcetypefilename = os.path.join(self.save_path_county_inputs, FIPS + "_sourcetype_"+self.yr+'_'+self.crop+".csv")
+            sourcetypefilename = os.path.join(self.save_path_countyinputs, FIPS + "_sourcetype_"+self.yr+'_'+self.crop+".csv")
             # create filename for VMT input file using FIPS code, crop, and scenario year 
-            VMTfilename = os.path.join(self.save_path_county_inputs, FIPS + "_vehiclemiletraveled_"+self.yr+'_'+self.crop+".csv")
+            VMTfilename = os.path.join(self.save_path_countyinputs, FIPS + "_vehiclemiletraveled_"+self.yr+'_'+self.crop+".csv")
             # instantiate GenerateMOVESImport class 
             xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop,FIPS=FIPS, yr=self.yr, MOVES_timespan=self.MOVES_timespan, agefilename=agefilename,speedfilename=speedfilename,fuelsupfilename=fuelsupfilename,fuelformfilename=fuelformfilename,fuelusagefilename=fuelusagefilename,avftfilename=avftfilename,metfilename=metfilename,roadtypefilename=roadtypefilename,sourcetypefilename=sourcetypefilename,VMTfilename=VMTfilename,monthVMTfilename=monthVMTfilename,dayVMTfilename=dayVMTfilename,hourVMTfilename=hourVMTfilename)
             # execute function for creating XML import file             
             xmlimport.create_import_file(im_filename)
             
-    def createXMLrunspec(self, save_path_runspec):
+    def createXMLrunspec(self):
         """
         Create XML file for running MOVES
         """
@@ -132,7 +132,7 @@ class MOVESModule():
         # loop through FIPS codes 
         for FIPS in self.FIPSlist:
             # create filename for runspec file using FIPS code, crop, and scenario year
-            run_filename = os.path.join(save_path_runspec, FIPS+"_runspec_"+self.yr+'_'+self.crop+".mrs") 
+            run_filename = os.path.join(self.save_path_runspecfiles, FIPS+"_runspec_"+self.yr+'_'+self.crop+".mrs") 
             # instantiate GenerateMOVESRunspec class
             xmlrunspec = GenMOVESRun.GenerateMOVESRunspec(crop=self.crop,FIPS=FIPS,yr=self.yr, MOVES_timespan=self.MOVES_timespan,server=self.MOVES_db_host)
             # execute function for creating XML file             
