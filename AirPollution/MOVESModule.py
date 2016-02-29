@@ -40,6 +40,8 @@ class MOVESModule():
         self.save_path_runspecfiles = save_path_runspecfiles # path for MOVES runspec files
         self.save_path_countyinputs = save_path_countyinputs # path for MOVES county data input files
         self.save_path_nationalinputs = save_path_nationalinputs # path for national input data files for MOVES 
+        
+        # get information from config file 
         self.model_run_title = config.get('title') # scenario title 
         self.MOVES_database = config.get('MOVES_database') # MOVES database name 
         self.MOVES_db_user = config.get('MOVES_db_user') # username for MOVES database
@@ -48,6 +50,8 @@ class MOVESModule():
         self.MOVES_timespan = config.get('MOVES_timespan') # timespan for MOVES runs
         self.age_distribution = config.get('age_distribution') # age distribution dictionary for MOVES runs (varies by scenario year)
         self.VMT_fraction = config.get('VMT_fraction') # fraction of VMT by road type 
+        self.fuelfraction = config.get('fuel_fraction') # fuel fraction 
+
         
     def createcountydata(self, vmt_shorthaul, pop_shorthaul):
         """
@@ -102,9 +106,9 @@ class MOVESModule():
             """
             county-level input files for MOVES that vary by FIPS and year
             """
-            fuelsupplyname = os.path.join(self.save_path_countyinputs, FIPS+'_fuelsupply_'+self.yr+'_.csv')
-            fuelformname = os.path.join(self.save_path_countyinputs, FIPS+'_fuelformulation_'+self.yr+'_'+self.crop+'.csv')
-            fuelusagename = os.path.join(self.save_path_countyinputs, FIPS+'_fuelusagefraction_'+self.yr+'_'+self.crop+'.csv')
+            fuelsupplyname = os.path.join(self.save_path_countyinputs, FIPS+'_fuelsupply_'+self.yr+'.csv')
+            fuelformname = os.path.join(self.save_path_countyinputs, FIPS+'_fuelformulation_'+self.yr+'.csv')
+            fuelusagename = os.path.join(self.save_path_countyinputs, FIPS+'_fuelusagefraction_'+self.yr+'.csv')
             # export county-level fuel supply data     
             with open(fuelsupplyname,'wb') as f:
                 cursor.execute("""SELECT * FROM {MOVES_database}.fuelsupply
@@ -182,6 +186,20 @@ class MOVESModule():
                 csv_writer.writerow([i[0] for i in cursor.description]) # write headers
                 csv_writer.writerows(cursor)
         
+        # create file for alternative vehicle fuels and technology (avft)
+
+        sourcetype = '61'
+        engtech = '1'
+        avftname = os.path.join(self.save_path_nationalinputs, 'avft.csv')
+        with open(avftname, "wb") as f:
+             csv_writer = csv.writer(f)
+             csv_writer.writerow(['sourceTypeID','modelYearID','fuelTypeID','engTechID','fuelEngFraction']) # write headers
+             i = 0
+             for modelyear in range(1960,2051):
+                for fueltype in range(1,3):
+                    csv_writer.writerow([sourcetype,modelyear,fueltype,engtech,self.fuelfraction[i]])
+                    i = i+1
+       
         # create file for default age distribution (values in age_distribution dictionary were computed using MOVES Default Age Distribution Tool)
         agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves'+self.yr+'.csv')
         with open(agedistname,'wb') as f: 
@@ -220,32 +238,28 @@ class MOVESModule():
         logger.info('Creating XML files for importing MOVES data')
         
         # filepaths for national MOVES defaults 
-        # @TODO: replace filepaths with database queries that export csv or text files? or put hardcoded values into python classes that generate text files?   
-        save_path_nat_inputs = "C:\MOVESdata\National_Inputs"
-        agefilename = os.path.join(save_path_nat_inputs, "default-age-distribution-tool-moves"+self.yr+".txt")
-        speedfilename = os.path.join(save_path_nat_inputs,"speed_default.txt")
-        fuelsupfilename = os.path.join(save_path_nat_inputs,"fuel_default.txt")
-        fuelformfilename = os.path.join(save_path_nat_inputs,"fuel_default_FuelFormulation.txt")
-        fuelusagefilename = os.path.join(save_path_nat_inputs,"fuel_default_FuelUsageFraction.txt")
-        avftfilename = os.path.join(save_path_nat_inputs,"fuel_default_avft.txt")
-        roadtypefilename = os.path.join(save_path_nat_inputs,"roadtype_temp.txt")
-        monthVMTfilename = os.path.join(save_path_nat_inputs,"MonthVMTFraction")
-        dayVMTfilename = os.path.join(save_path_nat_inputs,"DayVMTFraction")
-        hourVMTfilename = os.path.join(save_path_nat_inputs,"HourVMTFraction")
+        agefilename = os.path.join(self.save_path_nationalinputs, "default-age-distribution-tool-moves"+self.yr+".csv")
+        speedfilename = os.path.join(self.save_path_nationalinputs,"avgspeeddistribution.csv")
+        avftfilename = os.path.join(self.save_path_nationalinputs,"avft.csv")
+        roadtypefilename = os.path.join(self.save_path_nationalinputs,"roadtype.csv")
+        monthVMTfilename = os.path.join(self.save_path_nationalinputs,"monthvmtfraction.csv")
+        dayVMTfilename = os.path.join(self.save_path_nationalinputs,"dayvmtfraction.csv")
+        hourVMTfilename = os.path.join(self.save_path_nationalinputs,"hourvmtfraction.csv")
         
-        #meteorology data changes later (dummy file later dropped from database and correct county imported)
-        metfilename = os.path.join(save_path_nat_inputs,"met_default.txt")
-              
         # loop through FIPS codes 
         for FIPS in self.FIPSlist:
+            # filepaths for county-level input files 
+            metfilename = os.path.join(self.save_path_countyinputs,FIPS+'_met.csv')
+            fuelsupfilename = os.path.join(self.save_path_countyinputs, FIPS+'_fuelsupply_'+self.yr+'.csv')
+            fuelformfilename = os.path.join(self.save_path_countyinputs,FIPS+'_fuelformulation_'+self.yr+'.csv')
+            fuelusagefilename = os.path.join(self.save_path_countyinputs,FIPS+'_fuelusagefraction_'+self.yr+'.csv')  
+            sourcetypename = os.path.join(self.save_path_countyinputs, FIPS + "_sourcetype_"+self.yr+'_'+self.crop+".csv")
+            vmtname = os.path.join(self.save_path_countyinputs, FIPS + "_vehiclemiletraveled_"+self.yr+'_'+self.crop+".csv")
+            
             # create import filename using FIPS code, crop, and scenario year 
             im_filename = os.path.join(self.save_path_importfiles, FIPS+"_import_"+self.yr+'_'+self.crop+".mrs")
-            # create filename for sourcetype input file using FIPS code, crop, and scenario year 
-            sourcetypefilename = os.path.join(self.save_path_countyinputs, FIPS + "_sourcetype_"+self.yr+'_'+self.crop+".csv")
-            # create filename for VMT input file using FIPS code, crop, and scenario year 
-            VMTfilename = os.path.join(self.save_path_countyinputs, FIPS + "_vehiclemiletraveled_"+self.yr+'_'+self.crop+".csv")
             # instantiate GenerateMOVESImport class 
-            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop,FIPS=FIPS, yr=self.yr, MOVES_timespan=self.MOVES_timespan, agefilename=agefilename,speedfilename=speedfilename,fuelsupfilename=fuelsupfilename,fuelformfilename=fuelformfilename,fuelusagefilename=fuelusagefilename,avftfilename=avftfilename,metfilename=metfilename,roadtypefilename=roadtypefilename,sourcetypefilename=sourcetypefilename,VMTfilename=VMTfilename,monthVMTfilename=monthVMTfilename,dayVMTfilename=dayVMTfilename,hourVMTfilename=hourVMTfilename)
+            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop,FIPS=FIPS, yr=self.yr, MOVES_timespan=self.MOVES_timespan, agefilename=agefilename,speedfilename=speedfilename,fuelsupfilename=fuelsupfilename,fuelformfilename=fuelformfilename,fuelusagefilename=fuelusagefilename,avftfilename=avftfilename,metfilename=metfilename,roadtypefilename=roadtypefilename,sourcetypefilename=sourcetypename,VMTfilename=vmtname,monthVMTfilename=monthVMTfilename,dayVMTfilename=dayVMTfilename,hourVMTfilename=hourVMTfilename)
             # execute function for creating XML import file             
             xmlimport.create_import_file(im_filename)
             
