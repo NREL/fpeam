@@ -47,6 +47,7 @@ class MOVESModule():
         self.MOVES_db_host = config.get('MOVES_db_host') # host for MOVES database
         self.MOVES_timespan = config.get('MOVES_timespan') # timespan for MOVES runs
         self.age_distribution = config.get('age_distribution') # age distribution dictionary for MOVES runs (varies by scenario year)
+        self.VMT_fraction = config.get('VMT_fraction') # fraction of VMT by road type 
         
     def createcountydata(self, vmt_shorthaul, pop_shorthaul):
         """
@@ -181,12 +182,21 @@ class MOVESModule():
                 csv_writer.writerow([i[0] for i in cursor.description]) # write headers
                 csv_writer.writerows(cursor)
         
+        # create file for default age distribution (values in age_distribution dictionary were computed using MOVES Default Age Distribution Tool)
         agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves'+self.yr+'.csv')
         with open(agedistname,'wb') as f: 
             csv_writer = csv.writer(f)
             csv_writer.writerow(['sourceTypeID','yearID','ageID','ageFraction'])
             for bins in range(0,31): 
                 csv_writer.writerow(['61', self.yr, bins, self.age_distribution[self.yr][bins]])
+        
+        # create file for road type fraction 
+        roadtypename = os.path.join(self.save_path_nationalinputs, 'roadtype.csv')
+        with open(roadtypename,'wb') as f: 
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(['sourceTypeID','roadTypeID','roadTypeVMTFraction'])
+            for roadtype in range(2,6):
+                csv_writer.writerow(['61', roadtype,self.VMT_fraction[str(roadtype)]])
             
     def createBatchfiles(self):
         """
