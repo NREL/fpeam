@@ -57,6 +57,7 @@ class Driver:
         self.save_path_runspecfiles = os.path.join(config.get('moves_datafiles_path'),'RunSpecs')
         self.save_path_outputs= os.path.join(config.get('moves_datafiles_path'),'Outputs')
         self.save_path_countyinputs = os.path.join(config.get('moves_datafiles_path'),'County_Inputs')
+        self.save_path_nationalinputs = os.path.join(config.get('moves_datafiles_path'),'National_Inputs')
         self.yr = year_dict
         
         # add crop list for MOVES
@@ -206,7 +207,7 @@ class Driver:
         """
         
         # list of file paths for MOVES inputs and outputs   
-        pathlist = [self.save_path_importfiles,self.save_path_runspecfiles,self.save_path_outputs,self.save_path_countyinputs]
+        pathlist = [self.save_path_importfiles,self.save_path_runspecfiles,self.save_path_outputs,self.save_path_countyinputs,self.save_path_nationalinputs]
         
         # check to make sure file paths exist, otherwise create them        
         for path in pathlist: 
@@ -219,7 +220,7 @@ class Driver:
             scenario_year = self.yr[crop] 
             
             # initialize MOVESModule
-            GenerateMOVESFiles = MOVESModule.MOVESModule(crop = crop,FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs)
+            GenerateMOVESFiles = MOVESModule.MOVESModule(crop = crop,FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs,save_path_nationalinputs=self.save_path_nationalinputs)
     
             # @TODO: replace vmt_shorthaul with database query to calculate county-level vehicle populations (need to get data first - could use sample data to get started)
             vmt_shorthaul = 10000 #annual vehicle miles traveled by combination short-haul trucks

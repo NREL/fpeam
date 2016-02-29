@@ -31,7 +31,7 @@ class MOVESModule():
     Generate XML files for import and runspec files and creates batch files for importing and running MOVES
     """
     
-    def __init__(self,crop,FIPSlist,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles,save_path_countyinputs): 
+    def __init__(self,crop,FIPSlist,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles,save_path_countyinputs,save_path_nationalinputs): 
         self.crop = crop # crop name   
         self.FIPSlist = FIPSlist # list of FIPS codes
         self.yr = yr # scenario year 
@@ -39,6 +39,7 @@ class MOVESModule():
         self.save_path_importfiles = save_path_importfiles # path for MOVES import files 
         self.save_path_runspecfiles = save_path_runspecfiles # path for MOVES runspec files
         self.save_path_countyinputs = save_path_countyinputs # path for MOVES county data input files
+        self.save_path_nationalinputs = save_path_nationalinputs # path for national input data files for MOVES 
         self.model_run_title = config.get('title') # scenario title 
         self.MOVES_database = config.get('MOVES_database') # MOVES database name 
         self.MOVES_db_user = config.get('MOVES_db_user') # username for MOVES database
@@ -48,15 +49,39 @@ class MOVESModule():
         
     def createcountydata(self, vmt_shorthaul, pop_shorthaul):
         """
-        Create county-level data for MOVES
+        Create county-level data for MOVES, including: 
+            vehicle miles travelled
+            source type population 
+            fuel supply type
+            fuel formulation
+            fuel usage fraction 
+            meteorology         
+        
         @param: vmt_shorthaul = annual vehicle miles traveled by combination short-haul trucks
         @param: pop_shorthaul = population of combination short-haul trucks
         """
-        'Creating county-level data files for MOVES'        
+        logger.debug('Creating county-level data files for MOVES')      
         
-        for FIPS in self.FIPSlist:         
-                    
-            # county-level input files for MOVES 
+        # connect to MOVES database
+        connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user,password=self.MOVES_db_pass,db=self.MOVES_database)
+        cursor = connection.cursor()
+        
+        # set year for MOVES database queries 
+        year = self.yr
+        
+        for FIPS in self.FIPSlist:        
+            # define zoneID and countyID for querying MOVES database
+            zoneID = FIPS + '0'
+            countyID = FIPS
+            kvals ={}
+            kvals['year']=year
+            kvals['MOVES_database']=self.MOVES_database
+            kvals['countyID']=countyID
+            kvals['zoneID']=zoneID
+            """
+            county-level input files for MOVES that vary by FIPS, year, and crop 
+            (these inputs are calculated by FPEAM based on production data)
+            """
             vmtname = os.path.join(self.save_path_countyinputs, FIPS+'_vehiclemiletraveled_'+self.yr+'_'+self.crop+'.csv')
             sourcetypename = os.path.join(self.save_path_countyinputs, FIPS+'_sourcetype_'+self.yr+'_'+self.crop+'.csv')
             
@@ -71,7 +96,69 @@ class MOVESModule():
                 popwriter = csv.writer(csvfile, dialect='excel')
                 popwriter.writerow(['yearID', 'sourceTypeID', 'sourceTypePopulation'])
                 popwriter.writerow([self.yr,"61", pop_shorthaul]) # combination short-haul truck
-    
+            
+            """
+            county-level input files for MOVES that vary by FIPS and year
+            """
+            fuelsupplyname = os.path.join(self.save_path_countyinputs, FIPS+'_fuelsupply_'+self.yr+'_.csv')
+            fuelformname = os.path.join(self.save_path_countyinputs, FIPS+'_fuelformulation_'+self.yr+'_'+self.crop+'.csv')
+            fuelusagename = os.path.join(self.save_path_countyinputs, FIPS+'_fuelusagefraction_'+self.yr+'_'+self.crop+'.csv')
+            # export county-level fuel supply data     
+            with open(fuelsupplyname,'wb') as f:
+                cursor.execute("""SELECT * FROM {MOVES_database}.fuelsupply
+                                WHERE {MOVES_database}.fuelsupply.fuelRegionID =
+                                (SELECT regionID FROM {MOVES_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID='{year}')
+                                AND {MOVES_database}.fuelsupply.fuelYearID = '{year}'""".format(**kvals))    
+                csv_writer = csv.writer(f)
+                csv_writer.writerow([i[0] for i in cursor.description]) # write headers
+                csv_writer.writerows(cursor)
+            
+            # export county-level fuel formulation data 
+            with open(fuelformname,'wb') as f:
+                cursor.execute("""SELECT * FROM {MOVES_database}.fuelformulation
+                                WHERE {MOVES_database}.fuelformulation.fuelSubtypeID = '21' 
+                                OR {MOVES_database}.fuelformulation.fuelSubtypeID = '20';""".format(**kvals))    
+                csv_writer = csv.writer(f)
+                csv_writer.writerow([i[0] for i in cursor.description]) # write headers
+                csv_writer.writerows(cursor)
+                
+            # export county-level fuel usage fraction data 
+            with open(fuelusagename,'wb') as f:
+                cursor.execute("""SELECT * FROM {MOVES_database}.fuelusagefraction
+                                WHERE {MOVES_database}.fuelusagefraction.countyID='{countyID}' 
+                                AND {MOVES_database}.fuelusagefraction.fuelYearID = '{year}'
+                                AND {MOVES_database}.fuelusagefraction.fuelSupplyFuelTypeID = '2';""".format(**kvals))    
+                csv_writer = csv.writer(f)
+                csv_writer.writerow([i[0] for i in cursor.description]) # write headers
+                csv_writer.writerows(cursor)
+                
+            """
+            county-level input files for MOVES that vary by FIPS
+            """
+            metname = os.path.join(self.save_path_countyinputs, FIPS+'_met.csv')
+            
+            # export county-level meteorology data 
+            with open(metname,'wb') as f:
+                cursor.execute("SELECT * FROM {MOVES_database}.zonemonthhour WHERE {MOVES_database}.zonemonthhour.zoneID = {zoneID}".format(**kvals))    
+                csv_writer = csv.writer(f)
+                csv_writer.writerow([i[0] for i in cursor.description]) # write headers
+                csv_writer.writerows(cursor)
+            
+        cursor.close()
+                
+    def createNationalData(self):
+        """
+        Create national data for MOVES, including: 
+            Alternate Vehicle Fuels & Technologies (avft)
+            average speed distribution
+            age distribution (currently only works for 2015,2017,2022,and 2040)
+            day VMT fraction
+            month VMT fraction
+            hour VMT fraction
+            road type fraction 
+        """
+        pass
+        
     def createBatchfiles(self):
         """
         Create batch files for importing data using MOVES county data manager and running MOVES  
@@ -152,57 +239,57 @@ class MOVESModule():
         output= subprocess.Popen(r"C:\Users\Public\EPA\MOVES\MOVES2014a\batch_import_FPEAM_aelocal.bat",cwd=self.path_MOVES,stdout=subprocess.PIPE).stdout.read()
         logger.debug('MOVES output: %s' % output)
 
-        # modify meteoroology and fuel data using default values in MOVES database         
-        logger.debug('Modifying meteorology and fuel data')        
-
-        # initialize kvals for string formatting        
-        kvals = {}
-        kvals['MOVES_database']=self.MOVES_database        
-        
-        # connect to MOVES database
-        connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user,password=self.MOVES_db_pass,db=self.MOVES_database)
-        cursor = connection.cursor()
-        
-        # create query for modifying county-level meteorology (table: zonemonthhour) and fuel (tables: fuelsupply, fuelformulation, fuelusagefraction) data
-        # values are replaced by selecting county-level data from the MOVES default values in MOVES_database schema  
-        query = ''
-        for FIPS in self.FIPSlist: 
-            kvals['year'] = self.yr
-            kvals['countyID'] = FIPS
-            kvals['zoneID'] = FIPS + '0'        
-            kvals['county_db'] = 'fips_' + FIPS + '_' + self.crop + '_in'  
-            query = query + (("""DROP TABLE IF EXISTS {county_db}.zonemonthhour;
-                    DROP TABLE IF EXISTS {county_db}.fuelsupply;
-                    DROP TABLE IF EXISTS {county_db}.fuelformulation;
-                    DROP TABLE IF EXISTS {county_db}.fuelusagefraction;
-                    
-                    CREATE TABLE {county_db}.zonemonthhour
-                    AS (SELECT * FROM {MOVES_database}.zonemonthhour 
-                    WHERE {MOVES_database}.zonemonthhour.zoneID = {zoneID});
-                    
-                    CREATE TABLE {county_db}.fuelsupply
-                    AS (SELECT * FROM {MOVES_database}.fuelsupply
-                    WHERE {MOVES_database}.fuelsupply.fuelRegionID =
-                    (SELECT regionID FROM {MOVES_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID='{year}')
-                    AND {MOVES_database}.fuelsupply.fuelYearID = '{year}'
-                    AND {MOVES_database}.fuelsupply.fuelFormulationID = '25005');
-                    
-                    CREATE TABLE {county_db}.fuelformulation
-                    AS (SELECT * FROM {MOVES_database}.fuelformulation
-                    WHERE {MOVES_database}.fuelformulation.fuelSubtypeID = '21' OR {MOVES_database}.fuelformulation.fuelSubtypeID = '20');
-                    
-                    
-                    CREATE TABLE {county_db}.fuelusagefraction
-                    AS (SELECT * FROM {MOVES_database}.fuelusagefraction
-                    WHERE {MOVES_database}.fuelusagefraction.countyID='{countyID}' 
-                    AND {MOVES_database}.fuelusagefraction.fuelYearID = '{year}'
-                    AND {MOVES_database}.fuelusagefraction.fuelSupplyFuelTypeID = '2');
-                    """).format(**kvals))
-        
-        #execute query
-        cursor.execute(query)
-        #commit result
-        connection.commit()
-        #close connection to database
-        connection.close()
+#        # modify meteoroology and fuel data using default values in MOVES database         
+#        logger.debug('Modifying meteorology and fuel data')        
+#
+#        # initialize kvals for string formatting        
+#        kvals = {}
+#        kvals['MOVES_database']=self.MOVES_database        
+#        
+#        # connect to MOVES database
+#        connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user,password=self.MOVES_db_pass,db=self.MOVES_database)
+#        cursor = connection.cursor()
+#        
+#        # create query for modifying county-level meteorology (table: zonemonthhour) and fuel (tables: fuelsupply, fuelformulation, fuelusagefraction) data
+#        # values are replaced by selecting county-level data from the MOVES default values in MOVES_database schema  
+#        query = ''
+#        for FIPS in self.FIPSlist: 
+#            kvals['year'] = self.yr
+#            kvals['countyID'] = FIPS
+#            kvals['zoneID'] = FIPS + '0'        
+#            kvals['county_db'] = 'fips_' + FIPS + '_' + self.crop + '_in'  
+#            query = query + (("""DROP TABLE IF EXISTS {county_db}.zonemonthhour;
+#                    DROP TABLE IF EXISTS {county_db}.fuelsupply;
+#                    DROP TABLE IF EXISTS {county_db}.fuelformulation;
+#                    DROP TABLE IF EXISTS {county_db}.fuelusagefraction;
+#                    
+#                    CREATE TABLE {county_db}.zonemonthhour
+#                    AS (SELECT * FROM {MOVES_database}.zonemonthhour 
+#                    WHERE {MOVES_database}.zonemonthhour.zoneID = {zoneID});
+#                    
+#                    CREATE TABLE {county_db}.fuelsupply
+#                    AS (SELECT * FROM {MOVES_database}.fuelsupply
+#                    WHERE {MOVES_database}.fuelsupply.fuelRegionID =
+#                    (SELECT regionID FROM {MOVES_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID='{year}')
+#                    AND {MOVES_database}.fuelsupply.fuelYearID = '{year}'
+#                    AND {MOVES_database}.fuelsupply.fuelFormulationID = '25005');
+#                    
+#                    CREATE TABLE {county_db}.fuelformulation
+#                    AS (SELECT * FROM {MOVES_database}.fuelformulation
+#                    WHERE {MOVES_database}.fuelformulation.fuelSubtypeID = '21' OR {MOVES_database}.fuelformulation.fuelSubtypeID = '20');
+#                    
+#                    
+#                    CREATE TABLE {county_db}.fuelusagefraction
+#                    AS (SELECT * FROM {MOVES_database}.fuelusagefraction
+#                    WHERE {MOVES_database}.fuelusagefraction.countyID='{countyID}' 
+#                    AND {MOVES_database}.fuelusagefraction.fuelYearID = '{year}'
+#                    AND {MOVES_database}.fuelusagefraction.fuelSupplyFuelTypeID = '2');
+#                    """).format(**kvals))
+#        
+#        #execute query
+#        cursor.execute(query)
+#        #commit result
+#        connection.commit()
+#        #close connection to database
+#        connection.close()
         
