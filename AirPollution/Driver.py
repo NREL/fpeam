@@ -229,6 +229,9 @@ class Driver:
             # create county-level data files
             GenerateMOVESFiles.createcountydata(vmt_shorthaul=vmt_shorthaul,pop_shorthaul=pop_shorthaul)
             
+            # create national data files 
+            GenerateMOVESFiles.createNationalData()
+            
             # create XML import files          
             GenerateMOVESFiles.createXMLimport()
             

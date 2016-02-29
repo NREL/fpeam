@@ -45,7 +45,8 @@ class MOVESModule():
         self.MOVES_db_user = config.get('MOVES_db_user') # username for MOVES database
         self.MOVES_db_pass = config.get('MOVES_db_pass') # password for MOVES database
         self.MOVES_db_host = config.get('MOVES_db_host') # host for MOVES database
-        self.MOVES_timespan = config.get('MOVES_timespan') # timespan for MOVES runs 
+        self.MOVES_timespan = config.get('MOVES_timespan') # timespan for MOVES runs
+        self.age_distribution = config.get('age_distribution') # age distribution dictionary for MOVES runs (varies by scenario year)
         
     def createcountydata(self, vmt_shorthaul, pop_shorthaul):
         """
@@ -60,7 +61,7 @@ class MOVESModule():
         @param: vmt_shorthaul = annual vehicle miles traveled by combination short-haul trucks
         @param: pop_shorthaul = population of combination short-haul trucks
         """
-        logger.debug('Creating county-level data files for MOVES')      
+        logger.info('Creating county-level data files for MOVES')      
         
         # connect to MOVES database
         connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user,password=self.MOVES_db_pass,db=self.MOVES_database)
@@ -157,13 +158,41 @@ class MOVESModule():
             hour VMT fraction
             road type fraction 
         """
-        pass
+        logger.info('Creating national data files for MOVES')      
         
+        # connect to MOVES database
+        connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user,password=self.MOVES_db_pass,db=self.MOVES_database)
+        cursor = connection.cursor()
+
+        # initialize kvals for string formatting 
+        kvals ={}
+        kvals['year']=self.yr
+        kvals['MOVES_database']=self.MOVES_database
+            
+        # export MOVES defaults for national inputs (i.e., hourVMTFraction, monthVMTFraction, dayVMTFraction, and avgspeeddistribution)
+        tablelist = ['hourvmtfraction','monthvmtfraction','dayvmtfraction','avgspeeddistribution']
+        for table in tablelist:
+            kvals['table']=table
+            filename = os.path.join(self.save_path_nationalinputs, table+'.csv')
+            cursor.execute("SELECT * FROM {MOVES_database}.{table} WHERE sourceTypeID = '61';".format(**kvals))
+            
+            with open(filename, "wb") as f:
+                csv_writer = csv.writer(f)
+                csv_writer.writerow([i[0] for i in cursor.description]) # write headers
+                csv_writer.writerows(cursor)
+        
+        agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves'+self.yr+'.csv')
+        with open(agedistname,'wb') as f: 
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(['sourceTypeID','yearID','ageID','ageFraction'])
+            for bins in range(0,31): 
+                csv_writer.writerow(['61', self.yr, bins, self.age_distribution[self.yr][bins]])
+            
     def createBatchfiles(self):
         """
         Create batch files for importing data using MOVES county data manager and running MOVES  
         """
-        logger.debug('Creating batch files for MOVES runs')        
+        logger.info('Creating batch files for MOVES runs')        
         
         # loop through FIPS codes
         for FIPS in self.FIPSlist:
@@ -178,7 +207,7 @@ class MOVESModule():
         """
         Create XML files for importing data using MOVES county data manager
         """
-        logger.debug('Creating XML files for importing MOVES data')
+        logger.info('Creating XML files for importing MOVES data')
         
         # filepaths for national MOVES defaults 
         # @TODO: replace filepaths with database queries that export csv or text files? or put hardcoded values into python classes that generate text files?   
@@ -214,7 +243,7 @@ class MOVESModule():
         """
         Create XML file for running MOVES
         """
-        logger.debug('Creating XML files for running MOVES')
+        logger.info('Creating XML files for running MOVES')
         
         # loop through FIPS codes 
         for FIPS in self.FIPSlist:
@@ -229,7 +258,7 @@ class MOVESModule():
         """
         Import MOVES data into MySQL database 
         """
-        logger.debug('Importing MOVES files')  
+        logger.info('Importing MOVES files')  
         
         # path for import batch file
         self.importbatch = os.path.join(self.path_MOVES, 'batch_import_FPEAM_' + self.model_run_title +'.bat')
@@ -238,58 +267,4 @@ class MOVESModule():
         # @TODO: replace hardcoded values with string (for some reason string version doesn't work correctly)
         output= subprocess.Popen(r"C:\Users\Public\EPA\MOVES\MOVES2014a\batch_import_FPEAM_aelocal.bat",cwd=self.path_MOVES,stdout=subprocess.PIPE).stdout.read()
         logger.debug('MOVES output: %s' % output)
-
-#        # modify meteoroology and fuel data using default values in MOVES database         
-#        logger.debug('Modifying meteorology and fuel data')        
-#
-#        # initialize kvals for string formatting        
-#        kvals = {}
-#        kvals['MOVES_database']=self.MOVES_database        
-#        
-#        # connect to MOVES database
-#        connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user,password=self.MOVES_db_pass,db=self.MOVES_database)
-#        cursor = connection.cursor()
-#        
-#        # create query for modifying county-level meteorology (table: zonemonthhour) and fuel (tables: fuelsupply, fuelformulation, fuelusagefraction) data
-#        # values are replaced by selecting county-level data from the MOVES default values in MOVES_database schema  
-#        query = ''
-#        for FIPS in self.FIPSlist: 
-#            kvals['year'] = self.yr
-#            kvals['countyID'] = FIPS
-#            kvals['zoneID'] = FIPS + '0'        
-#            kvals['county_db'] = 'fips_' + FIPS + '_' + self.crop + '_in'  
-#            query = query + (("""DROP TABLE IF EXISTS {county_db}.zonemonthhour;
-#                    DROP TABLE IF EXISTS {county_db}.fuelsupply;
-#                    DROP TABLE IF EXISTS {county_db}.fuelformulation;
-#                    DROP TABLE IF EXISTS {county_db}.fuelusagefraction;
-#                    
-#                    CREATE TABLE {county_db}.zonemonthhour
-#                    AS (SELECT * FROM {MOVES_database}.zonemonthhour 
-#                    WHERE {MOVES_database}.zonemonthhour.zoneID = {zoneID});
-#                    
-#                    CREATE TABLE {county_db}.fuelsupply
-#                    AS (SELECT * FROM {MOVES_database}.fuelsupply
-#                    WHERE {MOVES_database}.fuelsupply.fuelRegionID =
-#                    (SELECT regionID FROM {MOVES_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID='{year}')
-#                    AND {MOVES_database}.fuelsupply.fuelYearID = '{year}'
-#                    AND {MOVES_database}.fuelsupply.fuelFormulationID = '25005');
-#                    
-#                    CREATE TABLE {county_db}.fuelformulation
-#                    AS (SELECT * FROM {MOVES_database}.fuelformulation
-#                    WHERE {MOVES_database}.fuelformulation.fuelSubtypeID = '21' OR {MOVES_database}.fuelformulation.fuelSubtypeID = '20');
-#                    
-#                    
-#                    CREATE TABLE {county_db}.fuelusagefraction
-#                    AS (SELECT * FROM {MOVES_database}.fuelusagefraction
-#                    WHERE {MOVES_database}.fuelusagefraction.countyID='{countyID}' 
-#                    AND {MOVES_database}.fuelusagefraction.fuelYearID = '{year}'
-#                    AND {MOVES_database}.fuelusagefraction.fuelSupplyFuelTypeID = '2');
-#                    """).format(**kvals))
-#        
-#        #execute query
-#        cursor.execute(query)
-#        #commit result
-#        connection.commit()
-#        #close connection to database
-#        connection.close()
         
