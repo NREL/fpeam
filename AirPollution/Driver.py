@@ -32,11 +32,11 @@ from src.AirPollution import MOVESModule
 
 import os
 import subprocess
-import MOVESBatch as MB
+import Logistics as Logistics
 
 class Driver:
 
-    def __init__(self, _model_run_title, run_codes, year_dict, crop_list, _db):
+    def __init__(self, _model_run_title, run_codes, year_dict, _db):
         """
         Save important variables for the running of the program.
 
@@ -61,8 +61,13 @@ class Driver:
         self.save_path_nationalinputs = os.path.join(config.get('moves_datafiles_path'),'National_Inputs')
         self.yr = year_dict
         
-        # add crop list for MOVES
-        self.crop_list = crop_list
+        # get feedstocks from the run_codes
+        self.feedstock_list = []
+        for run_code in self.run_codes:
+            if run_code[0:2] in self.feedstock_list:
+                pass
+            else:
+                self.feedstock_list.append(run_code[0:2])
         
         # container to pass info around
         self.cont = Container.Container()
@@ -215,13 +220,13 @@ class Driver:
             if not os.path.exists(path):
                 os.makedirs(path)    
                 
-        for crop in self.crop_list:
+        for feed in self.feedstock_list:
 
-            logger.info('Processing MOVES setup for crop: %s' % (crop, ))
-            scenario_year = self.yr[crop] 
+            logger.info('Processing MOVES setup for feedstock: %s' % (feed, ))
+            scenario_year = self.yr[feed] 
             
             # initialize MOVESModule
-            GenerateMOVESFiles = MOVESModule.MOVESModule(crop = crop,FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs,save_path_nationalinputs=self.save_path_nationalinputs)
+            GenerateMOVESFiles = MOVESModule.MOVESModule(feed = feed,FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs,save_path_nationalinputs=self.save_path_nationalinputs)
     
             # @TODO: replace vmt_shorthaul with database query to calculate county-level vehicle populations (need to get data first - could use sample data to get started)
             vmt_shorthaul = 10000 #annual vehicle miles traveled by combination short-haul trucks
@@ -278,17 +283,10 @@ class Driver:
         update = UpdateDatabase.UpdateDatabase(cont=self.cont)
         fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
         nei = NEIComparison.NEIComparison(cont=self.cont)
-
-        # get feedstocks from the run_codes
-        feedstock_list = []
-        for run_code in self.run_codes:
-            if run_code[0:2] in feedstock_list:
-                pass
-            else:
-                feedstock_list.append(run_code[0:2])
+        logistics = Logistics.Logistics(feedstocklist = self.feedstock_list, cont=self.cont)
 
         # Create tables, Populate Fertilizer & Chemical tables.
-        for feedstock in feedstock_list:
+        for feedstock in self.feedstock_list:
             update.create_tables(feedstock=feedstock)
             fert.set_fertilizer(feed=feedstock)
             chem.set_chemical(feed=feedstock)
@@ -317,7 +315,7 @@ class Driver:
                 sgfug_dust.set_emissions()
 
         # only run the following if all feedstocks are being modeled.
-        if len(feedstock_list) == 5:
+        if len(self.feedstock_list) == 5:
             # allocate emissions for single pass methodology - see constructor for ability to allocate CG emissions
             logger.info("Allocate single pass emissions between corn stover and wheat straw.")
             SinglePassAllocation.SinglePassAllocation(cont=self.cont)
@@ -326,17 +324,21 @@ class Driver:
 
             # create a single table that has all emissions in this inventory
             logger.info('populating Summed Dimmensions table')
-            for feedstock in feedstock_list:
+            for feedstock in self.feedstock_list:
                 nei.create_summed_emissions_table(feedstock=feedstock)
 
             # create tables that contain a ratio to NEI
             count = 0
-            for feedstock in feedstock_list:
+            for feedstock in self.feedstock_list:
                 nei.create_nei_comparison(feedstock=feedstock)
                 if count == 4:
                     # on the last go, make a total query for all cellulosic.
                     nei.create_nei_comparison(feedstock='cellulosic')
                 count += 1
+
+        # compute emissions and electricity associated with logistics
+        logistics.wooddrying_VOC()
+        logistics.electricity_consump()
 
         # create graphics and numerical summary
 
