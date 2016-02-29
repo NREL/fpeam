@@ -32,6 +32,7 @@ from src.AirPollution import MOVESModule
 
 import os
 import subprocess
+import MOVESBatch as MB
 
 class Driver:
 
@@ -239,21 +240,19 @@ class Driver:
             GenerateMOVESFiles.createXMLrunspec() 
             
             # create batch files for importing and running MOVES        
-            GenerateMOVESFiles.createBatchfiles() 
+            [batchfilename,importfilename] = GenerateMOVESFiles.createBatchfiles() 
         
-            GenerateMOVESFiles.importdata()
+            GenerateMOVESFiles.importdata(importfilename)
+            return batchfilename
         
-    def run_MOVES(self):
+    def run_MOVES(self,batchfilename):
         """
         Run MOVES using the batch file generated in setup_MOVES
         """
         logger.info('Running MOVES')
-        # path for run batch file (for some reason the string doesn't work for execution using Popen)
-        runbatch = os.path.join(self.path_MOVES, 'batch_run_FPEAM_' + self.model_run_title +'.bat')
-        
+       
         # exectute batch file and log output 
-        # @TODO: replace hardcoded path with runbatch (for some reason can't join string correctly)
-        output= subprocess.Popen(r"C:\\Users\Public\EPA\MOVES\MOVES2014a\batch_run_FPEAM_aelocal.bat",cwd=self.path_MOVES,stdout=subprocess.PIPE).stdout.read()
+        output= subprocess.Popen(batchfilename,cwd=self.path_MOVES,stdout=subprocess.PIPE).stdout.read()
         logger.debug('Command line output: %s' % output)
     
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):

@@ -20,6 +20,7 @@ Result:
 """
 import csv
 import os 
+import time
 
 class MOVESBatch:
     """
@@ -27,11 +28,13 @@ class MOVESBatch:
     """ 
     
     def __init__(self,crop,model_run_title,FIPS,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles):
+        t = time.localtime()
+        timestamp = time.strftime('_%b-%d-%Y_%H%M', t)      
         self.crop = crop # crop name
         self.model_run_title = model_run_title # scenario name
-        self.importbatch = os.path.join(path_MOVES, 'batch_import_FPEAM_' + self.model_run_title +'.bat') # path for batch import file
+        self.importbatch = os.path.join(path_MOVES, 'batch_import_FPEAM_' + self.model_run_title + timestamp +'.bat') # path for batch import file
         self.importfilename = os.path.join(save_path_importfiles, FIPS+"_import_"+yr+'_'+self.crop+".mrs") # path for XML import files 
-        self.runbatch = os.path.join(path_MOVES, 'batch_run_FPEAM_' + self.model_run_title +'.bat') # path for batch run file
+        self.runbatch = os.path.join(path_MOVES, 'batch_run_FPEAM_' + self.model_run_title + timestamp +'.bat') # path for batch run file
         self.runfilename = os.path.join(save_path_runspecfiles, FIPS+"_runspec_"+yr+'_'+self.crop+".mrs") # path for XML runspec files
         self.FIPS = FIPS # FIPS code
         self.yr = yr # scenario year
@@ -45,6 +48,7 @@ class MOVESBatch:
             batchwriter = csv.writer(csvfile)
             batchwriter.writerow(['echo Running ' + self.FIPS + '_import_' + self.yr +'_'+self.crop+'.mrs'])
             batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i ' + self.importfilename]) 
+        return self.importbatch
         
     def create_MOVES_batchrun(self):
         """
@@ -55,4 +59,4 @@ class MOVESBatch:
             batchwriter = csv.writer(csvfile)
             batchwriter.writerow(['echo Running ' + self.FIPS + '_runspec_' + self.yr +'_'+self.crop+'.mrs'])
             batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -r ' + self.runfilename]) 
-    
+        return self.runbatch

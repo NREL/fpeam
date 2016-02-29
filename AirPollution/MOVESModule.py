@@ -227,10 +227,11 @@ class MOVESModule():
             # instantiate MOVESBatch
             batchfile = MB.MOVESBatch(crop=self.crop, model_run_title=self.model_run_title,FIPS=FIPS,yr=self.yr,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles=self.save_path_runspecfiles)
             # create MOVES batch import file            
-            batchfile.create_MOVES_batchimport()
+            im_filename = batchfile.create_MOVES_batchimport()
             # create MOVES batch run file
-            batchfile.create_MOVES_batchrun()
-            
+            run_filename = batchfile.create_MOVES_batchrun()
+        return run_filename, im_filename
+        
     def createXMLimport(self):
         """
         Create XML files for importing data using MOVES county data manager
@@ -278,17 +279,13 @@ class MOVESModule():
             # execute function for creating XML file             
             xmlrunspec.create_runspec_files(run_filename)
     
-    def importdata(self): 
+    def importdata(self,filename): 
         """
         Import MOVES data into MySQL database 
         """
         logger.info('Importing MOVES files')  
         
-        # path for import batch file
-        self.importbatch = os.path.join(self.path_MOVES, 'batch_import_FPEAM_' + self.model_run_title +'.bat')
-       
         # exectute batch file and log output 
-        # @TODO: replace hardcoded values with string (for some reason string version doesn't work correctly)
-        output= subprocess.Popen(r"C:\Users\Public\EPA\MOVES\MOVES2014a\batch_import_FPEAM_aelocal.bat",cwd=self.path_MOVES,stdout=subprocess.PIPE).stdout.read()
+        output= subprocess.Popen(filename,cwd=self.path_MOVES,stdout=subprocess.PIPE).stdout.read()
         logger.debug('MOVES output: %s' % output)
         
