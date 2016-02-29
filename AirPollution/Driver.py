@@ -337,8 +337,7 @@ class Driver:
                 count += 1
 
         # compute emissions and electricity associated with logistics
-        logistics.wooddrying_VOC()
-        logistics.electricity_consump()
+        logistics.VOC_and_electric()
 
         # create graphics and numerical summary
 

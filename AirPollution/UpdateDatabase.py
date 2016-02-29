@@ -50,9 +50,8 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         query = query + """
                     CREATE TABLE %s_logistics
                     (fips    char(5)    ,
-                    prod float DEFAULT 0.0, 
-                    VOC    float    DEFAULT 0.0,
-                    electricity    float    DEFAULT 0.0   
+                    VOC    float    ,
+                    electricity    float      
                     );""" % (feedstock,)
                     
         self._execute_query(query)
