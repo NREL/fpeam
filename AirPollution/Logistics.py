@@ -57,7 +57,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # elec_per_dt = electricity consumed (kWh per dry short ton 
 
         # initialize kvals for string formatting
-        kvals = {}
+        kvals = dict()
 
         # set constants a and b
         kvals['a'] = 0.9071847  # conversion short tons to metric tons
