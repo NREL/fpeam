@@ -22,41 +22,42 @@ import csv
 import os 
 import time
 
+
 class MOVESBatch:
     """
     Generate batch files for 1) importing data using MOVES County Data Manager and 2) running MOVES
     """ 
     
-    def __init__(self,crop,model_run_title,FIPS,yr,path_MOVES,save_path_importfiles,save_path_runspecfiles):
+    def __init__(self, crop, model_run_title, fips, yr, path_moves, save_path_importfiles, save_path_runspecfiles):
         t = time.localtime()
         timestamp = time.strftime('_%b-%d-%Y_%H%M', t)      
-        self.crop = crop # crop name
-        self.model_run_title = model_run_title # scenario name
-        self.importbatch = os.path.join(path_MOVES, 'batch_import_FPEAM_' + self.model_run_title + timestamp +'.bat') # path for batch import file
-        self.importfilename = os.path.join(save_path_importfiles, FIPS+"_import_"+yr+'_'+self.crop+".mrs") # path for XML import files 
-        self.runbatch = os.path.join(path_MOVES, 'batch_run_FPEAM_' + self.model_run_title + timestamp +'.bat') # path for batch run file
-        self.runfilename = os.path.join(save_path_runspecfiles, FIPS+"_runspec_"+yr+'_'+self.crop+".mrs") # path for XML runspec files
-        self.FIPS = FIPS # FIPS code
-        self.yr = yr # scenario year
+        self.crop = crop  # crop name
+        self.model_run_title = model_run_title  # scenario name
+        self.importbatch = os.path.join(path_moves, 'batch_import_FPEAM_' + self.model_run_title + timestamp + '.bat')  # path for batch import file
+        self.importfilename = os.path.join(save_path_importfiles, fips + "_import_"+yr+'_'+self.crop + ".mrs")  # path for XML import files
+        self.runbatch = os.path.join(path_moves, 'batch_run_FPEAM_' + self.model_run_title + timestamp + '.bat')  # path for batch run file
+        self.runfilename = os.path.join(save_path_runspecfiles, fips + "_runspec_"+yr+'_'+self.crop + ".mrs")  # path for XML runspec files
+        self.FIPS = fips  # FIPS code
+        self.yr = yr  # scenario year
         
-    def create_MOVES_batchimport(self):
+    def create_moves_batch_import(self):
         """
         Create batch file for importing data using MOVES County Data Manager
         """
         # append import files to batch import file
-        with open(self.importbatch,'a') as csvfile:
+        with open(self.importbatch, 'a') as csvfile:
             batchwriter = csv.writer(csvfile)
-            batchwriter.writerow(['echo Running ' + self.FIPS + '_import_' + self.yr +'_'+self.crop+'.mrs'])
+            batchwriter.writerow(['echo Running ' + self.FIPS + '_import_' + self.yr + '_'+self.crop+'.mrs'])
             batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i ' + self.importfilename]) 
         return self.importbatch
         
-    def create_MOVES_batchrun(self):
+    def create_moves_batch_run(self):
         """
         Create batch file for running MOVES
         """
         # append import files to batch run file
-        with open(self.runbatch,'a') as csvfile:
+        with open(self.runbatch, 'a') as csvfile:
             batchwriter = csv.writer(csvfile)
-            batchwriter.writerow(['echo Running ' + self.FIPS + '_runspec_' + self.yr +'_'+self.crop+'.mrs'])
+            batchwriter.writerow(['echo Running ' + self.FIPS + '_runspec_' + self.yr + '_'+self.crop+'.mrs'])
             batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -r ' + self.runfilename]) 
         return self.runbatch

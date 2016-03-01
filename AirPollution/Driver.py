@@ -7,9 +7,7 @@ Temporary Global Variables: run_code, fips, state, episode_year.
 
 import Container
 import Batch
-from model.Database import Database
 import QueryRecorder
-from PyQt4 import QtCore
 
 import Options as Opt
 import Allocate as Alo
@@ -27,12 +25,12 @@ from EmissionPerProdFigure import EmissionPerProdFigure
 import RatioToNEIFigure
 import ContributionFigure
 
-from src.AirPollution.utils import config, logger
-from src.AirPollution import MOVESModule
+from utils import config, logger
+import MOVESModule
 
 import os
 import subprocess
-import MOVESBatch as MB
+
 
 class Driver:
 
@@ -43,7 +41,7 @@ class Driver:
         @param _model_run_title: Scenario title.
         @param run_codes: Run codes to keep track of where you are in the program
         @param _db: Instantiation of Database class using scenario title
-        @param year: Scenario year
+        @param year_dict: Dictionary of scenario years by feedstock type
         """
 
         # add run codes.
@@ -52,13 +50,13 @@ class Driver:
         # add run title
         self.model_run_title = self._check_title(_model_run_title)
 
-        # filepaths and year for MOVES
-        self.path_MOVES = config.get('moves_path')
-        self.save_path_importfiles = os.path.join(config.get('moves_datafiles_path'),'ImportFiles')
-        self.save_path_runspecfiles = os.path.join(config.get('moves_datafiles_path'),'RunSpecs')
-        self.save_path_outputs= os.path.join(config.get('moves_datafiles_path'),'Outputs')
-        self.save_path_countyinputs = os.path.join(config.get('moves_datafiles_path'),'County_Inputs')
-        self.save_path_nationalinputs = os.path.join(config.get('moves_datafiles_path'),'National_Inputs')
+        # file paths and year for MOVES
+        self.path_moves = config.get('moves_path')
+        self.save_path_importfiles = os.path.join(config.get('moves_datafiles_path'), 'ImportFiles')
+        self.save_path_runspecfiles = os.path.join(config.get('moves_datafiles_path'), 'RunSpecs')
+        self.save_path_outputs = os.path.join(config.get('moves_datafiles_path'), 'Outputs')
+        self.save_path_countyinputs = os.path.join(config.get('moves_datafiles_path'), 'County_Inputs')
+        self.save_path_nationalinputs = os.path.join(config.get('moves_datafiles_path'), 'National_Inputs')
         self.yr = year_dict
         
         # add crop list for MOVES
@@ -199,19 +197,19 @@ class Driver:
         """
         self.batch.run(qprocess)
 
-    def setup_MOVES(self,FIPSlist):
+    def setup_moves(self, fips_list):
         """         
         Set up the MOVES program by creating input data files, XML files for data imports, and XML files for runspecs.
         Also creates batch files to 1) import data using MOVES County Data Manager and 2) run the MOVES program.
         
-        @param FIPSlist: list of all county FIPS codes
+        @param fips_list: list of all county FIPS codes
         """
         
         # list of file paths for MOVES inputs and outputs   
-        pathlist = [self.save_path_importfiles,self.save_path_runspecfiles,self.save_path_outputs,self.save_path_countyinputs,self.save_path_nationalinputs]
+        path_list = [self.save_path_importfiles, self.save_path_runspecfiles, self.save_path_outputs, self.save_path_countyinputs, self.save_path_nationalinputs]
         
         # check to make sure file paths exist, otherwise create them        
-        for path in pathlist: 
+        for path in path_list:
             if not os.path.exists(path):
                 os.makedirs(path)    
                 
@@ -221,38 +219,41 @@ class Driver:
             scenario_year = self.yr[crop] 
             
             # initialize MOVESModule
-            GenerateMOVESFiles = MOVESModule.MOVESModule(crop = crop,FIPSlist = FIPSlist,yr=scenario_year,path_MOVES=self.path_MOVES,save_path_importfiles=self.save_path_importfiles,save_path_runspecfiles = self.save_path_runspecfiles,save_path_countyinputs = self.save_path_countyinputs,save_path_nationalinputs=self.save_path_nationalinputs)
-    
-            # @TODO: replace vmt_shorthaul with database query to calculate county-level vehicle populations (need to get data first - could use sample data to get started)
-            vmt_shorthaul = 10000 #annual vehicle miles traveled by combination short-haul trucks
-            pop_shorthaul = 1 #population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
-            
+            moves_mod = MOVESModule.MOVESModule(crop=crop, fips_list=fips_list, yr=scenario_year, path_moves=self.path_moves,
+                                                save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles,
+                                                save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs)
+
+            # @TODO: replace vmt_short_haul with database query to calculate county-level vehicle populations (need to get data first - could use sample data to get started)
+            vmt_short_haul = 10000  # annual vehicle miles traveled by combination short-haul trucks
+            pop_short_haul = 1  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
+
             # create county-level data files
-            GenerateMOVESFiles.createcountydata(vmt_shorthaul=vmt_shorthaul,pop_shorthaul=pop_shorthaul)
-            
+            moves_mod.create_county_data(vmt_short_haul=vmt_short_haul, pop_short_haul=pop_short_haul)
+
             # create national data files 
-            GenerateMOVESFiles.createNationalData()
-            
+            moves_mod.create_national_data()
+
             # create XML import files          
-            GenerateMOVESFiles.createXMLimport()
-            
-            # create XML runspec files 
-            GenerateMOVESFiles.createXMLrunspec() 
-            
+            moves_mod.create_xml_import()
+
+            # create XML run spec files
+            moves_mod.create_xml_runspec()
+
             # create batch files for importing and running MOVES        
-            [batchfilename,importfilename] = GenerateMOVESFiles.createBatchfiles() 
-        
-            GenerateMOVESFiles.importdata(importfilename)
-            return batchfilename
-        
-    def run_MOVES(self,batchfilename):
+            [batch_filename, import_filename] = moves_mod.create_batch_files()
+
+            moves_mod.import_data(import_filename)
+            return batch_filename
+
+    def run_moves(self, batch_filename):
         """
         Run MOVES using the batch file generated in setup_MOVES
+        @param batch_filename = name of batch file for running MOVES
         """
         logger.info('Running MOVES')
        
-        # exectute batch file and log output 
-        output= subprocess.Popen(batchfilename,cwd=self.path_MOVES,stdout=subprocess.PIPE).stdout.read()
+        # execute batch file and log output
+        output = subprocess.Popen(batch_filename, cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
         logger.debug('Command line output: %s' % output)
     
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):
@@ -305,7 +306,7 @@ class Driver:
         for run_code in self.run_codes:
             if not run_code.startswith('SG'):
                 fug_dust.set_emissions(run_code=run_code)
-                logger.info("Fugitive Dust Emissions complete for " + run_code) # @TODO: convert to string formatting
+                logger.info("Fugitive Dust Emissions complete for " + run_code)  # @TODO: convert to string formatting
             else:
                 modelSG = True
 
@@ -325,7 +326,7 @@ class Driver:
             # Create nei comparison
 
             # create a single table that has all emissions in this inventory
-            logger.info('populating Summed Dimmensions table')
+            logger.info('populating Summed Dimensions table')
             for feedstock in feedstock_list:
                 nei.create_summed_emissions_table(feedstock=feedstock)
 

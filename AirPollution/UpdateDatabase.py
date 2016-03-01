@@ -25,6 +25,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         """
         Create tables (based on feedstock)
         @attention: Insert Primary Keys (from Noah)
+        @param feedstock = feedstock type
         """
         query = """
                         CREATE TABLE %s_raw
