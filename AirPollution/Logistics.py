@@ -29,19 +29,18 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         self.electricity_per_dt = config.get('electricity_per_dt')  # electricity dictionary
         self.logistics_type = config.get('logistics_type')  # logistics method (A = advanced, C = conventional)
 
-        # initialize kvals dictionary
         self.kvals = dict()
-
         # set production schema and scenario name
         self.kvals['production_schema'] = config.get('production_schema')
         self.kvals['scenario_name'] = config.get('title')
 
+        self.column_dict = dict()
         # create dictionary for column names for production data
-        self.kvals['column_dict']['CG'] = 'total_prod'
-        self.kvals['column_dict']['CS'] = 'prod'
-        self.kvals['column_dict']['WS'] = 'prod'
-        self.kvals['column_dict']['SG'] = 'prod'
-        self.kvals['column_dict']['FR'] = 'fed_minus_55'
+        self.column_dict['CG'] = 'total_prod'
+        self.column_dict['CS'] = 'prod'
+        self.column_dict['WS'] = 'prod'
+        self.column_dict['SG'] = 'prod'
+        self.column_dict['FR'] = 'fed_minus_55'
 
         # dictionary for VOC emission factor from wood drying
         self.voc_wood_ef = config.get('voc_wood_ef')
@@ -64,11 +63,11 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # set feedstock name
         self.kvals['feed'] = feed
         # set column for production name
-        self.kvals['column'] = self.kvals['column_dict'][feed]
+        self.kvals['column'] = self.column_dict[feed]
 
         # generate string for query
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
-        query = """INSERT INTO {scenario_name}.{feed}_logistics
+        query = """INSERT INTO {scenario_name}.{feed}_logistics (fips, electricity)
                 SELECT feed.fips,
                 feed.{column} * {electricity_per_dt} AS "electricity"
                 FROM {production_schema}.{feed}_data feed
@@ -101,13 +100,15 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         self.kvals['VOC_ef'] = self.voc_wood_ef[self.logistics_type]
         # set feedstock name
         self.kvals['feed'] = feed
+        # set column for production name
+        self.kvals['column'] = self.column_dict[feed]
+
         # generate string for query and append to queries
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
         query = """UPDATE {scenario_name}.{feed}_logistics
-                SELECT feed.fips,
-                feed.{column} * {a} * {VOC_ef} / {b} AS "VOC"
-                FROM {production_schema}.{feed}_data feed
-                GROUP BY feed.fips;""".format(**self.kvals)
+                SET VOC=prod_data.{column} * {a} * {VOC_ef} / {b}
+                FROM {production_schema}.{feed}_data prod_data
+                WHERE {scenario_name}.{feed}_logistics.fips = prod_data.fips;""".format(**self.kvals)
 
         self._execute_query(query)
 
@@ -115,7 +116,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # @TODO: insert functionality for processing output from NONROAD for logistics equipment (tractors for loading agricultural crops; chipper/loader for forestry)
         pass
 
-    def logistics(self):
+    def calc_logistics(self):
         # Execute wood drying and electricity functions for all feedstocks in feedstock list
         logger.info('Evaluating logistics')
         for feed in self.feedstock_list:
