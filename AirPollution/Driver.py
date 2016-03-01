@@ -212,7 +212,8 @@ class Driver:
         for path in path_list:
             if not os.path.exists(path):
                 os.makedirs(path)    
-                
+
+        i = 0
         for crop in self.crop_list:
 
             logger.info('Processing MOVES setup for crop: %s' % (crop, ))
@@ -227,11 +228,12 @@ class Driver:
             vmt_short_haul = 10000  # annual vehicle miles traveled by combination short-haul trucks
             pop_short_haul = 1  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
 
+            if i == 0:
+                # create national data files (only has to be run once for all crops so perform for first crop only after MOVESModule initiated)
+                moves_mod.create_national_data()
+
             # create county-level data files
             moves_mod.create_county_data(vmt_short_haul=vmt_short_haul, pop_short_haul=pop_short_haul)
-
-            # create national data files 
-            moves_mod.create_national_data()
 
             # create XML import files          
             moves_mod.create_xml_import()
@@ -241,6 +243,8 @@ class Driver:
 
             # create batch files for importing and running MOVES        
             [batch_filename, import_filename] = moves_mod.create_batch_files()
+
+            i += 1
 
             moves_mod.import_data(import_filename)
             return batch_filename
