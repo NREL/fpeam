@@ -66,7 +66,7 @@ class MOVESModule:
         @param vmt_short_haul = annual vehicle miles traveled by combination short-haul trucks
         @param pop_short_haul = population of combination short-haul trucks
         """
-        logger.info('Creating county-level data files for MOVES')
+        logger.debug('Creating county-level data files for MOVES')
 
         # connect to MOVES database
         connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user, password=self.MOVES_db_pass, db=self.MOVES_database)
@@ -153,7 +153,7 @@ class MOVESModule:
             hour VMT fraction
             road type fraction 
         """
-        logger.info('Creating national data files for MOVES')      
+        logger.debug('Creating national data files for MOVES')
 
         # connect to MOVES database
         connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user, password=self.MOVES_db_pass, db=self.MOVES_database)
@@ -211,7 +211,7 @@ class MOVESModule:
         Create batch files for importing data using MOVES county data manager and running MOVES
         @return outputs[run_filename: , im_filename: ]
         """
-        logger.info('Creating batch files for MOVES runs')
+        logger.debug('Creating batch files for MOVES runs')
 
         run_filename = ''
         im_filename = ''
@@ -233,7 +233,7 @@ class MOVESModule:
         """
         Create XML files for importing data using MOVES county data manager
         """
-        logger.info('Creating XML files for importing MOVES data')
+        logger.debug('Creating XML files for importing MOVES data')
 
         # filepaths for national MOVES defaults 
         agefilename = os.path.join(self.save_path_nationalinputs, "default-age-distribution-tool-moves"+self.yr+".csv")
@@ -270,7 +270,7 @@ class MOVESModule:
         """
         Create XML file for running MOVES
         """
-        logger.info('Creating XML files for running MOVES')
+        logger.debug('Creating XML files for running MOVES')
 
         # loop through FIPS codes 
         for FIPS in self.fips_list:
@@ -286,7 +286,7 @@ class MOVESModule:
         Import MOVES data into MySQL database
         @param filename = name of batch import file
         """
-        logger.info('Importing MOVES files')
+        logger.debug('Importing MOVES files')
 
         # execute batch file and log output
         output = subprocess.Popen(filename, cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()

@@ -30,7 +30,6 @@ import MOVESModule
 
 import os
 import subprocess
-import MOVESBatch as MB
 import Logistics as Logistics
 
 
@@ -221,13 +220,15 @@ class Driver:
                 os.makedirs(path)    
 
         i = 0
+        outputs = dict()
+        batch_run_dict = dict()
         for feed in self.feedstock_list:
 
             logger.info('Processing MOVES setup for feedstock: %s' % (feed, ))
             scenario_year = self.yr[feed] 
             
             # initialize MOVESModule
-            moves_mod = MOVESModule.MOVESModule(crop=crop, fips_list=fips_list, yr=scenario_year, path_moves=self.path_moves,
+            moves_mod = MOVESModule.MOVESModule(crop=feed, fips_list=fips_list, yr=scenario_year, path_moves=self.path_moves,
                                                 save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles,
                                                 save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs)
 
@@ -249,22 +250,28 @@ class Driver:
             moves_mod.create_xml_runspec()
 
             # create batch files for importing and running MOVES        
-            [batch_filename, import_filename] = moves_mod.create_batch_files()
+            outputs = moves_mod.create_batch_files()
 
             i += 1
 
-            moves_mod.import_data(import_filename)
-            return batch_filename
+            moves_mod.import_data(outputs['im_filename'])
+            logger.debug('Batch file for importing data: %s' % (outputs['im_filename'], ))
+            logger.debug('Batch file MOVES for importing data: %s' % (outputs['run_filename'], ))
+            batch_run_dict[feed] = outputs['run_filename']
 
-    def run_moves(self, batch_filename):
+        return batch_run_dict
+
+    def run_moves(self, batch_run_dict):
         """
         Run MOVES using the batch file generated in setup_MOVES
-        @param batch_filename = name of batch file for running MOVES
+        @param batch_run_dict = dictionary of file names for MOVES batch runs (by feedstock type)
         """
-        logger.info('Running MOVES')
-       
+        feed = 'CG'  # for feed in self.feedstock_list:
+        logger.info('Running MOVES for feedstock: %s' % (feed, ))
+        logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
+
         # execute batch file and log output
-        output = subprocess.Popen(batch_filename, cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
+        output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
         logger.debug('Command line output: %s' % output)
     
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):
@@ -306,15 +313,15 @@ class Driver:
         logger.info("COMPLETED populating tables with combustion emissions")
 
         # Fugitive Dust Emissions
-        modelSG = False
+        modelsg = False
         for run_code in self.run_codes:
             if not run_code.startswith('SG'):
                 fug_dust.set_emissions(run_code=run_code)
                 logger.info("Fugitive Dust Emissions complete for " + run_code)  # @TODO: convert to string formatting
             else:
-                modelSG = True
+                modelsg = True
 
-        if modelSG:
+        if modelsg:
             # It makes more sense to create fugitive dust emissions using a separate method
             operations = ['Transport', 'Harvest', 'Non-Harvest']
             for operation in operations:
