@@ -46,7 +46,20 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         Description    text    ,
                         run_code    text    ,
                         fug_pm10    float    , 
-                        fug_pm25    float)""" % (feedstock,)
+                        fug_pm25    float);""" % (feedstock,)
+                        
+        if feedstock != 'FR':
+            query += """CREATE TABLE %s_logistics
+                        (fips    char(5)    ,
+                        electricity    float
+                        );""" % (feedstock,)
+        if feedstock == 'FR':
+            query += """CREATE TABLE %s_logistics
+                        (fips    char(5)    ,
+                        electricity    float,
+                        VOC    float
+                        );""" % (feedstock,)
+                    
         self._execute_query(query)
 
         if feedstock != 'FR':
