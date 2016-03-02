@@ -20,6 +20,13 @@ class SaveDataHelper:
         uses isQuery to create a text file for the sql queries to be recorded. Only occurs during first query.
         @param query: sql insert query.
         """
-        self.qr.document_query(_file=self.document_file, query=query)
+        try:
+            self.qr.document_query(_file=self.document_file, query=query)
+        except:
+            pass
 
-        self.db.input(query=query)
+        try:
+            self.db.input(query=query)
+            return True
+        except:
+            return False
