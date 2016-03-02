@@ -47,12 +47,17 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         fug_pm10    float    , 
                         fug_pm25    float);""" % (feedstock,)
                         
-        query = query + """
-                    CREATE TABLE %s_logistics
-                    (fips    char(5)    ,
-                    VOC    float    ,
-                    electricity    float      
-                    );""" % (feedstock,)
+        if feedstock != 'FR':
+            query += """CREATE TABLE %s_logistics
+                        (fips    char(5)    ,
+                        electricity    float
+                        );""" % (feedstock,)
+        if feedstock == 'FR':
+            query += """CREATE TABLE %s_logistics
+                        (fips    char(5)    ,
+                        electricity    float,
+                        VOC    float
+                        );""" % (feedstock,)
                     
         self._execute_query(query)
 

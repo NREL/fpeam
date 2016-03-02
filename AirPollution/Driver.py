@@ -283,7 +283,7 @@ class Driver:
         update = UpdateDatabase.UpdateDatabase(cont=self.cont)
         fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
         nei = NEIComparison.NEIComparison(cont=self.cont)
-        logistics = Logistics.Logistics(feedstocklist = self.feedstock_list, cont=self.cont)
+        logistics = Logistics.Logistics(feedstock_list=self.feedstock_list, cont=self.cont)
 
         # Create tables, Populate Fertilizer & Chemical tables.
         for feedstock in self.feedstock_list:
@@ -337,7 +337,7 @@ class Driver:
                 count += 1
 
         # compute emissions and electricity associated with logistics
-        logistics.VOC_and_electric()
+        logistics.calc_logistics()
 
         # create graphics and numerical summary
 
