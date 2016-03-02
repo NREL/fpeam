@@ -266,7 +266,7 @@ class Driver:
         Run MOVES using the batch file generated in setup_MOVES
         @param batch_run_dict = dictionary of file names for MOVES batch runs (by feedstock type)
         """
-        feed = 'CG'  # for feed in self.feedstock_list:
+        feed = 'CG'  # for feed in self.feedstock_list: @TODO: replace with loop to go through all feedstocks
         logger.info('Running MOVES for feedstock: %s' % (feed, ))
         logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
 
