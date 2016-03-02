@@ -32,10 +32,11 @@ class MOVESModule:
     Generate XML files for import and runspec files and creates batch files for importing and running MOVES
     """
 
-    def __init__(self, crop, fips_list, yr, path_moves, save_path_importfiles, save_path_runspecfiles, save_path_countyinputs, save_path_nationalinputs):
+    def __init__(self, crop, fips_list, yr_list, path_moves, save_path_importfiles, save_path_runspecfiles, save_path_countyinputs, save_path_nationalinputs):
         self.crop = crop  # crop name
         self.fips_list = fips_list  # list of FIPS codes
-        self.yr = yr  # scenario year
+        self.yr_list = yr_list  # scenario year list
+        self.yr = yr_list[crop]  # scenario year for specific feedstock
         self.path_moves = path_moves  # path for MOVES program
         self.save_path_importfiles = save_path_importfiles  # path for MOVES import files
         self.save_path_importfiles = save_path_importfiles  # path for MOVES import files
@@ -191,12 +192,13 @@ class MOVESModule:
                     i += 1
 
         # create file for default age distribution (values in age_distribution dictionary were computed using MOVES Default Age Distribution Tool)
-        agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves'+self.yr+'.csv')
-        with open(agedistname, 'wb') as f:
-            csv_writer = csv.writer(f)
-            csv_writer.writerow(['sourceTypeID', 'yearID', 'ageID', 'ageFraction'])
-            for bins in range(0, 31):
-                csv_writer.writerow(['61', self.yr, bins, self.age_distribution[self.yr][bins]])
+        for year in self.yr_list:
+            agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves'+year+'.csv')
+            with open(agedistname, 'wb') as f:
+                csv_writer = csv.writer(f)
+                csv_writer.writerow(['sourceTypeID', 'yearID', 'ageID', 'ageFraction'])
+                for bins in range(0, 31):
+                    csv_writer.writerow(['61', self.yr, bins, self.age_distribution[year][bins]])
 
         # create file for road type fraction 
         roadtypename = os.path.join(self.save_path_nationalinputs, 'roadtype.csv')

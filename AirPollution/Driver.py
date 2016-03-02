@@ -225,10 +225,9 @@ class Driver:
         for feed in self.feedstock_list:
 
             logger.info('Processing MOVES setup for feedstock: %s' % (feed, ))
-            scenario_year = self.yr[feed] 
             
             # initialize MOVESModule
-            moves_mod = MOVESModule.MOVESModule(crop=feed, fips_list=fips_list, yr=scenario_year, path_moves=self.path_moves,
+            moves_mod = MOVESModule.MOVESModule(crop=feed, fips_list=fips_list, yr_list=self.yr, path_moves=self.path_moves,
                                                 save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles,
                                                 save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs)
 
