@@ -192,13 +192,13 @@ class MOVESModule:
                     i += 1
 
         # create file for default age distribution (values in age_distribution dictionary were computed using MOVES Default Age Distribution Tool)
-        for year in self.yr_list:
-            agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves'+year+'.csv')
+        for feed in self.yr_list:
+            agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves'+self.yr_list[feed]+'.csv')
             with open(agedistname, 'wb') as f:
                 csv_writer = csv.writer(f)
                 csv_writer.writerow(['sourceTypeID', 'yearID', 'ageID', 'ageFraction'])
                 for bins in range(0, 31):
-                    csv_writer.writerow(['61', self.yr, bins, self.age_distribution[year][bins]])
+                    csv_writer.writerow(['61', self.yr, bins, self.age_distribution[self.yr_list[feed]][bins]])
 
         # create file for road type fraction 
         roadtypename = os.path.join(self.save_path_nationalinputs, 'roadtype.csv')
