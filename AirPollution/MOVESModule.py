@@ -178,7 +178,6 @@ class MOVESModule:
                 csv_writer.writerows(cursor)
 
         # create file for alternative vehicle fuels and technology (avft)
-
         sourcetype = '61'
         engtech = '1'
         avftname = os.path.join(self.save_path_nationalinputs, 'avft.csv')

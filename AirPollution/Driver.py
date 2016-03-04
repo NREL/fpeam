@@ -31,6 +31,7 @@ import MOVESModule
 import os
 import subprocess
 import Logistics as Logistics
+import Transportation
 
 
 class Driver:
@@ -273,7 +274,7 @@ class Driver:
         output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
         logger.debug('Command line output: %s' % output)
     
-    def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc):
+    def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc, fips_list):
         """
         Create and populate the schema with the emissions inventory.
         @param fert_feed: Dictionary containing each feedstock and whether to do fertilizer calculations.
@@ -285,6 +286,7 @@ class Driver:
         @param operation_dict: Dictionary containing each feedstock. Each feedstock contains a dictionary
         of harvest, non-harvest, and transport and whether to calculate them. dict(dict(boolean))
         @param alloc:
+        @param fips_list: list of FIPS codes
         """
 
         logger.info('Saving results to database')
@@ -297,6 +299,13 @@ class Driver:
         fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
         nei = NEIComparison.NEIComparison(cont=self.cont)
         logistics = Logistics.Logistics(feedstock_list=self.feedstock_list, cont=self.cont)
+
+        # for feedstock in self.feedstock_list:
+        feedstock = 'CG'
+        for fips in fips_list:
+            vmt = 10000  # @TODO: replace with query to get correct county-level VMT data
+            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt)
+            transportation.calculate_transport_emissions()
 
         # Create tables, Populate Fertilizer & Chemical tables.
         for feedstock in self.feedstock_list:
