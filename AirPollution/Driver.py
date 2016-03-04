@@ -32,6 +32,7 @@ import os
 import subprocess
 import Logistics as Logistics
 import Transportation
+import pymysql
 
 
 class Driver:
@@ -300,12 +301,41 @@ class Driver:
         nei = NEIComparison.NEIComparison(cont=self.cont)
         logistics = Logistics.Logistics(feedstock_list=self.feedstock_list, cont=self.cont)
 
-        # for feedstock in self.feedstock_list:
-        feedstock = 'CG'
-        for fips in fips_list:
-            vmt = 10000  # @TODO: replace with query to get correct county-level VMT data
-            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt)
-            transportation.calculate_transport_emissions()
+        # compute emissions from off-farm transportation
+        # first, join tables for average speed and "dayhour" and create new table for transportation data
+        connection = pymysql.connect(host=config['MOVES_db_host'], user=config['MOVES_db_user'], password=config['MOVES_db_pass'], db=config['MOVES_database'])
+        cursor = connection.cursor()
+
+        kvals = dict()
+        kvals['fips'] = fips_list[0]  # avg speed distribution is the same for all FIPS codes
+        kvals['feedstock'] = self.feedstock_list[0]  # and for all crops, so just pick one from each list
+        kvals['scenario_name'] = self.model_run_title
+        kvals['MOVES_database'] = config['MOVES_database']
+
+        # generate average speed table
+        # @ TODO: may want to move this query for table creation to another location
+        query = """DROP TABLE IF EXISTS output_{scenario_name}.averagespeed;
+                   CREATE TABLE output_{scenario_name}.averagespeed
+                   AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
+                   FROM fips_{fips}_{feedstock}_in.avgspeeddistribution table1
+                   LEFT JOIN {MOVES_database}.hourday table2
+                   ON table1.hourDayID = table2.hourDayID);""".format(**kvals)
+
+        # create transportation output table
+        #  @ TODO: may want to move this query for table creation to another location
+        query += """DROP TABLE IF EXISTS output_{scenario_name}.transportation;
+                   CREATE TABLE output_{scenario_name}.transportation (MOVESScenarioID varchar(45), yearID char(4), pollutantID varchar(45), total_emissions float);""".format(**kvals)
+
+        cursor.execute(query)
+        cursor.close()
+
+        # now loop through feedstocks and FIPS codes to compute respective emissions
+        self.feedstock_list = ['CG']
+        for feedstock in self.feedstock_list:
+            for fips in fips_list:
+                vmt = 10000  # @TODO: replace with query to get correct county-level VMT data
+                transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt)
+                transportation.calculate_transport_emissions()
 
         # Create tables, Populate Fertilizer & Chemical tables.
         for feedstock in self.feedstock_list:
