@@ -31,6 +31,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         """
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.feed = feed
+        self.fips = fips
         self.document_file = "Logistics"  # filename for saving queries to text file for debugging
 
         self.kvals = dict()
@@ -52,13 +53,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.kvals['trips'] = trips  # number of combination short-haul trips
 
         # dictionary of pollutant names and IDs
-        self.pollutant_dict = {"NH3": "30",
-                               "CO": "2",
-                               "NOX": "3",
-                               "PM10": "100",
-                               "PM25": "110",
-                               "SO2": "31",
-                               "VOC": "87"}
+        self.pollutant_dict = config.get('pollutant_dict')
 
         # open SQL connection and create cursor
         self.connection = pymysql.connect(host=self.kvals['MOVES_db_host'],
@@ -76,7 +71,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         Call function to compute total start emissions per trip
         Call function to compute total resting evaporative emissions per trip (currently zero)
         """
-        logger.info('Post-processing MOVES output for %s' % self.feed)
+        logger.info('Post-processing MOVES output for fips={fips}, feed={feed}'.format(**self.kvals))
 
         self.calc_run_emission()
         self.calc_start_hotel_emissions()
