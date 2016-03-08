@@ -313,6 +313,7 @@ class Driver:
         kvals['MOVES_database'] = config['MOVES_database']
 
         # generate average speed table
+        # @ TODO: assumes schema "output_{scenarion_name}" already exists, need to fix this elsewhere
         # @ TODO: may want to move this query for table creation to another location
         query = """DROP TABLE IF EXISTS output_{scenario_name}.averagespeed;
                    CREATE TABLE output_{scenario_name}.averagespeed
@@ -324,7 +325,15 @@ class Driver:
         # create transportation output table
         #  @ TODO: may want to move this query for table creation to another location
         query += """DROP TABLE IF EXISTS output_{scenario_name}.transportation;
-                   CREATE TABLE output_{scenario_name}.transportation (MOVESScenarioID varchar(45), yearID char(4), pollutantID varchar(45), total_emissions float);""".format(**kvals)
+                   CREATE TABLE output_{scenario_name}.transportation (MOVESScenarioID varchar(45),
+                                                                       yearID char(4),
+                                                                       pollutantID varchar(45),
+                                                                       run_emissions float,
+                                                                       start_hotel_emissions float,
+                                                                       rest_evap_emissions float DEFAULT 0,
+                                                                       total_emissions_per_trip float,
+                                                                       number_trips float,
+                                                                       total_emissions float);""".format(**kvals)
 
         cursor.execute(query)
         cursor.close()
@@ -334,7 +343,9 @@ class Driver:
         for feedstock in self.feedstock_list:
             for fips in fips_list:
                 vmt = 10000  # @TODO: replace with query to get correct county-level VMT data
-                transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt)
+                pop = 1  # @TODO: assuming only one vehicle per trip
+                trips = 100  # # @TODO: replace with query to get correct county-level trips data
+                transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, trips=trips)
                 transportation.calculate_transport_emissions()
 
         # Create tables, Populate Fertilizer & Chemical tables.
