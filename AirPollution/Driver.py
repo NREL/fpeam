@@ -325,7 +325,8 @@ class Driver:
         # create transportation output table
         #  @ TODO: may want to move this query for table creation to another location
         query += """DROP TABLE IF EXISTS output_{scenario_name}.transportation;
-                   CREATE TABLE output_{scenario_name}.transportation (MOVESScenarioID varchar(45),
+                   CREATE TABLE output_{scenario_name}.transportation (fips char(5),
+                                                                       feedstock varchar(5),
                                                                        yearID char(4),
                                                                        pollutantID varchar(45),
                                                                        run_emissions float,
@@ -334,6 +335,17 @@ class Driver:
                                                                        total_emissions_per_trip float,
                                                                        number_trips float,
                                                                        total_emissions float);""".format(**kvals)
+        # create transportation output table
+        #  @ TODO: may want to move this query for table creation to another location
+        query += """DROP TABLE IF EXISTS output_{scenario_name}.fugitive_dust;
+                   CREATE TABLE output_{scenario_name}.fugitive_dust (fips char(5),
+                                                                     feedstock varchar(5),
+                                                                     yearID char(4),
+                                                                     pollutantID varchar(45),
+                                                                     logistics_type varchar (2),
+                                                                     unpaved_fd_emissions float,
+                                                                     sec_paved_fd_emissions float,
+                                                                     total_fd_emissions float);""".format(**kvals)
 
         cursor.execute(query)
         cursor.close()
@@ -344,8 +356,8 @@ class Driver:
             for fips in fips_list:
                 vmt = 10000  # @TODO: replace with query to get correct county-level VMT data
                 pop = 1  # @TODO: assuming only one vehicle per trip
-                trips = 100  # # @TODO: replace with query to get correct county-level trips data
-                transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, trips=trips)
+                s = 3.9  # @TODO: replace with query to get correct silt data for county
+                transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, s=s)
                 transportation.calculate_transport_emissions()
 
         # Create tables, Populate Fertilizer & Chemical tables.
