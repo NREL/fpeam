@@ -4,7 +4,8 @@ functions associated with population
 
 # import abc
 # from _pyio import __metaclass__
-
+from src.AirPollution.utils import config, logger
+import LoadingEquipment as LE
 
 class Population(object):
     """
@@ -29,10 +30,10 @@ class Population(object):
         self.run_code = run_code
 
         # Used in all agricultural feedstocks (i.e. not FR)
-        self.activity_tractor = 475.0              # hr / year (NonRoad default value)
+        self.activity_tractor = float(config.get('nonroad_equip_dict')['annual_hrs_operation']['tractor'])              # hr / year (NonRoad default value)
          
         # Corn Grain
-        self.activity_combine = 150                # hr / year (NonRoad default values)
+        self.activity_combine = float(config.get('nonroad_equip_dict')['annual_hrs_operation']['combine'])                # hr / year (NonRoad default values)
         self.activity_gas = 716.0                  # hr / year (NonRoad default values)
         self.activity_diesel = 749.0               # hr / year (NonRoad default values)
         self.activity_lpg = 716.0                  # hr / year (NonRoad default values)
@@ -138,6 +139,7 @@ class ResiduePop(Population):
 
     def __init__(self, cont, episode_year, run_code):
         Population.__init__(self, cont, episode_year, run_code)
+        self.load_equip = LE.LoadingEquipment(cont, episode_year, run_code)
 
     def append_pop(self, fips, dat):
         """
@@ -148,6 +150,8 @@ class ResiduePop(Population):
             harv_ac = dat[2]: Harvested acres. acrs
             scenario_yield = dat[4]: Yield. lbs
         """
+        lines = self.load_equip.create_lines(fips=fips, dat=dat)
+
         harv_ac = dat[2]  # acre
         scenario_yield = dat[4]  # lbs        
         hours_per_acre_combine = self._get_combine_hours_per_acre(scenario_yield=scenario_yield)  # hrs/acre
@@ -158,8 +162,8 @@ class ResiduePop(Population):
         # pop = [(lbs/acre / dt/hr) * acre] / hr/yr = yr 
         pop_bale_mover = round((scenario_yield / self.transport_bales) * harv_ac / self.activity_tractor, 10)  # yr
 
-        lines = """%s       %s 2270005020 Dsl - Combines                             300   600 345.8  7000  DEFAULT         %s
-%s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT         %s
+        lines += """%s \t %s \t 2270005020 \t Dsl - Combines \t 300 \t 600 \t 345.8 \t 7000 \t DEFAULT \t %s
+%s \t %s \t 2270005015 \t Dsl - Agricultural Tractors \t 100 \t 175 \t 133.6 \t 4667 \t DEFAULT \t %s
 """ % (fips, self.episode_year, pop_comb, fips, self.episode_year, pop_bale_mover)
 
         self.pop_file.writelines(lines)
@@ -167,40 +171,15 @@ class ResiduePop(Population):
 
 class ForestPop(Population):
     """
-    Calculate forest residue populations and add them to .pop file.
-    Only harvest wood cutting equipment.
+    Calculates equipment populations for forest residues
+    Currently only loading equipment allocated to forest residue production
     """
-
     def __init__(self, cont, episode_year, run_code):
         Population.__init__(self, cont, episode_year, run_code)
-
-        # Forest
-        self.activity_loader = 1276.0  # hr / year (NonRoad default values)
-        self.activity_chipper = 465.0  # hr / year (NonRoad default values)
-
-        # Chipper
-        self.hrs_per_dt_chipper = 1 / 1905.22627  # cubic feet per hour
-        # Loader, assumed to be a lower hp chipper
-        self.hrs_per_dt_loader = 1 / 1998.81  # cubic feet per hour
+        self.load_equip = LE.LoadingEquipment(cont, episode_year, run_code)
 
     def append_pop(self, fips, dat):
-        """
-        Calculate populations for each fips code.
-        @param fips: Fips county code. string
-        @param dat: Db data for produce. list(string)
-            produce = dat[2]: produce from FR. dt
-        """
-        # dt
-        prod = dat[2]
-        # pop = (dt/hr * dt) / (hr/yr) = yr
-        chipper_pop = round(self.hrs_per_dt_chipper * float(prod) / self.activity_chipper, 10)
-        # pop = (dt/hr * dt) / (hr/yr) = yr
-        loader_pop = round(self.hrs_per_dt_loader * float(prod) / self.activity_loader, 10)
-                
-        lines = """%s       %s 2270007015 Dsl - Forest Eqp - Feller/Bunch/Skidder    100   175   137  4667  DEFAULT         %s
-%s       %s 2270004066 Dsl - Chippers/Stump Grinders (com)    300   600 434.4  7000  DEFAULT         %s
-""" % (fips, self.episode_year, loader_pop, fips, self.episode_year, chipper_pop)
-
+        lines = self.load_equip.create_lines(fips=fips, dat=dat)
         self.pop_file.writelines(lines)
 
 
@@ -214,7 +193,8 @@ class CornGrainPop(Population):
 
     def __init__(self, cont, episode_year, run_code):
         Population.__init__(self, cont, episode_year, run_code)
-       
+        self.load_equip = LE.LoadingEquipment(cont, episode_year, run_code)
+
         # Harvest hours per acre
         self.transport_tractor = 29.5 * 60  # bu/min * 60 min/hr = bu/hr 
 
@@ -238,17 +218,19 @@ class CornGrainPop(Population):
         """
         # @TODO: CASE WHEN POP = 0.0, NOAH
         harv_ac = dat[2]     
-        prod = dat[3]                  
+        prod = dat[3]
+
+        lines = self.load_equip.create_lines(fips=fips, dat=dat)
         # non harvest model.
         if self.run_code.endswith('N'):        
-            self.__set_non_harv_pop_file__(fips=fips, harv_ac=harv_ac)
+            self.__set_non_harv_pop_file__(fips=fips, harv_ac=harv_ac, lines=lines)
             pass
         # model harvest
         else: 
-            self.__set_harv_pop_file__(fips=fips, harv_ac=harv_ac, prod=prod)
+            self.__set_harv_pop_file__(fips=fips, harv_ac=harv_ac, prod=prod, lines=lines)
             pass
 
-    def __set_harv_pop_file__(self, fips, harv_ac, prod):
+    def __set_harv_pop_file__(self, fips, harv_ac, prod, lines):
         """
         Calculates tractor and combine populations for transport and harvest.  
         ############################################
@@ -272,34 +254,33 @@ class CornGrainPop(Population):
         # [(lbs/acre) / (bu/hr)] * (acre) / (hr/yr) = yr
         pop_transport = (scenario_yield / self.transport_tractor) * harv_ac / self.activity_tractor
                        
-        lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT        %s
-%s       %s 2270005020 Dsl - Combines                             300   600 345.8  7000  DEFAULT        %s
+        lines += """%s \t %s \t 2270005015 \t Dsl - Agricultural Tractors \t 100 \t 175 \t 133.6 \t 4667 \t DEFAULT \t %s
+%s \t %s \t 2270005020 \t Dsl - Combines \t 300 \t 600 \t 345.8 \t 7000 \t DEFAULT \t %s
 """ % (fips, self.episode_year, pop_transport, fips, self.episode_year, pop_combine)
 
         self.pop_file.writelines(lines)
 
-    def __set_non_harv_pop_file__(self, fips, harv_ac):
+    def __set_non_harv_pop_file__(self, fips, harv_ac, lines):
         """
         Calculates tractors for non-harvest.
         Either conventional, reduced, and non till.
         """
-        lines = None
         if self.run_code.endswith('CN'):
             #  pop = (hrs/acre) * (acre) / (hrs/yr) = yr
             pop_conv_till = self.hrs_per_acre_convTill * harv_ac / self.activity_tractor  # yr
-            lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                175   300 236.5  4667  DEFAULT        %s
+            lines += """%s \t %s \t 2270005015 \t Dsl - Agricultural Tractors \t 175 \t 300 \t 236.5 \t 4667 \t DEFAULT \t %s
 """ % (fips, self.episode_year, pop_conv_till)
             
         elif self.run_code.endswith('RN'):
             # pop = (hrs/acre * acre) / (hrs/yr) = yr
             pop_reduced_till = self.hrs_per_acre_redTill * harv_ac / self.activity_tractor  # yr
-            lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT        %s
+            lines += """%s \t %s \t 2270005015 \t Dsl - Agricultural Tractors \t 100 \t 175 \t 133.6 \t 4667 \t DEFAULT \t %s
 """ % (fips, self.episode_year, pop_reduced_till)        
         
         elif self.run_code.endswith('NN'):
             # pop = (hrs/acre * acre) / (hrs/yr) = yr
             pop_conventional_till = self.hrs_per_acre_noTill * harv_ac / self.activity_tractor  # yr
-            lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT        %s
+            lines += """%s \t %s \t 2270005015 \t Dsl - Agricultural Tractors \t 100 \t 175 \t 133.6 \t 4667 \t DEFAULT \t %s
 """ % (fips, self.episode_year, pop_conventional_till)
 
         self.pop_file.writelines(lines)
@@ -498,6 +479,7 @@ class SwitchgrassPop(Population):
 
     def __init__(self, cont, episode_year, run_code):
         Population.__init__(self, cont, episode_year, run_code)
+        self.load_equip = LE.LoadingEquipment(cont, episode_year, run_code)
 
         self.pop_60 = None
         self.pop_130 = None
@@ -511,6 +493,9 @@ class SwitchgrassPop(Population):
             self.yield_factor = 1.0        
 
     def append_pop(self, fips, dat):
+
+        lines = self.load_equip.create_lines(fips, dat)
+
         # case where there is no production
         if dat[3] == 0.0:
             self.pop_60 = 0.0
@@ -525,12 +510,11 @@ class SwitchgrassPop(Population):
             else:
                 self.__get_transport_hrs_per_acre__(prod=prod)
         
-        self.__set_pop_file__(fips=fips)    
+        self.__set_pop_file__(fips=fips, lines=lines)
         
-    def __set_pop_file__(self, fips):                 
-        lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                 50    75 62.18  4667  DEFAULT         %s
-%s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT         %s
-""" % (fips, self.episode_year, self.pop_60, fips, self.episode_year, self.pop_130)
+    def __set_pop_file__(self, fips, lines):
+        lines += """%s \t %s \t 2270005015 \t Dsl - Agricultural Tractors \t 50 \t 75 \t 62.18 \t 4667 \t DEFAULT \t %s \n""" % (fips, self.episode_year, self.pop_60, )
+        lines += """%s \t %s \t 2270005015 \t Dsl - Agricultural Tractors \t 100 \t 175 \t 133.6 \t 4667 \t DEFAULT \t %s \n""" % (fips, self.episode_year, self.pop_130, )
 
         self.pop_file.writelines(lines)
 
