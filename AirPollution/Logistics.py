@@ -130,12 +130,11 @@ class Logistics(SaveDataHelper.SaveDataHelper):
 
     def loading_equip(self, feed):
         """
-
+        Loading equipment is processed in CombustionEmissions.py along with other NONROAD outputs
         :param feed: feedstock
         :return:
         """
-        # @TODO: insert functionality for processing output from NONROAD for logistics equipment (tractors for loading agricultural crops; chipper/loader for forestry)
-        logger.warning('Loading equipment processing functionality has not been implemented')
+        logger.debug('Loading equipment emissions were calculated in CombustionEmissions.py for %s' % (feed, ))
         pass
 
     def calc_logistics(self):
@@ -144,7 +143,6 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         for feed in self.feedstock_list:
             logger.debug('Calculating electricity for %s' % (feed, ))
             self.electricity(feed)
-            logger.debug('Processing loading equipment for %s' % (feed, ))
             self.loading_equip(feed)
             if feed == 'FR':
                 logger.debug("Calculating wood drying VOC")
