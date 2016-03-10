@@ -131,67 +131,74 @@ class Driver:
             state = scenario.data[0][1]
             fips_prior = str(scenario.data[0][0])
 
-            # New population object created for each run_code
-            # Pop is the abstract class and .<type> is the concrete class.
-            if run_code.startswith('CG_I'):
-                pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-            elif run_code.endswith('L'):
-                pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-            elif run_code.startswith('SG'):
-                pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-            elif run_code.startswith('FR'):
-                pop = Pop.ForestPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-            elif run_code.startswith('CS'):
-                pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-            elif run_code.startswith('WS'):
-                pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-            elif run_code.startswith('CG'):
-                pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+            value = False
+            if len(scenario.data[0]) >= 4:
+                value = scenario.data[0][3] > 0.0
+            if len(scenario.data[0]) >= 3:
+                value = scenario.data[0][2] > 0.0
 
-            # is it possible to instantiate new classes each time?
-            alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
-            pop.initialize_pop(dat=scenario.data[0])
-            self.batch.initialize(run_code)
+            if value is True:
+                # New population object created for each run_code
+                # Pop is the abstract class and .<type> is the concrete class.
+                if run_code.startswith('CG_I'):
+                    pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                elif run_code.endswith('L'):
+                    pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                elif run_code.startswith('SG'):
+                    pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                elif run_code.startswith('FR'):
+                    pop = Pop.ForestPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                elif run_code.startswith('CS'):
+                    pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                elif run_code.startswith('WS'):
+                    pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                elif run_code.startswith('CG'):
+                    pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
 
-            # go through each row of the data table.
-            for dat in scenario.data:
-                fips = str(dat[0])
-                # The db table is ordered alphabetically.
-                # The search will look through a state. When the state changes in the table,
-                # then the loop will go to the else, closing the old files. and initializing new files.
+                # is it possible to instantiate new classes each time?
+                alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
+                pop.initialize_pop(dat=scenario.data[0])
+                self.batch.initialize(run_code)
 
-                # @TODO: verify ORDER BY clause orders by state
-                # dat[1] is the state.
-                if dat[1] == state:
-                    # indicator is harvested acres. Except for FR when it is produce.
-                    indicator = dat[2]
-                    alo.write_indicator(fips=fips, indicator=indicator)
-                    pop.append_pop(fips=fips, dat=dat)
-                # last time through a state, will close different files, and start new ones.
-                else:
-                    # write *.opt file, close allocation file, close *.pop file
-                    Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
-                    alo.write_sum_and_close(fips=fips_prior)
-                    pop.finish_pop()
-                    self.batch.append(state=state, run_code=run_code)
+                # go through each row of the data table.
+                for dat in scenario.data:
+                    fips = str(dat[0])
+                    # The db table is ordered alphabetically.
+                    # The search will look through a state. When the state changes in the table,
+                    # then the loop will go to the else, closing the old files. and initializing new files.
 
-                    fips_prior = fips
-                    state = dat[1]
+                    # @TODO: verify ORDER BY clause orders by state
+                    # dat[1] is the state.
+                    if dat[1] == state:
+                        # indicator is harvested acres. Except for FR when it is produce.
+                        indicator = dat[2]
+                        alo.write_indicator(fips=fips, indicator=indicator)
+                        pop.append_pop(fips=fips, dat=dat)
+                    # last time through a state, will close different files, and start new ones.
+                    else:
+                        # write *.opt file, close allocation file, close *.pop file
+                        Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
+                        alo.write_sum_and_close(fips=fips_prior)
+                        pop.finish_pop()
+                        self.batch.append(state=state, run_code=run_code)
 
-                    # initialize new pop and allocation files.
-                    alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
-                    pop.initialize_pop(dat=dat)
-                    # indicator is harvested acres. Except for FR when it is produce.
-                    indicator = dat[2]
-                    alo.write_indicator(fips=fips, indicator=indicator)
-                    pop.append_pop(fips=fips, dat=dat)
+                        fips_prior = fips
+                        state = dat[1]
 
-                    # close allocation files
-            Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
-            alo.write_sum_and_close(fips=fips_prior)
-            pop.finish_pop()
-            self.batch.append(state=state, run_code=run_code)
-            self.batch.finish(run_code=run_code)
+                        # initialize new pop and allocation files.
+                        alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
+                        pop.initialize_pop(dat=dat)
+                        # indicator is harvested acres. Except for FR when it is produce.
+                        indicator = dat[2]
+                        alo.write_indicator(fips=fips, indicator=indicator)
+                        pop.append_pop(fips=fips, dat=dat)
+
+                # close allocation files
+                Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
+                alo.write_sum_and_close(fips=fips_prior)
+                pop.finish_pop()
+                self.batch.append(state=state, run_code=run_code)
+                self.batch.finish(run_code=run_code)
 
         # close scenariobatchfile
         self.batch.scenario_batch_file.close()
