@@ -135,6 +135,8 @@ class Driver:
             # Pop is the abstract class and .<type> is the concrete class.
             if run_code.startswith('CG_I'):
                 pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+            elif run_code.endswith('L'):
+                pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
             elif run_code.startswith('SG'):
                 pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
             elif run_code.startswith('FR'):
