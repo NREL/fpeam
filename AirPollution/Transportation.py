@@ -108,7 +108,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                                                                                          FROM {constants_schema}.transport
                                                                                                          WHERE sply_fips='{fips}' AND feed_id='{feed_id}')
                     WHERE feedstock='{feed}' AND fips='{fips}';""".format(**self.kvals)
-        print query
         self.cursor.execute(query)
 
     def calc_run_emission(self):

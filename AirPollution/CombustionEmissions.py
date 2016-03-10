@@ -282,8 +282,20 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         description = ''
         tillage = ''
 
+        # Loading
+        if run_code.endswith('L'):
+            if run_code.startswith('SG'):
+                if len(run_code) == 4:
+                    description = "Year %s - Loading" % (run_code[3])  # year 1-9
+                else:
+                    description = "Year %s - Loading" % (run_code[3:5])  # year 10
+                operation = 'Loading'
+            else:
+                description = 'Loading'
+                operation = 'Loading'
+
         # Switchgrass
-        if run_code.startswith('SG_H'):
+        elif run_code.startswith('SG_H'):
             if len(run_code) == 4: 
                 description = "Year %s - Harvest" % (run_code[4])  # year 1-9
             else:
@@ -306,11 +318,9 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                         
         # Forest Residue
         elif run_code.startswith('FR'):
-            if hp == 600:
-                description = "Loader Emissions"
-            elif hp == 175:
-                description = "Chipper Emissions"
-        
+            # currently no equipment allocated to FR harvest, non-harvest, or on-farm transport
+            pass
+
         # Corn Stover and Wheat Straw
         elif run_code.startswith('CS') or run_code.startswith('WS'):
         

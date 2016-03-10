@@ -379,17 +379,22 @@ class Driver:
         # Populate Combustion Emissions Tables
         logger.info("Populating tables with combustion emissions")
         comb.populate_tables(run_codes=self.run_codes)
-        comb.update_sg()
+        for run_code in self.run_codes:
+            if run_code.startswith('SG'):
+                if not run_code.endswith('L'):
+                    comb.update_sg()
         logger.info("COMPLETED populating tables with combustion emissions")
 
         # Fugitive Dust Emissions
         modelsg = False
         for run_code in self.run_codes:
             if not run_code.startswith('SG'):
-                fug_dust.set_emissions(run_code=run_code)
-                logger.info("Fugitive Dust Emissions complete for " + run_code)  # @TODO: convert to string formatting
+                if not run_code.endswith('L'):
+                    fug_dust.set_emissions(run_code=run_code)
+                    logger.info("Fugitive Dust Emissions complete for " + run_code)  # @TODO: convert to string formatting
             else:
-                modelsg = True
+                if not run_code.endswith('L'):
+                    modelsg = True
 
         if modelsg:
             # It makes more sense to create fugitive dust emissions using a separate method
