@@ -430,24 +430,25 @@ class Driver:
 
         # create graphics and numerical summary
 
-        # Contribution Analysis
-        logger.info('Creating emissions contribution figure.')
-        ContributionFigure.ContributionAnalysis(cont=self.cont)
+        if config.get('figure_plotting') is True:
+            # Contribution Analysis
+            logger.info('Creating emissions contribution figure.')
+            ContributionFigure.ContributionAnalysis(cont=self.cont)
 
-        # Emissions Per Gallon
-        logger.info('Creating emissions per gallon figure.')
-        EmissionsPerGalFigure.EmissionsPerGallon(self.cont)
+            # Emissions Per Gallon
+            logger.info('Creating emissions per gallon figure.')
+            EmissionsPerGalFigure.EmissionsPerGallon(self.cont)
 
-        # Emissions per a acre figure.
-        logger.info('Creating emissions per acre figure.')
-        EmissionsPerAcreFigure(self.cont)
+            # Emissions per a acre figure.
+            logger.info('Creating emissions per acre figure.')
+            EmissionsPerAcreFigure(self.cont)
 
-        # Emissions per a production lb figure.
-        logger.info('Creating emissions per lb figure.')
-        EmissionPerProdFigure(self.cont)
+            # Emissions per a production lb figure.
+            logger.info('Creating emissions per lb figure.')
+            EmissionPerProdFigure(self.cont)
 
-        # Ratio to NEI
-        RatioToNEIFigure.RatioToNEIFig(self.cont)
+            # Ratio to NEI
+            RatioToNEIFigure.RatioToNEIFig(self.cont)
 
         logger.info('Successful completion of model run.')
 
