@@ -242,8 +242,8 @@ class Driver:
                                                 save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles,
                                                 save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs)
 
-            # @TODO: replace vmt_short_haul with database query to calculate county-level vehicle populations (need to get data first - could use sample data to get started)
-            vmt_short_haul = 10000  # annual vehicle miles traveled by combination short-haul trucks
+            # @TODO: if we decide that rates does vary with VMT, replace vmt_short_haul with database query to calculate county-level VMT (need to get data into database first)
+            vmt_short_haul = 1000  # annual vehicle miles traveled by combination short-haul trucks
             pop_short_haul = 1  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
 
             if i == 0:
@@ -276,13 +276,13 @@ class Driver:
         Run MOVES using the batch file generated in setup_MOVES
         @param batch_run_dict = dictionary of file names for MOVES batch runs (by feedstock type)
         """
-        feed = 'CG'  # for feed in self.feedstock_list: @TODO: replace with loop to go through all feedstocks
-        logger.info('Running MOVES for feedstock: %s' % (feed, ))
-        logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
+        for feed in self.feedstock_list:
+            logger.info('Running MOVES for feedstock: %s' % (feed, ))
+            logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
 
-        # execute batch file and log output
-        output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
-        logger.debug('Command line output: %s' % output)
+            # execute batch file and log output
+            output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
+            logger.debug('Command line output: %s' % output)
     
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc, fips_list):
         """
