@@ -156,7 +156,6 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # sum voc_wood and voc_comb to get total voc for logistics
         query += """UPDATE {scenario_name}.{feed}_logistics
                 SET voc = voc_comb + voc_wood;""".format(**self.kvals)
-        print query
 
         return self._execute_query(query)
 
