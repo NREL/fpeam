@@ -21,7 +21,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         self.fert_dist = self.get_frt_distribution(fert_distributions=fert_dist)
         self.fert_feed_stock = fert_feed_stock
         self.n_fert_ef = config['n_fert_ef'] 
-        self.n_fert_app = config['n_fert_app']
+        self.n_fert_app = config['n_fert_app']  # @TODO: change to DB query based FIPS
         self.kvals = {}
 
     def set_fertilizer(self, feed):

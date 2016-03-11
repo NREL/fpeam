@@ -150,6 +150,7 @@ class ResiduePop(Population):
         """
         harv_ac = dat[2]  # acre
         scenario_yield = dat[4]  # lbs
+        # @TODO: replace with db queries by FIPs
         hours_per_acre_combine = self._get_combine_hours_per_acre(scenario_yield=scenario_yield)  # hrs/acre
         # calculate population of combine for harvest.
         # pop = (hr/acre * acre) / (hr/yr) = yr
