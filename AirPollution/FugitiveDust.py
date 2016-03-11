@@ -1,5 +1,5 @@
 import SaveDataHelper
-
+from src.AirPollution.utils import logger
 
 class FugitiveDust(SaveDataHelper.SaveDataHelper):
     """
@@ -406,4 +406,5 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                         WHERE     (raw."fips" ILIKE tfd."fips" || '%') AND
                                   (raw."run_code" ILIKE '""" + str("%" + self.description + str(year + 1) + "%") + """')"""
 
+            logger.info('Calculating fugitive dust emissions for %s, year %s' % (self.description, year, ))
             self._execute_query(query)

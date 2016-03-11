@@ -360,7 +360,6 @@ class Driver:
         cursor.close()
 
         # now loop through feedstocks and FIPS codes to compute respective emissions
-        self.feedstock_list = ['CG']
         for feedstock in self.feedstock_list:
             for fips in fips_list:
                 vmt = 10000  # @TODO: replace with query to get correct county-level VMT data
