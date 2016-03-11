@@ -122,7 +122,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # generate string for query and append to queries
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
         query = """UPDATE {scenario_name}.{feed}_logistics
-                SET VOC = prod_data.{column} * {a} * {VOC_ef} / {b}
+                SET VOC_wood = prod_data.{column} * {a} * {VOC_ef} / {b}
                 FROM {production_schema}.{feed}_data prod_data
                 WHERE {scenario_name}.{feed}_logistics.fips = prod_data.fips;""".format(**self.kvals)
 
@@ -135,15 +135,36 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         :return:
         """
         logger.debug('Loading equipment emissions were calculated in CombustionEmissions.py for %s' % (feed, ))
-        pass
+        logger.info('Transferring loading data for %s from %s_raw to %s_logistics' % (feed, feed, feed, ))
+
+        pollutant_list = ['voc_comb', 'co', 'nox', 'co2', 'sox', 'pm10', 'pm25', 'nh3']
+
+        query = ''
+        self.kvals['feed'] = feed.lower()
+        for pollutant in pollutant_list:
+            self.kvals['pollutant'] = pollutant
+            if pollutant.startswith('voc'):
+                self.kvals['pollutantID'] = 'voc'
+            else:
+                self.kvals['pollutantID'] = pollutant
+
+            query += """UPDATE {scenario_name}.{feed}_logistics
+                    SET {pollutant} = (SELECT raw.{pollutantID}
+                                       FROM {scenario_name}.{feed}_raw raw
+                                       WHERE {scenario_name}.{feed}_logistics.fips = raw.fips);""".format(**self.kvals)
+
+        # sum voc_wood and voc_comb to get total voc for logistics
+        query += """UPDATE {scenario_name}.{feed}_logistics
+                SET voc = voc_comb + voc_wood;""".format(**self.kvals)
+        print query
+
+        return self._execute_query(query)
 
     def calc_logistics(self):
         # Execute wood drying and electricity functions for all feedstocks in feedstock list
         logger.info('Evaluating logistics')
         for feed in self.feedstock_list:
-            logger.debug('Calculating electricity for %s' % (feed, ))
             self.electricity(feed)
             self.loading_equip(feed)
             if feed == 'FR':
-                logger.debug("Calculating wood drying VOC")
                 self.voc_wood_drying(feed)
