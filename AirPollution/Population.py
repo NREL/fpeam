@@ -648,11 +648,5 @@ class LoadingEquipment(Population):
 
             # append equipment information to string for population file
             lines += """{fips}       {year} {scc}                                           {hp_min}   {hp_max}   {hp}   {useful_life} DEFAULT     {pop} \n""".format(**self.kvals)
-            # if equip_type == 'tractor':
-            #     lines += """%s       %s %s Dsl - Agricultural Tractors                %s   %s %s  %s  DEFAULT         %s \n""" % (fips, self.episode_year, self.kvals['scc'], self.kvals['hp_min'], self.kvals['hp_max'], self.kvals['hp'], self.kvals['useful_life'], self.kvals['pop'])
-            # if equip_type == 'chipper':
-            #     lines += """%s       %s %s Dsl - Chippers/Stump Grinders (com)        %s   %s %s  %s  DEFAULT         %s \n""" % (fips, self.episode_year, self.kvals['scc'], self.kvals['hp_min'], self.kvals['hp_max'], self.kvals['hp'], self.kvals['useful_life'], self.kvals['pop'])
-            # if equip_type == 'loader':
-            #     lines += """%s       %s %s Dsl - Forest Eqp - Feller/Bunch/Skidder    %s   %s %s  %s  DEFAULT         %s \n""" % (fips, self.episode_year, self.kvals['scc'], self.kvals['hp_min'], self.kvals['hp_max'], self.kvals['hp'], self.kvals['useful_life'], self.kvals['pop'])
 
         self.pop_file.writelines(lines)

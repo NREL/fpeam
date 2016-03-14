@@ -1,12 +1,12 @@
 import SaveDataHelper
 import csv
 import os
-
+from utils import config, logger
 
 # @TODO: refactor to match PEP8 standards
 # @TODO: refactor to use string formatting
 # @TODO: fill out docstrings
-# @TODO: make utils.logger and utils.config available here
+
 
 class CombustionEmissions(SaveDataHelper.SaveDataHelper):
     """
@@ -53,7 +53,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
     def populate_tables(self, run_codes):
         """
 
-        :param run_codes:
+        :param run_codes: list of codes for NONROAD runs
         :return:
         """
         
@@ -80,7 +80,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         
         for run_code in run_codes:
             
-            print run_code  # @TODO: convert to logger
+            logger.info('Populating NONROAD combustion emissions table for %s' % (run_code, ))
             # path to results
             path = self.base_path + 'OUT/%s/' % (run_code,)
             listing = os.listdir(path)
@@ -156,8 +156,8 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                             self.pm10topm25 = 0.97
                         
             self.db.input(queries)
-        
-            print "Finished populating table for " + run_code  # @TODO: convert to logger
+
+            logger.info('Finished populating NONROAD combustion emissions table for %s' % (run_code, ))
 
     def _record(self, feed, row, scc, hp, fuel_cons, thc, voc, co, nox, co2, so2, pm10, pm25, nh3, description, run_code, writer, queries, alloc=None):
         """
@@ -197,17 +197,19 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                VALUES ('%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')""" % (self.db.schema, feed, row, scc, hp, thc, voc, co, nox, co2, so2, pm10, pm25, fuel_cons, nh3, description, run_code)  # @TODO: refactor to use string formatting
         queries.append(q)
 
-    def update_sg(self):
+    def update_sg(self, run_code):
         """
         Switch grass harvest and non-harvest uses two different machines that are 60 and 130 hp.
         This creates multiple rows in the db for each operation year. To remove the duplicate columns,
         for each fips and for each operation year, add all the same ones and make a single row.
+        :param run_code: run code for NONROAD
         """
 
         # insert added data to sg_raw.
+        logger.info('Inserting data for run code: %s' % (run_code, ))
         self._insert_sg_data()
         # delete old data from sg_raw.
-        # @TODO: add logging message here so we know we're deleting data
+        logger.info('Deleting old SG data for run %s' % (run_code, ))
         self._delete_sg_data()
     
     def _insert_sg_data(self):
@@ -269,9 +271,9 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
     def _get_description(self, run_code, scc, hp):
         """
 
-        :param run_code:
-        :param scc:
-        :param hp:
+        :param run_code: run code for NONROAD run
+        :param scc: source category code for equipment
+        :param hp: power rating of equipment
         :return:
         """
         # cast hp as a number

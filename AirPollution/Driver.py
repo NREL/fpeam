@@ -381,7 +381,7 @@ class Driver:
         for run_code in self.run_codes:
             if run_code.startswith('SG'):
                 if not run_code.endswith('L'):
-                    comb.update_sg()
+                    comb.update_sg(run_code=run_code)
         logger.info("COMPLETED populating tables with combustion emissions")
 
         # Fugitive Dust Emissions
@@ -425,7 +425,7 @@ class Driver:
                 count += 1
 
         # compute emissions and electricity associated with logistics
-        logistics.calc_logistics()
+        logistics.calc_logistics(run_codes=self.run_codes, feedstock_list=self.feedstock_list)
 
         # create graphics and numerical summary
 

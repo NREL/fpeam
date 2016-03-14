@@ -48,20 +48,20 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         fug_pm10    float    , 
                         fug_pm25    float);""" % (feedstock,)
 
-        query += """    CREATE TABLE %s_logistics
+        query += """    DROP TABLE IF EXISTS %s_electric;
+                        CREATE TABLE %s_electric
                         (fips    char(5)    ,
                         electricity    float,
-                        VOC_wood float DEFAULT 0,
-                        VOC_comb    float    ,
-                        VOC float,
-                        CO    float    ,
-                        NOx    float    ,
-                        CO2    float    ,
-                        SOx    float    ,
-                        PM10    float    ,
-                        PM25    float    ,
-                        NH3    float
-                        );""" % (feedstock,)
+                        run_code    text
+                        );""" % (feedstock, feedstock,)
+
+        if feedstock == 'FR':
+
+            query += """DROP TABLE IF EXISTS %s_wood_drying_voc;
+                        CREATE TABLE %s_wood_drying_voc
+                        (fips    char(5)    ,
+                        voc_wood    float
+                        );""" % (feedstock, feedstock, )
                     
         self._execute_query(query)
 

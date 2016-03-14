@@ -42,16 +42,20 @@ class Logistics(SaveDataHelper.SaveDataHelper):
 
         self.column_dict = dict()
         # create dictionary for column names for production data
-        self.column_dict['CG'] = 'total_prod'
-        self.column_dict['CS'] = 'prod'
-        self.column_dict['WS'] = 'prod'
+        self.column_dict['CG_NL'] = 'notill_prod'
+        self.column_dict['CG_CL'] = 'convtill_prod'
+        self.column_dict['CG_RL'] = 'reducedtill_prod'
+        self.column_dict['CS_NL'] = 'notill_prod'
+        self.column_dict['CS_RL'] = 'reducedtill_prod'
+        self.column_dict['WS_RL'] = 'reducedtill_prod'
+        self.column_dict['WS_NL'] = 'notill_prod'
         self.column_dict['SG'] = 'prod'
         self.column_dict['FR'] = 'fed_minus_55'
 
         # dictionary for VOC emission factor from wood drying
         self.voc_wood_ef = config.get('voc_wood_ef')
 
-    def electricity(self, feed):
+    def electricity(self, run_code):
         """
         Tally electricity consumption from feedstock processing
         Update logistics table with these values
@@ -64,25 +68,37 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         B = biomass production (dry short ton per yr per county)
         electricity_per_dt = electricity consumed (kWh per dry short ton?
 
-        :param feed: feedstock
+        :param run_code: run code associated with NONROAD run
         :return: True if update query is successful, False if not
         """
+        # set feedstock name
+        feed = run_code[0:2]
+        self.kvals['feed'] = feed.lower()
 
         logger.debug('Calculating electricity consumption for {feed}'.format(feed=feed))
         # set electricity consumption factor using feedstock type
         self.kvals['electricity_per_dt'] = self.electricity_per_dt[feed][self.logistics_type]
-        # set feedstock name
-        self.kvals['feed'] = feed
+
+        # set run_code
+        self.kvals['run_code'] = run_code
         # set column for production name
-        self.kvals['column'] = self.column_dict[feed]
+        if feed == 'SG':
+            self.kvals['prod_column'] = self.column_dict[feed]
+        elif feed == 'FR':
+            self.kvals['prod_column'] = self.column_dict[feed]
+        else:
+            self.kvals['prod_column'] = self.column_dict[run_code]
 
         # generate string for query
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
-        query = """INSERT INTO {scenario_name}.{feed}_logistics (fips, electricity)
-                SELECT feed.fips,
-                feed.{column} * {electricity_per_dt} AS "electricity"
-                FROM {production_schema}.{feed}_data feed
-                GROUP BY feed.fips;""".format(**self.kvals)
+        query = """INSERT INTO {scenario_name}.{feed}_electric (fips, electricity)
+                    SELECT fips, feed.{prod_column} * {electricity_per_dt}
+                    FROM {production_schema}.{feed}_data feed
+                    WHERE feed.{prod_column} > 0.0;
+
+                    UPDATE {scenario_name}.{feed}_electric
+                    SET run_code = '{run_code}'
+                    WHERE run_code is NULL;""".format(**self.kvals)
 
         # execute query
         return self._execute_query(query)
@@ -102,7 +118,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         VOC_ef = emission factor for VOC (kg per dry metric ton of feedstock)
         b = constant (1000 kg per metric ton)
 
-        :param feed: feedstock
+        :param feed: abbreviated feedstock name (e.g., 'FR')
         :return: True if update query is successful, False if not
         """
 
@@ -115,55 +131,61 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # set VOC emission factor
         self.kvals['VOC_ef'] = self.voc_wood_ef[self.logistics_type]
         # set feedstock name
-        self.kvals['feed'] = feed
+        self.kvals['feed'] = feed.lower()
         # set column for production name
         self.kvals['column'] = self.column_dict[feed]
 
         # generate string for query and append to queries
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
-        query = """UPDATE {scenario_name}.{feed}_logistics
-                SET VOC_wood = prod_data.{column} * {a} * {VOC_ef} / {b}
+        query = """INSERT INTO {scenario_name}.{feed}_wood_drying_voc (fips, voc_wood)
+                SELECT fips, prod_data.{column} * {a} * {VOC_ef} / {b}
                 FROM {production_schema}.{feed}_data prod_data
-                WHERE {scenario_name}.{feed}_logistics.fips = prod_data.fips;""".format(**self.kvals)
+                WHERE {scenario_name}.{feed}_wood_drying_voc.fips = prod_data.fips;""".format(**self.kvals)
 
         return self._execute_query(query)
 
-    def loading_equip(self, feed):
+    def loading_equip(self):
         """
         Loading equipment is processed in CombustionEmissions.py along with other NONROAD outputs
-        :param feed: feedstock
         :return:
         """
-        logger.debug('Loading equipment emissions were calculated in CombustionEmissions.py for %s' % (feed, ))
-        logger.info('Transferring loading data for %s from %s_raw to %s_logistics' % (feed, feed, feed, ))
+        logger.debug('Combustion emissions from loading equipment is computed in CombustionEmissions.py')
+        pass
 
-        pollutant_list = ['voc_comb', 'co', 'nox', 'co2', 'sox', 'pm10', 'pm25', 'nh3']
-
-        query = ''
-        self.kvals['feed'] = feed.lower()
-        for pollutant in pollutant_list:
-            self.kvals['pollutant'] = pollutant
-            if pollutant.startswith('voc'):
-                self.kvals['pollutantID'] = 'voc'
-            else:
-                self.kvals['pollutantID'] = pollutant
-
-            query += """UPDATE {scenario_name}.{feed}_logistics
-                    SET {pollutant} = (SELECT raw.{pollutantID}
-                                       FROM {scenario_name}.{feed}_raw raw
-                                       WHERE {scenario_name}.{feed}_logistics.fips = raw.fips);""".format(**self.kvals)
-
-        # sum voc_wood and voc_comb to get total voc for logistics
-        query += """UPDATE {scenario_name}.{feed}_logistics
-                SET voc = voc_comb + voc_wood;""".format(**self.kvals)
-
-        return self._execute_query(query)
-
-    def calc_logistics(self):
+    def calc_logistics(self, run_codes, feedstock_list):
         # Execute wood drying and electricity functions for all feedstocks in feedstock list
         logger.info('Evaluating logistics')
-        for feed in self.feedstock_list:
-            self.electricity(feed)
-            self.loading_equip(feed)
+
+        for run_code in run_codes:
+            if run_code.endswith('L') and not run_code.startswith('CG_I'):
+
+                # compute electricity
+                self.electricity(run_code)
+
+                if run_code.startswith('FR'):
+                    feed = run_code[0:2]
+                    self.voc_wood_drying(feed)
+
+        query = ''
+        for feed in feedstock_list:
+            self.kvals['feed'] = feed
             if feed == 'FR':
-                self.voc_wood_drying(feed)
+                # sum voc_wood and voc_comb to get total voc for logistics
+                query = """UPDATE {scenario_name}.{feed}_logistics
+                        SET voc_total = voc + voc_wood;""".format(**self.kvals)
+                self._execute_query(query)
+
+            # create logistics table by joining electricity table with combustion emissions for loading equipment
+            query += """CREATE TABLE {scenario_name}.{feed}_logistics
+                    AS (SELECT table1.*, table2.voc, table2.co, table2.nox, table2.sox, table2.nh3, table2.pm10, table2.pm25
+                        FROM {scenario_name}.{feed}_electric table1
+                        LEFT JOIN {scenario_name}.{feed}_raw table2
+                        ON table1.fips=table2.fips AND table2.run_code=table1.run_code);""".format(**self.kvals)
+
+        # @TODO: for some reason CG is returning zero values for reduced till runs... need to look into this
+        logger.warning('CG is returning zero values for reduced till runs (appears to be problem in NONROAD setup that propagates here). Need to investigate.')
+
+        # @TODO: forest residue has not yet been validated (only agricultural crops have been run thus far)
+        logger.warning('FR has not yet been validated.  Need to revise once data sets are finalized.')
+
+        self._execute_query(query)
