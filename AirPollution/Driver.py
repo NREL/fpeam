@@ -232,10 +232,9 @@ class Driver:
             if not os.path.exists(path):
                 os.makedirs(path)    
 
-        i = 0
         outputs = dict()
         batch_run_dict = dict()
-        for feed in self.feedstock_list:
+        for i, feed in enumerate(self.feedstock_list):
 
             logger.info('Processing MOVES setup for feedstock: %s' % (feed, ))
             
@@ -263,8 +262,6 @@ class Driver:
 
             # create batch files for importing and running MOVES        
             outputs = moves_mod.create_batch_files()
-
-            i += 1
 
             moves_mod.import_data(outputs['im_filename'])
             logger.debug('Batch file for importing data: %s' % (outputs['im_filename'], ))
@@ -332,10 +329,11 @@ class Driver:
                    FROM fips_{fips}_{feedstock}_in.avgspeeddistribution table1
                    LEFT JOIN {MOVES_database}.hourday table2
                    ON table1.hourDayID = table2.hourDayID);""".format(**kvals)
+        cursor.execute(query)
 
         # create transportation output table
         #  @ TODO: may want to move this query for table creation to another location
-        query += """DROP TABLE IF EXISTS output_{scenario_name}.transportation;
+        query = """DROP TABLE IF EXISTS output_{scenario_name}.transportation;
                    CREATE TABLE output_{scenario_name}.transportation (fips char(5),
                                                                        feedstock varchar(5),
                                                                        yearID char(4),
@@ -346,9 +344,11 @@ class Driver:
                                                                        total_emissions_per_trip float,
                                                                        number_trips float,
                                                                        total_emissions float);""".format(**kvals)
+        cursor.execute(query)
+
         # create transportation output table
         #  @ TODO: may want to move this query for table creation to another location
-        query += """DROP TABLE IF EXISTS output_{scenario_name}.fugitive_dust;
+        query = """DROP TABLE IF EXISTS output_{scenario_name}.fugitive_dust;
                    CREATE TABLE output_{scenario_name}.fugitive_dust (fips char(5),
                                                                      feedstock varchar(5),
                                                                      yearID char(4),
@@ -397,7 +397,7 @@ class Driver:
                 if not run_code.endswith('L'):
                     modelsg = True
 
-        if modelsg:
+        if modelsg is True:
             # It makes more sense to create fugitive dust emissions using a separate method
             operations = ['Transport', 'Harvest', 'Non-Harvest']
             for operation in operations:
