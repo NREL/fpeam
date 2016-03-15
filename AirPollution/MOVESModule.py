@@ -46,13 +46,13 @@ class MOVESModule:
 
         # get information from config file 
         self.model_run_title = config.get('title')  # scenario title
-        self.MOVES_database = config.get('MOVES_database')  # MOVES database name
-        self.MOVES_db_user = config.get('MOVES_db_user')  # username for MOVES database
-        self.MOVES_db_pass = config.get('MOVES_db_pass')  # password for MOVES database
-        self.MOVES_db_host = config.get('MOVES_db_host')  # host for MOVES database
-        self.MOVES_timespan = config.get('MOVES_timespan')  # time span for MOVES runs
+        self.moves_database = config.get('moves_database')  # MOVES database name
+        self.moves_db_user = config.get('moves_db_user')  # username for MOVES database
+        self.moves_db_pass = config.get('moves_db_pass')  # password for MOVES database
+        self.moves_db_host = config.get('moves_db_host')  # host for MOVES database
+        self.moves_timespan = config.get('moves_timespan')  # time span for MOVES runs
         self.age_distribution = config.get('age_distribution')  # age distribution dictionary for MOVES runs (varies by scenario year)
-        self.VMT_fraction = config.get('VMT_fraction')  # fraction of VMT by road type
+        self.vmt_fraction = config.get('vmt_fraction')  # fraction of VMT by road type
         self.fuelfraction = config.get('fuel_fraction')  # fuel fraction
 
     def create_county_data(self, vmt_short_haul, pop_short_haul):
@@ -70,7 +70,7 @@ class MOVESModule:
         logger.debug('Creating county-level data files for MOVES')
 
         # connect to MOVES database
-        connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user, password=self.MOVES_db_pass, db=self.MOVES_database)
+        connection = pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database)
         cursor = connection.cursor()
 
         # set year for MOVES database queries 
@@ -82,7 +82,7 @@ class MOVESModule:
             county_id = FIPS
             kvals = dict()
             kvals['year'] = year
-            kvals['MOVES_database'] = self.MOVES_database
+            kvals['MOVES_database'] = self.moves_database
             kvals['countyID'] = county_id
             kvals['zoneID'] = zone_id
 
@@ -157,13 +157,13 @@ class MOVESModule:
         logger.debug('Creating national data files for MOVES')
 
         # connect to MOVES database
-        connection = pymysql.connect(host=self.MOVES_db_host, user=self.MOVES_db_user, password=self.MOVES_db_pass, db=self.MOVES_database)
+        connection = pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database)
         cursor = connection.cursor()
 
         # initialize kvals for string formatting
         kvals = dict()
         kvals['year'] = self.yr
-        kvals['MOVES_database'] = self.MOVES_database
+        kvals['MOVES_database'] = self.moves_database
 
         # export MOVES defaults for national inputs (i.e., hourVMTFraction, monthVMTFraction, dayVMTFraction, and avgspeeddistribution)
         tablelist = ['hourvmtfraction', 'monthvmtfraction', 'dayvmtfraction', 'avgspeeddistribution']
@@ -205,7 +205,7 @@ class MOVESModule:
             csv_writer = csv.writer(f)
             csv_writer.writerow(['sourceTypeID', 'roadTypeID', 'roadTypeVMTFraction'])
             for roadtype in range(2, 6):
-                csv_writer.writerow(['61', roadtype, self.VMT_fraction[str(roadtype)]])
+                csv_writer.writerow(['61', roadtype, self.vmt_fraction[str(roadtype)]])
 
     def create_batch_files(self):
         """
@@ -258,7 +258,7 @@ class MOVESModule:
             # create import filename using FIPS code, crop, and scenario year 
             im_filename = os.path.join(self.save_path_importfiles, FIPS+"_import_"+self.yr+'_'+self.crop+".mrs")
             # instantiate GenerateMOVESImport class
-            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop, fips=FIPS, yr=self.yr, moves_timespan=self.MOVES_timespan, agefilename=agefilename,
+            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop, fips=FIPS, yr=self.yr, moves_timespan=self.moves_timespan, agefilename=agefilename,
                                                        speedfilename=speedfilename, fuelsupfilename=fuelsupfilename, fuelformfilename=fuelformfilename,
                                                        fuelusagefilename=fuelusagefilename, avftfilename=avftfilename, metfilename=metfilename,
                                                        roadtypefilename=roadtypefilename, sourcetypefilename=sourcetypename, vmtfilename=vmtname,
@@ -278,7 +278,7 @@ class MOVESModule:
             # create filename for runspec file using FIPS code, crop, and scenario year
             run_filename = os.path.join(self.save_path_runspecfiles, FIPS+"_runspec_"+self.yr+'_'+self.crop+".mrs") 
             # instantiate GenerateMOVESRunspec class
-            xmlrunspec = GenMOVESRun.GenerateMOVESRunSpec(crop=self.crop, fips=FIPS, yr=self.yr, moves_timespan=self.MOVES_timespan, server=self.MOVES_db_host)
+            xmlrunspec = GenMOVESRun.GenerateMOVESRunSpec(crop=self.crop, fips=FIPS, yr=self.yr, moves_timespan=self.moves_timespan, server=self.moves_db_host)
             # execute function for creating XML file
             xmlrunspec.create_runspec_files(run_filename)
 
