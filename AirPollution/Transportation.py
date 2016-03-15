@@ -5,8 +5,12 @@ Created on Thur Mar 3 9:24:46 2016
 Populates tables for transportation emissions associated with off-farm transport
 
 Inputs include:
-    list of feedstock types (feedstock_list)
+    feedstock name (feed)
     container (cont)
+    fips code (fips)
+    vehicle miles travelled (vmt)
+    population, or number, of vehicles (pop)
+    silt data (s)
 
 @author: aeberle
 """
@@ -21,7 +25,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
     Computes the emissions associated with off-farm transportation
     """
 
-    def __init__(self, feed, cont, fips, vmt, pop, s):
+    def __init__(self, feed, cont, fips, vmt, pop, silt):
         """
 
         :param feed: feedstock to process
@@ -55,7 +59,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.kvals['pop'] = pop  # population of vehicles (#)
         self.kvals['g_per_mt'] = 1e6  # number of grams in one metric ton
 
-        self.kvals['s'] = s  # unpaved road surface material silt content that corresponds to fips code
+        self.kvals['s'] = silt  # unpaved road surface material silt content that corresponds to fips code
         self.kvals['logistics_type'] = config.get('logistics_type')  # logistics type
 
         # dictionary of pollutant names and IDs

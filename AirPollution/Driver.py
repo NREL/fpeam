@@ -366,8 +366,8 @@ class Driver:
             for fips in fips_list:
                 vmt = 10000  # @TODO: replace with query to get correct county-level VMT data
                 pop = 1  # @TODO: assuming only one vehicle per trip
-                s = 3.9  # @TODO: replace with query to get correct silt data for county
-                transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, s=s)
+                silt = 3.9  # @TODO: replace with query to get correct silt data for county
+                transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, silt=silt)
                 transportation.calculate_transport_emissions()
 
         # Create tables, Populate Fertilizer & Chemical tables.
