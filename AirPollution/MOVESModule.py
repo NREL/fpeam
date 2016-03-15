@@ -69,6 +69,7 @@ class MOVESModule:
         logger.debug('Creating county-level data files for MOVES')
 
         # connect to MOVES database
+        # @TODO: change to use Database.py once all data in MySQL
         connection = pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database)
         cursor = connection.cursor()
 
@@ -156,6 +157,7 @@ class MOVESModule:
         logger.debug('Creating national data files for MOVES')
 
         # connect to MOVES database
+        # @TODO: change to use Database.py once all data in MySQL
         connection = pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database)
         cursor = connection.cursor()
 

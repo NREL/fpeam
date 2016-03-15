@@ -75,6 +75,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.kvals['capacity'] = self.truck_capacity[self.feed][self.kvals['logistics_type']]
 
         # open SQL connection and create cursor
+        # @TODO: change to use Database.py once all data in MySQL
         self.connection = pymysql.connect(host=self.kvals['moves_db_host'],
                                           user=self.kvals['moves_db_user'],
                                           password=self.kvals['moves_db_pass'],
