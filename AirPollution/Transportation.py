@@ -36,10 +36,10 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         self.kvals = dict()
         # get MOVES database info and scenario name
-        self.kvals['MOVES_database'] = config.get('MOVES_database')  # MOVES database name
-        self.kvals['MOVES_db_user'] = config.get('MOVES_db_user')  # username for MOVES database
-        self.kvals['MOVES_db_pass'] = config.get('MOVES_db_pass')  # password for MOVES database
-        self.kvals['MOVES_db_host'] = config.get('MOVES_db_host')  # host for MOVES database
+        self.kvals['moves_database'] = config.get('moves_database')  # MOVES database name
+        self.kvals['moves_db_user'] = config.get('moves_db_user')  # username for MOVES database
+        self.kvals['moves_db_pass'] = config.get('moves_db_pass')  # password for MOVES database
+        self.kvals['moves_db_host'] = config.get('moves_db_host')  # host for MOVES database
         self.kvals['scenario_name'] = config.get('title')  # scenario name
         # get production and constants schemas
         self.kvals['production_schema'] = config.get('production_schema')
@@ -71,10 +71,10 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.kvals['capacity'] = self.truck_capacity[self.feed][self.kvals['logistics_type']]
 
         # open SQL connection and create cursor
-        self.connection = pymysql.connect(host=self.kvals['MOVES_db_host'],
-                                          user=self.kvals['MOVES_db_user'],
-                                          password=self.kvals['MOVES_db_pass'],
-                                          db=self.kvals['MOVES_database'])
+        self.connection = pymysql.connect(host=self.kvals['moves_db_host'],
+                                          user=self.kvals['moves_db_user'],
+                                          password=self.kvals['moves_db_pass'],
+                                          db=self.kvals['moves_database'])
         self.cursor = self.connection.cursor()
 
         # set feedstock ID

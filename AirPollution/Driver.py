@@ -131,37 +131,39 @@ class Driver:
             state = scenario.data[0][1]
             fips_prior = str(scenario.data[0][0])
 
-            value = False
-            if len(scenario.data[0]) >= 4:
-                value = scenario.data[0][3] > 0.0
-            if len(scenario.data[0]) >= 3:
-                value = scenario.data[0][2] > 0.0
+            # New population object created for each run_code
+            # Pop is the abstract class and .<type> is the concrete class.
+            if run_code.startswith('CG_I'):
+                pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+            elif run_code.endswith('L'):
+                pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+            elif run_code.startswith('SG'):
+                pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+            elif run_code.startswith('FR'):
+                pop = Pop.ForestPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+            elif run_code.startswith('CS'):
+                pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+            elif run_code.startswith('WS'):
+                pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+            elif run_code.startswith('CG'):
+                pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
 
-            if value is True:
-                # New population object created for each run_code
-                # Pop is the abstract class and .<type> is the concrete class.
-                if run_code.startswith('CG_I'):
-                    pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.endswith('L'):
-                    pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('SG'):
-                    pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('FR'):
-                    pop = Pop.ForestPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('CS'):
-                    pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('WS'):
-                    pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('CG'):
-                    pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+            # is it possible to instantiate new classes each time?
+            alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
+            pop.initialize_pop(dat=scenario.data[0])
+            self.batch.initialize(run_code)
 
-                # is it possible to instantiate new classes each time?
-                alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
-                pop.initialize_pop(dat=scenario.data[0])
-                self.batch.initialize(run_code)
+            # go through each row of the data table.
+            for dat in scenario.data:
+                # check to see if production is greater than zero
+                prod_greater_than_zero = False
+                if len(dat) >= 4:
+                    prod_greater_than_zero = dat[3] > 0.0
+                if len(dat) >= 3:
+                    prod_greater_than_zero = dat[2] > 0.0
 
-                # go through each row of the data table.
-                for dat in scenario.data:
+                # if production is greater than zero, then append equipment information to population file
+                if prod_greater_than_zero is True:
                     fips = str(dat[0])
                     # The db table is ordered alphabetically.
                     # The search will look through a state. When the state changes in the table,
@@ -193,12 +195,12 @@ class Driver:
                         alo.write_indicator(fips=fips, indicator=indicator)
                         pop.append_pop(fips=fips, dat=dat)
 
-                # close allocation files
-                Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
-                alo.write_sum_and_close(fips=fips_prior)
-                pop.finish_pop()
-                self.batch.append(state=state, run_code=run_code)
-                self.batch.finish(run_code=run_code)
+            # close allocation files
+            Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
+            alo.write_sum_and_close(fips=fips_prior)
+            pop.finish_pop()
+            self.batch.append(state=state, run_code=run_code)
+            self.batch.finish(run_code=run_code)
 
         # close scenariobatchfile
         self.batch.scenario_batch_file.close()
@@ -312,14 +314,14 @@ class Driver:
 
         # compute emissions from off-farm transportation
         # first, join tables for average speed and "dayhour" and create new table for transportation data
-        connection = pymysql.connect(host=config['MOVES_db_host'], user=config['MOVES_db_user'], password=config['MOVES_db_pass'], db=config['MOVES_database'])
+        connection = pymysql.connect(host=config['moves_db_host'], user=config['moves_db_user'], password=config['moves_db_pass'], db=config['moves_database'])
         cursor = connection.cursor()
 
         kvals = dict()
         kvals['fips'] = fips_list[0]  # avg speed distribution is the same for all FIPS codes
         kvals['feedstock'] = self.feedstock_list[0]  # and for all crops, so just pick one from each list
         kvals['scenario_name'] = self.model_run_title
-        kvals['MOVES_database'] = config['MOVES_database']
+        kvals['MOVES_database'] = config['moves_database']
 
         # generate average speed table
         # @ TODO: assumes schema "output_{scenarion_name}" already exists, need to fix this elsewhere

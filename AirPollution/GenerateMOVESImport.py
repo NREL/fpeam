@@ -51,8 +51,8 @@ class GenerateMOVESImport:
         self.yr = yr  # scenario year
         self.mo = moves_timespan['mo']  # month(s) for analysis
         self.d = moves_timespan['d']  # days(s) for analysis
-        self.bhr = ['1']  # beginning hour(s) for analysis
-        self.ehr = ['24']  # ending hour(s) for analysis
+        self.bhr = moves_timespan['bhr']  # beginning hour(s) for analysis
+        self.ehr = moves_timespan['ehr']  # ending hour(s) for analysis
         
         self.db_in = "fips_" + fips + "_" + crop + "_in"  # input database for MOVES runs
         self.scenid = fips + "_" + crop  # scenario ID for MOVES runs
