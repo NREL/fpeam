@@ -47,8 +47,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         # set other values in kvals dictionary
         self.kvals['fips'] = fips  # fips
         self.kvals['feed'] = feed  # feedstock name
-        self.kvals['db_in'] = "fips_" + fips + "_" + feed + "_in"  # input database for MOVES run
-        self.kvals['db_out'] = "fips_" + fips + "_" + feed + "_out"  # output database for MOVES run
+        self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed=feed)  # input database for MOVES run
+        self.kvals['db_out'] = "fips_{fips}_{feed}_out".format(fips=fips, feed=feed)  # output database for MOVES run
         self.kvals['year'] = config['year_dict'][self.feed]  # year of scenario run
         self.kvals['scenarioID'] = '{fips}_{feed}'.format(**self.kvals)  # MOVES scenario ID
         self.kvals['vmt'] = vmt  # vehicle miles travelled
@@ -130,7 +130,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                '{year}',
                                (SELECT sum(table1.ratePerDistance*table2.avgSpeedFraction*{vmt}/{g_per_mt}) AS run_emissions
                                 FROM {db_out}.rateperdistance table1
-                                LEFT JOIN output_{scenario_name}.averagespeed table2
+                                LEFT JOIN output_{scenario_name}.averageSpeed table2
                                 ON table1.hourID = table2.hourID AND
                                 table1.dayID = table2.dayID AND
                                 table1.roadTypeID = table2.roadTypeID AND

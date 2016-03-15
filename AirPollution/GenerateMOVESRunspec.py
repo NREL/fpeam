@@ -26,9 +26,9 @@ class GenerateMOVESRunSpec:
     """
 
     def __init__(self, crop, fips, yr, moves_timespan, server):
-        self.db_in = "fips_" + fips + "_" + crop + "_in"  # input database
-        self.db_out = "fips_" + fips + "_" + crop + "_out"  # output database
-        self.scenid = fips + "_" + crop  # scenario ID for MOVES
+        self.db_in = "fips_{fips}_{crop}_in".format(fips=fips, crop=crop)  # input database
+        self.db_out = "fips_{fips}_{crop}_out".format(fips=fips, crop=crop)  # output database
+        self.scenid = "{fips}_{crop}".format(fips=fips, crop=crop)  # scenario ID for MOVES
         self.yr = yr  # scenario year
         self.mo = moves_timespan['mo']  # month(s) for analysis
         self.d = moves_timespan['d']  # days(s) for analysis

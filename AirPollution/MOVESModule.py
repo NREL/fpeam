@@ -39,7 +39,6 @@ class MOVESModule:
         self.yr = yr_list[crop]  # scenario year for specific feedstock
         self.path_moves = path_moves  # path for MOVES program
         self.save_path_importfiles = save_path_importfiles  # path for MOVES import files
-        self.save_path_importfiles = save_path_importfiles  # path for MOVES import files
         self.save_path_runspecfiles = save_path_runspecfiles  # path for MOVES run spec files
         self.save_path_countyinputs = save_path_countyinputs  # path for MOVES county data input files
         self.save_path_nationalinputs = save_path_nationalinputs  # path for national input data files for MOVES
@@ -76,10 +75,10 @@ class MOVESModule:
         # set year for MOVES database queries 
         year = self.yr
 
-        for FIPS in self.fips_list:
+        for fips in self.fips_list:
             # define zoneID and countyID for querying MOVES database
-            zone_id = FIPS + '0'
-            county_id = FIPS
+            zone_id = fips + '0'
+            county_id = fips
             kvals = dict()
             kvals['year'] = year
             kvals['MOVES_database'] = self.moves_database
@@ -88,8 +87,8 @@ class MOVESModule:
 
             # county-level input files for MOVES that vary by FIPS, year, and crop
             # (these inputs are calculated by FPEAM based on production data)
-            vmtname = os.path.join(self.save_path_countyinputs, FIPS+'_vehiclemiletraveled_'+self.yr+'_'+self.crop+'.csv')
-            sourcetypename = os.path.join(self.save_path_countyinputs, FIPS+'_sourcetype_'+self.yr+'_'+self.crop+'.csv')
+            vmtname = os.path.join(self.save_path_countyinputs, fips+'_vehiclemiletraveled_'+self.yr+'_'+self.crop+'.csv')
+            sourcetypename = os.path.join(self.save_path_countyinputs, fips+'_sourcetype_'+self.yr+'_'+self.crop+'.csv')
             # annual vehicle miles traveled by vehicle type
             with open(vmtname, 'wb') as csvfile:
                 vmtwriter = csv.writer(csvfile, dialect='excel')
@@ -102,9 +101,9 @@ class MOVESModule:
                 popwriter.writerow([self.yr, "61", pop_short_haul])  # combination short-haul truck
 
             # county-level input files for MOVES that vary by FIPS and year
-            fuelsupplyname = os.path.join(self.save_path_countyinputs, FIPS+'_fuelsupply_'+self.yr+'.csv')
-            fuelformname = os.path.join(self.save_path_countyinputs, FIPS+'_fuelformulation_'+self.yr+'.csv')
-            fuelusagename = os.path.join(self.save_path_countyinputs, FIPS+'_fuelusagefraction_'+self.yr+'.csv')
+            fuelsupplyname = os.path.join(self.save_path_countyinputs, fips+'_fuelsupply_'+self.yr+'.csv')
+            fuelformname = os.path.join(self.save_path_countyinputs, fips+'_fuelformulation_'+self.yr+'.csv')
+            fuelusagename = os.path.join(self.save_path_countyinputs, fips+'_fuelusagefraction_'+self.yr+'.csv')
             # export county-level fuel supply data
             with open(fuelsupplyname, 'wb') as f:
                 cursor.execute("""SELECT * FROM {MOVES_database}.fuelsupply
@@ -133,7 +132,7 @@ class MOVESModule:
                 csv_writer.writerows(cursor)
 
             # county-level input files for MOVES that vary by FIPS
-            met_name = os.path.join(self.save_path_countyinputs, FIPS+'_met.csv')
+            met_name = os.path.join(self.save_path_countyinputs, fips+'_met.csv')
             # export county-level meteorology data
             with open(met_name, 'wb') as f:
                 cursor.execute("SELECT * FROM {MOVES_database}.zonemonthhour WHERE {MOVES_database}.zonemonthhour.zoneID = {zoneID}".format(**kvals))    

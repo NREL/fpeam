@@ -31,20 +31,20 @@ class GenerateMOVESImport:
         
         # create XML for elements with CDATA
         self.internalcontrol = etree.XML('<internalcontrolstrategy classname="gov.epa.otaq.moves.master.implementation.ghg.internalcontrolstrategies.rateofprogress.RateOfProgressStrategy"><![CDATA[useParameters	No]]></internalcontrolstrategy>', self.parser)
-        self.agename = "<filename>"+agefilename+"</filename>"        
-        self.agefile = etree.XML("<filename>"+agefilename+"</filename>", self.parser)
-        self.speedfile = etree.XML("<filename>"+speedfilename+"</filename>", self.parser)
-        self.fuelsupfile = etree.XML("<filename>"+fuelsupfilename+"</filename>", self.parser)
-        self.fuelformfile = etree.XML("<filename>"+fuelformfilename+"</filename>", self.parser)
-        self.fuelusagefile = etree.XML("<filename>"+fuelusagefilename+"</filename>", self.parser)
-        self.avftfile = etree.XML("<filename>"+avftfilename+"</filename>", self.parser)
-        self.metfile = etree.XML("<filename>"+metfilename+"</filename>", self.parser)
-        self.roadtypefile = etree.XML("<filename>"+roadtypefilename+"</filename>", self.parser)
-        self.sourcetypefile = etree.XML("<filename>"+sourcetypefilename+"</filename>", self.parser)
-        self.HPMSyearfile = etree.XML("<filename>"+vmtfilename+"</filename>", self.parser)
-        self.monthVMTfile = etree.XML("<filename>"+monthvmtfilename+"</filename>", self.parser)
-        self.dayVMTfile = etree.XML("<filename>"+dayvmtfilename+"</filename>", self.parser)
-        self.hourVMTfile = etree.XML("<filename>"+hourvmtfilename+"</filename>", self.parser)
+        self.agename = "<filename>{agefilename}/filename>".format(agefilename=agefilename)
+        self.agefile = etree.XML(self.agename, self.parser)
+        self.speedfile = etree.XML("<filename>{speedfilename}</filename>".format(speedfilename=speedfilename), self.parser)
+        self.fuelsupfile = etree.XML("<filename>{fuelsupfilename}</filename>".format(fuelsupfilename=fuelsupfilename), self.parser)
+        self.fuelformfile = etree.XML("<filename>{fuelformfilename}</filename>".format(fuelformfilename=fuelformfilename), self.parser)
+        self.fuelusagefile = etree.XML("<filename>{fuelusagefilename}</filename>".format(fuelusagefilename=fuelusagefilename), self.parser)
+        self.avftfile = etree.XML("<filename>{avftfilename}</filename>".format(avftfilename=avftfilename), self.parser)
+        self.metfile = etree.XML("<filename>{metfilename}</filename>".format(metfilename=metfilename), self.parser)
+        self.roadtypefile = etree.XML("<filename>{roadtypefilename}</filename>".format(roadtypefilename=roadtypefilename), self.parser)
+        self.sourcetypefile = etree.XML("<filename>{sourcetypefilename}</filename>".format(sourcetypefilename=sourcetypefilename), self.parser)
+        self.HPMSyearfile = etree.XML("<filename>{vmtfilename}</filename>".format(vmtfilename=vmtfilename), self.parser)
+        self.monthVMTfile = etree.XML("<filename>{monthvmtfilename}</filename>".format(monthvmtfilename=monthvmtfilename), self.parser)
+        self.dayVMTfile = etree.XML("<filename>{dayvmtfilename}</filename>".format(dayvmtfilename=dayvmtfilename), self.parser)
+        self.hourVMTfile = etree.XML("<filename>{hourvmtfilename}</filename>".format(hourvmtfilename=hourvmtfilename), self.parser)
         
         # variables for MOVES runs
         self.fips = fips  # FIPS code
@@ -54,8 +54,8 @@ class GenerateMOVESImport:
         self.bhr = moves_timespan['bhr']  # beginning hour(s) for analysis
         self.ehr = moves_timespan['ehr']  # ending hour(s) for analysis
         
-        self.db_in = "fips_" + fips + "_" + crop + "_in"  # input database for MOVES runs
-        self.scenid = fips + "_" + crop  # scenario ID for MOVES runs
+        self.db_in = "fips_{fips}_{crop}_in".format(fips=fips, crop=crop)  # input database for MOVES runs
+        self.scenid = "{fips}_{crop}".format(fips=fips, crop=crop)  # scenario ID for MOVES runs
     
     def geo_selection(self):
         """

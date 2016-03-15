@@ -55,11 +55,11 @@ class Driver:
 
         # file paths and year for MOVES
         self.path_moves = config.get('moves_path')
-        self.save_path_importfiles = os.path.join(config.get('moves_datafiles_path'), 'ImportFiles')
-        self.save_path_runspecfiles = os.path.join(config.get('moves_datafiles_path'), 'RunSpecs')
-        self.save_path_outputs = os.path.join(config.get('moves_datafiles_path'), 'Outputs')
-        self.save_path_countyinputs = os.path.join(config.get('moves_datafiles_path'), 'County_Inputs')
-        self.save_path_nationalinputs = os.path.join(config.get('moves_datafiles_path'), 'National_Inputs')
+        self.save_path_importfiles = os.path.join(config.get('moves_datafiles_path'), 'import_files')
+        self.save_path_runspecfiles = os.path.join(config.get('moves_datafiles_path'), 'run_specs')
+        self.save_path_outputs = os.path.join(config.get('moves_datafiles_path'), 'outputs')
+        self.save_path_countyinputs = os.path.join(config.get('moves_datafiles_path'), 'county_inputs')
+        self.save_path_nationalinputs = os.path.join(config.get('moves_datafiles_path'), 'national_inputs')
         self.yr = year_dict
         
         # get feedstocks from the run_codes
@@ -321,10 +321,10 @@ class Driver:
         kvals['MOVES_database'] = config['moves_database']
 
         # generate average speed table
-        # @ TODO: assumes schema "output_{scenarion_name}" already exists, need to fix this elsewhere
+        # @ TODO: assumes schema "output_{scenario_name}" already exists, need to fix this elsewhere
         # @ TODO: may want to move this query for table creation to another location
-        query = """DROP TABLE IF EXISTS output_{scenario_name}.averagespeed;
-                   CREATE TABLE output_{scenario_name}.averagespeed
+        query = """DROP TABLE IF EXISTS output_{scenario_name}.averageSpeed;
+                   CREATE TABLE output_{scenario_name}.averageSpeed
                    AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
                    FROM fips_{fips}_{feedstock}_in.avgspeeddistribution table1
                    LEFT JOIN {MOVES_database}.hourday table2

@@ -29,15 +29,26 @@ class MOVESBatch:
     """ 
     
     def __init__(self, crop, model_run_title, fips, yr, path_moves, save_path_importfiles, save_path_runspecfiles):
+        # get timestamp for run
         t = time.localtime()
-        timestamp = time.strftime('_%b-%d-%Y_%H%M', t)      
+        timestamp = time.strftime('_%b-%d-%Y_%H%M', t)
+
         self.crop = crop  # crop name
         self.model_run_title = model_run_title  # scenario name
-        self.importbatch = os.path.join(path_moves, 'batch_import_FPEAM_' + yr + '_' + self.crop + '_' + self.model_run_title + timestamp + '.bat')  # path for batch import file
-        self.importfilename = os.path.join(save_path_importfiles, fips + "_import_" + yr + '_' + self.crop + ".mrs")  # path for XML import files
-        self.runbatch = os.path.join(path_moves, 'batch_run_FPEAM_' + yr + '_' + self.crop + '_' + self.model_run_title + timestamp + '.bat')  # path for batch run file
-        self.runfilename = os.path.join(save_path_runspecfiles, fips + "_runspec_" + yr + '_' + self.crop + ".mrs")  # path for XML runspec files
-        self.FIPS = fips  # FIPS code
+
+        # initialize kvals dictionary for string formatting
+        kvals = dict()
+        kvals['yr'] = yr  # scenario year
+        kvals['crop'] = crop  # crop type
+        kvals['title'] = model_run_title  # scenario name
+        kvals['timestamp'] = timestamp  # timestamp of run
+        kvals['fips'] = fips  # FIPS code
+
+        self.importbatch = os.path.join(path_moves, 'batch_import_FPEAM_{yr}_{crop}_{title}{timestamp}.bat'.format(**kvals))  # path for batch import file
+        self.importfilename = os.path.join(save_path_importfiles, '{fips}_import_{yr}_{crop}.mrs'.format(**kvals))  # path for XML import files
+        self.runbatch = os.path.join(path_moves, 'batch_run_FPEAM_{yr}_{crop}_{title}{timestamp}.bat'.format(**kvals))  # path for batch run file
+        self.runfilename = os.path.join(save_path_runspecfiles, '{fips}_runspec_{yr}_{crop}.mrs'.format(**kvals))  # path for XML runspec files
+        self.fips = fips  # FIPS code
         self.yr = yr  # scenario year
         
     def create_moves_batch_import(self):
@@ -47,8 +58,8 @@ class MOVESBatch:
         # append import files to batch import file
         with open(self.importbatch, 'a') as csvfile:
             batchwriter = csv.writer(csvfile)
-            batchwriter.writerow(['echo Running ' + self.FIPS + '_import_' + self.yr + '_' + self.crop + '.mrs'])
-            batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i ' + self.importfilename])
+            batchwriter.writerow(['echo Running {fips}_import_{yr}_{crop}.mrs'.format(fips=self.fips, yr=self.yr, crop=self.crop)])
+            batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i {importfile}'.format(importfile=self.importfilename)])
         return self.importbatch
         
     def create_moves_batch_run(self):
@@ -58,6 +69,6 @@ class MOVESBatch:
         # append import files to batch run file
         with open(self.runbatch, 'a') as csvfile:
             batchwriter = csv.writer(csvfile)
-            batchwriter.writerow(['echo Running ' + self.FIPS + '_runspec_' + self.yr + '_'+self.crop+'.mrs'])
-            batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -r ' + self.runfilename]) 
+            batchwriter.writerow(['echo Running {fips}_runspec_{yr}_{crop}.mrs'.format(fips=self.fips, yr=self.yr, crop=self.crop)])
+            batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -r {runfile}'.format(runfile=self.runfilename)])
         return self.runbatch
