@@ -69,7 +69,10 @@ class Driver:
                 pass
             else:
                 self.feedstock_list.append(run_code[0:2])
-        
+
+        # get list of logistics systems being modeled
+        self.logistics_list = config.get('logistics_type')
+
         # container to pass info around
         self.cont = Container.Container()
         self.cont.set(key='model_run_title', data=self.model_run_title)
@@ -234,8 +237,8 @@ class Driver:
 
         outputs = dict()
         batch_run_dict = dict()
+        # TODO: we may want to change this so that MOVES runs only once for all fips (rather than once per feedstock per fips)
         for i, feed in enumerate(self.feedstock_list):
-
             logger.info('Processing MOVES setup for feedstock: %s' % (feed, ))
             
             # initialize MOVESModule
@@ -244,7 +247,7 @@ class Driver:
                                                 save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs)
 
             # @TODO: if we decide that rates does vary with VMT, replace vmt_short_haul with database query to calculate county-level VMT (need to get data into database first)
-            vmt_short_haul = 1000  # annual vehicle miles traveled by combination short-haul trucks
+            vmt_short_haul = 100  # annual vehicle miles traveled by combination short-haul trucks
             pop_short_haul = 1  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
 
             if i == 0:
@@ -321,9 +324,10 @@ class Driver:
         kvals['MOVES_database'] = config['moves_database']
 
         # generate average speed table
-        # @ TODO: assumes schema "output_{scenario_name}" already exists, need to fix this elsewhere
+        # @ TODO: creates schema "output_{scenario_name}" - might want to do this elsewhere
         # @ TODO: may want to move this query for table creation to another location
-        query = """DROP TABLE IF EXISTS output_{scenario_name}.averageSpeed;
+        query = """CREATE SCHEMA IF NOT EXISTS output_{scenario_name};
+                   DROP TABLE IF EXISTS output_{scenario_name}.averageSpeed;
                    CREATE TABLE output_{scenario_name}.averageSpeed
                    AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
                    FROM fips_{fips}_{feedstock}_in.avgspeeddistribution table1
@@ -337,6 +341,7 @@ class Driver:
                    CREATE TABLE output_{scenario_name}.transportation (fips char(5),
                                                                        feedstock varchar(5),
                                                                        yearID char(4),
+                                                                       logistics_type char(2),
                                                                        pollutantID varchar(45),
                                                                        run_emissions float,
                                                                        start_hotel_emissions float,
@@ -361,14 +366,15 @@ class Driver:
         cursor.execute(query)
         cursor.close()
 
-        # now loop through feedstocks and FIPS codes to compute respective emissions
+        # now loop through feedstocks and FIPS codes to compute respective transportation emissions
         for feedstock in self.feedstock_list:
             for fips in fips_list:
-                vmt = 10000  # @TODO: replace with query to get correct county-level VMT data
-                pop = 1  # @TODO: assuming only one vehicle per trip
-                silt = 3.9  # @TODO: replace with query to get correct silt data for county
-                transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, silt=silt)
-                transportation.calculate_transport_emissions()
+                for logistics_type in self.logistics_list:
+                    vmt = 100  # @TODO: replace with query to get correct county-level VMT data
+                    pop = 1  # @TODO: assuming only one vehicle per trip
+                    silt = 3.9  # @TODO: replace with query to get correct silt data for county
+                    transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, logistics_type=logistics_type, silt=silt)
+                    transportation.calculate_transport_emissions()
 
         # Create tables, Populate Fertilizer & Chemical tables.
         for feedstock in self.feedstock_list:
@@ -427,7 +433,7 @@ class Driver:
                 count += 1
 
         # compute emissions and electricity associated with logistics
-        logistics.calc_logistics(run_codes=self.run_codes, feedstock_list=self.feedstock_list)
+        logistics.calc_logistics(run_codes=self.run_codes, feedstock_list=self.feedstock_list, logistics_list=self.logistics_list)
 
         # create graphics and numerical summary
 
