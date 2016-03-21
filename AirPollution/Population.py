@@ -2,9 +2,8 @@
 functions associated with population
 """
 
-# import abc
-# from _pyio import __metaclass__
 from src.AirPollution.utils import config, logger
+import os
 
 
 class Population(object):
@@ -25,7 +24,7 @@ class Population(object):
 
         self.episode_year = episode_year
 
-        self.path = cont.get(key='path') + 'POP/'
+        self.path = os.path.join(cont.get(key='path'), 'POP')
 
         self.run_code = run_code
 
@@ -51,7 +50,7 @@ class Population(object):
         Output: A file is created containing a nonroad appropriate population file
         """
         state = dat[1]
-        path = self.path + '%s_%s.pop' % (state, self.run_code)
+        path = os.path.join(self.path, '%s_%s.pop' % (state, self.run_code))
         self.pop_file = open(path, 'w')
         lines = """
 ------------------------------------------------------------------------------
@@ -73,32 +72,70 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 """
         self.pop_file.writelines(lines)
 
-    # __metaclass__ = abc.ABCMeta
-    # @abc.abstractmethod
+    def _create_pop_line(self, fips, subregion_code, year, ssc_code, equip_desc, min_hp, max_hp, avg_hp, life, flag, pop):
+        """
+        Generate population file line
+
+        :param fips: FIPS code
+        :param subregion_code: subregion code (used for subcounty estimates)
+        :param year: year of population estimates
+        :param ssc_code: SCC code (no globals accepted)
+        :param equip_desc: equipment description (ignored)
+        :param min_hp: minimum HP range
+        :param max_hp: maximum HP range (ranges must match those internal to model)
+        :param avg_hp: average HP in range (if blank model uses midpoint)
+        :param life: expected useful life (in hours of use)
+        :param flag: flag for scrappage distribution curve (DEFAULT = standard curve)
+        :param pop: population estimate
+        :return: String
+        """
+
+        kvals = {'fips': fips,
+                 'sub_reg': subregion_code,
+                 'year': year,
+                 'ssc_code': ssc_code,
+                 'equip_desc': equip_desc,
+                 'min_hp': min_hp,
+                 'max_hp': max_hp,
+                 'avg_hp': avg_hp,
+                 'life': life,
+                 'flag': flag,
+                 'pop': pop
+                 }
+
+        return '{fips:0>5} {sub_reg:<5} {year:<4} {ssc_code:<10} {equip_desc:<40} {min_hp:<5} {max_hp:<5} {avg_hp:<5.2f} {life:<5} {flag:<10} {pop:<17}'.format(**kvals)
+
     def append_pop(self, fips, indicator1):
         """
-        Inputs: data list read from psycopg2 table query
-        Output: calculate equpipment population for each county
+
+        :param fips:
+        :param indicator1:
+        :return:
         """
-        raise NotImplementedError("Should have implemented this")
+
+        raise NotImplementedError()
 
     def finish_pop(self):
         """
-        This function finishes the POP_file.  It closes the file and appends the '/END/'
-            data label to the file.
-        Inputs: POP_file to close
-        Outputs: finishes file with '/END/' and closes the file.
+        This function finishes the POP_file.  It closes the file and appends the '/END/' data label to the file.
+
+        :return:
         """
-        lines = """/END/"""
+
+        lines = '/END/'
+
         self.pop_file.writelines(lines)
+
         self.pop_file.close()
 
     def _get_combine_hours_per_acre(self, scenario_yield):
         """
         Find machinery hours based on yield.
-        @param scenario_yield: Yield from feed stock. lbs/acre
-        @return: Combine hours per acre. hrs/acre
+
+        :param scenario_yield: Yield from feed stock in lbs/acre
+        :return: Combine hours per acre. hrs/acre
         """
+
         # find machinery hours based on yield
         hours_per_acre_comb = None
         if scenario_yield <= 0.5:
@@ -143,27 +180,49 @@ class ResiduePop(Population):
         """
         Calulates the population of combines and tractors needed.
         Then writes them to a population file.
-        @param fips: fips county code. (string)
-        @param dat: Data from the db containing harvested acres and the yield from the residues. list(string)
+
+        :param fips: fips county code. (string)
+        :param dat: Data from the db containing harvested acres and the yield from the residues. list(string)
             harv_ac = dat[2]: Harvested acres. acrs
             scenario_yield = dat[4]: Yield. lbs
         """
+
+        # init population line values
+        kvals = {'fips': fips,
+                 'subregion_code': '',
+                 'year': self.episode_year,
+                 'ssc_code': 2270005020,
+                 'equip_desc': 'Dsl - Combines',
+                 'min_hp': 300,
+                 'max_hp': 600,
+                 'avg_hp': 345.8,
+                 'life': 7000,
+                 'flag': 'DEFAULT',
+                 'pop': None,
+                 }
+
         harv_ac = dat[2]  # acre
         scenario_yield = dat[4]  # lbs
+
+        # get activity
         # @TODO: replace with db queries by FIPs
         hours_per_acre_combine = self._get_combine_hours_per_acre(scenario_yield=scenario_yield)  # hrs/acre
+
         # calculate population of combine for harvest.
         # pop = (hr/acre * acre) / (hr/yr) = yr
         pop_comb = round(hours_per_acre_combine * harv_ac / self.activity_combine, 10)  # yr
+        kvals['pop'] = pop_comb
+        line = self._create_pop_line(**kvals)
+        # line = '{fips}       {year} 2270005020 Dsl - Combines                             300   600 345.8  7000  DEFAULT         {pop_comb}'.format(**kvals)
+        self.pop_file.writelines(line)
+
         # calculate population of tractors for transport.
         # pop = [(lbs/acre / dt/hr) * acre] / hr/yr = yr
         pop_bale_mover = round((scenario_yield / self.transport_bales) * harv_ac / self.activity_tractor, 10)  # yr
-
-        lines = """%s       %s 2270005020 Dsl - Combines                             300   600 345.8  7000  DEFAULT         %s
-%s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT         %s
-""" % (fips, self.episode_year, pop_comb, fips, self.episode_year, pop_bale_mover)
-
-        self.pop_file.writelines(lines)
+        kvals['pop'] = pop_bale_mover
+        line = self._create_pop_line(**kvals)
+        # line = '{fips}       {year} 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT         {pop_bale_mover}'.format(**kvals)
+        self.pop_file.writelines(line)
 
 
 class ForestPop(Population):
@@ -187,28 +246,32 @@ class CornGrainPop(Population):
     """
 
     def __init__(self, cont, episode_year, run_code):
+        """
+
+        :param cont: Container object
+        :param episode_year: year of interest
+        :param run_code: current run code
+        :return:
+        """
+
         Population.__init__(self, cont, episode_year, run_code)
 
         # Harvest hours per acre
         self.transport_tractor = 29.5 * 60  # bu/min * 60 min/hr = bu/hr
 
         # Non-Harvest hours per acre, from UT database
-        self.hrs_per_acre_convTill = 1.255  # hrs/acre conventional till with moldboard plow
-        self.hrs_per_acre_redTill = 0.7377  # hrs/acre limited till
-        self.hrs_per_acre_noTill = 0.5884  # hrs/acre no till
+        self.hrs_per_acre_conv_till = 1.255  # hrs/acre conventional till with moldboard plow
+        self.hrs_per_acre_red_till = 0.7377  # hrs/acre limited till
+        self.hrs_per_acre_no_till = 0.5884  # hrs/acre no till
 
     def append_pop(self, fips, dat):
         """
         Calculates a vehicle population for corn grain and adds population to .pop file.
-        @param fips: Fips code.
-        @param dat: Data from Billion ton study in the db on corn grain.
+        :param fips: Fips code
+        :param dat: Data from Billion ton study in the db on corn grain
             harv_ac = dat[2]: Harvested acres. acres
             prod = dat[3]: Produce. lbs
-        ############################
-        @deprecated: this is not a 10 year cycle!
-        harv_ac = dat[2] * 0.1    #10% of acres in each year of the 10-yr production cycle
-        prod = dat[3] / 10.0
-        ############################
+        :return:
         """
         # @TODO: CASE WHEN POP = 0.0, NOAH
         harv_ac = dat[2]
@@ -224,18 +287,20 @@ class CornGrainPop(Population):
 
     def __set_harv_pop_file__(self, fips, harv_ac, prod):
         """
-        Calculates tractor and combine populations for transport and harvest.
-        ############################################
-        @deprecated: Changed scenario yield = harv_ac * constant,
-        to (prod / harv_ac) * constant.
-        Also has to make sure not dividing by 0.
-        ############################################
+        Calculates tractor and combine populations for transport and harvest and writes population lines to .pop file
+
+        :param fips: county FIPS code
+        :param harv_ac: acres harvested
+        :param prod: production
+        :return:
         """
+
         # convert from bu/acre to dt/acre
         # lbs/acre
         scenario_yield = 0
         if harv_ac > 0:
             scenario_yield = (prod / harv_ac) * 56.0 * (1.0 - 0.155) / 2000.0
+
         # hrs/acre
         hours_per_acre_combine = self._get_combine_hours_per_acre(scenario_yield=scenario_yield)
 
@@ -243,9 +308,11 @@ class CornGrainPop(Population):
         # EDIT 12.07.12 - REDUCED COMBINE HRS/ACRE BY 10% DUE TO TRANSPORT CART
         # (hrs/acre * acre) / (hrs/yr) = yr
         pop_combine = round((hours_per_acre_combine * 0.9) * harv_ac / self.activity_combine, 10)
+
         # [(lbs/acre) / (bu/hr)] * (acre) / (hr/yr) = yr
         pop_transport = (scenario_yield / self.transport_tractor) * harv_ac / self.activity_tractor
 
+        # @TODO: replace with _create_pop_line()
         lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT        %s
 %s       %s 2270005020 Dsl - Combines                             300   600 345.8  7000  DEFAULT        %s
 """ % (fips, self.episode_year, pop_transport, fips, self.episode_year, pop_combine)
@@ -256,23 +323,29 @@ class CornGrainPop(Population):
         """
         Calculates tractors for non-harvest.
         Either conventional, reduced, and non till.
+
+        :param fips:
+        :param harv_ac:
+        :return:
         """
-        lines = None
+        # @TODO: integreate _create_pop_line()
+        lines = ""
+
         if self.run_code.endswith('CN'):
             #  pop = (hrs/acre) * (acre) / (hrs/yr) = yr
-            pop_conv_till = self.hrs_per_acre_convTill * harv_ac / self.activity_tractor  # yr
+            pop_conv_till = self.hrs_per_acre_conv_till * harv_ac / self.activity_tractor  # yr
             lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                175   300 236.5  4667  DEFAULT        %s
 """ % (fips, self.episode_year, pop_conv_till)
 
         elif self.run_code.endswith('RN'):
             # pop = (hrs/acre * acre) / (hrs/yr) = yr
-            pop_reduced_till = self.hrs_per_acre_redTill * harv_ac / self.activity_tractor  # yr
+            pop_reduced_till = self.hrs_per_acre_red_till * harv_ac / self.activity_tractor  # yr
             lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT        %s
 """ % (fips, self.episode_year, pop_reduced_till)
 
         elif self.run_code.endswith('NN'):
             # pop = (hrs/acre * acre) / (hrs/yr) = yr
-            pop_conventional_till = self.hrs_per_acre_noTill * harv_ac / self.activity_tractor  # yr
+            pop_conventional_till = self.hrs_per_acre_no_till * harv_ac / self.activity_tractor  # yr
             lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT        %s
 """ % (fips, self.episode_year, pop_conventional_till)
 
@@ -301,11 +374,18 @@ class CornGrainIrrigationPop(Population):
     """
 
     def __init__(self, cont, episode_year, run_code):
+        """
+
+        :param cont:
+        :param episode_year:
+        :param run_code:
+        :return:
+        """
         Population.__init__(self, cont, episode_year, run_code)
 
     def initialize_pop(self, dat):
         """
-        @param dat: All of the data. Saved for later.
+        :param dat: All of the data. Saved for later.
         0 fips: fips
         1 st: state
         2 (total_harv_ac * perc): harvested acres * percentage of land irrigated.
@@ -314,16 +394,29 @@ class CornGrainIrrigationPop(Population):
         5 hp: horsepower.
         6 perc: percent of land use.
         7 hpa: irrigation hrs/acre
+
+        :return:
         """
+
         Population.initialize_pop(self, dat)
 
     def append_pop(self, fips, dat):
+        """
+
+        :param fips:
+        :param dat:
+        :return:
+        """
+
         # hp
         hp = dat[5]
+
         # hrs/acre
         hpa = dat[7]
+
         # irrigated acres
         indicator = dat[2]
+
         # Gasoline Irrigation
         if self.run_code.endswith('G'):
             self._gasoline(fips=fips, hp=hp, hpa=hpa, indicator=indicator)
@@ -341,23 +434,35 @@ class CornGrainIrrigationPop(Population):
         """
         Used to make sure hp is in the correct ranges for NONROAD. If it is too high, the hp is halved
         and the hours per acre is doubled.
-        @param hp: Horse power.
-        @param hpa: Hours per acre.
-        @param max_hp: Max hp NONROAD can take.
-        @return: Horse power and hourse per acre changed.
+
+        :param hp: Horse power.
+        :param hpa: Hours per acre.
+        :param max_hp: Max hp NONROAD can take.
+        :return: Horse power and hourse per acre changed.
         """
+
         while hp >= max_hp:
             hp /= 2.0
             hpa *= 2.0
+
         return hp, hpa
 
     def _diesel(self, fips, hp, hpa, indicator):
         """
         Create diesel population.
+
+        :param fips:
+        :param hp:
+        :param hpa:
+        :param indicator:
+        :return:
         """
+
         hp, hpa = self.hp_check(hp, hpa, 750)
         # pop = (acres * hrs/acre) / (hrs/yr) = yr
         pop = round(indicator * hpa / self.activity_diesel, 10)
+
+        # @TODO: integreate _create_pop_line()
         lines = ""
         if hp < 11:
             lines = """%s       %s 2270005060 Dsl - Irrigation Sets                        6    11     8  2500  DEFAULT        %s
@@ -392,15 +497,25 @@ class CornGrainIrrigationPop(Population):
         elif hp < 750:
             lines = """%s       %s 2270005060 Dsl - Irrigation Sets                      600   750 704.7  7000  DEFAULT        %s
 """ % (fips, self.episode_year, pop)
+
         self.pop_file.writelines(lines)
 
     def _gasoline(self, fips, hp, hpa, indicator):
         """
         Create gasoline population.
+
+        :param fips:
+        :param hp:
+        :param hpa:
+        :param indicator:
+        :return:
         """
+
         hp, hpa = self.hp_check(hp, hpa, 300)
+
         # pop = (acres * hrs/acre) / (hrs/yr) = yr
         pop = round(indicator * hpa / self.activity_gas, 10)
+        # @TODO: integreate _create_pop_line()
         lines = ""
         if hp < 6:
             lines = """%s       %s 2265005060 4-Str Irrigation Sets                        3     6 4.692   200  DEFAULT        %s
@@ -423,26 +538,46 @@ class CornGrainIrrigationPop(Population):
         elif hp < 300:
             lines = """%s       %s 2265005060 4-Str Irrigation Sets                      175   300 210.2  3000  DEFAULT        %s
 """ % (fips, self.episode_year, pop)
+
         self.pop_file.writelines(lines)
 
     def _lpg(self, fips, hp, hpa, indicator):
         """
         Create liquid propane population.
+
+        :param fips:
+        :param hp:
+        :param hpa:
+        :param indicator:
+        :return:
         """
-        # pop = (acres * hrs/acre) / (hrs/yr) = yr
+
         hp, hpa = self.hp_check(hp, hpa, 175)
+
+        # pop = (acres * hrs/acre) / (hrs/yr) = yr
         pop = round(indicator * hpa / self.activity_lpg, 10)
+
         lines = """%s       %s 2267005060 LPG - Irrigation Sets                      100   175   113  3000  DEFAULT        %s
 """ % (fips, self.episode_year, pop)
+
         self.pop_file.writelines(lines)
 
     def _cng(self, fips, hp, hpa, indicator):
         """
         Created compressed natraul gas population.
+
+        :param fips:
+        :param hp:
+        :param hpa:
+        :param indicator:
+        :return:
         """
+
         hp, hpa = self.hp_check(hp, hpa, 600)
+
         # pop = (acres * hrs/acre) / (hrs/yr) = yr
         pop = round(indicator * hpa / self.activity_cng, 10)
+        # @TODO: integreate _create_pop_line()
         lines = ""
         if hp < 40:
             lines = """%s       %s 2268005060 CNG - Irrigation Sets                       25    40    32  1500  DEFAULT        %s
@@ -462,6 +597,7 @@ class CornGrainIrrigationPop(Population):
         elif hp < 600:
             lines = """%s       %s 2268005060 CNG - Irrigation Sets                      300   600 384.4  3000  DEFAULT        %s
 """ % (fips, self.episode_year, pop)
+
         self.pop_file.writelines(lines)
 
 
@@ -471,6 +607,14 @@ class SwitchgrassPop(Population):
     """
 
     def __init__(self, cont, episode_year, run_code):
+        """
+
+        :param cont: Container object
+        :param episdoe_year:
+        :param run_code:
+        :return:
+        """
+
         Population.__init__(self, cont, episode_year, run_code)
 
         self.pop_60 = None
@@ -485,6 +629,13 @@ class SwitchgrassPop(Population):
             self.yield_factor = 1.0
 
     def append_pop(self, fips, dat):
+        """
+
+        :param fips:
+        :param dat:
+        :return:
+        """
+
         # case where there is no production
         if dat[3] == 0.0:
             self.pop_60 = 0.0
@@ -502,6 +653,13 @@ class SwitchgrassPop(Population):
         self.__set_pop_file__(fips=fips)
 
     def __set_pop_file__(self, fips):
+        """
+
+        :param fips:
+        :return:
+        """
+
+        # @TODO: integreate _create_pop_line()
         lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                 50    75 62.18  4667  DEFAULT         %s
 %s       %s 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT         %s
 """ % (fips, self.episode_year, self.pop_60, fips, self.episode_year, self.pop_130)
@@ -510,11 +668,9 @@ class SwitchgrassPop(Population):
 
     def __get_non_harv_hrs_per_acre__(self, harv_ac):
         """
-        ##############################
-        @deprecated: Should be N1, not NH1
-        old code: if self.run_code.endswith('NH1'):
-        new code: if self.run_code.endswith('N1'):
-        ##############################
+
+        :param harv_ac:
+        :return:
         """
 
         # year 1, establishment year, non-harvest activities
@@ -542,6 +698,12 @@ class SwitchgrassPop(Population):
         self.pop_130 = round((harv_ac * self.hrs_per_ac_130hp) / self.activity_tractor, 10)
 
     def __get_harv_hrs_per_acre__(self, harv_ac, prod):
+        """
+
+        :param harv_ac:
+        :param prod:
+        :return:
+        """
 
         scenario_yield = (prod / harv_ac) * self.yield_factor  # lb/acre
 
@@ -560,17 +722,11 @@ class SwitchgrassPop(Population):
     def __get_transport_hrs_per_acre__(self, prod):
         """
         Get the transport populations in years.
-        #################################
-        @deprecated: pop_130 was calculated incorrectly. Units did not make sense.
-        old code: self.pop_130 = ((scenario_yield * self.transport_bales) / self.activity_tractor) * 1.1
-        new code: self.pop_130 = ((scenario_yield) / (self.transport_bales * self.activity_tractor) * 1.1
-        machine hours = (scenario_yield / self.transport_bales) * 1.1
-        @deprecated: Changed population equation to use produce instead of yield. Allows population to be in units of yr.
-        old code: scenario_yield = (prod/harv_acre) * self.yield_factor
-        new code: scenario_prod = prod * self.yield_factor
-                  self.pop_130 = (scenario_prod / (self.transport_bales * self.activity_tractor)) * 1.1 # yr
-        ###################################
+
+        :param prod:
+        :return:
         """
+
         # @TODO: transport pop calculation
 
         if self.run_code.endswith('T1'):
@@ -594,14 +750,25 @@ class LoadingEquipment(Population):
     """
 
     def __init__(self, cont, episode_year, run_code):
+        """
+
+        :param cont:
+        :param episode_year:
+        :param run_code:
+        :return:
+        """
+
         Population.__init__(self, cont, episode_year, run_code)
 
         # loading equipment dictionary
         self.loading_equip_dict = config.get('loading_equip')
+
         # nonroad equipment dictionary
         self.nonroad_equip_dict = config.get('nonroad_equip_dict')
+
         # loading equipment for specific feedstock
         self.loading_equip = self.loading_equip_dict[run_code[0:2]]
+
         # set values for string formatting
         self.kvals = dict()
         self.kvals['year'] = episode_year
@@ -609,13 +776,15 @@ class LoadingEquipment(Population):
     def append_pop(self, fips, dat):
         """
         Calculate populations for each fips code.
-        @param fips: Fips county code. string
-        @param dat: Db data for production. list(string)
+
+        :param fips: Fips county code. string
+        :param dat: Db data for production. list(string)
             dat[2]: production (dry tons)
+        :return:
         """
 
         # get production data
-        self.kvals['prod'] = dat[2]
+        self.kvals['prod'] = float(dat[2])
 
         # set other values for string formatting
         self.kvals['fips'] = fips
@@ -626,15 +795,15 @@ class LoadingEquipment(Population):
         for i in range(0, len(self.loading_equip['type'])):
             # get equipment information in equipment list
             equip_type = self.loading_equip['type'][i]  # type(e.g., tractor)
-            self.kvals['hrs_per_dt'] = self.loading_equip['process_rate'][i]  # processing rate (hr/dt)
+            self.kvals['hrs_per_dt'] = float(self.loading_equip['process_rate'][i])  # processing rate (hr/dt)
             self.kvals['hp'] = self.loading_equip['power'][i]  # power
 
             # find information needed for NONROAD population file
             self.kvals['scc'] = self.nonroad_equip_dict['scc'][equip_type]  # scc code
-            annual_hrs_operation = self.nonroad_equip_dict['annual_hrs_operation'][equip_type]  # annual hours of operation
+            annual_hrs_operation = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # annual hours of operation
             self.kvals['equip_name'] = self.nonroad_equip_dict['name'][equip_type]
 
-            pop = round(float(self.kvals['hrs_per_dt']) * float(self.kvals['prod']) / float(annual_hrs_operation), 10)
+            pop = round(self.kvals['hrs_per_dt'] * self.kvals['prod'] / annual_hrs_operation, 10)
 
             # calculate required population using production, processing rate, and annual hours of operation
             self.kvals['pop'] = pop
@@ -647,6 +816,7 @@ class LoadingEquipment(Population):
                     self.kvals['useful_life'] = self.nonroad_equip_dict['useful_life'][hp_range]
 
             # append equipment information to string for population file
+            # @TODO: integreate _create_pop_line()
             lines += """{fips}       {year} {scc}                                           {hp_min}   {hp_max}   {hp}   {useful_life} DEFAULT     {pop} \n""".format(**self.kvals)
 
         self.pop_file.writelines(lines)

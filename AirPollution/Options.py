@@ -7,24 +7,37 @@ Creates the option input files for NONROAD.
 """
 
 import os
+from utils import config
 
 
 class ScenarioOptions:
 
     def __init__(self, cont):
+        """
+
+        :param cont:
+        :return:
+        """
+
         # database
         self.db = cont.get('db')
+
         # query recorder.
         self.qr = cont.get('qr')
-        # title of scenario. 
+
+        # title of scenario.
         self._model_run_title = cont.get(key='model_run_title')
+
         # run codes
         self.run_codes = cont.get('run_codes')
+
         # directory option file is saved to. Uses run title.
         self.path = cont.get('path')  # non-dev directory
+
         # break flag used to ensure switchgrass database query only happens once. (all other feedstocks need multiple pulls from the database).
-        self.querySG = True
-        self.document_file = "Options"
+        self.query_sg = True
+
+        self.document_file = 'Options'
         self._create_dir()
         self.run_code = None
         self.data = None
@@ -34,93 +47,93 @@ class ScenarioOptions:
         Initialize the class by setting up file directory to store data.
         Also creates the batch file to store data.
         """
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)       
-            os.makedirs(self.path + "ALLOCATE/")
-            os.makedirs(self.path + "POP/")
-            os.makedirs(self.path + "OPT/")
-            os.makedirs(self.path + "OUT/")
-            os.makedirs(self.path + "FIGURES/")
-            os.makedirs(self.path + "QUERIES/")
 
-    def document_efs(self, query):
-        """
-        Executes query and records it to database. Should be emmission final? from constants though.
-        @param query: sql query for selecting and recording.
-        """        
-        fileName = 'Emission Factors'
-        for q in query: 
-            data = self.db.output(q, self.db.constants_schema)
-            self.qr.documentQuery(fileName, data)     
+        folders = (self.path, 'ALLOCATE', 'POP', 'OPT', 'OUT', 'FIGURES', 'QUERIES')
+        for folder in folders:
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+
+    # doesn't appear to be used
+    # def document_efs(self, query):
+    #     """
+    #     Executes query and records it to database. Should be emmission final? from constants though.
+    #     :param query: sql query for selecting and recording.
+    #     """
+    #
+    #     f = 'Emission Factors'
+    #     for q in query:
+    #         data = self.db.output(q, self.db.constants_schema)
+    #         self.qr.documentQuery(f, data)
 
     def get_data(self, run_code):
         """
-        Grabs data from the database.
-        @param run_code: code to change the current scenario.
+        Grabs data from the database
+
+        :param run_code: code to change the current scenario
+        :return:
         """
 
-        # keep track of current run code.
+        # keep track of current run code
         self.run_code = run_code
 
-        # query the data and collect it.
+        # query the data and collect it
         query = self._get_query(run_code)
-        if query:
+        if query is not None:
             self.data = self._get_prod_data(query)
 
         # create output directories
-        if not os.path.exists(self.path + '/OUT/' + run_code):
-            os.makedirs(self.path + '/OPT/' + run_code)
-            os.makedirs(self.path + '/OUT/' + run_code)
+        # @TODO: this belongs somewhere else- in it's own function at the very least
+        folders = ('OUT', 'OPT')
+        for folder in folders:
+            path = os.path.join(self.path, folder, run_code)
+            if not os.path.exists(path):
+                os.makedirs(path)
 
     def _get_prod_data(self, query):
         """
-        execute the sql statments constructed in _get_query.
-        @param query: query to be recorded. 
+        Execute sql statment and return results
+
+        :param query: query to extract data
+        :return: list of result rows
         """
 
-        # the number of extracted data must be 3109 with no null (blank) returned results.
-        # @TODO: add check to enforce expected number of returned records
         return self.db.output(query, self.db.production_schema)
 
     def _get_query(self, run_code):
         """
         query database for appropriate production data based on run_code
-        @param run_code: current run code to know what data to query from the db. 
-        @return: query to be executed.
+
+        :param run_code: current run code to know what data to query from the db
+        :return: query to be executed
+
         @attention: propbably do not need to be querying the state from county_attributes, maybe remove later.
-        
-        @change: Changed where the irrigation data is queried from. 
-        Before from cg_irrigated_states.
-        current from cg_irrigated_new. Updated data was added to this schema
-        
-        @change: Changed the query so that it can be used for the updated data.
         """
 
         query = None
 
-        # corn grain.
+        # corn grain
         if run_code.startswith('CG'):
-            # query conventional till data. For specific state and county.
+            # query conventional till data. For specific state and county
             # fips, state, harv_ac, prod, yield
             if run_code.startswith('CG_C'):
                 query = '''SELECT ca."fips", ca."st", dat."convtill_harv_ac", dat."convtill_prod", dat."convtill_yield"
                 FROM "cg_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
              
-            # query reduced till.
+            # query reduced till
             elif run_code.startswith('CG_R'):
                 query = '''SELECT ca."fips", ca."st", dat."reducedtill_harv_ac", dat."reducedtill_prod", dat."reducedtill_yield"
                 FROM "cg_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
             
-            # query no till data.
+            # query no till data
             elif run_code.startswith('CG_N'):
                 query = '''SELECT ca."fips", ca."st", dat."notill_harv_ac", dat."notill_prod", dat."notill_yield"
                 FROM "cg_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
             
-            # grab data for irrigation.  
+            # grab data for irrigation
             elif run_code.startswith('CG_I'):
 
-                # subprocess (WITH statment) is querried in the constant cg_irrigated_states. gets data for different
-                # vehicles and their attributes (fuel, horse power.)
+                # CTE (WITH statment) is queried in the constant cg_irrigated_states. gets data for different
+                # vehicles and their attributes (fuel, horse power)
 
                 fuel_types = {'D': 'diesel',
                               'G': 'gasoline',
@@ -129,23 +142,13 @@ class ScenarioOptions:
 
                 fuel_type = fuel_types[run_code[-1]]
 
-                # fuel_type = None
-                # if run_code.endswith('D'):
-                #     fuel_type = 'diesel'
-                # elif run_code.endswith('G'):
-                #     fuel_type = 'gasoline'
-                # elif run_code.endswith('L'):
-                #     fuel_type = 'lpg'
-                # elif run_code.endswith('C'):
-                #     fuel_type = 'natgas'
-
                 # @TODO: convert config usage
                 # @TODO: remove hardcoded schemas
                 query = """
                 WITH IRR AS (
                     SELECT 
                         "state", "fuel", "hp", "percent" AS "perc", "hrsperacre" AS "hpa"
-                    FROM "constantvals"."cg_irrigated_new"
+                    FROM "constantvals"."cg_irrigated_states"
                     WHERE "cg_irrigated_new"."fuel" ILIKE '""" + fuel_type + """'
                 )
                 SELECT 
@@ -169,17 +172,7 @@ class ScenarioOptions:
                 FROM "cs_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
 
         elif run_code.startswith('WS'):
-            '''
-            ######################################################
-            @change: 
-            In the database there are rows that have produce = 0, while harvested acres and yield are non-zero.
-            Need to skip over these faulty data points.
-            new code: dat.prod  > 0.0
-            ######################################################
-            '''
-            # @TODO: what is this var used for?
-            self.queryTable = 'ws_data'
-            
+
             if run_code == 'WS_RT':
                 query = ''' SELECT ca."fips", ca."st", dat."reducedtill_harv_ac", dat."reducedtill_prod", dat."reducedtill_yield"
                             FROM "ws_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca
@@ -193,12 +186,12 @@ class ScenarioOptions:
                             ORDER BY ca."fips" ASC;'''
 
         elif run_code.startswith('SG'):
-            if self.querySG:
+            if self.query_sg:
                 query = '''SELECT ca."fips", ca."st", dat."harv_ac", dat."prod"
                 FROM "sg_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
                 
                 # we have 30 scenarios for SG to run, but only want one to query the database once
-                self.querySG = False
+                self.query_sg = False
 
         elif run_code.startswith('FR'):
             
@@ -223,32 +216,42 @@ class NROptionFile:
     def __init__(self, cont, state, fips, run_code, episode_year):
         """
         Grab important data to be put into the .opt files.
-        @param state: state for file.
-        @param fips: fips number, which tells you what county you are in.
-        @attention: there was a parameter 'allocate' that i removed from init.
+
+        :param cont:
+        :param state:
+        :param fips:
+        :param run_code:
+        :param episode_year:
+        :return:
         """
-        # run code.
+
+        # run code
         self.run_code = run_code
-        # path to the .opt file that is saved.
-        self.path = cont.get('path') + 'OPT/' + run_code + '/'  # @TODO: use string formatting and os.sep
-        # removed not in use.
-        #self.outPathNR = self.path.replace('/', '\\')
-        # out path for NONROAD to read.
-        self.out_path_pop_alo = cont.get('path').replace('/', '\\')  # @TODO: remove once os.sep usage is implemented
+
+        # path to the .opt file that is saved
+        self.path = os.path.join(cont.get('path'), 'OPT', run_code)
+
+        # out path for NONROAD to read
+        self.out_path_pop_alo = cont.get('path')
+
         self.episode_year = episode_year
         self.state = state
         self._model_run_title = cont.get('model_run_title')
-        # temperatures.
-        self.temp_min = 50.0  # @TODO: remove hardcoded values
-        self.temp_max = 68.8  # @TODO: remove hardcoded values
-        self.temp_mean = 60.0  # @TODO: remove hardcoded values
+
+        # temperatures
+        self.temp_min = config.as_float('nonroad_temp_min')
+        self.temp_max = config.as_float('nonroad_temp_max')
+        self.temp_mean = config.as_float('nonroad_temp_min')
+
         # create .opt file
         self._nr_options(fips)
 
     def _nr_options(self, fips):
         """
         creates the .opt file.
-        @param fips: Geographical Location
+
+        :param fips: Geographical Location
+
         ###############################
         @change: NONROAD was not processing files with 10 in it so SG_H10, SG_N10, and SG_T10 inputs
         files were being made correct, but not processing and saving correctly with NONROAD. Hacked around
@@ -264,7 +267,9 @@ class NROptionFile:
                     run_code = "".join(split)
         ###############################
         """
+
         run_code = self.run_code
+
         # run_code SG_*10, not working correctly.
         if run_code.endswith('0'):
             # remove the last character.
@@ -273,26 +278,82 @@ class NROptionFile:
             split = list(run_code)
             split[-1] = '9'
             run_code = "".join(split)
-            
+
         self._add_opt(fips, run_code)
 
     def _add_opt(self, fips, new_run_code):
         """
-            Add lines to .opt file.
-            @param fips: County.
-            @param new_run_code: To account for SG_*10 not working.
+        Add lines to .opt file.
+
+        :param fips: county FIPS
+        :param new_run_code: Hack for SQ_*10 run code issues in NONROAD
+        :return:
 
             @change: Changes made to run NONROAD with SG_*9 and save it as SG_*10.
             Leave folder for output to be the same. Change output file to be run_code given.
             old code: Population File    : ''' + self.out_path_pop_alo + 'POP\\' + self.state + '_' + self.run_code + '''.pop
                   Harvested acres    : ''' + self.out_path_pop_alo + 'ALLOCATE\\' + self.state + '_' + self.run_code + '''.alo
-        new code: Population File    : ''' + self.out_path_pop_alo + 'POP\\' + self.state + '_' + new_run_code + '''.pop
-                  Harvested acres    : ''' + self.out_path_pop_alo + 'ALLOCATE\\' + self.state + '_' + new_run_code + '''.alo
+            new code: Population File    : ''' + self.out_path_pop_alo + 'POP\\' + self.state + '_' + new_run_code + '''.pop
+                      Harvested acres    : ''' + self.out_path_pop_alo + 'ALLOCATE\\' + self.state + '_' + new_run_code + '''.alo
 
         """
 
-        with open(self.path + self.state + ".opt", 'w') as self.opt_file:
-        
+        kvals = {'episode_year': self.episode_year,
+                 'state_fips': '{fips:0<5}'.format(fips=fips[0:2]),
+                 '_model_run_title': self._model_run_title,
+                 'temp_min': self.temp_min,
+                 'temp_max': self.temp_max,
+                 'temp_mean': self.temp_mean,
+                 'ALLOC_XREF': os.path.join('data', 'allocate', 'allocate.xrf'),
+                 'ACTIVITY': os.path.join(config.get('project_path'), 'data', 'activity', 'activity.dat'),
+                 'EXH_TECHNOLOGY': os.path.join('data', 'tech', 'tech-exh.dat'),
+                 'EVP_TECHNOLOGY': os.path.join('data', 'tech', 'tech-evp.dat'),
+                 'SEASONALITY': os.path.join('data', 'season', 'season.dat'),
+                 'REGIONS': os.path.join('data', 'season', 'season.dat'),
+                 'MESSAGE': os.path.join(config.get('project_path'), 'outputs', '{state}.msg'),
+                 'OUTPUT_DATA': os.path.join(self.out_path_pop_alo, 'OUT', self.run_code, '%s.out' % (self.state, )),
+                 'EPS2_AMS': '',
+                 'US_COUNTIES_FIPS': os.path.join('data', 'allocate', 'fips.dat'),
+                 'RETROFIT': '',
+                 'Population_File': os.path.join(self.out_path_pop_alo, 'POP', '%s_%s.pop' % (self.state, new_run_code)),
+                 'National_defaults': os.path.join('data', 'growth', 'nation.grw'),
+                 'Harvested_acres': self.path.join(self.out_path_pop_alo, 'ALLOCATE', '%s_%s.alo' % (self.state, new_run_code)),
+                 'EMFAC_THC_exhaust': os.path.join('data', 'emsfac', 'exhthc.emf'),
+                 'EMFAC_CO_exhaust': os.path.join('data', 'emsfac', 'exhco.emf'),
+                 'EMFAC_NOX_exhaust': os.path.join('data', 'emsfac', 'exhnox.emf'),
+                 'EMFAC_PM_exhaust': os.path.join('data', 'emsfac', 'exhpm.emf'),
+                 'EMFAC_BSFC': os.path.join('data', 'emsfac', 'bsfc.emf'),
+                 'EMFAC_Crankcase': os.path.join('data', 'emsfac', 'crank.emf'),
+                 'EMFAC_Spillage': os.path.join('data', 'emsfac', 'spillage.emf'),
+                 'EMFAC_Diurnal': os.path.join('data', 'emsfac', 'evdiu.emf'),
+                 'EMFAC_Tank_Perm': os.path.join('data', 'emsfac', 'evtank.emf'),
+                 'EMFAC_Non_RM_Hose_Perm': os.path.join('data', 'emsfac', 'evhose.emf'),
+                 'EMFAC_RM_Fill_Neck_Perm': os.path.join('data', 'emsfac', 'evneck.emf'),
+                 'EMFAC_RM_Supply_Return': os.path.join('data', 'emsfac', 'evsupret.emf'),
+                 'EMFAC_RM_Vent_Perm': os.path.join('data', 'emsfac', 'evvent.emf'),
+                 'EMFAC_Hot_Soaks': os.path.join('data', 'emsfac', 'evhotsk.emf'),
+                 'EMFAC_RuningLoss': os.path.join('data', 'emsfac', 'evrunls.emf'),
+                 'DETERIORATE_THC_exhaust': os.path.join('data', 'detfac', 'exhthc.det'),
+                 'DETERIORATE_CO_exhaust': os.path.join('data', 'detfac', 'exhco.det'),
+                 'DETERIORATE_NOX_exhaust': os.path.join('data', 'detfac', 'exhnox.det'),
+                 'DETERIORATE_PM_exhaust': os.path.join('data', 'detfac', 'exhpm.det'),
+                 'DETERIORATE_Diurnal': os.path.join('data', 'detfac', 'evdiu.det'),
+                 'DETERIORATE_Tank_Perm': os.path.join('data', 'detfac', 'evtank.det'),
+                 'DETERIORATE_Non_RM_Hose_Perm': os.path.join('data', 'detfac', 'evhose.det'),
+                 'DETERIORATE_RM_Fill_Neck_Perm': os.path.join('data', 'detfac', 'evneck.det'),
+                 'DETERIORATE_RM_Supply_Return': os.path.join('data', 'detfac', 'evsupret.det'),
+                 'DETERIORATE_RM_Vent_Perm': os.path.join('data', 'detfac', 'evvent.det'),
+                 'DETERIORATE_Hot_Soaks': os.path.join('data', 'detfac', 'evhotsk.det'),
+                 'DETERIORATE_RuningLoss': os.path.join('data', 'detfac', 'evrunls.det'),
+                 'EXHAUST_BMY_OUT': '',
+                 'EVAP_BMY_OUT': '',
+                 'SI_report_file_CSV': os.path.join('OUTPUTS', 'NRPOLLUT.csv'),
+                 'DAILY_TEMPS_RVP': ''
+                 }
+
+        f = os.path.join(self.path, '%s.opt' % (self.state, ))
+        with open(f, 'w') as self.opt_file:
+
             lines = """
 ------------------------------------------------------
                   PERIOD PACKET
@@ -308,7 +369,7 @@ class NROptionFile:
 /PERIOD/
 Period type        : Annual
 Summation type     : Period total
-Year of episode    : """ + self.episode_year + """
+Year of episode    : {episode_year}
 Season of year     :
 Month of year      :
 Weekday or weekend : Weekday
@@ -334,17 +395,17 @@ Year of tech sel   :
                       Valid responses are: YES and NO
 ------------------------------------------------------
 /OPTIONS/
-Title 1            : """ + self._model_run_title + """
-Title 2            : All scripts written by Noah Fisher and Jeremy Bohrer
+Title 1            : {_model_run_title}
+Title 2            :
 Fuel RVP for gas   : 8.0
 Oxygen Weight %    : 2.62
 Gas sulfur %       : 0.0339
 Diesel sulfur %    : 0.0011
 Marine Dsl sulfur %: 0.0435
 CNG/LPG sulfur %   : 0.003
-Minimum temper. (F): """ + str(self.temp_min) + """
-Maximum temper. (F): """ + str(self.temp_max) + """
-Average temper. (F): """ + str(self.temp_mean) + """
+Minimum temper. (F): {temp_min}
+Maximum temper. (F): {self.temp_max}
+Average temper. (F): {self.temp_mean}
 Altitude of region : LOW
 EtOH Blend % Mkt   : 78.8
 EtOH Vol %         : 9.5
@@ -385,7 +446,7 @@ SUBCOUNTY  -  county FIPS code and subregion code.
 ------------------------------------------------------
 /REGION/
 Region Level       : COUNTY
-All STATE          : """ + fips[0:2] + """000
+All STATE          : {state_fips}
 /END/
 
 or use -
@@ -410,20 +471,20 @@ categories in the population files.
                    :2270005000
                    :2270007015
 /END/
+
 ------------------------------------------------------
 /RUNFILES/
-ALLOC XREF         : data\\allocate\\allocate.xrf
-ACTIVITY           : c:\\nonroad\\data\\activity\\activity.dat
-EXH TECHNOLOGY     : data\\tech\\tech-exh.dat
-EVP TECHNOLOGY     : data\\tech\\tech-evp.dat
-SEASONALITY        : data\\season\\season.dat
-REGIONS            : data\\season\\season.dat
-REGIONS            : data\\season\\season.dat
-MESSAGE            : c:\\nonroad\\outputs\\""" + self.state + """.msg
-OUTPUT DATA        : """ + self.out_path_pop_alo + 'OUT\\' + self.run_code + '\\' + self.state + """.out
-EPS2 AMS           :
-US COUNTIES FIPS   : data\\allocate\\fips.dat
-RETROFIT           :
+ALLOC XREF         : {ALLOC_XREF}
+ACTIVITY           : {ACTIVITY}
+EXH TECHNOLOGY     : {EXH_TECHNOLOGY}
+EVP TECHNOLOGY     : {EVP_TECHNOLOGY}
+SEASONALITY        : {SEASONALITY}
+REGIONS            : {REGIONS}
+MESSAGE            : {MESSAGE}
+OUTPUT DATA        : {OUTPUT_DATA}
+EPS2 AMS           : {EPS2_AMS}
+US COUNTIES FIPS   : {US_COUNTIES_FIPS}
+RETROFIT           : {RETROFIT}
 /END/
 
 ------------------------------------------------------
@@ -431,7 +492,7 @@ This is the packet that defines the equipment population
 files read by the model.
 ------------------------------------------------------
 /POP FILES/
-Population File    : """ + self.out_path_pop_alo + 'POP\\' + self.state + '_' + new_run_code + """.pop
+Population File    : {Population_File}
 /END/
 
 ------------------------------------------------------
@@ -439,33 +500,33 @@ This is the packet that defines the growth files
 files read by the model.
 ------------------------------------------------------
 /GROWTH FILES/
-National defaults  : data\\growth\\nation.grw
+National defaults  : {National_defaults}
 /END/
-
 
 /ALLOC FILES/
-Harvested acres    : """ + self.out_path_pop_alo + 'ALLOCATE\\' + self.state + '_' + new_run_code + """.alo
+Harvested acres    : {Harvested_acres}
 /END/
+
 ------------------------------------------------------
 This is the packet that defines the emssions factors
 files read by the model.
 ------------------------------------------------------
 /EMFAC FILES/
-THC exhaust        : data\\emsfac\\exhthc.emf
-CO exhaust         : data\\emsfac\\exhco.emf
-NOX exhaust        : data\\emsfac\\exhnox.emf
-PM exhaust         : data\\emsfac\\exhpm.emf
-BSFC               : data\\emsfac\\bsfc.emf
-Crankcase          : data\\emsfac\\crank.emf
-Spillage           : data\\emsfac\\spillage.emf
-Diurnal            : data\\emsfac\\evdiu.emf
-Tank Perm          : data\\emsfac\\evtank.emf
-Non-RM Hose Perm   : data\\emsfac\\evhose.emf
-RM Fill Neck Perm  : data\\emsfac\\evneck.emf
-RM Supply/Return   : data\\emsfac\\evsupret.emf
-RM Vent Perm       : data\\emsfac\\evvent.emf
-Hot Soaks          : data\\emsfac\\evhotsk.emf
-RuningLoss         : data\\emsfac\\evrunls.emf
+THC exhaust        : {EMFAC_THC_exhaust}
+CO exhaust         : {EMFAC_CO_exhaust}
+NOX exhaust        : {EMFAC_NOX_exhaust}
+PM exhaust         : {EMFAC_PM_exhaust}
+BSFC               : {EMFAC_BSFC}
+Crankcase          : {EMFAC_Crankcase}
+Spillage           : {EMFAC_Spillage}
+Diurnal            : {EMFAC_Diurnal}
+Tank Perm          : {EMFAC_Tank_Perm}
+Non-RM Hose Perm   : {EMFAC_Non_RM_Hose_Perm}
+RM Fill Neck Perm  : {EMFAC_RM_Fill_Neck_Perm}
+RM Supply/Return   : {EMFAC_RM_Supply_Return}
+RM Vent Perm       : {EMFAC_RM_Vent_Perm}
+Hot Soaks          : {EMFAC_Hot_Soaks}
+RuningLoss         : {EMFAC_RuningLoss}
 /END/
 
 ------------------------------------------------------
@@ -473,18 +534,18 @@ This is the packet that defines the deterioration factors
 files read by the model.
 ------------------------------------------------------
 /DETERIORATE FILES/
-THC exhaust        : data\\detfac\\exhthc.det
-CO exhaust         : data\\detfac\\exhco.det
-NOX exhaust        : data\\detfac\\exhnox.det
-PM exhaust         : data\\detfac\\exhpm.det
-Diurnal            : data\\detfac\\evdiu.det
-Tank Perm          : data\\detfac\\evtank.det
-Non-RM Hose Perm   : data\\detfac\\evhose.det
-RM Fill Neck Perm  : data\\detfac\\evneck.det
-RM Supply/Return   : data\\detfac\\evsupret.det
-RM Vent Perm       : data\\detfac\\evvent.det
-Hot Soaks          : data\\detfac\\evhotsk.det
-RuningLoss         : data\\detfac\\evrunls.det
+THC exhaust        : {DETERIORATE_THC_exhaust}
+CO exhaust         : {DETERIORATE_CO_exhaust}
+NOX exhaust        : {DETERIORATE_NOX_exhaust}
+PM exhaust         : {DETERIORATE_PM_exhaust}
+Diurnal            : {DETERIORATE_Diurnal}
+Tank Perm          : {DETERIORATE_Tank_Perm}
+Non-RM Hose Perm   : {DETERIORATE_Non_RM_Hose_Perm}
+RM Fill Neck Perm  : {DETERIORATE_RM_Fill_Neck_Perm}
+RM Supply/Return   : {DETERIORATE_RM_Supply_Return}
+RM Vent Perm       : {DETERIORATE_RM_Vent_Perm}
+Hot Soaks          : {DETERIORATE_Hot_Soaks}
+RuningLoss         : {DETERIORATE_RuningLoss}
 /END/
 
 Optional Packets - Add initial slash "/" to activate
@@ -496,16 +557,16 @@ Enter percent control: 95 = 95% control = 0.05 x uncontrolled
 Default should be zero control.
 
 /MODELYEAR OUT/
-EXHAUST BMY OUT    :
-EVAP BMY OUT       :
+EXHAUST BMY OUT    : {EXHAUST_BMY_OUT}
+EVAP BMY OUT       : {EVAP_BMY_OUT}
 /END/
 
 SI REPORT/
-SI report file-CSV :OUTPUTS\NRPOLLUT.CSV
+SI report file-CSV : {SI_report_file_CSV}
 /END/
 
 /DAILY FILES/
-DAILY TEMPS/RVP    :
+DAILY TEMPS/RVP    : {DAILY_TEMPS_RVP}
 /END/
 
 PM Base Sulfur
@@ -523,7 +584,8 @@ T2M       0.0350    0.02247
 T3M       1.0       0.02247
 T4M       1.0       0.02247
 /END/
-"""
+""".format(**kvals)
+
             self.opt_file.writelines(lines)
-            
+
             self.opt_file.close()

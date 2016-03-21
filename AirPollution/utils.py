@@ -107,6 +107,16 @@ def initialize_logger(output_dir=os.getcwd(), level=None):
     return logger
 
 
+def get_fips():
+    """
+    Collect list of county FIPS codes.
+
+    :return: [<FIPS>]
+    """
+
+    # @TODO: replace with actual list of FIPS codes for run (probably use database table)
+    return ["19109", "10001"]
+
 # create logger
 logger = initialize_logger()
 

@@ -26,6 +26,28 @@ class GenerateMOVESImport:
     
     def __init__(self, crop, fips, yr, moves_timespan, agefilename, speedfilename, fuelsupfilename, fuelformfilename, fuelusagefilename, avftfilename, metfilename,
                  roadtypefilename, sourcetypefilename, vmtfilename, monthvmtfilename, dayvmtfilename, hourvmtfilename):
+        """
+
+        :param crop:
+        :param fips:
+        :param yr:
+        :param moves_timespan:
+        :param agefilename:
+        :param speedfilename:
+        :param fuelsupfilename:
+        :param fuelformfilename:
+        :param fuelusagefilename:
+        :param avftfilename:
+        :param metfilename:
+        :param roadtypefilename:
+        :param sourcetypefilename:
+        :param vmtfilename:
+        :param monthvmtfilename:
+        :param dayvmtfilename:
+        :param hourvmtfilename:
+        :return:
+        """
+
         # set parser to leave CDATA sections in document 
         self.parser = etree.XMLParser(strip_cdata=False, recover=True)
         
@@ -60,34 +82,47 @@ class GenerateMOVESImport:
     def geo_selection(self):
         """
         Create XML element tree for geographic selection
+
+        :return:  element
         """
+
         # XML for geographic selection
         geoselect = etree.Element("geographicselection", type="COUNTY")
         geoselect.set("key", self.fips)
         geoselect.set("description", "")
+
         return geoselect
         
     def timespan(self):
         """
         Create XML element tree for MOVES timespan
+
+        :return: XML element
         """
-        # XML for timespan 
+
+        # XML for timespan
         timespan = etree.Element("timespan")
+
         # set year
         etree.SubElement(timespan, "year", key=self.yr)
-        # loop through months 
+
+        # loop through months
         for months in self.mo:
             etree.SubElement(timespan, "month", id=months)
+
         # loop through days (2 = weekend; 5 = weekday)
         for days in self.d:
             etree.SubElement(timespan, "day", id=days)
-        # loop through start hours 
+
+        # loop through start hours
         for hours in self.bhr: 
             etree.SubElement(timespan, "beginhour", id=hours)
+
         # loop through end hours
         for hours in self.ehr:
             etree.SubElement(timespan, "endhour", id=hours)
-        # aggregate at hourly level     
+
+        # aggregate at hourly level
         etree.SubElement(timespan, "aggregateBy", key="Hour")
         
         return timespan
@@ -95,27 +130,34 @@ class GenerateMOVESImport:
     def vehtype(self):
         """
         Create XML element tree for MOVES vehicle type
-        Currently only for combination short-haul truck 
+        Currently only for combination short-haul truck
+
+        :return: XML element
         """
+
         # XML for vehicle type selections
         # combination short-haul truck
         com_sh_truck = etree.Element("onroadvehicleselection", fueltypeid="2")
         com_sh_truck.set("fueltypedesc", "Diesel Fuel")
         com_sh_truck.set("sourcetypeid", "61")
         com_sh_truck.set("sourcetypename", "Combination Short-haul Truck")
-        return com_sh_truck
-        
+
 #        # light commercial truck
 #        lt_com_truck = etree.Element("onroadvehicleselection", fueltypeid="2")
 #        lt_com_truck.set("fueltypedesc", "Diesel Fuel")
 #        lt_com_truck.set("sourcetypeid","32")
 #        lt_com_truck.set("sourcetypename","Light Commercial Truck")
 
+        return com_sh_truck
+
     def pollutantprocess(self):
         """
         Create XML element tree for MOVES pollutant processes
         Currently includes: CO, NH3, PM10, PM2.5, SO2, NOX, VOC, and prerequisites
+
+        :return:
         """
+
         # dictionary of pollutant shorthand to MOVES name
         polname = {"NH3": "Ammonia (NH3)",
                    "CO": "Carbon Monoxide (CO)",
@@ -131,6 +173,7 @@ class GenerateMOVESImport:
                    "TEC": "Total Energy Consumption",
                    "THC": "Total Gaseous Hydrocarbons",
                    "VOC": "Volatile Organic Compounds"}
+
         # dictionary of pollutant shorthand to MOVES pollutantid
         polkey = {"NH3": "30",
                   "CO": "2",
@@ -146,6 +189,7 @@ class GenerateMOVESImport:
                   "TEC": "91",
                   "THC": "1",
                   "VOC": "87"}
+
         # dictionary of MOVES pollutant process numbers to MOVES pollutant process descriptions
         procname = {"1": "Running Exhaust",
                     "2": "Start Exhaust",
@@ -179,6 +223,7 @@ class GenerateMOVESImport:
         # XML for pollutant process associations
         # create element for pollutant process associations
         polproc = etree.Element("pollutantprocessassociations")
+
         # populate subelements for pollutant processes
         for pol in polname:  # loop through all pollutants
             for proc in prockey[pol]:  # loop through all processes associated with each pollutant
@@ -192,13 +237,17 @@ class GenerateMOVESImport:
     def roadtypes(self):
         """
         Create XML element tree for MOVES road types
+
+        :return: XML element
         """
+
         # dictionary for road types
         roaddict = {"1": "Off-Network",
                     "2": "Rural Restricted Access",
                     "3": "Rural Unrestricted Access",
                     "4": "Urban Restricted Access",
                     "5": "Urban Unrestricted Access"}
+
         # XML for road types
         roadtypes = etree.Element("roadtypes", {"separateramps": "false"})
         for roads in roaddict:
@@ -211,27 +260,38 @@ class GenerateMOVESImport:
     def databaseinfo(self): 
         """
         Create XML element tree for MOVES input database information
+
+        :return: XML element
         """
+
         # XML for database selection
         databasesel = etree.Element("databaseselection", servername="localhost")
         databasesel.set("databasename", self.db_in)
+
         return databasesel
         
     def agedist(self):
         """
         Create XML element tree for MOVES vehicle age distribution
-        """ 
+
+        :return: XML element
+
+        """
         # XML for age distribution
         agedist = etree.Element("agedistribution")
         etree.SubElement(agedist, "description")
         part = etree.SubElement(agedist, "parts")
         std = etree.SubElement(part, "sourceTypeAgeDistribution")
         etree.SubElement(std, "filename")
+
         return agedist
 
     def fullimport(self): 
         """
         Create full element tree for MOVES import file
+
+        :return:
+
         """
         geoselect = self.geo_selection
         timespan = self.timespan        
@@ -320,13 +380,17 @@ class GenerateMOVESImport:
     def create_import_file(self, filename):
         """
         Transform element tree to string and save to file
-        @param filename = filename for import XML file
+
+        :param filename = filename for import XML file
         """        
+
         # generate XML element tree
         importfilestring = GenerateMOVESImport.fullimport(self)
-        # create string from element tree         
+
+        # create string from element tree
         stringout = etree.tostring(importfilestring, pretty_print=True, encoding='utf8')
-        # save string to file    
+
+        # save string to file
         fileout = open(filename, "w")
         fileout.write(stringout)
         fileout.close()

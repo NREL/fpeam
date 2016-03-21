@@ -71,20 +71,21 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         :param logistics: logistics type being evaluated
         :return: True if update query is successful, False if not
         """
+
         # set feedstock name
         feed = run_code[0:2]
         self.kvals['feed'] = feed.lower()
 
         logger.debug('Calculating electricity consumption for {feed}'.format(feed=feed))
+
         # set electricity consumption factor using feedstock type
         self.kvals['electricity_per_dt'] = self.electricity_per_dt[feed][logistics]
 
         # set run_code
         self.kvals['run_code'] = run_code
+
         # set column for production name
-        if feed == 'SG':
-            self.kvals['prod_column'] = self.column_dict[feed]
-        elif feed == 'FR':
+        if feed == 'SG' or feed == 'FR':
             self.kvals['prod_column'] = self.column_dict[feed]
         else:
             self.kvals['prod_column'] = self.column_dict[run_code]
@@ -94,18 +95,11 @@ class Logistics(SaveDataHelper.SaveDataHelper):
 
         # generate string for query
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
-        query = """INSERT INTO {scenario_name}.{feed}_processing (fips, electricity)
-                    SELECT fips, feed.{prod_column} * {electricity_per_dt}
+        query = """INSERT INTO {scenario_name}.{feed}_processing (fips, electricity, run_code, logistics_type)
+                    SELECT fips, feed.{prod_column} * {electricity_per_dt}, '{run_code}', '{logistics}'
                     FROM {production_schema}.{feed}_data feed
-                    WHERE feed.{prod_column} > 0.0;
-
-                    UPDATE {scenario_name}.{feed}_processing
-                    SET run_code = '{run_code}'
-                    WHERE run_code is NULL;
-
-                    UPDATE {scenario_name}.{feed}_processing
-                    SET logistics_type = '{logistics}'
-                    WHERE logistics_type is NULL;""".format(**self.kvals)
+                    WHERE feed.{prod_column} > 0.0
+                   ;""".format(**self.kvals)
 
         # execute query
         return self._execute_query(query)
@@ -148,10 +142,10 @@ class Logistics(SaveDataHelper.SaveDataHelper):
 
         # generate string for query and append to queries
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
-        query = """INSERT INTO {scenario_name}.{feed}_processing (fips, voc_wood)
-                SELECT fips, prod_data.{column} * {a} * ({VOC_ef_h} + {VOC_ef_d}) / {b}
+        query = """UPDATE {scenario_name}.{feed}_processing
+                SET voc_wood = prod_data.{column} * {a} * ({VOC_ef_h} + {VOC_ef_d}) / {b}
                 FROM {production_schema}.{feed}_data prod_data
-                WHERE {scenario_name}.{feed}_processing.fips = prod_data.fips AND logistics_type = '{logistics}';""".format(**self.kvals)
+                WHERE {scenario_name}.{feed}_processing.fips = prod_data.fips AND logistics_type = '{logistics}' AND run_code = '{run_code}';""".format(**self.kvals)
 
         return self._execute_query(query)
 
@@ -185,7 +179,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                         AS (SELECT table1.*, table2.voc, table2.co, table2.nox, table2.sox, table2.nh3, table2.pm10, table2.pm25
                         FROM {scenario_name}.{feed}_processing table1
                         LEFT JOIN {scenario_name}.{feed}_raw table2
-                        ON table1.fips=table2.fips AND table2.run_code=table1.run_code);""".format(**self.kvals)
+                        ON (table1.fips = table2.fips AND table2.run_code = table1.run_code));""".format(**self.kvals)
             self._execute_query(query)
 
             if feed == 'FR':
@@ -202,4 +196,4 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         logger.warning('CG is returning zero values for reduced till runs (appears to be problem in NONROAD setup that propagates here). Need to investigate.')
 
         # @TODO: forest residue has not yet been validated (only agricultural crops have been run thus far)
-        logger.warning('FR has not yet been validated.  Need to revise once data sets are finalized.')
+        logger.warning('FR has not yet been validated. Need to revise once data sets are finalized.')

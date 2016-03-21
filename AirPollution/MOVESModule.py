@@ -17,14 +17,16 @@ Inputs include:
 @author: aeberle
 """
 
-import MOVESBatch as MOVESBatch
+import csv
+import os
+import subprocess
+
+import pymysql
+
 import GenerateMOVESImport as GenMOVESIm
 import GenerateMOVESRunspec as GenMOVESRun
-import os
-import csv
+import MOVESBatch as MOVESBatch
 from utils import config, logger
-import subprocess
-import pymysql
 
 
 class MOVESModule:
@@ -54,6 +56,33 @@ class MOVESModule:
         self.vmt_fraction = config.get('vmt_fraction')  # fraction of VMT by road type
         self.fuelfraction = config.get('fuel_fraction')  # fuel fraction
 
+    def _get_and_write_data_file_lines(self, query, fname):
+        """
+        Helper function to query and write data
+
+        :param query: SQL statement
+        :param fname: file path
+        :return:
+        """
+
+        # connect to MOVES database
+        # @TODO: change to use Database.py once all data in MySQL
+        with pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database) as conn:
+            # create cursor
+            cursor = conn.cursor()
+
+            # execute query
+            cursor.execute(query)
+
+            # open and write lines
+            with open(fname, 'wb') as f:
+                csv_writer = csv.writer(f)
+                csv_writer.writerow([i[0] for i in cursor.description])  # write headers
+                csv_writer.writerows(cursor)
+
+            # close cursor
+            cursor.close()
+
     def create_county_data(self, vmt_short_haul, pop_short_haul):
         """
         Create county-level data for MOVES, including:
@@ -63,120 +92,103 @@ class MOVESModule:
             fuel formulation
             fuel usage fraction
             meteorology
-        @param vmt_short_haul = annual vehicle miles traveled by combination short-haul trucks
-        @param pop_short_haul = population of combination short-haul trucks
+
+        :param vmt_short_haul = annual vehicle miles traveled by combination short-haul trucks
+        :param pop_short_haul = population of combination short-haul trucks
+        :return: 
         """
+
         logger.debug('Creating county-level data files for MOVES')
-
-        # connect to MOVES database
-        # @TODO: change to use Database.py once all data in MySQL
-        connection = pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database)
-        cursor = connection.cursor()
-
-        # set year for MOVES database queries 
-        year = self.yr
 
         for fips in self.fips_list:
             # define zoneID and countyID for querying MOVES database
-            zone_id = fips + '0'
+            zone_id = fips + '0'  # @QUESTION: is zoneID always FIPS + 0 or should this be a padded to some length?
             county_id = fips
             kvals = dict()
-            kvals['year'] = year
-            kvals['MOVES_database'] = self.moves_database
+            kvals['fips'] = fips
+            kvals['crop'] = self.crop
+            kvals['year'] = self.yr
+            kvals['moves_database'] = self.moves_database
             kvals['countyID'] = county_id
             kvals['zoneID'] = zone_id
 
             # county-level input files for MOVES that vary by FIPS, year, and crop
             # (these inputs are calculated by FPEAM based on production data)
-            vmtname = os.path.join(self.save_path_countyinputs, fips+'_vehiclemiletraveled_'+self.yr+'_'+self.crop+'.csv')
-            sourcetypename = os.path.join(self.save_path_countyinputs, fips+'_sourcetype_'+self.yr+'_'+self.crop+'.csv')
+            vmtname = os.path.join(self.save_path_countyinputs, '{fips}_vehiclemiletraveled_{year}_{crop}.csv'.format(**kvals))
+            sourcetypename = os.path.join(self.save_path_countyinputs, '{fips}_sourcetype_{year}_{crop}.csv'.format(**kvals))
+
             # annual vehicle miles traveled by vehicle type
             with open(vmtname, 'wb') as csvfile:
                 vmtwriter = csv.writer(csvfile, dialect='excel')
                 vmtwriter.writerow(['HPMSVtypeID', 'yearID', 'HPMSBaseYearVMT'])
                 vmtwriter.writerow(['60', self.yr, vmt_short_haul])  # combination short-haul truck
+
             # source type population (number of vehicles by vehicle type)
             with open(sourcetypename, 'wb') as csvfile:
                 popwriter = csv.writer(csvfile, dialect='excel')
                 popwriter.writerow(['yearID', 'sourceTypeID', 'sourceTypePopulation'])
-                popwriter.writerow([self.yr, "61", pop_short_haul])  # combination short-haul truck
+                popwriter.writerow([self.yr, '61', pop_short_haul])  # combination short-haul truck
 
             # county-level input files for MOVES that vary by FIPS and year
-            fuelsupplyname = os.path.join(self.save_path_countyinputs, fips+'_fuelsupply_'+self.yr+'.csv')
-            fuelformname = os.path.join(self.save_path_countyinputs, fips+'_fuelformulation_'+self.yr+'.csv')
-            fuelusagename = os.path.join(self.save_path_countyinputs, fips+'_fuelusagefraction_'+self.yr+'.csv')
+            fuelsupplyname = os.path.join(self.save_path_countyinputs, '{fips}_fuelsupply_{year}.csv'.format(**kvals))
+            fuelformname = os.path.join(self.save_path_countyinputs, '{fips}_fuelformulation_{year}.csv'.format(**kvals))
+            fuelusagename = os.path.join(self.save_path_countyinputs, '{fips}_fuelusagefraction_{year}.csv'.format(**kvals))
+
             # export county-level fuel supply data
-            with open(fuelsupplyname, 'wb') as f:
-                cursor.execute("""SELECT * FROM {MOVES_database}.fuelsupply
-                                WHERE {MOVES_database}.fuelsupply.fuelRegionID =
-                                (SELECT regionID FROM {MOVES_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID='{year}')
-                                AND {MOVES_database}.fuelsupply.fuelYearID = '{year}'""".format(**kvals))
-                csv_writer = csv.writer(f)
-                csv_writer.writerow([i[0] for i in cursor.description])  # write headers
-                csv_writer.writerows(cursor)
+            sql = """SELECT * FROM {moves_database}.fuelsupply
+                                WHERE {moves_database}.fuelsupply.fuelRegionID =
+                                (SELECT regionID FROM {moves_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID = '{year}')
+                                AND {moves_database}.fuelsupply.fuelYearID = '{year}'""".format(**kvals)
+            self._get_and_write_data_file_lines(sql, fuelsupplyname)
+
             # export county-level fuel formulation data
-            with open(fuelformname, 'wb') as f:
-                cursor.execute("""SELECT * FROM {MOVES_database}.fuelformulation
-                                WHERE {MOVES_database}.fuelformulation.fuelSubtypeID = '21' 
-                                OR {MOVES_database}.fuelformulation.fuelSubtypeID = '20';""".format(**kvals))    
-                csv_writer = csv.writer(f)
-                csv_writer.writerow([i[0] for i in cursor.description])  # write headers
-                csv_writer.writerows(cursor)
+            sql = """SELECT * FROM {moves_database}.fuelformulation
+                                WHERE {moves_database}.fuelformulation.fuelSubtypeID = '21'
+                                OR {moves_database}.fuelformulation.fuelSubtypeID = '20';""".format(**kvals)
+            self._get_and_write_data_file_lines(sql, fuelformname)
+
             # export county-level fuel usage fraction data
-            with open(fuelusagename, 'wb') as f:
-                cursor.execute("""SELECT * FROM {MOVES_database}.fuelusagefraction
-                                WHERE {MOVES_database}.fuelusagefraction.countyID='{countyID}' 
-                                AND {MOVES_database}.fuelusagefraction.fuelYearID = '{year}'
-                                AND {MOVES_database}.fuelusagefraction.fuelSupplyFuelTypeID = '2';""".format(**kvals))    
-                csv_writer = csv.writer(f)
-                csv_writer.writerow([i[0] for i in cursor.description])  # write headers
-                csv_writer.writerows(cursor)
+            sql = """SELECT * FROM {moves_database}.fuelusagefraction
+                                WHERE {moves_database}.fuelusagefraction.countyID = '{countyID}'
+                                AND {moves_database}.fuelusagefraction.fuelYearID = '{year}'
+                                AND {moves_database}.fuelusagefraction.fuelSupplyFuelTypeID = '2';""".format(**kvals)
+            self._get_and_write_data_file_lines(sql, fuelusagename)
 
             # county-level input files for MOVES that vary by FIPS
-            met_name = os.path.join(self.save_path_countyinputs, fips+'_met.csv')
-            # export county-level meteorology data
-            with open(met_name, 'wb') as f:
-                cursor.execute("SELECT * FROM {MOVES_database}.zonemonthhour WHERE {MOVES_database}.zonemonthhour.zoneID = {zoneID}".format(**kvals))    
-                csv_writer = csv.writer(f)
-                csv_writer.writerow([i[0] for i in cursor.description])  # write headers
-                csv_writer.writerows(cursor)
+            met_name = os.path.join(self.save_path_countyinputs, '%s_met.csv' % (fips, ))
 
-        cursor.close()
+            # export county-level meteorology data
+            sql = """SELECT * FROM {moves_database}.zonemonthhour WHERE {moves_database}.zonemonthhour.zoneID = {zoneID}""".format(**kvals)
+            self._get_and_write_data_file_lines(sql, met_name)
 
     def create_national_data(self):
         """
         Create national data for MOVES, including: 
             Alternate Vehicle Fuels & Technologies (avft)
             average speed distribution
-            age distribution (currently only works for 2015,2017,2022,and 2040)
+            age distribution (currently only works for 2015, 2017, 2022, and 2040)
             day VMT fraction
             month VMT fraction
             hour VMT fraction
-            road type fraction 
-        """
-        logger.debug('Creating national data files for MOVES')
+            road type fraction
 
-        # connect to MOVES database
-        # @TODO: change to use Database.py once all data in MySQL
-        connection = pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database)
-        cursor = connection.cursor()
+        :return:
+        """
+
+        logger.debug('Creating national data files for MOVES')
 
         # initialize kvals for string formatting
         kvals = dict()
         kvals['year'] = self.yr
-        kvals['MOVES_database'] = self.moves_database
+        kvals['moves_database'] = self.moves_database
 
         # export MOVES defaults for national inputs (i.e., hourVMTFraction, monthVMTFraction, dayVMTFraction, and avgspeeddistribution)
-        tablelist = ['hourvmtfraction', 'monthvmtfraction', 'dayvmtfraction', 'avgspeeddistribution']
-        for table in tablelist:
+        tables = ['hourvmtfraction', 'monthvmtfraction', 'dayvmtfraction', 'avgspeeddistribution']
+        for table in tables:
             kvals['table'] = table
-            filename = os.path.join(self.save_path_nationalinputs, table+'.csv')
-            cursor.execute("SELECT * FROM {MOVES_database}.{table} WHERE sourceTypeID = '61';".format(**kvals))
-
-            with open(filename, "wb") as f:
-                csv_writer = csv.writer(f)
-                csv_writer.writerow([i[0] for i in cursor.description])  # write headers
-                csv_writer.writerows(cursor)
+            filename = os.path.join(self.save_path_nationalinputs, '%s.csv' % (kvals['table'], ))
+            sql = """SELECT * FROM {moves_database}.{table} WHERE sourceTypeID = '61';""".format(**kvals)
+            self._get_and_write_data_file_lines(query=sql, fname=filename)
 
         # create file for alternative vehicle fuels and technology (avft)
         sourcetype = '61'
@@ -193,7 +205,7 @@ class MOVESModule:
 
         # create file for default age distribution (values in age_distribution dictionary were computed using MOVES Default Age Distribution Tool)
         for feed in self.yr_list:
-            agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves'+self.yr_list[feed]+'.csv')
+            agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves%s.csv' % (self.yr_list[feed], ))
             with open(agedistname, 'wb') as f:
                 csv_writer = csv.writer(f)
                 csv_writer.writerow(['sourceTypeID', 'yearID', 'ageID', 'ageFraction'])
@@ -211,34 +223,42 @@ class MOVESModule:
     def create_batch_files(self):
         """
         Create batch files for importing data using MOVES county data manager and running MOVES
-        @return outputs[run_filename: , im_filename: ]
+
+        :return: {run_filename: <string>, im_filename: <string>}
         """
+
         logger.debug('Creating batch files for MOVES runs')
 
-        run_filename = ''
-        im_filename = ''
+        run_filename = None
+        im_filename = None
+
         # loop through FIPS codes
         for fips in self.fips_list:
             # instantiate MOVESBatch
             batch_file = MOVESBatch.MOVESBatch(crop=self.crop, model_run_title=self.model_run_title, fips=fips, yr=self.yr, path_moves=self.path_moves,
                                                save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles)
+
             # create MOVES batch import file
             im_filename = batch_file.create_moves_batch_import()
+
             # create MOVES batch run file
             run_filename = batch_file.create_moves_batch_run()
-        outputs = dict()  # dictionary of outputs
-        outputs['run_filename'] = run_filename
-        outputs['im_filename'] = im_filename
-        return outputs
+
+        return {'run_filename': run_filename,
+                'im_filename': im_filename
+                }
 
     def create_xml_import(self):
         """
         Create XML files for importing data using MOVES county data manager
+
+        :return:
         """
+
         logger.debug('Creating XML files for importing MOVES data')
 
         # filepaths for national MOVES defaults 
-        agefilename = os.path.join(self.save_path_nationalinputs, "default-age-distribution-tool-moves"+self.yr+".csv")
+        agefilename = os.path.join(self.save_path_nationalinputs, "default-age-distribution-tool-moves%s.csv" % (self.yr, ))
         speedfilename = os.path.join(self.save_path_nationalinputs, "avgspeeddistribution.csv")
         avftfilename = os.path.join(self.save_path_nationalinputs, "avft.csv")
         roadtypefilename = os.path.join(self.save_path_nationalinputs, "roadtype.csv")
@@ -247,19 +267,25 @@ class MOVESModule:
         hourvmtfilename = os.path.join(self.save_path_nationalinputs, "hourvmtfraction.csv")
 
         # loop through FIPS codes 
-        for FIPS in self.fips_list:
+        for fips in self.fips_list:
+            kvals = {'fips': fips,
+                     'year': self.yr,
+                     'crop': self.crop
+                     }
+
             # filepaths for county-level input files 
-            metfilename = os.path.join(self.save_path_countyinputs, FIPS + '_met.csv')
-            fuelsupfilename = os.path.join(self.save_path_countyinputs, FIPS + '_fuelsupply_'+self.yr+'.csv')
-            fuelformfilename = os.path.join(self.save_path_countyinputs, FIPS + '_fuelformulation_'+self.yr+'.csv')
-            fuelusagefilename = os.path.join(self.save_path_countyinputs, FIPS + '_fuelusagefraction_'+self.yr+'.csv')
-            sourcetypename = os.path.join(self.save_path_countyinputs,  FIPS + '_sourcetype_'+self.yr+'_'+self.crop+'.csv')
-            vmtname = os.path.join(self.save_path_countyinputs, FIPS + '_vehiclemiletraveled_'+self.yr+'_'+self.crop+'.csv')
+            metfilename = os.path.join(self.save_path_countyinputs, '{fips}_met.csv'.format(**kvals))
+            fuelsupfilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelsupply_{year}.csv'.format(**kvals))
+            fuelformfilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelformulation_{year}.csv'.format(**kvals))
+            fuelusagefilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelusagefraction_{year}.csv'.format(**kvals))
+            sourcetypename = os.path.join(self.save_path_countyinputs, '{fips}_sourcetype_{year}_{crop}.csv'.format(**kvals))
+            vmtname = os.path.join(self.save_path_countyinputs, '{fips}_vehiclemiletraveled_{year}_{crop}'.format(**kvals))
 
             # create import filename using FIPS code, crop, and scenario year 
-            im_filename = os.path.join(self.save_path_importfiles, FIPS+"_import_"+self.yr+'_'+self.crop+".mrs")
+            im_filename = os.path.join(self.save_path_importfiles, '{fips}_import_{year}_{crop}.mrs'.format(fips=fips, year=self.yr, crop=self.crop))
+
             # instantiate GenerateMOVESImport class
-            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop, fips=FIPS, yr=self.yr, moves_timespan=self.moves_timespan, agefilename=agefilename,
+            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop, fips=fips, yr=self.yr, moves_timespan=self.moves_timespan, agefilename=agefilename,
                                                        speedfilename=speedfilename, fuelsupfilename=fuelsupfilename, fuelformfilename=fuelformfilename,
                                                        fuelusagefilename=fuelusagefilename, avftfilename=avftfilename, metfilename=metfilename,
                                                        roadtypefilename=roadtypefilename, sourcetypefilename=sourcetypename, vmtfilename=vmtname,
@@ -271,25 +297,34 @@ class MOVESModule:
     def create_xml_runspec(self):
         """
         Create XML file for running MOVES
+
+        :return:
         """
+
         logger.debug('Creating XML files for running MOVES')
 
         # loop through FIPS codes 
-        for FIPS in self.fips_list:
+        for fips in self.fips_list:
             # create filename for runspec file using FIPS code, crop, and scenario year
-            run_filename = os.path.join(self.save_path_runspecfiles, FIPS+"_runspec_"+self.yr+'_'+self.crop+".mrs") 
+            run_filename = os.path.join(self.save_path_runspecfiles, '{fips}_runspec_{year}_{crop}.mrs'.format(fips=fips, year=self.yr, crop=self.crop))
+
             # instantiate GenerateMOVESRunspec class
-            xmlrunspec = GenMOVESRun.GenerateMOVESRunSpec(crop=self.crop, fips=FIPS, yr=self.yr, moves_timespan=self.moves_timespan, server=self.moves_db_host)
+            xmlrunspec = GenMOVESRun.GenerateMOVESRunSpec(crop=self.crop, fips=fips, yr=self.yr, moves_timespan=self.moves_timespan, server=self.moves_db_host)
+
             # execute function for creating XML file
             xmlrunspec.create_runspec_files(run_filename)
 
     def import_data(self, filename):
         """
         Import MOVES data into MySQL database
-        @param filename = name of batch import file
+
+        :param filename: name of batch import file
+        :return:
         """
+
         logger.debug('Importing MOVES files')
 
         # execute batch file and log output
         output = subprocess.Popen(filename, cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
+
         logger.debug('MOVES output: %s' % output)

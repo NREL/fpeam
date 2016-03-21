@@ -10,22 +10,21 @@ class Allocate(object):
     """
     def __init__(self, cont):
         """
-        Initialize the allocation file.
-        @param state: state, used to create unique file name for .alo.
-        @param run_code: run_code, used to create unique file name for .alo.
+        :param cont: Container object
         """
+
         self.path = cont.get('path') + 'ALLOCATE/'
         self.episode_year = None
         self.run_code = None
-        self.inicator_total = 0
+        self.indicator_total = 0
         self.alo_file = None
 
     def initialize_alo_file(self, state, run_code, episode_year):
         self.episode_year = episode_year
         self.run_code = run_code
         # total harvested acre per a state.
-        self.inicator_total = 0.0   #acres
-        self.alo_file = open(self.path + state + '_' + run_code+'.alo', 'w')
+        self.indicator_total = 0.0   # acres
+        self.alo_file = open('{path}{state}_{run_code}.alo'.format(path=self.path, state=state, run_code=run_code), 'w')
         lines = """
 ------------------------------------------------------------------------
 This is the packet that contains the allocation indicator data.  Each
@@ -65,18 +64,23 @@ population or land area.  The format is as follows.
         self.alo_file.writelines(lines)
 
 #        print indicator, fips
-        self.inicator_total += float(indicator)
+        self.indicator_total += float(indicator)
 
     def write_sum_and_close(self, fips):
         """
         This function finishes off the .alo file
-        @param fips: fips code for geographic region
+
+        :param fips: fips code for geographic region
+        :return:
         """
 
         if self.run_code.startswith('FR'):
-            lines = """LOG  %s000      %s    %s\n/END/""" % (fips[0:2], self.episode_year, self.inicator_total)
+            _ = 'LOG'
         else:
-            lines = """FRM  %s000      %s    %s \n/END/""" % (fips[0:2], self.episode_year, self.inicator_total)
+            _ = 'FRM'
+
+        # @TODO: convert to use proper string formating with spaces, etc
+        lines = """%s  %s000      %s    %s\n/END/""" % (_, fips[0:2], self.episode_year, self.indicator_total)
 
         self.alo_file.writelines(lines)
 

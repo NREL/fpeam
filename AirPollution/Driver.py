@@ -37,21 +37,22 @@ import pymysql
 
 class Driver:
 
-    def __init__(self, _model_run_title, run_codes, year_dict, _db):
+    def __init__(self, model_run_title, run_codes, year_dict, db):
         """
         Save important variables for the running of the program.
 
-        @param _model_run_title: Scenario title.
-        @param run_codes: Run codes to keep track of where you are in the program
-        @param _db: Instantiation of Database class using scenario title
-        @param year_dict: Dictionary of scenario years by feedstock type
+        :param model_run_title: Scenario title.
+        :param run_codes: Run codes to keep track of where you are in the program
+        :param db: Instantiation of Database class using scenario title
+        :param year_dict: Dictionary of scenario years by feedstock type
         """
 
-        # add run codes.
+        # add run codes
         self.run_codes = run_codes
         
         # add run title
-        self.model_run_title = self._check_title(_model_run_title)
+        self._check_title(model_run_title)
+        self.model_run_title = model_run_title
 
         # file paths and year for MOVES
         self.path_moves = config.get('moves_path')
@@ -61,27 +62,24 @@ class Driver:
         self.save_path_countyinputs = os.path.join(config.get('moves_datafiles_path'), 'county_inputs')
         self.save_path_nationalinputs = os.path.join(config.get('moves_datafiles_path'), 'national_inputs')
         self.yr = year_dict
-        
-        # get feedstocks from the run_codes
-        self.feedstock_list = []
-        for run_code in self.run_codes:
-            if run_code[0:2] in self.feedstock_list:
-                pass
-            else:
-                self.feedstock_list.append(run_code[0:2])
 
-        # get list of logistics systems being modeled
+        # get feedstocks from the run_codes
+        self.feedstock_list = set()
+        for run_code in self.run_codes:
+            self.feedstock_list.add(run_code[0:2])
+
+        # get list of logistics system(s) being modeled
         self.logistics_list = config.get('logistics_type')
 
         # container to pass info around
         self.cont = Container.Container()
         self.cont.set(key='model_run_title', data=self.model_run_title)
         self.cont.set(key='run_codes', data=run_codes)
-        self.cont.set(key='path', data='%s%s/' % (config.get('project_path'), _model_run_title, ))
-        self.cont.set(key='db', data=_db)
+        self.cont.set(key='path', data=os.path.join(config.get('project_path'), model_run_title))
+        self.cont.set(key='db', data=db)
         self.cont.set(key='qr', data=QueryRecorder.QueryRecorder(_path=self.cont.get('path')))
 
-        # create Batch runner.
+        # create Batch runner
         self.batch = Batch.Batch(cont=self.cont)
 
     def _check_title(self, title):
@@ -89,10 +87,8 @@ class Driver:
         Make sure the program is less then 8 characters and is not a run code.
 
         :param title: STRING to validate
-        :return: <title>
+        :return: True (or raise Exception for violations)
         """
-
-        # @TODO: refactor to return TRUE or FALSE
 
         try:
             assert len(title) <= 8
@@ -106,33 +102,35 @@ class Driver:
             logger.error('Title (%s) must not be a run_code (%s)' % (title, ', '.join(self.run_codes)))
             raise
 
-        return title
+        return True
 
-    def setup_nonroad(self):
+    def  setup_nonroad(self):
         """
-        Set up the NONROAD program by creating option, allocation, and population files.
-        Also creates batch files to run.
+        Set up the NONROAD program by creating option, allocation, population, and batch files.
+
+        :return:
         """
 
         # initialize objects
         scenario = Opt.ScenarioOptions(cont=self.cont)
         alo = Alo.Allocate(cont=self.cont)
-        # create batch file.
+
+        # initialize batch file
         self.batch.get_master('w')
 
         # go to each run code.
         for run_code in self.run_codes:
 
             logger.info('Processing NONROAD setup for run code: %s' % (run_code, ))
+
             # query database for appropriate production data based on run_code:
             # fips, state, productions
-            # TODO: should this return the data? And pass the data as a variable in Driver?
             scenario.get_data(run_code=run_code)
             scenario_year = self.yr[run_code[0:2]]            
             
             # initialize variables
-            state = scenario.data[0][1]
-            fips_prior = str(scenario.data[0][0])
+            state = scenario.data[0][1]  # get the first state
+            fips_prior = str(scenario.data[0][0])  # get the first FIPS
 
             # New population object created for each run_code
             # Pop is the abstract class and .<type> is the concrete class.
@@ -151,12 +149,12 @@ class Driver:
             elif run_code.startswith('CG'):
                 pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
 
-            # is it possible to instantiate new classes each time?
             alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
             pop.initialize_pop(dat=scenario.data[0])
+
             self.batch.initialize(run_code)
 
-            # go through each row of the data table.
+            # go through each row of the data table
             for dat in scenario.data:
                 # check to see if production is greater than zero
                 prod_greater_than_zero = False
@@ -172,7 +170,6 @@ class Driver:
                     # The search will look through a state. When the state changes in the table,
                     # then the loop will go to the else, closing the old files. and initializing new files.
 
-                    # @TODO: verify ORDER BY clause orders by state
                     # dat[1] is the state.
                     if dat[1] == state:
                         # indicator is harvested acres. Except for FR when it is produce.
@@ -193,6 +190,7 @@ class Driver:
                         # initialize new pop and allocation files.
                         alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
                         pop.initialize_pop(dat=dat)
+
                         # indicator is harvested acres. Except for FR when it is produce.
                         indicator = dat[2]
                         alo.write_indicator(fips=fips, indicator=indicator)
@@ -202,21 +200,26 @@ class Driver:
             Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
             alo.write_sum_and_close(fips=fips_prior)
             pop.finish_pop()
+
             self.batch.append(state=state, run_code=run_code)
+
             self.batch.finish(run_code=run_code)
 
         # close scenariobatchfile
         self.batch.scenario_batch_file.close()
-        # save path for running batch files.
+
+        # save path for running batch files
         # @TODO: does this need to be here?
         self.path = scenario.path
 
     def run_nonroad(self, qprocess):
         """
         Run the NONROAD program by opening the batch files.
-        @param qprocess: sub process controller from the Controller.
+        :param qprocess: sub process controller from the Controller.
+
         Used to control the flow of the NONROAD program within the application.
         """
+
         self.batch.run(qprocess)
 
     def setup_moves(self, fips_list):
@@ -224,7 +227,7 @@ class Driver:
         Set up the MOVES program by creating input data files, XML files for data imports, and XML files for runspecs.
         Also creates batch files to 1) import data using MOVES County Data Manager and 2) run the MOVES program.
         
-        @param fips_list: list of all county FIPS codes
+        :param fips_list: list of all county FIPS codes
         """
         
         # list of file paths for MOVES inputs and outputs   
@@ -235,7 +238,6 @@ class Driver:
             if not os.path.exists(path):
                 os.makedirs(path)    
 
-        outputs = dict()
         batch_run_dict = dict()
         # TODO: we may want to change this so that MOVES runs only once for all fips (rather than once per feedstock per fips)
         for i, feed in enumerate(self.feedstock_list):
@@ -247,8 +249,8 @@ class Driver:
                                                 save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs)
 
             # @TODO: if we decide that rates does vary with VMT, replace vmt_short_haul with database query to calculate county-level VMT (need to get data into database first)
-            vmt_short_haul = 100  # annual vehicle miles traveled by combination short-haul trucks
-            pop_short_haul = 1  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
+            vmt_short_haul = config.as_int('vmt_short_haul')  # annual vehicle miles traveled by combination short-haul trucks
+            pop_short_haul = config.as_int('pop_short_haul')  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
 
             if i == 0:
                 # create national data files (only has to be run once for all crops so perform for first crop only after MOVESModule initiated)
@@ -276,8 +278,11 @@ class Driver:
     def run_moves(self, batch_run_dict):
         """
         Run MOVES using the batch file generated in setup_MOVES
-        @param batch_run_dict = dictionary of file names for MOVES batch runs (by feedstock type)
+
+        :param batch_run_dict = dictionary of file names for MOVES batch runs (by feedstock type)
+        :return:
         """
+
         for feed in self.feedstock_list:
             logger.info('Running MOVES for feedstock: %s' % (feed, ))
             logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
@@ -314,6 +319,7 @@ class Driver:
 
         # compute emissions from off-farm transportation
         # first, join tables for average speed and "dayhour" and create new table for transportation data
+        # @TODO: convert to Database.py usage
         connection = pymysql.connect(host=config['moves_db_host'], user=config['moves_db_user'], password=config['moves_db_pass'], db=config['moves_database'])
         cursor = connection.cursor()
 
