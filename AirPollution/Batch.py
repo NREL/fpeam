@@ -93,8 +93,8 @@ class Batch:
 
         self.batch_file.close()
 
-        self.scenario_batch_file.write("CALL %s%s" % (os.sep, os.path.join(self.path, '%s.bat' % (run_code, ))))
-    
+        self.scenario_batch_file.write("CALL \"%s\"\n" % (os.path.join(self.path, '%s.bat' % (run_code, ))))
+
     def run(self, qprocess):
         """
         ****************************************
