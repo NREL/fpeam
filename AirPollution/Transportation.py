@@ -174,10 +174,12 @@ class Transportation(SaveDataHelper.SaveDataHelper):
     def calc_rest_evap_emissions(self):
         """
         Calculate total resting evaporative fuel vapor venting rates
-        Currently set to zero because only using 12 hr time span and resting evaporative rates require 24 hr selection
+        Currently zero because only using 12 hr time span and resting evaporative rates require 24 hr selection
+        Also, MOVES assumes that diesel fuel has zero evaporative venting emissions
         """
-        logger.warning('Resting evaporative fuel vapor venting rates are currently zero')
-        # @TODO: if we decide to include evaporative fuel vapor venting emissions, add code for processing MOVES outputs
+        logger.warning('Resting evaporative fuel vapor venting rates are zero for diesel fuel')
+        logger.warning('Additional code required to processing fuel vapor evap emissions if fuel type is not diesel')
+        # @TODO: if fuel type changes, then we will need to add code to compute evaporative fuel vapor venting emissions
         pass
 
     def transport_fugitive_dust(self):

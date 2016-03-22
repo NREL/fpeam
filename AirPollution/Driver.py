@@ -325,7 +325,7 @@ class Driver:
 
         kvals = dict()
         kvals['fips'] = fips_list[0]  # avg speed distribution is the same for all FIPS codes
-        kvals['feedstock'] = self.feedstock_list[0]  # and for all crops, so just pick one from each list
+        kvals['feedstock'] = list(self.feedstock_list)[0]  # and for all crops, so just pick one from each list
         kvals['scenario_name'] = self.model_run_title
         kvals['MOVES_database'] = config['moves_database']
 

@@ -82,13 +82,13 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             
             logger.info('Populating NONROAD combustion emissions table for %s' % (run_code, ))
             # path to results
-            path = self.base_path + 'OUT/%s/' % (run_code,)
+            path = os.path.join(self.base_path, 'OUT', run_code)
             listing = os.listdir(path)
 
             feedstock = run_code[0:2] 
 
             # write data to static files for debugging purposes
-            f = open(self.base_path + 'OUT/' + run_code + '.csv', 'wb')
+            f = open(os.path.join(self.base_path, 'OUT', run_code + '.csv'), 'wb')
             writer = csv.writer(f)
             writer.writerow(('FIPS', 'scc', 'hp', 'fuel_cons_gal/yr', 'thc_exh', 'voc_exh', 'co_exh', 'nox_exh',
                             'co2_exh', 'so2_exh', 'pm10_exh', 'pm25_exh', 'nh3_exh', 'Description'))
@@ -97,7 +97,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             for cur_file in listing:
                 # use for debugging
                 # print "Current file is: %s -- %s" % (run_code, cur_file)
-                reader = csv.reader(open(path + cur_file))
+                reader = csv.reader(open(os.path.join(path, cur_file)))
 
                 # account for headers in file, skip the first 10 lines.
                 for i in range(10):  # @TODO: refactor to use slicing
