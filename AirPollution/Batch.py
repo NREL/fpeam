@@ -23,7 +23,7 @@ class Batch:
         self.model_run_title = cont.get(key='model_run_title')
 
         # path to batch directory
-        self.path = '%sOPT%s' % (cont.get(key='path'), os.sep)
+        self.path = '%s%sOPT%s' % (cont.get(key='path'), os.sep, os.sep)
 
         # path to batch to be used in a batch file
         # self.batch_path = self.path.replace('/', '\\')  # @QUESTION: is this necessary now (with os.sep usage)? Commenting out and replacing self.batch_path usages to self.path

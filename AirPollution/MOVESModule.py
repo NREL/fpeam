@@ -67,9 +67,10 @@ class MOVESModule:
 
         # connect to MOVES database
         # @TODO: change to use Database.py once all data in MySQL
-        with pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database) as conn:
+        # for some reason with statement gets cursor, not connection
+        with pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database) as cursor:
             # create cursor
-            cursor = conn.cursor()
+            # cursor = conn.cursor()
 
             # execute query
             cursor.execute(query)

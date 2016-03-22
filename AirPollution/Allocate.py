@@ -1,6 +1,7 @@
 """
 Functions associated with allocation
 """
+import os
 
 
 class Allocate(object):
@@ -13,7 +14,7 @@ class Allocate(object):
         :param cont: Container object
         """
 
-        self.path = cont.get('path') + 'ALLOCATE/'
+        self.path = os.path.join(cont.get('path'), 'ALLOCATE')
         self.episode_year = None
         self.run_code = None
         self.indicator_total = 0
@@ -24,7 +25,7 @@ class Allocate(object):
         self.run_code = run_code
         # total harvested acre per a state.
         self.indicator_total = 0.0   # acres
-        self.alo_file = open('{path}{state}_{run_code}.alo'.format(path=self.path, state=state, run_code=run_code), 'w')
+        self.alo_file = open(os.path.join(self.path, '{state}_{run_code}.alo'.format(state=state, run_code=run_code)), 'w')
         lines = """
 ------------------------------------------------------------------------
 This is the packet that contains the allocation indicator data.  Each

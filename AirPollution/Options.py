@@ -48,7 +48,13 @@ class ScenarioOptions:
         Also creates the batch file to store data.
         """
 
-        folders = (self.path, 'ALLOCATE', 'POP', 'OPT', 'OUT', 'FIGURES', 'QUERIES')
+        folders = (self.path,
+                   os.path.join(self.path, 'ALLOCATE'),
+                   os.path.join(self.path, 'POP'),
+                   os.path.join(self.path, 'OPT'),
+                   os.path.join(self.path, 'OUT'),
+                   os.path.join(self.path, 'FIGURES'),
+                   os.path.join(self.path, 'QUERIES'))
         for folder in folders:
             if not os.path.exists(folder):
                 os.makedirs(folder)
@@ -149,7 +155,7 @@ class ScenarioOptions:
                     SELECT 
                         "state", "fuel", "hp", "percent" AS "perc", "hrsperacre" AS "hpa"
                     FROM "constantvals"."cg_irrigated_states"
-                    WHERE "cg_irrigated_new"."fuel" ILIKE '""" + fuel_type + """'
+                    WHERE "cg_irrigated_states"."fuel" ILIKE '""" + fuel_type + """'
                 )
                 SELECT 
                     ca."fips", ca."st", dat."total_harv_ac" * irr."perc" AS "acres", dat."total_prod", irr."fuel", irr."hp", irr."perc", irr."hpa"
@@ -310,14 +316,14 @@ class NROptionFile:
                  'EVP_TECHNOLOGY': os.path.join('data', 'tech', 'tech-evp.dat'),
                  'SEASONALITY': os.path.join('data', 'season', 'season.dat'),
                  'REGIONS': os.path.join('data', 'season', 'season.dat'),
-                 'MESSAGE': os.path.join(config.get('project_path'), 'outputs', '{state}.msg'),
+                 'MESSAGE': os.path.join(config.get('project_path'), 'outputs', '%s.msg' % (self.state, )),
                  'OUTPUT_DATA': os.path.join(self.out_path_pop_alo, 'OUT', self.run_code, '%s.out' % (self.state, )),
                  'EPS2_AMS': '',
                  'US_COUNTIES_FIPS': os.path.join('data', 'allocate', 'fips.dat'),
                  'RETROFIT': '',
                  'Population_File': os.path.join(self.out_path_pop_alo, 'POP', '%s_%s.pop' % (self.state, new_run_code)),
                  'National_defaults': os.path.join('data', 'growth', 'nation.grw'),
-                 'Harvested_acres': self.path.join(self.out_path_pop_alo, 'ALLOCATE', '%s_%s.alo' % (self.state, new_run_code)),
+                 'Harvested_acres': os.path.join(self.out_path_pop_alo, 'ALLOCATE', '%s_%s.alo' % (self.state, new_run_code)),
                  'EMFAC_THC_exhaust': os.path.join('data', 'emsfac', 'exhthc.emf'),
                  'EMFAC_CO_exhaust': os.path.join('data', 'emsfac', 'exhco.emf'),
                  'EMFAC_NOX_exhaust': os.path.join('data', 'emsfac', 'exhnox.emf'),
@@ -404,8 +410,8 @@ Diesel sulfur %    : 0.0011
 Marine Dsl sulfur %: 0.0435
 CNG/LPG sulfur %   : 0.003
 Minimum temper. (F): {temp_min}
-Maximum temper. (F): {self.temp_max}
-Average temper. (F): {self.temp_mean}
+Maximum temper. (F): {temp_max}
+Average temper. (F): {temp_mean}
 Altitude of region : LOW
 EtOH Blend % Mkt   : 78.8
 EtOH Vol %         : 9.5
