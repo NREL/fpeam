@@ -280,7 +280,7 @@ class MOVESModule:
             fuelformfilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelformulation_{year}.csv'.format(**kvals))
             fuelusagefilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelusagefraction_{year}.csv'.format(**kvals))
             sourcetypename = os.path.join(self.save_path_countyinputs, '{fips}_sourcetype_{year}_{crop}.csv'.format(**kvals))
-            vmtname = os.path.join(self.save_path_countyinputs, '{fips}_vehiclemiletraveled_{year}_{crop}'.format(**kvals))
+            vmtname = os.path.join(self.save_path_countyinputs, '{fips}_vehiclemiletraveled_{year}_{crop}.csv'.format(**kvals))
 
             # create import filename using FIPS code, crop, and scenario year 
             im_filename = os.path.join(self.save_path_importfiles, '{fips}_import_{year}_{crop}.mrs'.format(fips=fips, year=self.yr, crop=self.crop))

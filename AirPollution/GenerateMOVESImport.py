@@ -53,7 +53,7 @@ class GenerateMOVESImport:
         
         # create XML for elements with CDATA
         self.internalcontrol = etree.XML('<internalcontrolstrategy classname="gov.epa.otaq.moves.master.implementation.ghg.internalcontrolstrategies.rateofprogress.RateOfProgressStrategy"><![CDATA[useParameters	No]]></internalcontrolstrategy>', self.parser)
-        self.agename = "<filename>{agefilename}/filename>".format(agefilename=agefilename)
+        self.agename = "<filename>{agefilename}</filename>".format(agefilename=agefilename)
         self.agefile = etree.XML(self.agename, self.parser)
         self.speedfile = etree.XML("<filename>{speedfilename}</filename>".format(speedfilename=speedfilename), self.parser)
         self.fuelsupfile = etree.XML("<filename>{fuelsupfilename}</filename>".format(fuelsupfilename=fuelsupfilename), self.parser)

@@ -68,6 +68,14 @@ class Driver:
         for run_code in self.run_codes:
             self.feedstock_list.add(run_code[0:2])
 
+        # get toggle for running moves by crop
+        moves_by_crop = config.get('moves_by_crop')
+        # set moves feedstock list depending on toggle for moves_by_crop
+        if moves_by_crop is True:
+            self.moves_feedstock_list = self.feedstock_list
+        else:
+            self.moves_feedstock_list = ['all_crops']
+
         # get list of logistics system(s) being modeled
         self.logistics_list = config.get('logistics_type')
 
@@ -240,7 +248,7 @@ class Driver:
 
         batch_run_dict = dict()
         # TODO: we may want to change this so that MOVES runs only once for all fips (rather than once per feedstock per fips)
-        for i, feed in enumerate(self.feedstock_list):
+        for i, feed in enumerate(self.moves_feedstock_list):
             logger.info('Processing MOVES setup for feedstock: %s' % (feed, ))
             
             # initialize MOVESModule
@@ -283,7 +291,7 @@ class Driver:
         :return:
         """
 
-        for feed in self.feedstock_list:
+        for feed in self.moves_feedstock_list:
             logger.info('Running MOVES for feedstock: %s' % (feed, ))
             logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
 
@@ -325,7 +333,7 @@ class Driver:
 
         kvals = dict()
         kvals['fips'] = fips_list[0]  # avg speed distribution is the same for all FIPS codes
-        kvals['feedstock'] = list(self.feedstock_list)[0]  # and for all crops, so just pick one from each list
+        kvals['feedstock'] = list(self.moves_feedstock_list)[0]  # and for all crops, so just pick one from each list
         kvals['scenario_name'] = self.model_run_title
         kvals['MOVES_database'] = config['moves_database']
 
