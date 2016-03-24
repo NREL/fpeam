@@ -18,7 +18,7 @@ Output:
 """
 from lxml import etree
 from lxml.builder import E
-
+from src.AirPollution import utils
 
 class GenerateMOVESRunSpec:
     """
@@ -26,9 +26,9 @@ class GenerateMOVESRunSpec:
     """
 
     def __init__(self, crop, fips, yr, moves_timespan, server):
+        config = utils.config
         self.db_in = "fips_{fips}_{crop}_in".format(fips=fips, crop=crop)  # input database
-        self.db_out = "fips_{fips}_{crop}_out".format(fips=fips, crop=crop)  # output database
-        self.scenid = "{fips}_{crop}".format(fips=fips, crop=crop)  # scenario ID for MOVES
+        self.db_out = "{moves_output_db}".format(moves_output_db=config.get('moves_output_db'))  # output database
         self.yr = yr  # scenario year
         self.mo = moves_timespan['mo']  # month(s) for analysis
         self.d = moves_timespan['d']  # days(s) for analysis
@@ -36,7 +36,8 @@ class GenerateMOVESRunSpec:
         self.ehr = moves_timespan['ehr']  # ending hour(s) for analysis
         self.FIPS = fips  # FIPS code
         self.server = server  # host for MOVES server
-        
+        self.scenid = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=crop, day=self.d[0], month=self.mo[0], year=self.yr)  # scenario ID for MOVES runs
+
         # set parser to leave CDATA sections in document
         self.parser = etree.XMLParser(strip_cdata=False)
 

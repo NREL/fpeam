@@ -44,9 +44,9 @@ class MOVESBatch:
         kvals['timestamp'] = timestamp  # timestamp of run
         kvals['fips'] = fips  # FIPS code
 
-        self.importbatch = os.path.join(path_moves, 'batch_import_FPEAM_{yr}_{crop}_{title}{timestamp}.bat'.format(**kvals))  # path for batch import file
+        self.importbatch = os.path.join(path_moves, 'batch_import_FPEAM_{fips}_{yr}_{crop}_{title}{timestamp}.bat'.format(**kvals))  # path for batch import file
         self.importfilename = os.path.join(save_path_importfiles, '{fips}_import_{yr}_{crop}.mrs'.format(**kvals))  # path for XML import files
-        self.runbatch = os.path.join(path_moves, 'batch_run_FPEAM_{yr}_{crop}_{title}{timestamp}.bat'.format(**kvals))  # path for batch run file
+        self.runbatch = os.path.join(path_moves, 'batch_run_FPEAM_{fips}_{yr}_{crop}_{title}{timestamp}.bat'.format(**kvals))  # path for batch run file
         self.runfilename = os.path.join(save_path_runspecfiles, '{fips}_runspec_{yr}_{crop}.mrs'.format(**kvals))  # path for XML runspec files
         self.fips = fips  # FIPS code
         self.yr = yr  # scenario year

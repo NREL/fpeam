@@ -55,12 +55,11 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         # get toggle for running moves by crop
         moves_by_crop = config.get('moves_by_crop')
         # set moves database names depending on toggle for moves_by_crop
+        self.kvals['db_out'] = "{moves_output_db}".format(moves_output_db=config.get('moves_output_db'))  # output database for MOVES run
         if moves_by_crop is True:
             self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed=feed)  # input database for MOVES run
-            self.kvals['db_out'] = "fips_{fips}_{feed}_out".format(fips=fips, feed=feed)  # output database for MOVES run
         else:
             self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed='all_crops')  # input database for MOVES run
-            self.kvals['db_out'] = "fips_{fips}_{feed}_out".format(fips=fips, feed='all_crops')  # output database for MOVES run
 
         self.kvals['year'] = config['year_dict'][self.feed]  # year of scenario run
         self.kvals['scenarioID'] = '{fips}_{feed}'.format(**self.kvals)  # MOVES scenario ID
@@ -71,6 +70,11 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.kvals['s'] = silt  # unpaved road surface material silt content that corresponds to fips code
         self.kvals['logistics_type'] = logistics_type
         self.kvals['transport_table'] = config.get('transport_table_dict')[logistics_type]
+
+        if config.get('moves_by_crop') is True:
+            self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
+        else:
+            self.kvals['moves_scen_id'] = "{fips}_all_crops_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
 
         # dictionary of column names for transportation data
         self.transport_column = config.get('transport_column')
@@ -125,7 +129,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                                                                                            FROM {constants_schema}.{transport_table}
                                                                                                            WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}')
                     WHERE feedstock = '{feed}' AND fips = '{fips}' AND logistics_type = '{logistics_type}';""".format(**self.kvals)
-        print query
         self.cursor.execute(query)
 
     def calc_run_emission(self):
@@ -155,8 +158,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                 table1.dayID = table2.dayID AND
                                 table1.roadTypeID = table2.roadTypeID AND
                                 table1.avgSpeedBinID = table2.avgSpeedBinID
-                                WHERE table1.pollutantID = {pollutantID}
-                                GROUP BY table1.MOVESScenarioID, table1.yearID, table1.pollutantID));""".format(**self.kvals)
+                                WHERE table1.pollutantID = {pollutantID} AND table1.MOVESScenarioID = '{moves_scen_id}'
+                                GROUP BY table1.yearID, table1.pollutantID));""".format(**self.kvals)
             self.cursor.execute(query)
 
     def calc_start_hotel_emissions(self):
@@ -176,8 +179,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             query = """ UPDATE output_{scenario_name}.transportation
                         SET start_hotel_emissions = (SELECT sum(table1.ratePerVehicle * {pop} / {g_per_mt}) AS start_hotel_emissions
                                                      FROM {db_out}.ratepervehicle table1
-                                                     WHERE table1.pollutantID = {pollutantID}
-                                                     GROUP BY table1.MOVESScenarioID, table1.yearID, table1.pollutantID)
+                                                     WHERE table1.pollutantID = {pollutantID} AND table1.MOVESScenarioID = '{moves_scen_id}'
+                                                     GROUP BY table1.yearID, table1.pollutantID)
                         WHERE pollutantID = '{pollutant_name}' AND fips = '{fips}' AND feedstock = '{feed}' AND yearID = '{year}' AND logistics_type = '{logistics_type}';""".format(**self.kvals)
             self.cursor.execute(query)
 

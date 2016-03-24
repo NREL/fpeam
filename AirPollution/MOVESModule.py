@@ -34,9 +34,9 @@ class MOVESModule:
     Generate XML files for import and runspec files and creates batch files for importing and running MOVES
     """
 
-    def __init__(self, crop, fips_list, yr_list, path_moves, save_path_importfiles, save_path_runspecfiles, save_path_countyinputs, save_path_nationalinputs):
+    def __init__(self, crop, fips, yr_list, path_moves, save_path_importfiles, save_path_runspecfiles, save_path_countyinputs, save_path_nationalinputs, cursor):
         self.crop = crop  # crop name
-        self.fips_list = fips_list  # list of FIPS codes
+        self.fips = fips  # list of FIPS codes
         self.yr_list = yr_list  # scenario year list
         self.yr = yr_list[crop]  # scenario year for specific feedstock
         self.path_moves = path_moves  # path for MOVES program
@@ -52,9 +52,11 @@ class MOVESModule:
         self.moves_db_pass = config.get('moves_db_pass')  # password for MOVES database
         self.moves_db_host = config.get('moves_db_host')  # host for MOVES database
         self.moves_timespan = config.get('moves_timespan')  # time span for MOVES runs
+        self.constants_schema = config.get('constants_schema')
         self.age_distribution = config.get('age_distribution')  # age distribution dictionary for MOVES runs (varies by scenario year)
         self.vmt_fraction = config.get('vmt_fraction')  # fraction of VMT by road type
         self.fuelfraction = config.get('fuel_fraction')  # fuel fraction
+        self.cursor = cursor
 
     def _get_and_write_data_file_lines(self, query, fname):
         """
@@ -101,66 +103,68 @@ class MOVESModule:
 
         logger.debug('Creating county-level data files for MOVES')
 
-        for fips in self.fips_list:
-            # define zoneID and countyID for querying MOVES database
-            zone_id = fips + '0'  # @QUESTION: is zoneID always FIPS + 0 or should this be a padded to some length?
-            county_id = fips
-            kvals = dict()
-            kvals['fips'] = fips
-            kvals['crop'] = self.crop
-            kvals['year'] = self.yr
-            kvals['moves_database'] = self.moves_database
-            kvals['countyID'] = county_id
-            kvals['zoneID'] = zone_id
+        # set fips
+        fips = self.fips
 
-            # county-level input files for MOVES that vary by FIPS, year, and crop
-            # (these inputs are calculated by FPEAM based on production data)
-            vmtname = os.path.join(self.save_path_countyinputs, '{fips}_vehiclemiletraveled_{year}_{crop}.csv'.format(**kvals))
-            sourcetypename = os.path.join(self.save_path_countyinputs, '{fips}_sourcetype_{year}_{crop}.csv'.format(**kvals))
+        # define zoneID and countyID for querying MOVES database
+        zone_id = fips + '0'  # @QUESTION: is zoneID always FIPS + 0 or should this be a padded to some length?
+        county_id = fips
+        kvals = dict()
+        kvals['fips'] = fips
+        kvals['crop'] = self.crop
+        kvals['year'] = self.yr
+        kvals['moves_database'] = self.moves_database
+        kvals['countyID'] = county_id
+        kvals['zoneID'] = zone_id
 
-            # annual vehicle miles traveled by vehicle type
-            with open(vmtname, 'wb') as csvfile:
-                vmtwriter = csv.writer(csvfile, dialect='excel')
-                vmtwriter.writerow(['HPMSVtypeID', 'yearID', 'HPMSBaseYearVMT'])
-                vmtwriter.writerow(['60', self.yr, vmt_short_haul])  # combination short-haul truck
+        # county-level input files for MOVES that vary by FIPS, year, and crop
+        # (these inputs are calculated by FPEAM based on production data)
+        vmtname = os.path.join(self.save_path_countyinputs, '{fips}_vehiclemiletraveled_{year}_{crop}.csv'.format(**kvals))
+        sourcetypename = os.path.join(self.save_path_countyinputs, '{fips}_sourcetype_{year}_{crop}.csv'.format(**kvals))
 
-            # source type population (number of vehicles by vehicle type)
-            with open(sourcetypename, 'wb') as csvfile:
-                popwriter = csv.writer(csvfile, dialect='excel')
-                popwriter.writerow(['yearID', 'sourceTypeID', 'sourceTypePopulation'])
-                popwriter.writerow([self.yr, '61', pop_short_haul])  # combination short-haul truck
+        # annual vehicle miles traveled by vehicle type
+        with open(vmtname, 'wb') as csvfile:
+            vmtwriter = csv.writer(csvfile, dialect='excel')
+            vmtwriter.writerow(['HPMSVtypeID', 'yearID', 'HPMSBaseYearVMT'])
+            vmtwriter.writerow(['60', self.yr, vmt_short_haul])  # combination short-haul truck
 
-            # county-level input files for MOVES that vary by FIPS and year
-            fuelsupplyname = os.path.join(self.save_path_countyinputs, '{fips}_fuelsupply_{year}.csv'.format(**kvals))
-            fuelformname = os.path.join(self.save_path_countyinputs, '{fips}_fuelformulation_{year}.csv'.format(**kvals))
-            fuelusagename = os.path.join(self.save_path_countyinputs, '{fips}_fuelusagefraction_{year}.csv'.format(**kvals))
+        # source type population (number of vehicles by vehicle type)
+        with open(sourcetypename, 'wb') as csvfile:
+            popwriter = csv.writer(csvfile, dialect='excel')
+            popwriter.writerow(['yearID', 'sourceTypeID', 'sourceTypePopulation'])
+            popwriter.writerow([self.yr, '61', pop_short_haul])  # combination short-haul truck
 
-            # export county-level fuel supply data
-            sql = """SELECT * FROM {moves_database}.fuelsupply
-                                WHERE {moves_database}.fuelsupply.fuelRegionID =
-                                (SELECT regionID FROM {moves_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID = '{year}')
-                                AND {moves_database}.fuelsupply.fuelYearID = '{year}'""".format(**kvals)
-            self._get_and_write_data_file_lines(sql, fuelsupplyname)
+        # county-level input files for MOVES that vary by FIPS and year
+        fuelsupplyname = os.path.join(self.save_path_countyinputs, '{fips}_fuelsupply_{year}.csv'.format(**kvals))
+        fuelformname = os.path.join(self.save_path_countyinputs, '{fips}_fuelformulation_{year}.csv'.format(**kvals))
+        fuelusagename = os.path.join(self.save_path_countyinputs, '{fips}_fuelusagefraction_{year}.csv'.format(**kvals))
 
-            # export county-level fuel formulation data
-            sql = """SELECT * FROM {moves_database}.fuelformulation
-                                WHERE {moves_database}.fuelformulation.fuelSubtypeID = '21'
-                                OR {moves_database}.fuelformulation.fuelSubtypeID = '20';""".format(**kvals)
-            self._get_and_write_data_file_lines(sql, fuelformname)
+        # export county-level fuel supply data
+        sql = """SELECT * FROM {moves_database}.fuelsupply
+                            WHERE {moves_database}.fuelsupply.fuelRegionID =
+                            (SELECT regionID FROM {moves_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID = '{year}')
+                            AND {moves_database}.fuelsupply.fuelYearID = '{year}'""".format(**kvals)
+        self._get_and_write_data_file_lines(sql, fuelsupplyname)
 
-            # export county-level fuel usage fraction data
-            sql = """SELECT * FROM {moves_database}.fuelusagefraction
-                                WHERE {moves_database}.fuelusagefraction.countyID = '{countyID}'
-                                AND {moves_database}.fuelusagefraction.fuelYearID = '{year}'
-                                AND {moves_database}.fuelusagefraction.fuelSupplyFuelTypeID = '2';""".format(**kvals)
-            self._get_and_write_data_file_lines(sql, fuelusagename)
+        # export county-level fuel formulation data
+        sql = """SELECT * FROM {moves_database}.fuelformulation
+                            WHERE {moves_database}.fuelformulation.fuelSubtypeID = '21'
+                            OR {moves_database}.fuelformulation.fuelSubtypeID = '20';""".format(**kvals)
+        self._get_and_write_data_file_lines(sql, fuelformname)
 
-            # county-level input files for MOVES that vary by FIPS
-            met_name = os.path.join(self.save_path_countyinputs, '%s_met.csv' % (fips, ))
+        # export county-level fuel usage fraction data
+        sql = """SELECT * FROM {moves_database}.fuelusagefraction
+                            WHERE {moves_database}.fuelusagefraction.countyID = '{countyID}'
+                            AND {moves_database}.fuelusagefraction.fuelYearID = '{year}'
+                            AND {moves_database}.fuelusagefraction.fuelSupplyFuelTypeID = '2';""".format(**kvals)
+        self._get_and_write_data_file_lines(sql, fuelusagename)
 
-            # export county-level meteorology data
-            sql = """SELECT * FROM {moves_database}.zonemonthhour WHERE {moves_database}.zonemonthhour.zoneID = {zoneID}""".format(**kvals)
-            self._get_and_write_data_file_lines(sql, met_name)
+        # county-level input files for MOVES that vary by FIPS
+        met_name = os.path.join(self.save_path_countyinputs, '%s_met.csv' % (fips, ))
+
+        # export county-level meteorology data
+        sql = """SELECT * FROM {moves_database}.zonemonthhour WHERE {moves_database}.zonemonthhour.zoneID = {zoneID}""".format(**kvals)
+        self._get_and_write_data_file_lines(sql, met_name)
 
     def create_national_data(self):
         """
@@ -233,9 +237,22 @@ class MOVESModule:
         run_filename = None
         im_filename = None
 
-        # loop through FIPS codes
-        for fips in self.fips_list:
-            # instantiate MOVESBatch
+        # set fips
+        fips = self.fips
+
+        query = """SELECT scen_id
+                   FROM {constants_schema}.moves_metadata
+                   WHERE scen_id = "{fips}_{crop}_{year}_{month}_{day}";""".format(constants_schema=self.constants_schema, fips=fips, crop=self.crop, day=self.moves_timespan['d'][0], month=self.moves_timespan['mo'][0], year=self.yr)
+        self.cursor.execute(query)
+        scen_id_output = self.cursor.fetchall()
+
+        moves_output_exists = False
+        if scen_id_output:
+            if scen_id_output[0][0] == "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=self.crop, day=self.moves_timespan['d'][0], month=self.moves_timespan['mo'][0], year=self.yr): # scenario ID for MOVES runs
+                moves_output_exists = True
+
+        # instantiate MOVESBatch
+        if moves_output_exists is False:
             batch_file = MOVESBatch.MOVESBatch(crop=self.crop, model_run_title=self.model_run_title, fips=fips, yr=self.yr, path_moves=self.path_moves,
                                                save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles)
 
@@ -246,7 +263,8 @@ class MOVESModule:
             run_filename = batch_file.create_moves_batch_run()
 
         return {'run_filename': run_filename,
-                'im_filename': im_filename
+                'im_filename': im_filename,
+                'moves_output_exists': moves_output_exists
                 }
 
     def create_xml_import(self):
@@ -267,33 +285,34 @@ class MOVESModule:
         dayvmtfilename = os.path.join(self.save_path_nationalinputs, "dayvmtfraction.csv")
         hourvmtfilename = os.path.join(self.save_path_nationalinputs, "hourvmtfraction.csv")
 
-        # loop through FIPS codes 
-        for fips in self.fips_list:
-            kvals = {'fips': fips,
+        # set fips
+        fips = self.fips
+
+        kvals = {'fips': fips,
                      'year': self.yr,
                      'crop': self.crop
                      }
 
-            # filepaths for county-level input files 
-            metfilename = os.path.join(self.save_path_countyinputs, '{fips}_met.csv'.format(**kvals))
-            fuelsupfilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelsupply_{year}.csv'.format(**kvals))
-            fuelformfilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelformulation_{year}.csv'.format(**kvals))
-            fuelusagefilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelusagefraction_{year}.csv'.format(**kvals))
-            sourcetypename = os.path.join(self.save_path_countyinputs, '{fips}_sourcetype_{year}_{crop}.csv'.format(**kvals))
-            vmtname = os.path.join(self.save_path_countyinputs, '{fips}_vehiclemiletraveled_{year}_{crop}.csv'.format(**kvals))
+        # filepaths for county-level input files
+        metfilename = os.path.join(self.save_path_countyinputs, '{fips}_met.csv'.format(**kvals))
+        fuelsupfilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelsupply_{year}.csv'.format(**kvals))
+        fuelformfilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelformulation_{year}.csv'.format(**kvals))
+        fuelusagefilename = os.path.join(self.save_path_countyinputs, '{fips}_fuelusagefraction_{year}.csv'.format(**kvals))
+        sourcetypename = os.path.join(self.save_path_countyinputs, '{fips}_sourcetype_{year}_{crop}.csv'.format(**kvals))
+        vmtname = os.path.join(self.save_path_countyinputs, '{fips}_vehiclemiletraveled_{year}_{crop}.csv'.format(**kvals))
 
-            # create import filename using FIPS code, crop, and scenario year 
-            im_filename = os.path.join(self.save_path_importfiles, '{fips}_import_{year}_{crop}.mrs'.format(fips=fips, year=self.yr, crop=self.crop))
+        # create import filename using FIPS code, crop, and scenario year
+        im_filename = os.path.join(self.save_path_importfiles, '{fips}_import_{year}_{crop}.mrs'.format(fips=fips, year=self.yr, crop=self.crop))
 
-            # instantiate GenerateMOVESImport class
-            xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop, fips=fips, yr=self.yr, moves_timespan=self.moves_timespan, agefilename=agefilename,
-                                                       speedfilename=speedfilename, fuelsupfilename=fuelsupfilename, fuelformfilename=fuelformfilename,
-                                                       fuelusagefilename=fuelusagefilename, avftfilename=avftfilename, metfilename=metfilename,
-                                                       roadtypefilename=roadtypefilename, sourcetypefilename=sourcetypename, vmtfilename=vmtname,
-                                                       monthvmtfilename=monthvmtfilename, dayvmtfilename=dayvmtfilename, hourvmtfilename=hourvmtfilename)
+        # instantiate GenerateMOVESImport class
+        xmlimport = GenMOVESIm.GenerateMOVESImport(crop=self.crop, fips=fips, yr=self.yr, moves_timespan=self.moves_timespan, agefilename=agefilename,
+                                                   speedfilename=speedfilename, fuelsupfilename=fuelsupfilename, fuelformfilename=fuelformfilename,
+                                                   fuelusagefilename=fuelusagefilename, avftfilename=avftfilename, metfilename=metfilename,
+                                                   roadtypefilename=roadtypefilename, sourcetypefilename=sourcetypename, vmtfilename=vmtname,
+                                                   monthvmtfilename=monthvmtfilename, dayvmtfilename=dayvmtfilename, hourvmtfilename=hourvmtfilename)
 
-            # execute function for creating XML import file
-            xmlimport.create_import_file(im_filename)
+        # execute function for creating XML import file
+        xmlimport.create_import_file(im_filename)
 
     def create_xml_runspec(self):
         """
@@ -304,16 +323,17 @@ class MOVESModule:
 
         logger.debug('Creating XML files for running MOVES')
 
-        # loop through FIPS codes 
-        for fips in self.fips_list:
-            # create filename for runspec file using FIPS code, crop, and scenario year
-            run_filename = os.path.join(self.save_path_runspecfiles, '{fips}_runspec_{year}_{crop}.mrs'.format(fips=fips, year=self.yr, crop=self.crop))
+        # set fips
+        fips = self.fips
 
-            # instantiate GenerateMOVESRunspec class
-            xmlrunspec = GenMOVESRun.GenerateMOVESRunSpec(crop=self.crop, fips=fips, yr=self.yr, moves_timespan=self.moves_timespan, server=self.moves_db_host)
+        # create filename for runspec file using FIPS code, crop, and scenario year
+        run_filename = os.path.join(self.save_path_runspecfiles, '{fips}_runspec_{year}_{crop}.mrs'.format(fips=fips, year=self.yr, crop=self.crop))
 
-            # execute function for creating XML file
-            xmlrunspec.create_runspec_files(run_filename)
+        # instantiate GenerateMOVESRunspec class
+        xmlrunspec = GenMOVESRun.GenerateMOVESRunSpec(crop=self.crop, fips=fips, yr=self.yr, moves_timespan=self.moves_timespan, server=self.moves_db_host)
+
+        # execute function for creating XML file
+        xmlrunspec.create_runspec_files(run_filename)
 
     def import_data(self, filename):
         """

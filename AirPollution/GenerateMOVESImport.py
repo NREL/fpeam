@@ -77,7 +77,7 @@ class GenerateMOVESImport:
         self.ehr = moves_timespan['ehr']  # ending hour(s) for analysis
         
         self.db_in = "fips_{fips}_{crop}_in".format(fips=fips, crop=crop)  # input database for MOVES runs
-        self.scenid = "{fips}_{crop}".format(fips=fips, crop=crop)  # scenario ID for MOVES runs
+        self.scenid = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=crop, day=self.d, month=self.mo, year=self.yr)  # scenario ID for MOVES runs
     
     def geo_selection(self):
         """

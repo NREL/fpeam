@@ -54,6 +54,9 @@ class Driver:
         self._check_title(model_run_title)
         self.model_run_title = model_run_title
 
+        # get constants_schema
+        self.constants_schema = config.get('constants_schema')
+
         # file paths and year for MOVES
         self.path_moves = config.get('moves_path')
         self.save_path_importfiles = os.path.join(config.get('moves_datafiles_path'), 'import_files')
@@ -89,6 +92,15 @@ class Driver:
 
         # create Batch runner
         self.batch = Batch.Batch(cont=self.cont)
+
+        # create kvals dictionary for string formatting
+        self.kvals = dict()
+        self.kvals['constants_schema'] = config.get('constants_schema')  # constants schema
+        self.kvals['moves_database'] = config.get('moves_database')  # MOVES database name (default input data)
+        self.kvals['moves_db_user'] = config.get('moves_db_user')  # username for MOVES database
+        self.kvals['moves_db_pass'] = config.get('moves_db_pass')  # password for MOVES database
+        self.kvals['moves_db_host'] = config.get('moves_db_host')  # host for MOVES database
+        self.kvals['moves_output_db'] = config.get('moves_output_db')  # MOVES output database
 
     def _check_title(self, title):
         """
@@ -230,14 +242,27 @@ class Driver:
 
         self.batch.run(qprocess)
 
-    def setup_moves(self, fips_list):
+    def setup_moves(self, fips):
         """         
         Set up the MOVES program by creating input data files, XML files for data imports, and XML files for runspecs.
         Also creates batch files to 1) import data using MOVES County Data Manager and 2) run the MOVES program.
         
-        :param fips_list: list of all county FIPS codes
+        :param fips: county FIPS code
         """
-        
+
+        # open SQL connection and create cursor
+        # @TODO: change to use Database.py once all data in MySQL
+        self.connection = pymysql.connect(host=self.kvals['moves_db_host'],
+                                          user=self.kvals['moves_db_user'],
+                                          password=self.kvals['moves_db_pass'],
+                                          db=self.kvals['moves_database'])
+        self.cursor = self.connection.cursor()
+
+        # create table for moves metadata
+        query = "CREATE TABLE IF NOT EXISTS {constants_schema}.moves_metadata (scen_id text);".format(**self.kvals)
+        self.cursor.execute(query)
+        self.connection.commit()
+
         # list of file paths for MOVES inputs and outputs   
         path_list = [self.save_path_importfiles, self.save_path_runspecfiles, self.save_path_outputs, self.save_path_countyinputs, self.save_path_nationalinputs]
         
@@ -249,12 +274,12 @@ class Driver:
         batch_run_dict = dict()
         # TODO: we may want to change this so that MOVES runs only once for all fips (rather than once per feedstock per fips)
         for i, feed in enumerate(self.moves_feedstock_list):
-            logger.info('Processing MOVES setup for feedstock: %s' % (feed, ))
+            logger.info('Processing MOVES setup for feedstock: %s, fips: %s' % (feed, fips, ))
             
             # initialize MOVESModule
-            moves_mod = MOVESModule.MOVESModule(crop=feed, fips_list=fips_list, yr_list=self.yr, path_moves=self.path_moves,
+            moves_mod = MOVESModule.MOVESModule(crop=feed, fips=fips, yr_list=self.yr, path_moves=self.path_moves,
                                                 save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles,
-                                                save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs)
+                                                save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs, cursor=self.cursor)
 
             # @TODO: if we decide that rates does vary with VMT, replace vmt_short_haul with database query to calculate county-level VMT (need to get data into database first)
             vmt_short_haul = config.as_int('vmt_short_haul')  # annual vehicle miles traveled by combination short-haul trucks
@@ -273,31 +298,52 @@ class Driver:
             # create XML run spec files
             moves_mod.create_xml_runspec()
 
-            # create batch files for importing and running MOVES        
             outputs = moves_mod.create_batch_files()
 
-            moves_mod.import_data(outputs['im_filename'])
+            if outputs['moves_output_exists'] is False:
+                moves_mod.import_data(outputs['im_filename'])
+
             logger.debug('Batch file for importing data: %s' % (outputs['im_filename'], ))
             logger.debug('Batch file MOVES for importing data: %s' % (outputs['run_filename'], ))
             batch_run_dict[feed] = outputs['run_filename']
 
+        self.connection.close()
         return batch_run_dict
 
-    def run_moves(self, batch_run_dict):
+    def run_moves(self, batch_run_dict, fips):
         """
         Run MOVES using the batch file generated in setup_MOVES
 
         :param batch_run_dict = dictionary of file names for MOVES batch runs (by feedstock type)
+        :param fips = fips code for county
         :return:
         """
+        # @TODO: change to use Database.py once all data in MySQL
+        self.connection = pymysql.connect(host=self.kvals['moves_db_host'],
+                                          user=self.kvals['moves_db_user'],
+                                          password=self.kvals['moves_db_pass'],
+                                          db=self.kvals['moves_database'])
+        self.cursor = self.connection.cursor()
 
         for feed in self.moves_feedstock_list:
-            logger.info('Running MOVES for feedstock: %s' % (feed, ))
-            logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
 
             # execute batch file and log output
-            output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
-            logger.debug('Command line output: %s' % output)
+            if batch_run_dict[feed] is not None:
+                # logger.info('Running MOVES for feedstock: %s, fips: %s' % (feed, fips))
+                # logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
+                #
+                # output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
+                # logger.debug('Command line output: %s' % output)
+
+                self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.yr[feed])
+                query_moves_metadata = """  INSERT INTO {constants_schema}.moves_metadata(scen_id)
+                                            VALUES ('{moves_scen_id}')""".format(**self.kvals)
+                print query_moves_metadata
+                self.cursor.execute(query_moves_metadata)
+                self.connection.commit()
+                self.cursor.close()
+            else:
+                logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
     
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc, fips_list):
         """
