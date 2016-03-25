@@ -272,7 +272,6 @@ class Driver:
                 os.makedirs(path)    
 
         batch_run_dict = dict()
-        # TODO: we may want to change this so that MOVES runs only once for all fips (rather than once per feedstock per fips)
         for i, feed in enumerate(self.moves_feedstock_list):
             logger.info('Processing MOVES setup for feedstock: %s, fips: %s' % (feed, fips, ))
             
@@ -281,6 +280,7 @@ class Driver:
                                                 save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles,
                                                 save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs, cursor=self.cursor)
 
+            # default values used for running MOVES, actual VMT later used in save_data to compute total emission
             # @TODO: if we decide that rates does vary with VMT, replace vmt_short_haul with database query to calculate county-level VMT (need to get data into database first)
             vmt_short_haul = config.as_int('vmt_short_haul')  # annual vehicle miles traveled by combination short-haul trucks
             pop_short_haul = config.as_int('pop_short_haul')  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
@@ -298,8 +298,10 @@ class Driver:
             # create XML run spec files
             moves_mod.create_xml_runspec()
 
+            # create batch files for importing and running MOVES
             outputs = moves_mod.create_batch_files()
 
+            # only import data if MOVES output does not already exist for this FIPS, yearID, monthID, and dayID
             if outputs['moves_output_exists'] is False:
                 moves_mod.import_data(outputs['im_filename'])
 
@@ -327,8 +329,9 @@ class Driver:
 
         for feed in self.moves_feedstock_list:
 
-            # execute batch file and log output
+            # check if batch run dictionary contains any files
             if batch_run_dict[feed] is not None:
+                # if so, execute batch file and log output
                 logger.info('Running MOVES for feedstock: %s, fips: %s' % (feed, fips))
                 logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
 
@@ -342,6 +345,7 @@ class Driver:
                 self.connection.commit()
                 self.cursor.close()
             else:
+                # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
     
     def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc, fips_list):

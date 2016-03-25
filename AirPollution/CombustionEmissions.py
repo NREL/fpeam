@@ -99,11 +99,8 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 # print "Current file is: %s -- %s" % (run_code, cur_file)
                 reader = csv.reader(open(os.path.join(path, cur_file)))
 
-                # # account for headers in file, skip the first 10 lines.
-                # for i in range(10):  # @TODO: refactor to use slicing
-                #     reader.next()
-
                 for i, row in enumerate(reader):
+                    # account for headers in file, skip the first 10 lines
                     if i > 9:
                         # row[4] is the vehicle population.
                         if float(row[4]) > 0.0:

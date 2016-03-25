@@ -240,18 +240,22 @@ class MOVESModule:
         # set fips
         fips = self.fips
 
+        # check MOVES metadata table to see if MOVES was already run for this FIPS, yearID, monthID, and dayID
+        # get data MOVES scenario ID from database if scenario ID matches this FIPS, yearID, monthID, and dayID
         query = """SELECT scen_id
                    FROM {constants_schema}.moves_metadata
                    WHERE scen_id = "{fips}_{crop}_{year}_{month}_{day}";""".format(constants_schema=self.constants_schema, fips=fips, crop=self.crop, day=self.moves_timespan['d'][0], month=self.moves_timespan['mo'][0], year=self.yr)
         self.cursor.execute(query)
         scen_id_output = self.cursor.fetchall()
 
+        # set moves_output_exists default to false
         moves_output_exists = False
         if scen_id_output:
+            # if query for MOVES scenario ID returns a value, check to make sure matches this FIPS, yearID, monthID, and dayID and then set moves_output_exists to true
             if scen_id_output[0][0] == "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=self.crop, day=self.moves_timespan['d'][0], month=self.moves_timespan['mo'][0], year=self.yr): # scenario ID for MOVES runs
                 moves_output_exists = True
 
-        # instantiate MOVESBatch
+        # instantiate MOVESBatch if MOVES output does not already exist
         if moves_output_exists is False:
             batch_file = MOVESBatch.MOVESBatch(crop=self.crop, model_run_title=self.model_run_title, fips=fips, yr=self.yr, path_moves=self.path_moves,
                                                save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles)
