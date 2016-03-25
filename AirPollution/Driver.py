@@ -338,7 +338,6 @@ class Driver:
                 self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.yr[feed])
                 query_moves_metadata = """  INSERT INTO {constants_schema}.moves_metadata(scen_id)
                                             VALUES ('{moves_scen_id}')""".format(**self.kvals)
-                print query_moves_metadata
                 self.cursor.execute(query_moves_metadata)
                 self.connection.commit()
                 self.cursor.close()
