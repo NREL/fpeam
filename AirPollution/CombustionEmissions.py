@@ -99,62 +99,63 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 # print "Current file is: %s -- %s" % (run_code, cur_file)
                 reader = csv.reader(open(os.path.join(path, cur_file)))
 
-                # account for headers in file, skip the first 10 lines.
-                for i in range(10):  # @TODO: refactor to use slicing
-                    reader.next()
+                # # account for headers in file, skip the first 10 lines.
+                # for i in range(10):  # @TODO: refactor to use slicing
+                #     reader.next()
 
-                for row in reader:
-                    # row[4] is the vehicle population.
-                    if float(row[4]) > 0.0:    
-                
-                        # _get_description updates the voc_conversion, nh3_ef and lhv for each fuel type    
-                        scc = row[2]
-                        hp = row[3]   
-                        description, operation = self._get_description(run_code, scc, hp) 
-                        # check if it is a feedstock and operation that should be recorded.
-                        if feedstock == 'FR' or self.operation_dict[feedstock][operation[0]]:  
-                            # all emissions are recorder in metric tons.         
-                            # dry ton * metric ton / dry ton = metric ton
-                            thc = float(row[5]) * convert_tonne
-                            co = float(row[6]) * convert_tonne
-                            nox = float(row[7]) * convert_tonne
-                            co2 = float(row[8]) * convert_tonne
-                            so2 = float(row[9]) * convert_tonne
-                            pm10 = float(row[10]) * convert_tonne
-                            pm25 = float(row[10]) * self.pm10topm25 * convert_tonne
+                for i, row in enumerate(reader):
+                    if i > 9:
+                        # row[4] is the vehicle population.
+                        if float(row[4]) > 0.0:
 
-                            # fuel consumption
-                            # NONROAD README 5-10
-                            # CNG is a gaseous fuel, and its fuel consumption is reported in gallons at 
-                            # standard temperature and pressure. This can be misleading if this very large number
-                            # is viewed together with the fuel consumption of the other (liquid) fuels
-                            # dt/year
+                            # _get_description updates the voc_conversion, nh3_ef and lhv for each fuel type
+                            scc = row[2]
+                            hp = row[3]
+                            description, operation = self._get_description(run_code, scc, hp)
+                            # check if it is a feedstock and operation that should be recorded.
+                            if feedstock == 'FR' or self.operation_dict[feedstock][operation[0]]:
+                                # all emissions are recorder in metric tons.
+                                # dry ton * metric ton / dry ton = metric ton
+                                thc = float(row[5]) * convert_tonne
+                                co = float(row[6]) * convert_tonne
+                                nox = float(row[7]) * convert_tonne
+                                co2 = float(row[8]) * convert_tonne
+                                so2 = float(row[9]) * convert_tonne
+                                pm10 = float(row[10]) * convert_tonne
+                                pm25 = float(row[10]) * self.pm10topm25 * convert_tonne
 
-                            fuel_cons = float(row[19])  # gal/year
-                            
-                            voc = thc * self.voc_conversion                    
-                            nh3 = fuel_cons * self.lhv * self.nh3_ef / 1e6  # gal * mmBTU/gal * gnh3/mmBTU = g nh3
+                                # fuel consumption
+                                # NONROAD README 5-10
+                                # CNG is a gaseous fuel, and its fuel consumption is reported in gallons at
+                                # standard temperature and pressure. This can be misleading if this very large number
+                                # is viewed together with the fuel consumption of the other (liquid) fuels
+                                # dt/year
 
-                            # allocate non harvest emmisions from cg to cs and ws.
-                            if operation and operation[0] == 'N' and feedstock == 'CG': 
-                                # add to cs.
-                                if self.operation_dict['CS'][operation[0]] and self.alloc['CS'] != 0:
-                                    self._record(feed='CS', row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
-                                # add to ws. 
-                                if self.operation_dict['WS'][operation[0]] and self.alloc['WS'] != 0:  
-                                    self._record(feed='WS', row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
-                                # add to corn grain.
-                                self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
-                            # don't change allocation.
-                            else: 
-                                self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=None)
-                            
-                            # change constants back to normal, b/c they can be changes in _get_description()
-                            self.lhv = 128450.0 / 1e6  
-                            self.nh3_ef = 0.68
-                            self.voc_conversion = 1.053
-                            self.pm10topm25 = 0.97
-                        
+                                fuel_cons = float(row[19])  # gal/year
+
+                                voc = thc * self.voc_conversion
+                                nh3 = fuel_cons * self.lhv * self.nh3_ef / 1e6  # gal * mmBTU/gal * gnh3/mmBTU = g nh3
+
+                                # allocate non harvest emmisions from cg to cs and ws.
+                                if operation and operation[0] == 'N' and feedstock == 'CG':
+                                    # add to cs.
+                                    if self.operation_dict['CS'][operation[0]] and self.alloc['CS'] != 0:
+                                        self._record(feed='CS', row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
+                                    # add to ws.
+                                    if self.operation_dict['WS'][operation[0]] and self.alloc['WS'] != 0:
+                                        self._record(feed='WS', row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
+                                    # add to corn grain.
+                                    self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
+                                # don't change allocation.
+                                else:
+                                    self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=None)
+
+                                # change constants back to normal, b/c they can be changes in _get_description()
+                                self.lhv = 128450.0 / 1e6
+                                self.nh3_ef = 0.68
+                                self.voc_conversion = 1.053
+                                self.pm10topm25 = 0.97
+
             self.db.input(queries)
 
             logger.info('Finished populating NONROAD combustion emissions table for %s' % (run_code, ))

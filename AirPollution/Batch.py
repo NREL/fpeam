@@ -25,9 +25,6 @@ class Batch:
         # path to batch directory
         self.path = '%s%sOPT%s' % (cont.get(key='path'), os.sep, os.sep)
 
-        # path to batch to be used in a batch file
-        # self.batch_path = self.path.replace('/', '\\')  # @QUESTION: is this necessary now (with os.sep usage)? Commenting out and replacing self.batch_path usages to self.path
-
         # master path to the batch file that keeps track of all the run_code batch files
         self.master_path = '%s%s.bat' % (self.path, cont.get(key='model_run_title'))
 
