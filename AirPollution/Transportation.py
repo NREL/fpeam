@@ -52,15 +52,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.kvals['fips'] = fips  # fips
         self.kvals['feed'] = feed  # feedstock name
 
-        # get toggle for running moves by crop
-        moves_by_crop = config.get('moves_by_crop')
-        # set moves database names depending on toggle for moves_by_crop
-        self.kvals['db_out'] = "{moves_output_db}".format(moves_output_db=config.get('moves_output_db'))  # output database for MOVES run
-        if moves_by_crop is True:
-            self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed=feed)  # input database for MOVES run
-        else:
-            self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed='all_crops')  # input database for MOVES run
-
         self.kvals['year'] = config['year_dict'][self.feed]  # year of scenario run
         self.kvals['scenarioID'] = '{fips}_{feed}'.format(**self.kvals)  # MOVES scenario ID
         self.kvals['vmt'] = vmt  # vehicle miles travelled
@@ -71,9 +62,18 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.kvals['logistics_type'] = logistics_type
         self.kvals['transport_table'] = config.get('transport_table_dict')[logistics_type]
 
-        if config.get('moves_by_crop') is True:
+        # get toggle for running moves by crop
+        moves_by_crop = config.get('moves_by_crop')
+
+        # set moves database names
+        self.kvals['db_out'] = "{moves_output_db}".format(moves_output_db=config.get('moves_output_db'))  # output database for MOVES run (output database same for all crops)
+
+        # set input database and scenario id depending on moves_by_crop
+        if moves_by_crop is True:
+            self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed=feed)  # input database for MOVES run
             self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
         else:
+            self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed='all_crops')  # input database for MOVES run
             self.kvals['moves_scen_id'] = "{fips}_all_crops_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
 
         # dictionary of column names for transportation data
