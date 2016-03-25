@@ -329,11 +329,11 @@ class Driver:
 
             # execute batch file and log output
             if batch_run_dict[feed] is not None:
-                # logger.info('Running MOVES for feedstock: %s, fips: %s' % (feed, fips))
-                # logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
-                #
-                # output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
-                # logger.debug('Command line output: %s' % output)
+                logger.info('Running MOVES for feedstock: %s, fips: %s' % (feed, fips))
+                logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
+
+                output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
+                logger.debug('Command line output: %s' % output)
 
                 self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.yr[feed])
                 query_moves_metadata = """  INSERT INTO {constants_schema}.moves_metadata(scen_id)
