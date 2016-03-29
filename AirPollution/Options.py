@@ -104,8 +104,7 @@ class ScenarioOptions:
         :param query: query to extract data
         :return: list of result rows
         """
-
-        return self.db.output(query, self.db.production_schema)
+        return self.db.output(query)
 
     def _get_query(self, run_code):
         """
@@ -152,7 +151,6 @@ class ScenarioOptions:
                 WHERE ca.st LIKE irr.state
                 ORDER BY ca.fips ASC;
                 """.format(**self.kvals)  # @TODO: remove hardcoding of schema and tables
-                print query
             else:
                 # set value for tillage type
                 self.kvals['till_type'] = till_dict[run_code[3]]
@@ -181,7 +179,7 @@ class ScenarioOptions:
 
         elif run_code.startswith('SG'):
             if self.query_sg:
-                query = '''SELECT ca.fips, ca.st, dat.harv_ac, dat.prod
+                query = '''SELECT ca.fips, ca.st, dat.notill_harv_ac, dat.notill_prod
                 FROM {production_schema}.{sg_table} dat, {constants_schema}.county_attributes ca
                 WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
                 

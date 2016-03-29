@@ -308,7 +308,7 @@ class MOVESModule:
                                                    speedfilename=speedfilename, fuelsupfilename=fuelsupfilename, fuelformfilename=fuelformfilename,
                                                    fuelusagefilename=fuelusagefilename, avftfilename=avftfilename, metfilename=metfilename,
                                                    roadtypefilename=roadtypefilename, sourcetypefilename=sourcetypename, vmtfilename=vmtname,
-                                                   monthvmtfilename=monthvmtfilename, dayvmtfilename=dayvmtfilename, hourvmtfilename=hourvmtfilename)
+                                                   monthvmtfilename=monthvmtfilename, dayvmtfilename=dayvmtfilename, hourvmtfilename=hourvmtfilename, server=self.moves_db_host)
 
         # execute function for creating XML import file
         xmlimport.create_import_file(im_filename)

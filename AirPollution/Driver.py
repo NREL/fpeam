@@ -72,6 +72,12 @@ class Driver:
         for run_code in self.run_codes:
             self.feedstock_list.add(run_code[0:2])
 
+        # get feedstock list for transportation data
+        self.transport_feed_list = config.get('transport_feed_list')
+
+        # get yield list for transport data
+        self.yield_list = config.get('yield_list')
+
         # get toggle for running moves by crop
         moves_by_crop = config.get('moves_by_crop')
         # set moves feedstock list depending on toggle for moves_by_crop
@@ -384,7 +390,7 @@ class Driver:
                    DROP TABLE IF EXISTS output_{scenario_name}.averageSpeed;
                    CREATE TABLE output_{scenario_name}.averageSpeed
                    AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
-                   FROM {moves_output_db}.avgspeeddistribution table1
+                   FROM fips_{fips}_{feedstock}_in.avgspeeddistribution table1
                    LEFT JOIN {MOVES_database}.hourday table2
                    ON table1.hourDayID = table2.hourDayID);""".format(**kvals)
         self.db.create(query)
@@ -421,13 +427,15 @@ class Driver:
 
         # now loop through feedstocks and FIPS codes to compute respective transportation emissions
         for feedstock in self.feedstock_list:
-            for fips in fips_list:
-                for logistics_type in self.logistics_list:
-                    vmt = 100  # @TODO: replace with query to get correct county-level VMT data
-                    pop = 1  # @TODO: assuming only one vehicle per trip
-                    silt = 3.9  # @TODO: replace with query to get correct silt data for county
-                    transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, logistics_type=logistics_type, silt=silt)
-                    transportation.calculate_transport_emissions()
+            if feedstock in self.transport_feed_list:
+                for yield_type in self.yield_list:
+                    for fips in fips_list:
+                        for logistics_type in self.logistics_list:
+                            vmt = 100  # @TODO: replace with query to get correct county-level VMT data
+                            pop = 1  # @TODO: assuming only one vehicle per trip
+                            silt = 3.9  # @TODO: replace with query to get correct silt data for county
+                            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, logistics_type=logistics_type, silt=silt, yield_type=yield_type)
+                            transportation.calculate_transport_emissions()
 
         # Create tables, Populate Fertilizer & Chemical tables.
         for feedstock in self.feedstock_list:

@@ -25,7 +25,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
     Computes the emissions associated with off-farm transportation
     """
 
-    def __init__(self, feed, cont, fips, vmt, pop, logistics_type, silt):
+    def __init__(self, feed, cont, fips, vmt, pop, logistics_type, silt, yield_type):
         """
 
         :param feed: feedstock to process
@@ -60,7 +60,9 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         self.kvals['s'] = silt  # unpaved road surface material silt content that corresponds to fips code
         self.kvals['logistics_type'] = logistics_type
-        self.kvals['transport_table'] = config.get('transport_table_dict')[logistics_type]
+
+        feed_type_dict = config.get('feed_type_dict')
+        self.kvals['transport_table'] = config.get('transport_table_dict')[feed_type_dict[feed]][yield_type][logistics_type]
 
         # get toggle for running moves by crop
         moves_by_crop = config.get('moves_by_crop')
@@ -123,10 +125,10 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         query = """ UPDATE output_{scenario_name}.transportation
                     SET total_emissions_per_trip = run_emissions + start_hotel_emissions + rest_evap_emissions,
                         number_trips = (SELECT IFNULL(sum(used_qnty / {capacity}), 0)
-                                        FROM {constants_schema}.{transport_table}
+                                        FROM {production_schema}.{transport_table}
                                         WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}'),
                         total_emissions = (run_emissions + start_hotel_emissions + rest_evap_emissions) * (SELECT IFNULL(sum(used_qnty / {capacity}), 0)
-                                                                                                           FROM {constants_schema}.{transport_table}
+                                                                                                           FROM {production_schema}.{transport_table}
                                                                                                            WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}')
                     WHERE feedstock = '{feed}' AND fips = '{fips}' AND logistics_type = '{logistics_type}';""".format(**self.kvals)
         self.cursor.execute(query)
@@ -263,10 +265,10 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                '{pollutant_name}',
                                '{logistics_type}',
                                (SELECT {c} * {k_a} * ({s} / 12) ^ {a} * ({W} / 3) ^ {b} * IFNULL(sum(used_qnty / {capacity} * {dist}), 0)
-                                FROM {constants_schema}.{transport_table}
+                                FROM {production_schema}.{transport_table}
                                 WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} <= 2) +
                                (SELECT {c} * 2 * {k_a} * ({s} / 12) ^ {a} * ({W} / 3) ^ {b} * IFNULL(sum(used_qnty / {capacity} * 2), 0)
-                                FROM {constants_schema}.{transport_table}
+                                FROM {production_schema}.{transport_table}
                                 WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} > 2));""".format(**self.kvals)
 
             # fugitive dust emissions from secondary paved roads (conventional system)
@@ -277,10 +279,10 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 # @TODO: also check values for feed_id (e.g., corn stover was CORNSV but now it looks like it might be "Corn stover") - check feed_id_dict in config
                 query_sp = """UPDATE output_{scenario_name}.fugitive_dust
                            SET sec_paved_fd_emissions = (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(sum(used_qnty / {capacity} * 0), 0)
-                                                         FROM {constants_schema}.{transport_table}
+                                                         FROM {production_schema}.{transport_table}
                                                          WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} <= 2) +
                                                         (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(sum(used_qnty / {capacity} * ({dist} - 2)), 0)
-                                                         FROM {constants_schema}.{transport_table}
+                                                         FROM {production_schema}.{transport_table}
                                                          WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} > 2)
                            WHERE fips = '{fips}' AND feedstock = '{feed}' AND yearID = '{year}' AND pollutantID = '{pollutant_name}' AND logistics_type = '{logistics_type}';
                            """.format(**self.kvals)
@@ -294,10 +296,10 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 # @TODO: also check values for feed_id (e.g., corn stover was CORNSV but now it looks like it might be "Corn stover") - check feed_id_dict in config
                 query_sp = """UPDATE output_{scenario_name}.fugitive_dust
                        SET sec_paved_fd_emissions = (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(sum(used_qnty / {capacity} * {dist_2}), 0)
-                                                     FROM {constants_schema}.{transport_table}
+                                                     FROM {production_schema}.{transport_table}
                                                      WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} <= 2) +
                                                     (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(sum(used_qnty / {capacity} * (({dist} - 2) + {dist_2})), 0)
-                                                     FROM {constants_schema}.{transport_table}
+                                                     FROM {production_schema}.{transport_table}
                                                      WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} > 2)
                        WHERE fips = '{fips}' AND feedstock = '{feed}' AND yearID = '{year}' AND pollutantID = '{pollutant_name}' AND logistics_type = '{logistics_type}';
                        """.format(**self.kvals)
