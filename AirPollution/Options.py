@@ -42,6 +42,8 @@ class ScenarioOptions:
         self.run_code = None
         self.data = None
 
+        self.kvals = cont.get('kvals')
+
     def _create_dir(self):        
         """
         Initialize the class by setting up file directory to store data.
@@ -117,26 +119,16 @@ class ScenarioOptions:
 
         query = None
 
+        # create tillage dictionary
+        till_dict = {'C': 'convtill', 'R': 'reducedtill', 'N': 'notill'}
+
         # corn grain
         if run_code.startswith('CG'):
             # query conventional till data. For specific state and county
             # fips, state, harv_ac, prod, yield
-            if run_code.startswith('CG_C'):
-                query = '''SELECT ca."fips", ca."st", dat."convtill_harv_ac", dat."convtill_prod", dat."convtill_yield"
-                FROM "cg_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
-             
-            # query reduced till
-            elif run_code.startswith('CG_R'):
-                query = '''SELECT ca."fips", ca."st", dat."reducedtill_harv_ac", dat."reducedtill_prod", dat."reducedtill_yield"
-                FROM "cg_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
-            
-            # query no till data
-            elif run_code.startswith('CG_N'):
-                query = '''SELECT ca."fips", ca."st", dat."notill_harv_ac", dat."notill_prod", dat."notill_yield"
-                FROM "cg_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
-            
+
             # grab data for irrigation
-            elif run_code.startswith('CG_I'):
+            if run_code.startswith('CG_I'):
 
                 # CTE (WITH statment) is queried in the constant cg_irrigated_states. gets data for different
                 # vehicles and their attributes (fuel, horse power)
@@ -146,55 +138,52 @@ class ScenarioOptions:
                               'L': 'lpg',
                               'C': 'natgas'}
 
-                fuel_type = fuel_types[run_code[-1]]
+                self.kvals['fuel_type'] = fuel_types[run_code[-1]]
 
                 # @TODO: convert config usage
                 # @TODO: remove hardcoded schemas
-                query = """
-                WITH IRR AS (
-                    SELECT 
-                        "state", "fuel", "hp", "percent" AS "perc", "hrsperacre" AS "hpa"
-                    FROM "constantvals"."cg_irrigated_states"
-                    WHERE "cg_irrigated_states"."fuel" ILIKE '""" + fuel_type + """'
-                )
-                SELECT 
-                    ca."fips", ca."st", dat."total_harv_ac" * irr."perc" AS "acres", dat."total_prod", irr."fuel", irr."hp", irr."perc", irr."hpa"
-                FROM "constantvals"."county_attributes" ca
-                LEFT JOIN "bts2dat_55"."cg_data" dat ON ca."fips" = dat."fips"
-                LEFT JOIN irr ON irr."state" ILIKE ca."st"
-                                
-                WHERE ca."st" ILIKE irr."state"
-                ORDER BY ca."fips" ASC;
-                """  # @TODO: remove hardcoding of schema and tables
+                query = """SELECT ca.fips, ca.st, dat.total_harv_ac * irr.perc AS acres, dat.total_prod, irr.fuel, irr.hp, irr.perc, irr.hpa
+                FROM {constants_schema}.county_attributes ca
+                LEFT JOIN {production_schema}.{cg_table} dat ON ca.fips = dat.fips
+                LEFT JOIN (SELECT state, fuel, hp, percent AS perc, hrsperacre AS hpa
+                           FROM {constants_schema}.cg_irrigated_states
+                           WHERE cg_irrigated_states.fuel LIKE '{fuel_type}'
+                           ) AS irr ON irr.state LIKE ca.st
+                WHERE ca.st LIKE irr.state
+                ORDER BY ca.fips ASC;
+                """.format(**self.kvals)  # @TODO: remove hardcoding of schema and tables
+                print query
+            else:
+                # set value for tillage type
+                self.kvals['till_type'] = till_dict[run_code[3]]
+
+                query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
+                        FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
+                        WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('CS'):
             
-            if run_code == 'CS_RT':
-                query = '''SELECT ca."fips", ca."st", dat."reducedtill_harv_ac", dat."reducedtill_prod", dat."reducedtill_yield"
-                FROM "cs_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
+            # set value for tillage type
+                self.kvals['till_type'] = till_dict[run_code[3]]
 
-            elif run_code == 'CS_NT':
-                query = '''SELECT ca."fips", ca."st", dat."notill_harv_ac", dat."notill_prod", dat."notill_yield"
-                FROM "cs_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
+                query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
+                        FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
+                        WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('WS'):
 
-            if run_code == 'WS_RT':
-                query = ''' SELECT ca."fips", ca."st", dat."reducedtill_harv_ac", dat."reducedtill_prod", dat."reducedtill_yield"
-                            FROM "ws_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca
-                            WHERE dat."fips" = ca."fips" AND dat."prod" > 0.0
-                            ORDER BY ca."fips" ASC;'''
+            # set value for tillage type
+                self.kvals['till_type'] = till_dict[run_code[3]]
 
-            elif run_code == 'WS_NT':
-                query = ''' SELECT ca."fips", ca."st", dat."notill_harv_ac", dat."notill_prod", dat."notill_yield"
-                            FROM "ws_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca
-                            WHERE dat."fips" = ca."fips" AND dat."prod" > 0.0
-                            ORDER BY ca."fips" ASC;'''
+                query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
+                        FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
+                        WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('SG'):
             if self.query_sg:
-                query = '''SELECT ca."fips", ca."st", dat."harv_ac", dat."prod"
-                FROM "sg_data" dat, ''' + self.db.constants_schema + '''."county_attributes" ca WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
+                query = '''SELECT ca.fips, ca.st, dat.harv_ac, dat.prod
+                FROM {production_schema}.{sg_table} dat, {constants_schema}.county_attributes ca
+                WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
                 
                 # we have 30 scenarios for SG to run, but only want one to query the database once
                 self.query_sg = False
@@ -202,8 +191,9 @@ class ScenarioOptions:
         elif run_code.startswith('FR'):
             
             if run_code == 'FR':
-                query = '''SELECT ca."fips", ca."st", dat."fed_minus_55"
-                FROM ''' + self.db.constants_schema + '''."county_attributes" ca, "fr_data" dat WHERE dat."fips" = ca."fips" ORDER BY ca."fips" ASC;'''
+                query = ''' SELECT ca.fips, ca.st, dat.fed_minus_55
+                            FROM {production_schema}.{fr_table} dat, {constants_schema}.county_attributes ca
+                            WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         return query
 
