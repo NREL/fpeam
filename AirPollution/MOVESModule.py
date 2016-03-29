@@ -34,7 +34,7 @@ class MOVESModule:
     Generate XML files for import and runspec files and creates batch files for importing and running MOVES
     """
 
-    def __init__(self, crop, fips, yr_list, path_moves, save_path_importfiles, save_path_runspecfiles, save_path_countyinputs, save_path_nationalinputs, cursor):
+    def __init__(self, crop, fips, yr_list, path_moves, save_path_importfiles, save_path_runspecfiles, save_path_countyinputs, save_path_nationalinputs, db):
         self.crop = crop  # crop name
         self.fips = fips  # list of FIPS codes
         self.yr_list = yr_list  # scenario year list
@@ -56,7 +56,7 @@ class MOVESModule:
         self.age_distribution = config.get('age_distribution')  # age distribution dictionary for MOVES runs (varies by scenario year)
         self.vmt_fraction = config.get('vmt_fraction')  # fraction of VMT by road type
         self.fuelfraction = config.get('fuel_fraction')  # fuel fraction
-        self.cursor = cursor
+        self.db = db  # database object
 
     def _get_and_write_data_file_lines(self, query, fname):
         """
@@ -68,11 +68,7 @@ class MOVESModule:
         """
 
         # connect to MOVES database
-        # @TODO: change to use Database.py once all data in MySQL
-        # for some reason with statement gets cursor, not connection
-        with pymysql.connect(host=self.moves_db_host, user=self.moves_db_user, password=self.moves_db_pass, db=self.moves_database) as cursor:
-            # create cursor
-            # cursor = conn.cursor()
+        with self.db.connect() as cursor:
 
             # execute query
             cursor.execute(query)
@@ -245,12 +241,11 @@ class MOVESModule:
         query = """SELECT scen_id
                    FROM {constants_schema}.moves_metadata
                    WHERE scen_id = "{fips}_{crop}_{year}_{month}_{day}";""".format(constants_schema=self.constants_schema, fips=fips, crop=self.crop, day=self.moves_timespan['d'][0], month=self.moves_timespan['mo'][0], year=self.yr)
-        self.cursor.execute(query)
-        scen_id_output = self.cursor.fetchall()
+        scen_id_output = self.db.output(query)
 
         # set moves_output_exists default to false
         moves_output_exists = False
-        if scen_id_output:
+        if len(scen_id_output) > 0:
             # if query for MOVES scenario ID returns a value, check to make sure matches this FIPS, yearID, monthID, and dayID and then set moves_output_exists to true
             if scen_id_output[0][0] == "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=self.crop, day=self.moves_timespan['d'][0], month=self.moves_timespan['mo'][0], year=self.yr): # scenario ID for MOVES runs
                 moves_output_exists = True

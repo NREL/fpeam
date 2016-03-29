@@ -35,6 +35,7 @@ import Transportation
 import pymysql
 
 
+
 class Driver:
 
     def __init__(self, model_run_title, run_codes, year_dict, db):
@@ -82,6 +83,20 @@ class Driver:
         # get list of logistics system(s) being modeled
         self.logistics_list = config.get('logistics_type')
 
+        # create kvals dictionary for string formatting
+        self.kvals = {'constants_schema': config.get('constants_schema'),
+                      'production_schema': config.get('production_schema'),
+                      'moves_database': config.get('moves_database'),
+                      'moves_output_db': config.get('moves_output_db'),
+                      'nei_data_by_county': config.get('nei_data_by_county'),
+                      'feed_tables': config.get('feed_tables'),
+                      'chem_tables': config.get('chem_tables')}
+
+        for feed in self.feedstock_list:
+            feed = feed.lower()
+            self.kvals['%s_chem_table' % (feed,)] = self.kvals['chem_tables'][feed]
+            self.kvals['%s_table' % (feed, )] = self.kvals['feed_tables'][feed]
+
         # container to pass info around
         self.cont = Container.Container()
         self.cont.set(key='model_run_title', data=self.model_run_title)
@@ -89,18 +104,13 @@ class Driver:
         self.cont.set(key='path', data=os.path.join(config.get('project_path'), model_run_title))
         self.cont.set(key='db', data=db)
         self.cont.set(key='qr', data=QueryRecorder.QueryRecorder(_path=self.cont.get('path')))
+        self.cont.set(key='kvals', data=self.kvals)
 
         # create Batch runner
         self.batch = Batch.Batch(cont=self.cont)
 
-        # create kvals dictionary for string formatting
-        self.kvals = dict()
-        self.kvals['constants_schema'] = config.get('constants_schema')  # constants schema
-        self.kvals['moves_database'] = config.get('moves_database')  # MOVES database name (default input data)
-        self.kvals['moves_db_user'] = config.get('moves_db_user')  # username for MOVES database
-        self.kvals['moves_db_pass'] = config.get('moves_db_pass')  # password for MOVES database
-        self.kvals['moves_db_host'] = config.get('moves_db_host')  # host for MOVES database
-        self.kvals['moves_output_db'] = config.get('moves_output_db')  # MOVES output database
+        # set database object
+        self.db = db
 
     def _check_title(self, title):
         """
@@ -124,7 +134,7 @@ class Driver:
 
         return True
 
-    def  setup_nonroad(self):
+    def setup_nonroad(self):
         """
         Set up the NONROAD program by creating option, allocation, population, and batch files.
 
@@ -249,19 +259,11 @@ class Driver:
         
         :param fips: county FIPS code
         """
-
-        # open SQL connection and create cursor
-        # @TODO: change to use Database.py once all data in MySQL
-        self.connection = pymysql.connect(host=self.kvals['moves_db_host'],
-                                          user=self.kvals['moves_db_user'],
-                                          password=self.kvals['moves_db_pass'],
-                                          db=self.kvals['moves_database'])
-        self.cursor = self.connection.cursor()
+        db = self.cont.get('db')
 
         # create table for moves metadata
         query = "CREATE TABLE IF NOT EXISTS {constants_schema}.moves_metadata (scen_id text);".format(**self.kvals)
-        self.cursor.execute(query)
-        self.connection.commit()
+        db.create(query)
 
         # list of file paths for MOVES inputs and outputs   
         path_list = [self.save_path_importfiles, self.save_path_runspecfiles, self.save_path_outputs, self.save_path_countyinputs, self.save_path_nationalinputs]
@@ -278,7 +280,7 @@ class Driver:
             # initialize MOVESModule
             moves_mod = MOVESModule.MOVESModule(crop=feed, fips=fips, yr_list=self.yr, path_moves=self.path_moves,
                                                 save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles,
-                                                save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs, cursor=self.cursor)
+                                                save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs, db=db)
 
             # default values used for running MOVES, actual VMT later used in save_data to compute total emission
             # @TODO: if we decide that rates does vary with VMT, replace vmt_short_haul with database query to calculate county-level VMT (need to get data into database first)
@@ -309,7 +311,6 @@ class Driver:
             logger.debug('Batch file MOVES for importing data: %s' % (outputs['run_filename'], ))
             batch_run_dict[feed] = outputs['run_filename']
 
-        self.connection.close()
         return batch_run_dict
 
     def run_moves(self, batch_run_dict, fips):
@@ -320,12 +321,6 @@ class Driver:
         :param fips = fips code for county
         :return:
         """
-        # @TODO: change to use Database.py once all data in MySQL
-        self.connection = pymysql.connect(host=self.kvals['moves_db_host'],
-                                          user=self.kvals['moves_db_user'],
-                                          password=self.kvals['moves_db_pass'],
-                                          db=self.kvals['moves_database'])
-        self.cursor = self.connection.cursor()
 
         for feed in self.moves_feedstock_list:
 
@@ -341,9 +336,7 @@ class Driver:
                 self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.yr[feed])
                 query_moves_metadata = """  INSERT INTO {constants_schema}.moves_metadata(scen_id)
                                             VALUES ('{moves_scen_id}')""".format(**self.kvals)
-                self.cursor.execute(query_moves_metadata)
-                self.connection.commit()
-                self.cursor.close()
+                self.db.input(query_moves_metadata)
             else:
                 # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
@@ -376,15 +369,13 @@ class Driver:
 
         # compute emissions from off-farm transportation
         # first, join tables for average speed and "dayhour" and create new table for transportation data
-        # @TODO: convert to Database.py usage
-        connection = pymysql.connect(host=config['moves_db_host'], user=config['moves_db_user'], password=config['moves_db_pass'], db=config['moves_database'])
-        cursor = connection.cursor()
 
         kvals = dict()
         kvals['fips'] = fips_list[0]  # avg speed distribution is the same for all FIPS codes
         kvals['feedstock'] = list(self.moves_feedstock_list)[0]  # and for all crops, so just pick one from each list
         kvals['scenario_name'] = self.model_run_title
         kvals['MOVES_database'] = config['moves_database']
+        kvals['moves_output_db'] = config.get('moves_output_db')
 
         # generate average speed table
         # @ TODO: creates schema "output_{scenario_name}" - might want to do this elsewhere
@@ -393,10 +384,10 @@ class Driver:
                    DROP TABLE IF EXISTS output_{scenario_name}.averageSpeed;
                    CREATE TABLE output_{scenario_name}.averageSpeed
                    AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
-                   FROM fips_{fips}_{feedstock}_in.avgspeeddistribution table1
+                   FROM {moves_output_db}.avgspeeddistribution table1
                    LEFT JOIN {MOVES_database}.hourday table2
                    ON table1.hourDayID = table2.hourDayID);""".format(**kvals)
-        cursor.execute(query)
+        self.db.create(query)
 
         # create transportation output table
         #  @ TODO: may want to move this query for table creation to another location
@@ -412,7 +403,7 @@ class Driver:
                                                                        total_emissions_per_trip float,
                                                                        number_trips float,
                                                                        total_emissions float);""".format(**kvals)
-        cursor.execute(query)
+        self.db.create(query)
 
         # create transportation output table
         #  @ TODO: may want to move this query for table creation to another location
@@ -426,8 +417,7 @@ class Driver:
                                                                      sec_paved_fd_emissions float,
                                                                      total_fd_emissions float);""".format(**kvals)
 
-        cursor.execute(query)
-        cursor.close()
+        self.db.create(query)
 
         # now loop through feedstocks and FIPS codes to compute respective transportation emissions
         for feedstock in self.feedstock_list:

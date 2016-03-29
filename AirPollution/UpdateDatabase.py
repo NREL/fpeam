@@ -17,7 +17,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.document_file = "UpdateDatabase"
 
-        query = '''DROP SCHEMA IF EXISTS %s CASCADE;
+        query = '''DROP SCHEMA IF EXISTS %s;
                    CREATE SCHEMA %s;''' % (cont.get('model_run_title'), cont.get('model_run_title'))
         self.db.create(query)
 
