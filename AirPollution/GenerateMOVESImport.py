@@ -25,7 +25,7 @@ class GenerateMOVESImport:
     """
     
     def __init__(self, crop, fips, yr, moves_timespan, agefilename, speedfilename, fuelsupfilename, fuelformfilename, fuelusagefilename, avftfilename, metfilename,
-                 roadtypefilename, sourcetypefilename, vmtfilename, monthvmtfilename, dayvmtfilename, hourvmtfilename):
+                 roadtypefilename, sourcetypefilename, vmtfilename, monthvmtfilename, dayvmtfilename, hourvmtfilename, server):
         """
 
         :param crop:
@@ -78,7 +78,9 @@ class GenerateMOVESImport:
         
         self.db_in = "fips_{fips}_{crop}_in".format(fips=fips, crop=crop)  # input database for MOVES runs
         self.scenid = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=crop, day=self.d, month=self.mo, year=self.yr)  # scenario ID for MOVES runs
-    
+
+        self.server = server  # host for MOVES server
+
     def geo_selection(self):
         """
         Create XML element tree for geographic selection
@@ -265,7 +267,7 @@ class GenerateMOVESImport:
         """
 
         # XML for database selection
-        databasesel = etree.Element("databaseselection", servername="localhost")
+        databasesel = etree.Element("databaseselection", servername=self.server)
         databasesel.set("databasename", self.db_in)
 
         return databasesel
