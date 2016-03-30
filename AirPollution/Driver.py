@@ -32,8 +32,6 @@ import os
 import subprocess
 import Logistics as Logistics
 import Transportation
-import pymysql
-
 
 
 class Driver:
@@ -96,7 +94,8 @@ class Driver:
                       'moves_output_db': config.get('moves_output_db'),
                       'nei_data_by_county': config.get('nei_data_by_county'),
                       'feed_tables': config.get('feed_tables'),
-                      'chem_tables': config.get('chem_tables')}
+                      'chem_tables': config.get('chem_tables'),
+                      'scenario_name': model_run_title}
 
         for feed in self.feedstock_list:
             feed = feed.lower()
