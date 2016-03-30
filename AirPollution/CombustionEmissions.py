@@ -50,6 +50,8 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         self.voc_conversion = None
         self.pm10topm25 = None
 
+        self.cont = cont
+
     def populate_tables(self, run_codes):
         """
 
@@ -108,7 +110,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                             # _get_description updates the voc_conversion, nh3_ef and lhv for each fuel type
                             scc = row[2]
                             hp = row[3]
-                            description, operation = self._get_description(run_code, scc, hp)
+                            description, operation = self._get_description(run_code, scc)
                             # check if it is a feedstock and operation that should be recorded.
                             if feedstock == 'FR' or self.operation_dict[feedstock][operation[0]]:
                                 # all emissions are recorder in metric tons.
@@ -137,15 +139,19 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                                 if operation and operation[0] == 'N' and feedstock == 'CG':
                                     # add to cs.
                                     if self.operation_dict['CS'][operation[0]] and self.alloc['CS'] != 0:
-                                        self._record(feed='CS', row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
+                                        self._record(feed='CS', row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10,
+                                                     pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
                                     # add to ws.
                                     if self.operation_dict['WS'][operation[0]] and self.alloc['WS'] != 0:
-                                        self._record(feed='WS', row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
+                                        self._record(feed='WS', row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10,
+                                                     pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
                                     # add to corn grain.
-                                    self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
+                                    self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10,
+                                                 pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=self.alloc)
                                 # don't change allocation.
                                 else:
-                                    self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10, pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=None)
+                                    self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10,
+                                                 pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=None)
 
                                 # change constants back to normal, b/c they can be changes in _get_description()
                                 self.lhv = 128450.0 / 1e6
@@ -182,17 +188,66 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         :param alloc:
         :return:
         @param feed:
-        @param alloc: dict(string: int) Allocation of non-harvest emmissions between cg, cs, and ws
+        @param alloc: dict(string: int) Allocation of non-harvest emissions between cg, cs, and ws
         """
 
-        # multiply the emmissions by allocation constant.
+        # multiply the emissions by allocation constant.
         if alloc is not None:
-            # @TODO: refactor to not do multiple assignments on one giant, hopelessly unreadable line
-            fuel_cons, thc, voc, co, nox, co2, so2, pm10, pm25, nh3 = fuel_cons * alloc[feed], thc * alloc[feed], voc * alloc[feed], co * alloc[feed], nox * alloc[feed], co2 * alloc[feed], so2 * alloc[feed], pm10 * alloc[feed], pm25 * alloc[feed], nh3 * alloc[feed]
-        writer.writerow((row, scc, hp, fuel_cons, thc, voc, co, nox, co2, so2, pm10, pm25, nh3, run_code,))
-        # @TODO: convert to val=dict() format
-        q = """INSERT INTO %s.%s_raw ("fips", "scc", "hp", "thc", "voc", "co", "nox", "co2", "sox", "pm10", "pm25", "fuel_consumption", "nh3", "description", "run_code") 
-               VALUES ('%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')""" % (self.db.schema, feed, row, scc, hp, thc, voc, co, nox, co2, so2, pm10, pm25, fuel_cons, nh3, description, run_code)  # @TODO: refactor to use string formatting
+            self.kvals = {'fuel_cons': fuel_cons * alloc[feed],
+                          'thc': thc * alloc[feed],
+                          'voc': voc * alloc[feed],
+                          'co': co * alloc[feed],
+                          'nox': nox * alloc[feed],
+                          'co2': co2 * alloc[feed],
+                          'so2': so2 * alloc[feed],
+                          'pm10': pm10 * alloc[feed],
+                          'pm25': pm25 * alloc[feed],
+                          'nh3': nh3 * alloc[feed],
+                          'description': description,
+                          'row': row,
+                          'scc': scc,
+                          'hp': hp,
+                          'run_code': run_code,
+                          'scenario_name': self.cont.get('model_run_title'),
+                          'feed': feed}
+        else:
+            self.kvals = {'fuel_cons': fuel_cons,
+                          'thc': thc,
+                          'voc': voc,
+                          'co': co,
+                          'nox': nox,
+                          'co2': co2,
+                          'so2': so2,
+                          'pm10': pm10,
+                          'pm25': pm25,
+                          'nh3': nh3,
+                          'description': description,
+                          'row': row,
+                          'scc': scc,
+                          'hp': hp,
+                          'run_code': run_code,
+                          'scenario_name': self.cont.get('model_run_title'),
+                          'feed': feed}
+
+        writer.writerow((self.kvals['row'], self.kvals['scc'], self.kvals['hp'], self.kvals['fuel_cons'], self.kvals['thc'], self.kvals['voc'], self.kvals['co'], self.kvals['nox'],
+                         self.kvals['co2'], self.kvals['so2'], self.kvals['pm10'], self.kvals['pm25'], self.kvals['nh3'], self.kvals['run_code'],))
+
+        q = """INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
+               VALUES ( {row},
+                        {scc},
+                        {hp},
+                        {thc},
+                        {voc},
+                        {co},
+                        {nox},
+                        {co2},
+                        {so2},
+                        {pm10},
+                        {pm25},
+                        {fuel_cons},
+                        {nh3},
+                        '{description}',
+                        '{run_code}')""".format(**self.kvals)
         queries.append(q)
 
     def update_sg(self, run_code):
@@ -202,7 +257,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         for each fips and for each operation year, add all the same ones and make a single row.
         :param run_code: run code for NONROAD
         """
-
+        # @TODO: what is going on here? why insert and then delete? this doesn't make any sense
         # insert added data to sg_raw.
         logger.info('Inserting data for run code: %s' % (run_code, ))
         self._insert_sg_data()
@@ -218,65 +273,65 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         """
         # when inserting, leave some of the slots blank that do not matter.
         # @TODO: not sure we should be using 0s for 'blanks'; maybe should use NULL
-        # @TODO: refactor to use string formatting
+
+        self.kvals = self.cont.get('kvals')
+
         query = """
-            INSERT INTO """ + self.db.schema + """."sg_raw"
-            WITH 
-                raw AS
-                (
-                    SELECT DISTINCT "fips", "run_code", "description",
-                        sum("nox")  AS "nox",
-                        sum("nh3")  AS "nh3",
-                        sum("sox")  AS "sox",
-                        sum("voc")  AS "voc",
-                        sum("pm10") AS "pm10", 
-                        sum("pm25") AS "pm25",
-                        sum("co")   AS "co",
-                        sum("fuel_consumption") AS "fuel_consumption"
-                    FROM """ + self.db.schema + """."sg_raw"
-                    GROUP BY "fips", "run_code", "description"
-                )
-                (
-                SELECT 
-                    dat."fips" AS "fips", 
-                    '' AS "scc", 0 AS "hp", (raw."fuel_consumption") AS "fuel_consumption", 0 AS "thc",
-                    (raw."voc") AS "voc",
-                    (raw."co") AS "co",
-                    (raw."nox") AS "nox", 
-                    0 AS "co2",
-                    (raw."sox") AS "sox",
-                    (raw."pm10") AS "pm10", 
-                    (raw."pm25") AS "pm25",
-                    (raw."nh3") AS "nh3",  
-                    raw."description" AS "description",
-                    raw."run_code" AS "run_code", 
-                    0 AS "fug_pm10", 0 AS "fug_pm25"
-                FROM """ + self.db.production_schema + """."sg_data" dat
-                LEFT JOIN raw ON raw."fips" = dat."fips"
-                );"""
+                INSERT INTO {scenario_name}.sg_raw
+                SELECT
+                    dat.fips AS fips,
+                    '' AS scc,
+                    0 AS hp,
+                    (raw.fuel_consumption) AS fuel_consumption,
+                    0 AS thc,
+                    (raw.voc) AS voc,
+                    (raw.co) AS co,
+                    (raw.nox) AS nox,
+                    0 AS co2,
+                    (raw.sox) AS sox,
+                    (raw.pm10) AS pm10,
+                    (raw.pm25) AS pm25,
+                    (raw.nh3) AS nh3,
+                    raw.description AS description,
+                    raw.run_code AS run_code,
+                    0 AS fug_pm10,
+                    0 AS fug_pm25
+                FROM {production_schema}.sg_data dat
+                LEFT JOIN (SELECT   DISTINCT fips, run_code, description,
+                                    sum(nox)  AS nox,
+                                    sum(nh3)  AS nh3,
+                                    sum(sox)  AS sox,
+                                    sum(voc)  AS voc,
+                                    sum(pm10) AS pm10,
+                                    sum(pm25) AS pm25,
+                                    sum(co)   AS co,
+                                    sum(fuel_consumption) AS fuel_consumption
+                           FROM {scenario_name}.sg_raw
+                           GROUP BY fips, run_code, description) raw ON raw.fips = dat.fips;""".format(**self.kvals)
+
         self.db.input(query)
     
     def _delete_sg_data(self):
         """
         Deletes unwanted data in sg_raw. b/c of multiple entries for each run_code.
         """
+        self.kvals = self.cont.get('kvals')
+
         query = """
-            DELETE FROM """ + self.db.schema + """."sg_raw"
-            WHERE sg_raw.hp != 0 or sg_raw."run_code" IS NULL;  
-            """
+            DELETE FROM {scenario_name}.sg_raw
+            WHERE sg_raw.hp != 0 or sg_raw.run_code IS NULL;
+            """.format(**self.kvals)
+
         self.db.input(query)
 
-    def _get_description(self, run_code, scc, hp):
+    def _get_description(self, run_code, scc):
         """
 
         :param run_code: run code for NONROAD run
         :param scc: source category code for equipment
-        :param hp: power rating of equipment
         :return:
         """
-        # cast hp as a number
-        # @TODO: this probably shouldn't be casting to an int; no reason horsepower couldn't be a float
-        hp = int(hp)
+
         # in case operation does not get defined.
         operation = ''
         description = ''

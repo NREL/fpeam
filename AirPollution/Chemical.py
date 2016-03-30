@@ -20,6 +20,8 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         self.document_file = "Chemical"
         # pesticides.
         self.pest_feed = pest_feed
+        self.cont = cont
+        self.kvals = cont.get('kvals')
 
     def set_chemical(self, feed):
         """
@@ -53,15 +55,15 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         (acres) * (lbs VOC/acre) * (lbs active/lbs VOC) * (lbs VOC/lbs active) * (mt/lbs) = mt VOC
         """
 
-        chem_query = """INSERT INTO {production_schema}.{cg_chem_table}
+        chem_query = """INSERT INTO {scenario_name}.{cg_chem_table}
                         (
                         SELECT  cg.fips,
-                                (2461850051) AS "SCC",
-                                ((cg.total_harv_ac * pest.EF * 0.9 * 0.835) * 0.907018474 / 2000.0) AS "VOC",
-                                ('Pesticide Emissions') AS "Description"
+                                (2461850051) AS SCC,
+                                ((cg.total_harv_ac * pest.EF * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
+                                ('Pesticide Emissions') AS Description
                         FROM {production_schema}.{cg_table} cg, {constants_schema}.CG_pest_app_factor pest
                         WHERE substr(fips, 1, 2) = pest.STFIPS
-                        )""".format(**self.cont)
+                        )""".format(**self.kvals)
 
         return chem_query
 
@@ -73,19 +75,20 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         emmisions (mt VOC)
         """
 
-        chem_query = """INSERT INTO {production_schema}.{sg_chem_table}
+        chem_query = """INSERT INTO {scenario_name}.{sg_chem_table}
                         (
                         SELECT sg.fips,
-                                (2461850099) AS "SCC",
+                                (2461850099) AS SCC,
                                 (
                                 (
-                                 sg.harv_ac * 0.1 * (0.5) +
-                                 sg.harv_ac * 0.1 * (1.0) +
-                                 sg.harv_ac * 0.1 * (1.0) +
-                                 sg.harv_ac * 0.1 * (1.5)
+                                 sg.total_harv_ac * 0.1 * (0.5) +
+                                 sg.total_harv_ac * 0.1 * (1.0) +
+                                 sg.total_harv_ac * 0.1 * (1.0) +
+                                 sg.total_harv_ac * 0.1 * (1.5)
                                 ) * 0.9 * 0.835
-                                ) * 0.90718474 / 2000.0 AS "VOC",
-                                ('Establishment Year: quinclorac + Atrazine + 2-4-D-Amine') AS "Description"
+                                ) * 0.90718474 / 2000.0 AS VOC,
+                                ('Establishment Year: quinclorac + Atrazine + 2-4-D-Amine') AS Description
                         FROM {production_schema}.{sg_table} sg
-                        )"""
+                        )""".format(**self.kvals)
+
         return chem_query

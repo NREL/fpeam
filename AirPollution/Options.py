@@ -157,7 +157,8 @@ class ScenarioOptions:
 
                 query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
                         FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                        WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                        WHERE dat.fips = ca.fips
+                        ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('CS'):
             
@@ -166,22 +167,26 @@ class ScenarioOptions:
 
                 query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
                         FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                        WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                        WHERE dat.fips = ca.fips
+                        ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('WS'):
 
             # set value for tillage type
                 self.kvals['till_type'] = till_dict[run_code[3]]
 
+                # @TODO: why does this query filter for production data greater than 0.0? Should all crops should do this?
                 query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
                         FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                        WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                        WHERE dat.fips = ca.fips AND dat.prod > 0.0
+                        ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('SG'):
             if self.query_sg:
-                query = '''SELECT ca.fips, ca.st, dat.notill_harv_ac, dat.notill_prod
-                FROM {production_schema}.{sg_table} dat, {constants_schema}.county_attributes ca
-                WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                query = ''' SELECT ca.fips, ca.st, dat.notill_harv_ac, dat.notill_prod
+                            FROM {production_schema}.{sg_table} dat, {constants_schema}.county_attributes ca
+                            WHERE dat.fips = ca.fips
+                            ORDER BY ca.fips ASC;'''.format(**self.kvals)
                 
                 # we have 30 scenarios for SG to run, but only want one to query the database once
                 self.query_sg = False
@@ -191,7 +196,8 @@ class ScenarioOptions:
             if run_code == 'FR':
                 query = ''' SELECT ca.fips, ca.st, dat.fed_minus_55
                             FROM {production_schema}.{fr_table} dat, {constants_schema}.county_attributes ca
-                            WHERE dat.fips = ca.fips ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                            WHERE dat.fips = ca.fips
+                            ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         return query
 

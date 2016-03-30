@@ -8,11 +8,6 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
     Adds emmisions to N0X and NH3, which come from the production of fertilizers.
     """
 
-    # order of fertilizer list.
-    faa, fan, fas, fur, fns = 0, 1, 2, 3, 4  # @TODO: refactor to remove implicit ordering
-    # order of feed stocks in the fertilizer list.
-    fcs, fws, fcg, fsg = 'CSF', 'WSF', 'CGF', 'SGF'  # @TODO: remove; what is this? Why define these instead of using the strings directly? The strings map to keys that were definied in main.py but now ultimately come from config.ini. Doesn't seem to be used anywhere else.
-
     def __init__(self, cont, fert_feed_stock, fert_dist=None):
         SaveDataHelper.SaveDataHelper.__init__(self, cont=cont)
         # gets used to save query to a text file for debugging purposes.
@@ -20,9 +15,11 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         # add fert distributions here. List of fertilizers.
         self.fert_dist = self.get_frt_distribution(fert_distributions=fert_dist)
         self.fert_feed_stock = fert_feed_stock
-        self.n_fert_ef = config['n_fert_ef'] 
+        self.n_fert_ef = config['n_fert_ef']  # dictionary of fertilizer emission factor
+        self.scc_dict = config['scc_dict']  # dictionary of fertilizer source category codes
+        self.descrip_dict = config['descrip_dict']  # dictionary of fertilizer descriptions
         self.n_fert_app = config['n_fert_app']  # @TODO: change to DB query based FIPS
-        self.kvals = {}
+        self.cont = cont
 
     def set_fertilizer(self, feed):
         """
@@ -39,13 +36,13 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         if feed != 'FR':
             # grab all of the queries.
             query = None
-            if feed == 'CS' and self.fert_feed_stock['CSF'] is True:
+            if feed == 'CS':
                 query = self.__corn_stover__(feed)
-            elif feed == 'WS' and self.fert_feed_stock['WSF'] is True:
+            elif feed == 'WS':
                 query = self.__wheat_straw__(feed)
-            elif feed == 'CG' and self.fert_feed_stock['CGF'] is True:
+            elif feed == 'CG':
                 query = self.__corn_grain__()
-            elif feed == 'SG' and self.fert_feed_stock['SGF'] is True:
+            elif feed == 'SG':
                 query = self.__switchgrass__(feed)
             # if a query was created, execute it.
             if query is not None:
@@ -66,8 +63,8 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
             else:
                 if feed is not 'SG':
                     query = """SELECT * 
-                            FROM """ + self.db.constants_schema + """.n_fert_distribution""" 
-                    fert_dist = self.db.output(query, self.db.constants_schema)
+                            FROM {constants_schema}.n_fert_distribution""".format(**self.kvals)
+                    fert_dist = self.db.output(query)
                     # convert db data to usable strings.
                     fert_dist = [str(f) for f in fert_dist[0]]
                 # switch grass only uses nitrogen solution nsol.
@@ -90,185 +87,76 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         E_NH3 = sum(Prod * N_app * N_share * N_fert_percent_ef / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0) over all fertilizer types 
         
         """
-        # @TODO: rewrite to use string formatting and make more readable
-        # @TODO: remove feed var. isn't it always the same in each of these 'make query' functions?
 
-        ef_nox = 0
-        ef_nh3 = 0
-        for numfert in range(0,5):
-           ef_nox = ef_nox + float(self.n_fert_app[feed]) * float(self.fert_dist[feed][numfert]) * float(self.n_fert_ef['NOX'][numfert]) / 100.0 * 30.0 / 14.0 * 0.90718474 / 2000.0 # emission factor: total mt NO per dt feedstock
-           ef_nh3 = ef_nh3 + float(self.n_fert_app[feed]) * float(self.fert_dist[feed][numfert]) * float(self.n_fert_ef['NH3'][numfert]) / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0 # emission factor: total mt NH3 per dt feedstock 
-        
-        kvals = {}        
-        kvals['nox'] = ef_nox
-        kvals['nh3'] = ef_nh3
-        
-        fert_query =("""INSERT INTO """ + feed + """_nfert
-        SELECT feed.fips, 
-        feed.prod * {nox} AS "NOX",
-        feed.prod * {nh3} AS "NH3",
-        (2801700004) AS SCC,
-        'Fertilizer Emissions' AS "Description"
-        FROM """ + self.db.production_schema + '.' + feed + """_data feed
-        GROUP BY feed.fips;""").format(**kvals)
-        
-        return fert_query 
-        
+        self.kvals = self.cont.get('kvals')
+
+        for fert in self.descrip_dict:
+            self.kvals['scc'] = self.scc_dict[fert]
+            self.kvals['description'] = self.descrip_dict[fert]
+
+            # emission factor: total mt NO per dt feedstock
+            self.kvals['emissions_nox'] = float(self.n_fert_app[feed]) * float(self.fert_dist[feed][fert]) * float(self.n_fert_ef['NOX'][fert]) / 100.0 * 30.0 / 14.0 * 0.90718474 / 2000.0
+            # emission factor: total mt NH3 per dt feedstock
+            self.kvals['emissions_nh3'] = float(self.n_fert_app[feed]) * float(self.fert_dist[feed][fert]) * float(self.n_fert_ef['NH3'][fert]) / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0
+
+            fert_query = """INSERT INTO {scenario_name}.{feed}_nfert
+                            SELECT feed.fips,
+                            feed.total_prod * {emissions_nox} AS NOX,
+                            feed.total_prod * {emissions_nh3} AS NH3,
+                            ({scc}) AS SCC,
+                            '{description}' AS Description
+                            FROM {production_schema}.{feed}_data feed
+                            GROUP BY feed.fips;""".format(**self.kvals)
+
+        return fert_query
 
     def __wheat_straw__(self, feed):
         return self.__corn_stover__(feed)
-
    
     def __switchgrass__(self, feed):
-       return self.__corn_stover__(feed)
-   
-   
+        return self.__corn_stover__(feed)
+
     def __corn_grain__(self):
-        fert_query = """
-INSERT INTO cg_nfert
-    (
-        --------------------------------------------------------------------------
-        --This query returns the urea component 
-        --------------------------------------------------------------------------
-        SELECT cd.fips, 
 
-        (((n.Conventional_N * cd.convtill_harv_ac + 
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.fur] + """ * nfert.nox_ur) * 0.90718474 / 2000.0) AS "NOX", 
+        self.kvals = self.cont.get('kvals')
 
-        (((n.Conventional_N * cd.convtill_harv_ac + 
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.fur] + """ * nfert.nh3_ur) * 0.90718474 * 17.0 / 14.0) AS "NH3",
+        fert_query = """INSERT INTO {scenario_name}.cg_nfert""".format(**self.kvals)
 
-        (2801700004) AS SCC,
+        for i, fert in enumerate(self.descrip_dict):
 
-        'Urea Fertilizer Emissions' AS "Description"
+            # set additional values in dictionary for string formatting
+            self.kvals['fert_dist'] = self.fert_dist['CG'][fert]
+            self.kvals['fert_ef_nh3'] = self.n_fert_ef['NH3'][fert]
+            self.kvals['fert_ef_nox'] = self.n_fert_ef['NOX'][fert]
+            self.kvals['scc'] = self.scc_dict[fert]
+            self.kvals['description'] = self.descrip_dict[fert]
 
-        FROM """ + self.db.constants_schema + """.cg_napp n, """ + self.db.constants_schema + """.N_fert_EF nfert, 
-        """ + self.db.production_schema + """.cg_data cd
+            if i > 0:
+                fert_query += """
+                              UNION
+                              """
+            fert_query += """
+                            (   SELECT cd.fips,
 
-        WHERE n.fips = cd.fips 
+                                (((n.Conventional_N * cd.convtill_harv_ac +
+                                   n.Conventional_N * cd.reducedtill_harv_ac +
+                                   n.NoTill_N * cd.notill_harv_ac) / 2000.0) * ({fert_dist} * {fert_ef_nox} / 100) * 0.90718474 * 30.0 / 14.0) AS NOX,
 
-        GROUP BY cd.fips, 
-        nfert.nox_ur, nfert.nh3_ur, cd.convtill_harv_ac, cd.reducedtill_harv_ac, 
-        cd.notill_harv_ac, n.Conventional_N, n.NoTill_N
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Nitrogen Solutions Component
-        --------------------------------------------------------------------------
+                                (((n.Conventional_N * cd.convtill_harv_ac +
+                                   n.Conventional_N * cd.reducedtill_harv_ac +
+                                   n.NoTill_N * cd.notill_harv_ac) / 2000.0) * ({fert_dist} * {fert_ef_nh3} / 100) * 0.90718474 * 17.0 / 14.0) AS NH3,
 
-        SELECT cd.fips, 
+                                ({scc}) AS SCC,
 
-        (((n.Conventional_N * cd.convtill_harv_ac + 
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.fns] + """ * nfert.nox_nsol) * 0.90718474 / 2000.0) AS "NOX", 
+                                '{description}' AS Description
 
-        (((n.Conventional_N * cd.convtill_harv_ac +
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.fns] + """ * nfert.nh3_nsol) * 0.90718474 * 17.0 / 14.0) AS "NH3",
+                                FROM {constants_schema}.cg_napp n, {production_schema}.cg_data cd
 
-        (2801700003) AS SCC,
+                                WHERE n.fips = cd.fips
 
-        'Nitrogen Solutions Fertilizer Emissions' AS "Description"
-
-        FROM """ + self.db.constants_schema + """.cg_napp n, """ + self.db.constants_schema + """.N_fert_EF nfert,
-        """ + self.db.production_schema + """.cg_data cd
-
-        WHERE n.fips = cd.fips 
-
-        GROUP BY cd.fips, n.polysys_region_id, 
-        nfert.nox_nsol, nfert.nh3_nsol, cd.convtill_harv_ac, cd.reducedtill_harv_ac, 
-        cd.notill_harv_ac, n.Conventional_N, n.NoTill_N
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Anhydrous Ammonia Component
-        --------------------------------------------------------------------------
-
-        SELECT cd.fips, 
-
-        (((n.Conventional_N * cd.convtill_harv_ac + 
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.faa] + """ * nfert.nox_aa) * 0.90718474 / 2000.0) AS "NOX", 
-
-        (((n.Conventional_N * cd.convtill_harv_ac + 
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.faa] + """ * nfert.nh3_aa) * 0.90718474 * 17.0 / 14.0) AS "NH3",
-
-        (2801700001) AS SCC,
-
-        'Anhydrous Ammonia Fertilizer Emissions' AS "Description"
-
-        FROM """ + self.db.constants_schema + """.cg_napp n, """ + self.db.constants_schema + """.N_fert_EF nfert,
-        """ + self.db.production_schema + """.cg_data cd
-
-        WHERE n.fips = cd.fips 
-
-        GROUP BY cd.fips, n.polysys_region_id, 
-        nfert.nox_aa, nfert.nh3_aa, cd.convtill_harv_ac, cd.reducedtill_harv_ac, 
-        cd.notill_harv_ac, n.Conventional_N, n.NoTill_N
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Ammonium Nitrate component
-        --------------------------------------------------------------------------
-
-        SELECT cd.fips, 
-
-        (((n.Conventional_N * cd.convtill_harv_ac + 
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.fan] + """ * nfert.nox_an) * 0.90718474 / 2000.0) AS "NOX", 
-
-        (((n.Conventional_N * cd.convtill_harv_ac + 
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.fan] + """ * nfert.nh3_an) * 0.90718474 * 17.0 / 14.0) AS "NH3",
-
-        (2801700005) AS SCC,
-
-        'Ammonium Nitrate Fertilizer Emissions' AS "Description"
-
-        FROM """ + self.db.constants_schema + """.cg_napp n, """ + self.db.constants_schema + """.N_fert_EF nfert,
-        """ + self.db.production_schema + """.cg_data cd
-
-        WHERE n.fips = cd.fips 
-
-        GROUP BY cd.fips, n.polysys_region_id, 
-        nfert.nox_an, nfert.nh3_an, cd.convtill_harv_ac, cd.reducedtill_harv_ac,
-        cd.notill_harv_ac, n.Conventional_N, n.NoTill_N
-    )
-    UNION
-    (
-        --------------------------------------------------------------------------
-        --This query contains the Ammonium Sulfate component
-        --------------------------------------------------------------------------
-
-        SELECT cd.fips, 
-
-        (((n.Conventional_N * cd.convtill_harv_ac + 
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.fas] + """ * nfert.nox_as) * 0.90718474 / 2000.0) AS "NOX", 
-
-        (((n.Conventional_N * cd.convtill_harv_ac + 
-           n.Conventional_N * reducedtill_harv_ac + 
-           n.NoTill_N * notill_harv_ac) / 2000.0) * (""" + self.fert_dist['CG'][self.fas] + """ * nfert.nh3_as) * 0.90718474 * 17.0 / 14.0) AS "NH3",
-
-        (2801700006) AS SCC,
-
-        'Ammonium Sulfate Fertilizer Emissions' AS "Description"
-
-        FROM """ + self.db.constants_schema + """.cg_napp n, """ + self.db.constants_schema + """.N_fert_EF nfert,
-        """ + self.db.production_schema + """.cg_data cd
-
-        WHERE n.fips = cd.fips 
-
-        GROUP BY cd.fips, n.polysys_region_id, 
-        nfert.nox_as, nfert.nh3_as, cd.convtill_harv_ac, cd.reducedtill_harv_ac,
-        cd.notill_harv_ac, n.Conventional_N, n.NoTill_N
-    )
- """
+                                GROUP BY cd.fips,
+                                cd.convtill_harv_ac, cd.reducedtill_harv_ac,
+                                cd.notill_harv_ac, n.Conventional_N, n.NoTill_N
+                            )""".format(**self.kvals)
 
         return fert_query

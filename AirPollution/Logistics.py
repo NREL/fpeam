@@ -34,22 +34,10 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         self.document_file = "Logistics"  # gets used to save query to a text file for debugging purposes
         self.electricity_per_dt = config.get('electricity_per_dt')  # electricity dictionary
 
-        self.kvals = dict()
-        # set production schema and scenario name
-        self.kvals['production_schema'] = config.get('production_schema')
-        self.kvals['scenario_name'] = config.get('title')
+        self.kvals = cont.get('kvals')
 
-        self.column_dict = dict()
-        # create dictionary for column names for production data
-        self.column_dict['CG_NL'] = 'notill_prod'
-        self.column_dict['CG_CL'] = 'convtill_prod'
-        self.column_dict['CG_RL'] = 'reducedtill_prod'
-        self.column_dict['CS_NL'] = 'notill_prod'
-        self.column_dict['CS_RL'] = 'reducedtill_prod'
-        self.column_dict['WS_RL'] = 'reducedtill_prod'
-        self.column_dict['WS_NL'] = 'notill_prod'
-        self.column_dict['SG'] = 'prod'
-        self.column_dict['FR'] = 'fed_minus_55'
+        # get dictionary for production column names
+        self.column_dict = config.get('prod_column_dict')
 
         # dictionary for VOC emission factor from wood drying
         self.voc_wood_ef = config.get('voc_wood_ef')

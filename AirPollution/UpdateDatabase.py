@@ -16,9 +16,10 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         """
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.document_file = "UpdateDatabase"
+        self.kvals = cont.get('kvals')
 
-        query = '''DROP SCHEMA IF EXISTS %s;
-                   CREATE SCHEMA %s;''' % (cont.get('model_run_title'), cont.get('model_run_title'))
+        query = '''DROP SCHEMA IF EXISTS {scenario_name};
+                   CREATE SCHEMA {scenario_name};'''.format(**self.kvals)
         self.db.create(query)
 
     def create_tables(self, feedstock):
@@ -27,8 +28,10 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         @attention: Insert Primary Keys (from Noah)
         @param feedstock = feedstock type
         """
+        self.kvals['feed'] = feedstock
+
         query = """
-                        CREATE TABLE %s_raw
+                        CREATE TABLE {scenario_name}.{feed}_raw
                         (
                         FIPS    char(5)    ,
                         SCC    char(10)    ,
@@ -46,40 +49,40 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         Description    text    ,
                         run_code    text    ,
                         fug_pm10    float    , 
-                        fug_pm25    float);""" % (feedstock,)
+                        fug_pm25    float);""".format(**self.kvals)
 
-        query += """    DROP TABLE IF EXISTS %s_processing;
-                        CREATE TABLE %s_processing
+        query += """    DROP TABLE IF EXISTS {scenario_name}.{feed}_processing;
+                        CREATE TABLE {scenario_name}.{feed}_processing
                         (fips    char(5)    ,
                         electricity    float,
                         run_code    text,
                         logistics_type text
-                        );""" % (feedstock, feedstock,)
+                        );""".format(**self.kvals)
 
         if feedstock == 'FR':
 
-            query += """ALTER TABLE %s_processing
-                        ADD voc_wood float;""" % (feedstock, )
+            query += """ALTER TABLE {scenario_name}.{feed}_processing
+                        ADD voc_wood float;""".format(**self.kvals)
                     
         self._execute_query(query)
 
         if feedstock != 'FR':
             query = """
-                            CREATE TABLE %s_NFert
+                            CREATE TABLE {scenario_name}.{feed}_NFert
                             (
                             FIPS    char(5)    ,
                             NOx    float    ,
                             NH3    float    ,
                             SCC    char(10)    ,
-                            description    text)""" % (feedstock,)
+                            description    text)""".format(**self.kvals)
             self._execute_query(query)
 
         if feedstock == 'SG' or feedstock == 'CG':
             query = """
-                           CREATE TABLE %s_CHEM
+                           CREATE TABLE {scenario_name}.{feed}_CHEM
                            (
                            FIPS    char(5),
                            SCC    char(10)    ,
                            VOC    float    ,
-                           description    text)""" % (feedstock,)
+                           description    text)""".format(**self.kvals)
             self._execute_query(query)

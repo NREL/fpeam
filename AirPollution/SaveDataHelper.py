@@ -34,5 +34,5 @@ class SaveDataHelper:
             return True
         except:
             logger.error('Failed to execute SQL query')
-            logger.debug('Failed to execute SQL query: %s' % (query, ))
+            logger.error('Failed to execute SQL query: %s' % (query, ))
             return False

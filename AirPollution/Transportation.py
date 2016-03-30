@@ -16,8 +16,7 @@ Inputs include:
 """
 
 import SaveDataHelper
-from src.AirPollution.utils import config, logger
-import pymysql
+from utils import config, logger
 
 
 class Transportation(SaveDataHelper.SaveDataHelper):
@@ -38,30 +37,30 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.fips = fips
         self.document_file = "Logistics"  # filename for saving queries to text file for debugging
 
-        self.kvals = dict()
-        # get MOVES database info and scenario name
-        self.kvals['moves_database'] = config.get('moves_database')  # MOVES database name
-        self.kvals['moves_db_user'] = config.get('moves_db_user')  # username for MOVES database
-        self.kvals['moves_db_pass'] = config.get('moves_db_pass')  # password for MOVES database
-        self.kvals['moves_db_host'] = config.get('moves_db_host')  # host for MOVES database
-        self.kvals['scenario_name'] = config.get('title')  # scenario name
-        # get production and constants schemas
-        self.kvals['production_schema'] = config.get('production_schema')
-        self.kvals['constants_schema'] = config.get('constants_schema')
+        self.kvals = cont.get('kvals')
+
         # set other values in kvals dictionary
         self.kvals['fips'] = fips  # fips
         self.kvals['feed'] = feed  # feedstock name
-
         self.kvals['year'] = config['year_dict'][self.feed]  # year of scenario run
         self.kvals['scenarioID'] = '{fips}_{feed}'.format(**self.kvals)  # MOVES scenario ID
         self.kvals['vmt'] = vmt  # vehicle miles travelled
         self.kvals['pop'] = pop  # population of vehicles (#)
         self.kvals['g_per_mt'] = 1e6  # number of grams in one metric ton
-
         self.kvals['s'] = silt  # unpaved road surface material silt content that corresponds to fips code
-        self.kvals['logistics_type'] = logistics_type
+        self.kvals['logistics_type'] = logistics_type  # type of logistics system
+        self.kvals['yield_type'] = yield_type  # type of yield examined
 
-        feed_type_dict = config.get('feed_type_dict')
+        # set feedstock id for transportation data
+        self.transport_feed_id_dict = config.get('feed_id_dict')
+        self.kvals['transport_feed_id'] = self.transport_feed_id_dict[self.feed]
+
+        # set truck capacity
+        self.truck_capacity = config.get('truck_capacity')
+        self.kvals['capacity'] = self.truck_capacity[self.feed][self.kvals['logistics_type']]
+
+        # set name of table for transportation data
+        feed_type_dict = config.get('feed_type_dict')  # dictionary of feedstock types
         self.kvals['transport_table'] = config.get('transport_table_dict')[feed_type_dict[feed]][yield_type][logistics_type]
 
         # get toggle for running moves by crop
@@ -73,10 +72,12 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         # set input database and scenario id depending on moves_by_crop
         if moves_by_crop is True:
             self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed=feed)  # input database for MOVES run
-            self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
+            self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0],
+                                                                                      month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
         else:
             self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed='all_crops')  # input database for MOVES run
-            self.kvals['moves_scen_id'] = "{fips}_all_crops_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
+            self.kvals['moves_scen_id'] = "{fips}_all_crops_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0],
+                                                                                         month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
 
         # dictionary of column names for transportation data
         self.transport_column = config.get('transport_column')
@@ -84,25 +85,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         # dictionary of pollutant names and IDs
         self.pollutant_dict = config.get('pollutant_dict')
 
-        # dictionary of feedstock ids for transportation data
-        self.feed_id_dict = config.get('feed_id_dict')
-
-        # dictionary of truck capacities
-        self.truck_capacity = config.get('truck_capacity')
-
-        # kvals value for truck capacity
-        self.kvals['capacity'] = self.truck_capacity[self.feed][self.kvals['logistics_type']]
-
         # open SQL connection and create cursor
-        # @TODO: change to use Database.py once all data in MySQL
-        self.connection = pymysql.connect(host=self.kvals['moves_db_host'],
-                                          user=self.kvals['moves_db_user'],
-                                          password=self.kvals['moves_db_pass'],
-                                          db=self.kvals['moves_database'])
-        self.cursor = self.connection.cursor()
-
-        # set feedstock ID
-        self.kvals['feed_id'] = self.feed_id_dict[self.feed]
+        self.db = cont.get('db')
 
     def process_moves_data(self):
         """
@@ -114,24 +98,22 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         Update transportation table with total emissions
         """
-        logger.info('Post-processing MOVES output for fips={fips}, feed={feed}, logistics={logistics_type}'.format(**self.kvals))
+        logger.info('Post-processing MOVES output for fips={fips}, feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
 
         self.calc_run_emission()
         self.calc_start_hotel_emissions()
         self.calc_rest_evap_emissions()
 
-        # @TODO: replace {constants_schema}.transport with correct table once data imported into MySQL
-        # @TODO: column names appear to have changed for latest logistics data - double check that "used_qnty", "sply_fips", and "feed_id" are correctly named
         query = """ UPDATE output_{scenario_name}.transportation
                     SET total_emissions_per_trip = run_emissions + start_hotel_emissions + rest_evap_emissions,
                         number_trips = (SELECT IFNULL(sum(used_qnty / {capacity}), 0)
                                         FROM {production_schema}.{transport_table}
-                                        WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}'),
+                                        WHERE sply_fips = '{fips}' AND feed_id = '{transport_feed_id}'),
                         total_emissions = (run_emissions + start_hotel_emissions + rest_evap_emissions) * (SELECT IFNULL(sum(used_qnty / {capacity}), 0)
                                                                                                            FROM {production_schema}.{transport_table}
-                                                                                                           WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}')
+                                                                                                           WHERE sply_fips = '{fips}' AND feed_id = '{transport_feed_id}')
                     WHERE feedstock = '{feed}' AND fips = '{fips}' AND logistics_type = '{logistics_type}';""".format(**self.kvals)
-        self.cursor.execute(query)
+        self.db.input(query)
 
     def calc_run_emission(self):
         """
@@ -162,7 +144,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                 table1.avgSpeedBinID = table2.avgSpeedBinID
                                 WHERE table1.pollutantID = {pollutantID} AND table1.MOVESScenarioID = '{moves_scen_id}'
                                 GROUP BY table1.yearID, table1.pollutantID));""".format(**self.kvals)
-            self.cursor.execute(query)
+            self.db.input(query)
 
     def calc_start_hotel_emissions(self):
         """
@@ -183,8 +165,9 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                                      FROM {db_out}.ratepervehicle table1
                                                      WHERE table1.pollutantID = {pollutantID} AND table1.MOVESScenarioID = '{moves_scen_id}'
                                                      GROUP BY table1.yearID, table1.pollutantID)
-                        WHERE pollutantID = '{pollutant_name}' AND fips = '{fips}' AND feedstock = '{feed}' AND yearID = '{year}' AND logistics_type = '{logistics_type}';""".format(**self.kvals)
-            self.cursor.execute(query)
+                        WHERE pollutantID = '{pollutant_name}' AND fips = '{fips}' AND feedstock = '{feed}' AND yearID = '{year}' AND logistics_type = '{logistics_type}';
+                        """.format(**self.kvals)
+            self.db.input(query)
 
     def calc_rest_evap_emissions(self):
         """
@@ -193,7 +176,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         Also, MOVES assumes that diesel fuel has zero evaporative venting emissions
         """
         logger.warning('Resting evaporative fuel vapor venting rates are zero for diesel fuel')
-        logger.warning('Additional code required to processing fuel vapor evap emissions if fuel type is not diesel')
+        logger.warning('If fuel type is not diesel, additional code needs to be written to process fuel vapor evaporative emissions')
         # @TODO: if fuel type changes, then we will need to add code to compute evaporative fuel vapor venting emissions
         pass
 
@@ -227,7 +210,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         Update transportation table with these values
         """
-        logger.debug('Calculating fugitive dust emissions for fips={fips}, feed={feed}'.format(**self.kvals))
+        logger.debug('Calculating fugitive dust emissions for fips={fips}, feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
 
         k_a = dict()
         k_a['PM10'] = 1.5
@@ -249,15 +232,9 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             self.kvals['k_a'] = k_a[pm]
             self.kvals['k_b'] = k_b[pm]
             self.kvals['pollutant_name'] = pm
-
-            self.kvals['feed_id'] = self.feed_id_dict[self.feed]
-
             self.kvals['dist'] = self.transport_column[self.kvals['logistics_type']]['dist']
 
             # fugitive dust emissions from unpaved roads
-            # @TODO: replace {constants_schema}.{transport_table} with correct table once data imported into MySQL - check transport_table dict in config
-            # @TODO: column names appear to have changed for latest logistics data - check transport_column dict in config
-            # @TODO: also check values for feed_id (e.g., corn stover was CORNSV but now it looks like it might be "Corn stover") - check feed_id_dict in config
             query_u = """INSERT INTO output_{scenario_name}.fugitive_dust (fips, feedstock, yearID, pollutantID, logistics_type, unpaved_fd_emissions)
                        VALUES ('{fips}',
                                '{feed}',
@@ -266,24 +243,21 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                '{logistics_type}',
                                (SELECT {c} * {k_a} * ({s} / 12) ^ {a} * ({W} / 3) ^ {b} * IFNULL(sum(used_qnty / {capacity} * {dist}), 0)
                                 FROM {production_schema}.{transport_table}
-                                WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} <= 2) +
+                                WHERE sply_fips = '{fips}' AND feed_id = '{transport_feed_id}' AND {dist} <= 2) +
                                (SELECT {c} * 2 * {k_a} * ({s} / 12) ^ {a} * ({W} / 3) ^ {b} * IFNULL(sum(used_qnty / {capacity} * 2), 0)
                                 FROM {production_schema}.{transport_table}
-                                WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} > 2));""".format(**self.kvals)
+                                WHERE sply_fips = '{fips}' AND feed_id = '{transport_feed_id}' AND {dist} > 2));""".format(**self.kvals)
 
             # fugitive dust emissions from secondary paved roads (conventional system)
             query_sp = None
             if self.kvals['logistics_type'] == 'C':
-                # @TODO: replace {constants_schema}.{transport_table} with correct table once data imported into MySQL - check transport_table dict in config
-                # @TODO: column names appear to have changed for latest logistics data - check transport_column dict in config
-                # @TODO: also check values for feed_id (e.g., corn stover was CORNSV but now it looks like it might be "Corn stover") - check feed_id_dict in config
                 query_sp = """UPDATE output_{scenario_name}.fugitive_dust
                            SET sec_paved_fd_emissions = (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(sum(used_qnty / {capacity} * 0), 0)
                                                          FROM {production_schema}.{transport_table}
-                                                         WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} <= 2) +
+                                                         WHERE sply_fips = '{fips}' AND feed_id = '{transport_feed_id}' AND {dist} <= 2) +
                                                         (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(sum(used_qnty / {capacity} * ({dist} - 2)), 0)
                                                          FROM {production_schema}.{transport_table}
-                                                         WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} > 2)
+                                                         WHERE sply_fips = '{fips}' AND feed_id = '{transport_feed_id}' AND {dist} > 2)
                            WHERE fips = '{fips}' AND feedstock = '{feed}' AND yearID = '{year}' AND pollutantID = '{pollutant_name}' AND logistics_type = '{logistics_type}';
                            """.format(**self.kvals)
 
@@ -291,27 +265,24 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             if self.kvals['logistics_type'] == 'A':
                 self.kvals['dist_2'] = self.transport_column[self.kvals['logistics_type']]['dist_2']
 
-                # @TODO: replace {constants_schema}.{transport_table} with correct table once data imported into MySQL - check transport_table dict in config
-                # @TODO: column names appear to have changed for latest logistics data - check transport_column dict in config
-                # @TODO: also check values for feed_id (e.g., corn stover was CORNSV but now it looks like it might be "Corn stover") - check feed_id_dict in config
                 query_sp = """UPDATE output_{scenario_name}.fugitive_dust
                        SET sec_paved_fd_emissions = (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(sum(used_qnty / {capacity} * {dist_2}), 0)
                                                      FROM {production_schema}.{transport_table}
-                                                     WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} <= 2) +
+                                                     WHERE sply_fips = '{fips}' AND feed_id = '{transport_feed_id}' AND {dist} <= 2) +
                                                     (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(sum(used_qnty / {capacity} * (({dist} - 2) + {dist_2})), 0)
                                                      FROM {production_schema}.{transport_table}
-                                                     WHERE sply_fips = '{fips}' AND feed_id = '{feed_id}' AND {dist} > 2)
+                                                     WHERE sply_fips = '{fips}' AND feed_id = '{transport_feed_id}' AND {dist} > 2)
                        WHERE fips = '{fips}' AND feedstock = '{feed}' AND yearID = '{year}' AND pollutantID = '{pollutant_name}' AND logistics_type = '{logistics_type}';
                        """.format(**self.kvals)
 
-            self.cursor.execute(query_u)
-            self.cursor.execute(query_sp)
+            self.db.input(query_u)
+            self.db.input(query_sp)
 
             query_sum = """UPDATE output_{scenario_name}.fugitive_dust
                            SET total_fd_emissions = sec_paved_fd_emissions + unpaved_fd_emissions
                            WHERE fips = '{fips}' AND feedstock = '{feed}' AND yearID = '{year}' AND pollutantID = '{pollutant_name}' AND logistics_type = '{logistics_type}';
                            """.format(**self.kvals)
-            self.cursor.execute(query_sum)
+            self.db.input(query_sum)
 
     def calculate_transport_emissions(self):
         """
@@ -319,8 +290,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         Update transportation table with these values
         """
         # compute combustion and fugitive dust emissions from feedstock transport if transport data exists for feedstock type
-        if self.kvals['feed_id'] != 'None':
-            self.process_moves_data()
-            self.transport_fugitive_dust()
-
-        self.cursor.close()
+        if self.kvals['transport_feed_id'] != 'None':
+            self.process_moves_data()  # calculate total combustion emissions using MOVES emission rates
+            self.transport_fugitive_dust()  # calculate total fugitive dust emissions from off-farm transport using EPA equations

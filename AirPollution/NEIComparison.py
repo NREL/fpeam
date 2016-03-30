@@ -17,37 +17,40 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.document_file = "NEIComparison"
         self.nei_data_by_county = None
+        self.scenario_name = cont.get('model_run_title')
 
         query = """
-CREATE TABLE summedEmissions
-(
-fips    char(5)    ,
-feedstock    text    ,
-prod    float    ,
-harv_Ac    float    ,
-NOX    float    DEFAULT 0.0,
-NH3    float    DEFAULT 0.0,
-SOX    float    DEFAULT 0.0,
-VOC    float    DEFAULT 0.0,
-PM10    float    DEFAULT 0.0,
-PM25    float    DEFAULT 0.0,
-CO    float    DEFAULT 0.0);"""
+        CREATE TABLE %s.summedEmissions
+        (
+        fips    char(5)    ,
+        feedstock    text    ,
+        prod    float    ,
+        harv_Ac    float    ,
+        NOX    float    DEFAULT 0.0,
+        NH3    float    DEFAULT 0.0,
+        SOX    float    DEFAULT 0.0,
+        VOC    float    DEFAULT 0.0,
+        PM10    float    DEFAULT 0.0,
+        PM25    float    DEFAULT 0.0,
+        CO    float    DEFAULT 0.0);""" % (self.scenario_name, )
 
         self._execute_query(query)
+
 
     def __set_nei_ratio_table__(self, feedstock):
 
         query = """
-CREATE TABLE """ + feedstock + """_NEIRatio
-(
-fips    char(5) ,
-nox    float    ,
-sox    float    ,
-co    float    ,
-pm10    float    ,
-pm25    float    ,
-voc    float    ,
-nh3    float);"""
+        CREATE TABLE %s.%s_NEIRatio
+        (
+        fips    char(5) ,
+        nox    float    ,
+        sox    float    ,
+        co    float    ,
+        pm10    float    ,
+        pm25    float    ,
+        voc    float    ,
+        nh3    float);""".format(self.scenario_name, feedstock, )
+
         self._execute_query(query)
 
     def create_summed_emissions_table(self, feedstock):
@@ -76,31 +79,31 @@ nh3    float);"""
             prod = "dat.fed_minus_55, 0"
 
         query = """
-    INSERT INTO summedEmissions 
-    WITH
-    """
+                INSERT INTO {scenario_name}.summedEmissions
+                WITH
+                """
         # populate tables that have fertilizer emissions
         # if feedstock == 'CG' or feedstock == 'SG':
-        if feedstock != 'FR':    
+        if feedstock != 'FR':
             query += """
-    Fert as (SELECT DISTINCT fips,
-                    sum(nox) as nox,
-                    sum(nh3) as nh3
-        FROM %s_nfert
-        GROUP BY fips),
-    ---------------------------------------------------------------------------------------------
-    """ % (feedstock,)
-    
+                        (SELECT DISTINCT fips,
+                                        sum(nox) as nox,
+                                        sum(nh3) as nh3
+                            FROM %s.%s_nfert
+                            GROUP BY fips) as Fert,
+                        ---------------------------------------------------------------------------------------------
+                        """ % (self.scenario_name, feedstock,)
+
         # populate table that have pesticides.
         if feedstock == 'CG' or feedstock == 'SG':
             query += """
-    Chem as (SELECT DISTINCT fips,
-                    sum(voc) as voc
-        FROM %s_chem
-        GROUP BY fips),
-    ---------------------------------------------------------------------------------------------
-    """ % (feedstock,)
-    
+                        Chem as (SELECT DISTINCT fips,
+                                        sum(voc) as voc
+                            FROM %s.%s_chem
+                            GROUP BY fips),
+                        ---------------------------------------------------------------------------------------------
+                        """ % (self.scenario_name, feedstock,)
+
         # populate everything else.
         
         # ########################
@@ -112,73 +115,74 @@ nh3    float);"""
         # ########################
         
         query += """
-            Raw as (SELECT DISTINCT fips,
-                    sum(nox) AS nox,
-                    sum(nh3) AS nh3,
-                    sum(sox) AS sox,
-                    sum(voc) AS voc,
-                    (sum(pm10) + sum(fug_pm10)) AS pm10, 
-                    (sum(pm25) + sum(fug_pm25)) AS pm25,
-                    (sum(co)) AS co
-            FROM %s_raw
-            GROUP BY fips)
-    ---------------------------------------------------------------------------------------------
-    """ % (feedstock,)
+                    Raw as (SELECT DISTINCT fips,
+                            sum(nox) AS nox,
+                            sum(nh3) AS nh3,
+                            sum(sox) AS sox,
+                            sum(voc) AS voc,
+                            (sum(pm10) + sum(fug_pm10)) AS pm10,
+                            (sum(pm25) + sum(fug_pm25)) AS pm25,
+                            (sum(co)) AS co
+                    FROM %s.%s_raw
+                    GROUP BY fips)
+            ---------------------------------------------------------------------------------------------
+            """ % (self.scenario_name, feedstock,)
 
         if feedstock == 'CG' or feedstock == 'SG': 
             query += """
-    (SELECT dat.fips, %s, %s,
-        (raw.nox + fert.nox) as nox, 
-        (raw.nh3 + fert.nh3) as nh3,
-        (raw.sox) as sox,
-        (raw.voc + chem.voc) as voc,
-        (raw.pm10) as pm10,
-        (raw.pm25) as pm25,
-        (raw.co) as co    
-        
-    FROM %s dat
-    
-    LEFT JOIN Fert ON fert.fips = dat.fips
-    LEFT JOIN Chem ON chem.fips = dat.fips
-    LEFT JOIN Raw ON raw.fips = dat.fips
-    )
-    ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
+                        (SELECT dat.fips, %s, %s,
+                            (raw.nox + fert.nox) as nox,
+                            (raw.nh3 + fert.nh3) as nh3,
+                            (raw.sox) as sox,
+                            (raw.voc + chem.voc) as voc,
+                            (raw.pm10) as pm10,
+                            (raw.pm25) as pm25,
+                            (raw.co) as co
+
+                        FROM %s dat
+
+                        LEFT JOIN Fert ON fert.fips = dat.fips
+                        LEFT JOIN Chem ON chem.fips = dat.fips
+                        LEFT JOIN Raw ON raw.fips = dat.fips
+                        )
+                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
 
         elif feedstock == 'CS' or feedstock == 'WS':
             query += """
-    (SELECT dat.fips, %s, %s,
-        (raw.nox + fert.nox) as nox, 
-        (raw.nh3 + fert.nh3) as nh3,
-        (raw.sox) as sox,
-        (raw.voc) as voc,
-        (raw.pm10) as pm10,
-        (raw.pm25) as pm25,
-        (raw.co) as co    
-        
-    FROM %s dat
-    
-    LEFT JOIN Fert ON fert.fips = dat.fips
-    LEFT JOIN Raw ON raw.fips = dat.fips
-    )
-    ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
+                        (SELECT dat.fips, %s, %s,
+                            (raw.nox + fert.nox) as nox,
+                            (raw.nh3 + fert.nh3) as nh3,
+                            (raw.sox) as sox,
+                            (raw.voc) as voc,
+                            (raw.pm10) as pm10,
+                            (raw.pm25) as pm25,
+                            (raw.co) as co
+
+                        FROM %s dat
+
+                        LEFT JOIN Fert ON fert.fips = dat.fips
+                        LEFT JOIN Raw ON raw.fips = dat.fips
+                        )
+                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
     
         elif feedstock == 'FR':
             query += """
-    (SELECT dat.fips, %s, %s,
-        (raw.nox) as nox, 
-        (raw.nh3) as nh3,
-        (raw.sox) as sox,
-        (raw.voc) as voc,
-        (raw.pm10) as pm10,
-        (raw.pm25) as pm25,
-        (raw.co) as co    
-        
-    FROM %s dat
-    
-    LEFT JOIN Raw ON raw.fips = dat.fips
-    )
-    ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
+                        (SELECT dat.fips, %s, %s,
+                            (raw.nox) as nox,
+                            (raw.nh3) as nh3,
+                            (raw.sox) as sox,
+                            (raw.voc) as voc,
+                            (raw.pm10) as pm10,
+                            (raw.pm25) as pm25,
+                            (raw.co) as co
 
+                        FROM %s dat
+
+                        LEFT JOIN Raw ON raw.fips = dat.fips
+                        )
+                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
+
+        print query
         self._execute_query(query)
 
     def create_nei_comparison(self, feedstock):
@@ -187,7 +191,7 @@ nh3    float);"""
         # self.nei_data_by_county = self.db.constants_schema + ".nei_data_by_county"
         # new NEI data from Jeremy.
         # nei_nonroad_nonpoint and nei_total
-        self.nei_data_by_county = config.get('nei_data_by_county')  #@TODO: remove hard-coding
+        self.nei_data_by_county = config.get('nei_data_by_county')
         # @change: Change allocation. Allocation is the amount of the feedstock that actually get's used to produce ethanol.
         # 9/3
         # old code:     self.cellulosicAllocation = 0.34 demand to meet 16 billion gal of ethonal
@@ -217,71 +221,71 @@ nh3    float);"""
         if f is not 'cellulosic': 
             # For the NEI data convert from short ton to metric ton by multiplying nei data by 0.907185
             query = """
-    INSERT INTO """ + feedstock + """_NEIRatio
-    WITH
-       nrel AS (select distinct fips,  sum(nox) as nox,
-                       sum(sox) as sox,
-                       sum(co) as co,
-                       sum(pm10) as pm10,
-                       sum(pm25) as pm25,
-                       sum(voc) as voc,
-                       sum(nh3) as nh3 
-                from """ + self.db.schema + """.summedemissions
-                where feedstock ilike '%""" + f + """%'
-                GROUP BY fips),
-       nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3 
-               from """ + self.nei_data_by_county + """)
-    
-       select   nrel.fips,
-                (nrel.nox * """ + allocation + """) / (nei.nox * 0.907185) as nox,
-                (nrel.sox * """ + allocation + """) / (nei.sox * 0.907185) as sox,
-                (nrel.co * """ + allocation + """) / (nei.co * 0.907185) as co,
-                (nrel.pm10 * """ + allocation + """) / (nei.pm10 * 0.907185) as PM10,
-                (nrel.pm25 * """ + allocation + """) / (nei.pm25 * 0.907185) as PM25,
-                (nrel.voc * """ + allocation + """) / (nei.voc * 0.907185) as VOC,
-                CASE WHEN nei.nh3 > 0 THEN     (nrel.nh3 * """ + allocation + """) / (nei.nh3 * 0.907185)
-                     ELSE 0.0    
-                END as NH3
-    
-        FROM nrel
-        LEFT JOIN nei ON nrel.fips = nei.fips    
-        WHERE nrel.nh3 > 0 and nei.nox > 0
-                """
+                        INSERT INTO """ + feedstock + """_NEIRatio
+                        WITH
+                           nrel AS (select distinct fips,  sum(nox) as nox,
+                                           sum(sox) as sox,
+                                           sum(co) as co,
+                                           sum(pm10) as pm10,
+                                           sum(pm25) as pm25,
+                                           sum(voc) as voc,
+                                           sum(nh3) as nh3
+                                    from """ + self.db.schema + """.summedemissions
+                                    where feedstock ilike '%""" + f + """%'
+                                    GROUP BY fips),
+                           nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3
+                                   from """ + self.nei_data_by_county + """)
+
+                           select   nrel.fips,
+                                    (nrel.nox * """ + allocation + """) / (nei.nox * 0.907185) as nox,
+                                    (nrel.sox * """ + allocation + """) / (nei.sox * 0.907185) as sox,
+                                    (nrel.co * """ + allocation + """) / (nei.co * 0.907185) as co,
+                                    (nrel.pm10 * """ + allocation + """) / (nei.pm10 * 0.907185) as PM10,
+                                    (nrel.pm25 * """ + allocation + """) / (nei.pm25 * 0.907185) as PM25,
+                                    (nrel.voc * """ + allocation + """) / (nei.voc * 0.907185) as VOC,
+                                    CASE WHEN nei.nh3 > 0 THEN     (nrel.nh3 * """ + allocation + """) / (nei.nh3 * 0.907185)
+                                         ELSE 0.0
+                                    END as NH3
+
+                            FROM nrel
+                            LEFT JOIN nei ON nrel.fips = nei.fips
+                            WHERE nrel.nh3 > 0 and nei.nox > 0
+                                    """
 
         else:
             # query everything except cg
             p = 'Corn Grain'
             query = """
-    INSERT INTO """ + feedstock + """_NEIRatio
-    WITH
-       nrel AS (select distinct fips,  sum(nox) as nox,
-                       sum(sox) as sox,
-                       sum(co) as co,
-                       sum(pm10) as pm10,
-                       sum(pm25) as pm25,
-                       sum(voc) as voc,
-                       sum(nh3) as nh3 
-                from """ + self.db.schema + """.summedemissions
-                where feedstock not ilike '%""" + p + """%'
-                GROUP BY fips),
-       nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3 
-               from """ + self.nei_data_by_county + """)
-    
-       select   nrel.fips,
-                (nrel.nox  * """ + allocation + """) / (nei.nox * 0.907185) as nox,
-                (nrel.sox * """ + allocation + """) / (nei.sox * 0.907185) as sox,
-                (nrel.co * """ + allocation + """) / (nei.co * 0.907185) as co,
-                (nrel.pm10 * """ + allocation + """) / (nei.pm10 * 0.907185) as PM10,
-                (nrel.pm25 * """ + allocation + """) / (nei.pm25 * 0.907185) as PM25,
-                (nrel.voc * """ + allocation + """) / (nei.voc * 0.907185) as VOC,
-                CASE WHEN nei.nh3 > 0 THEN     (nrel.nh3 * """ + allocation + """) / (nei.nh3 * 0.907185)
-                     ELSE 0.0    
-                END as NH3
-    
-        FROM nrel
-        LEFT JOIN nei ON nrel.fips = nei.fips    
-        WHERE nrel.nh3 > 0 and nei.nox > 0
-                """
+                        INSERT INTO """ + feedstock + """_NEIRatio
+                        WITH
+                           nrel AS (select distinct fips,  sum(nox) as nox,
+                                           sum(sox) as sox,
+                                           sum(co) as co,
+                                           sum(pm10) as pm10,
+                                           sum(pm25) as pm25,
+                                           sum(voc) as voc,
+                                           sum(nh3) as nh3
+                                    from """ + self.db.schema + """.summedemissions
+                                    where feedstock not ilike '%""" + p + """%'
+                                    GROUP BY fips),
+                           nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3
+                                   from """ + self.nei_data_by_county + """)
+
+                           select   nrel.fips,
+                                    (nrel.nox  * """ + allocation + """) / (nei.nox * 0.907185) as nox,
+                                    (nrel.sox * """ + allocation + """) / (nei.sox * 0.907185) as sox,
+                                    (nrel.co * """ + allocation + """) / (nei.co * 0.907185) as co,
+                                    (nrel.pm10 * """ + allocation + """) / (nei.pm10 * 0.907185) as PM10,
+                                    (nrel.pm25 * """ + allocation + """) / (nei.pm25 * 0.907185) as PM25,
+                                    (nrel.voc * """ + allocation + """) / (nei.voc * 0.907185) as VOC,
+                                    CASE WHEN nei.nh3 > 0 THEN     (nrel.nh3 * """ + allocation + """) / (nei.nh3 * 0.907185)
+                                         ELSE 0.0
+                                    END as NH3
+
+                            FROM nrel
+                            LEFT JOIN nei ON nrel.fips = nei.fips
+                            WHERE nrel.nh3 > 0 and nei.nox > 0
+                                    """
 
         self._execute_query(query)
 
