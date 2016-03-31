@@ -1,6 +1,7 @@
 import SaveDataHelper
 from src.AirPollution.utils import config
 
+
 class Fertilizer(SaveDataHelper.SaveDataHelper):
     """
     Used to populate the newly created schema that stores emmision info.
@@ -8,13 +9,12 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
     Adds emmisions to N0X and NH3, which come from the production of fertilizers.
     """
 
-    def __init__(self, cont, fert_feed_stock, fert_dist=None):
+    def __init__(self, cont):
         SaveDataHelper.SaveDataHelper.__init__(self, cont=cont)
         # gets used to save query to a text file for debugging purposes.
         self.document_file = "Fertilizer"
         # add fert distributions here. List of fertilizers.
-        self.fert_dist = self.get_frt_distribution(fert_distributions=fert_dist)
-        self.fert_feed_stock = fert_feed_stock
+        self.fert_dist = config['fert_dist']
         self.n_fert_ef = config['n_fert_ef']  # dictionary of fertilizer emission factor
         self.scc_dict = config['scc_dict']  # dictionary of fertilizer source category codes
         self.descrip_dict = config['descrip_dict']  # dictionary of fertilizer descriptions
@@ -47,31 +47,6 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
             # if a query was created, execute it.
             if query is not None:
                 self._execute_query(query)
-
-    def get_frt_distribution(self, fert_distributions):
-        """
-        Get fertilizer distribution. The user can either input their own distribution, 
-        or use the predefined distribution on the db.
-        @param fert_distributions: Distribution of the the five different fertilizers. dict(string: list(string)
-        @return: Distribution of the five different fertilizers as a percentage. Must sum up to 1.
-        Order: annhydrous_amonia, ammonium_nitrate, ammonium_sulfate, urea, nsol. (list(string))
-        """    
-        fert_final = {}
-        for feed, fert_distribution in fert_distributions.items():
-            if fert_distribution: 
-                fert_final[feed] = fert_distribution
-            else:
-                if feed is not 'SG':
-                    query = """SELECT * 
-                            FROM {constants_schema}.n_fert_distribution""".format(**self.kvals)
-                    fert_dist = self.db.output(query)
-                    # convert db data to usable strings.
-                    fert_dist = [str(f) for f in fert_dist[0]]
-                # switch grass only uses nitrogen solution nsol.
-                else:
-                    fert_dist = ['0', '0', '0', '0', '1']
-                fert_final[feed] = fert_dist
-        return fert_final
                 
     def __corn_stover__(self, feed):
         """

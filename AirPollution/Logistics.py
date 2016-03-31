@@ -42,7 +42,14 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # dictionary for VOC emission factor from wood drying
         self.voc_wood_ef = config.get('voc_wood_ef')
 
-    def electricity(self, run_code, logistics):
+        # set feedstock id table for transportation data
+        self.transport_feed_id_dict = config.get('feed_id_dict')
+
+        # get dictionaries for transportation data tables
+        self.feed_type_dict = config.get('feed_type_dict')  # dictionary of feedstock types
+        self.transport_table_dict = config.get('transport_table_dict')
+
+    def electricity(self, run_code, logistics, yield_type):
         """
         Tally electricity consumption from feedstock processing
         Update logistics table with these values
@@ -64,6 +71,9 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         feed = run_code[0:2]
         self.kvals['feed'] = feed.lower()
 
+        # set transport table name
+        self.kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feed]][yield_type][logistics]
+
         logger.debug('Calculating electricity consumption for {feed}'.format(feed=feed))
 
         # set electricity consumption factor using feedstock type
@@ -81,18 +91,21 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # set logistics type
         self.kvals['logistics'] = logistics
 
+        # set yield type
+        self.kvals['yield_type'] = yield_type
+
         # generate string for query
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
-        query = """INSERT INTO {scenario_name}.{feed}_processing (fips, electricity, run_code, logistics_type)
-                    SELECT fips, feed.{prod_column} * {electricity_per_dt}, '{run_code}', '{logistics}'
-                    FROM {production_schema}.{feed}_data feed
-                    WHERE feed.{prod_column} > 0.0
+        query = """INSERT INTO {scenario_name}.{feed}_processing (fips, electricity, run_code, logistics_type, yield_type)
+                    SELECT transport_data.sply_fips, transport_data.used_qnty * {electricity_per_dt}, '{run_code}', '{logistics}', '{yield_type}'
+                    FROM {production_schema}.{transport_table} transport_data
+                    WHERE transport_data.used_qnty > 0.0
                    ;""".format(**self.kvals)
 
         # execute query
         return self._execute_query(query)
 
-    def voc_wood_drying(self, feed, logistics):
+    def voc_wood_drying(self, run_code, logistics, yield_type):
         """
         Compute VOC emissions from wood drying
         Only applies to forestry
@@ -115,25 +128,31 @@ class Logistics(SaveDataHelper.SaveDataHelper):
 
         logger.info('Computing VOC emissions from wood drying')
 
-        # set constants a and b (see equation above for more details)
-        self.kvals['a'] = 0.9071847  # metric ton per short ton
-        self.kvals['b'] = 1000.0  # kg per metric ton
+        # set feedstock id
+        feed = run_code[0:2]
 
-        # set VOC emission factor
-        self.kvals['VOC_ef_h'] = self.voc_wood_ef[logistics]['hammer_mill']
-        self.kvals['VOC_ef_d'] = self.voc_wood_ef[logistics]['grain_dryer']
-
-        # set feedstock name
-        self.kvals['feed'] = feed.lower()
-        # set column for production name
-        self.kvals['column'] = self.column_dict[feed]
+        # set dictionary values for string formatting
+        kvals = {
+                 'transport_table': self.transport_table_dict[self.feed_type_dict[feed]][yield_type][logistics],  # transport table
+                 'run_code': run_code,  # run code
+                 'feed': feed,  # feedstock id
+                 'logisitcs': logistics,  # logistics type
+                 'yield_type': yield_type,  # yield type
+                 'a': 0.9071847,  # metric ton per short ton
+                 'b': 1000.0,  # kg per metric ton
+                 'VOC_ef_h': self.voc_wood_ef[logistics]['hammer_mill'],  # VOC emission factor for hammer mill
+                 'VOC_ef_d': self.voc_wood_ef[logistics]['grain_dryer']  # VOC emission factor for grain dryer
+                 }
 
         # generate string for query and append to queries
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
         query = """UPDATE {scenario_name}.{feed}_processing
-                SET voc_wood = prod_data.{column} * {a} * ({VOC_ef_h} + {VOC_ef_d}) / {b}
-                FROM {production_schema}.{feed}_data prod_data
-                WHERE {scenario_name}.{feed}_processing.fips = prod_data.fips AND logistics_type = '{logistics}' AND run_code = '{run_code}';""".format(**self.kvals)
+                SET voc_wood = transport_data.used_qnty * {a} * ({VOC_ef_h} + {VOC_ef_d}) / {b}
+                FROM {production_schema}.{transport_table} transport_data
+                WHERE   {scenario_name}.{feed}_processing.fips = transport_data.sply_fips AND
+                        logistics_type = '{logistics}' AND
+                        yield_type = '{yield_type}'
+                        AND run_code = '{run_code}';""".format(**kvals)
 
         return self._execute_query(query)
 
@@ -145,19 +164,21 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         logger.debug('Combustion emissions from loading equipment is computed in CombustionEmissions.py')
         pass
 
-    def calc_logistics(self, run_codes, feedstock_list, logistics_list):
+    def calc_logistics(self, run_codes, feedstock_list, logistics_list, yield_list):
         # Execute wood drying and electricity functions for all feedstocks in feedstock list
         logger.info('Evaluating logistics')
 
         for run_code in run_codes:
             if run_code.endswith('L') and not run_code.startswith('CG_I'):
-                for logistics_type in logistics_list:
-                    # compute electricity
-                    self.electricity(run_code, logistics_type)
+                if self.transport_feed_id_dict[run_code[0:2]] != 'None':
+                    for logistics_type in logistics_list:
+                        for yield_type in yield_list:
+                            # compute electricity
+                            self.electricity(run_code, logistics_type, yield_type)
 
-                    if run_code.startswith('FR'):
-                        feed = run_code[0:2]
-                        self.voc_wood_drying(feed, logistics_type)
+                            if run_code.startswith('FR'):
+                                feed = run_code[0:2]
+                                self.voc_wood_drying(feed, logistics_type, yield_type)
 
         for feed in feedstock_list:
             self.kvals['feed'] = feed
