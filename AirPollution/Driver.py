@@ -73,6 +73,18 @@ class Driver:
         # get feedstock list for transportation data
         self.transport_feed_list = config.get('transport_feed_list')
 
+        # get transport data feedstock columns
+        self.feed_id_dict = config.get('feed_id_dict')
+
+        # get list of columns for transportation data
+        self.transport_col = config.get('transport_column')
+
+        # get feedstock type dictionary
+        self.feed_type_dict = config.get('feed_type_dict')
+
+        # get transportation table dictionary
+        self.transport_table_dict = config.get('transport_table_dict')
+
         # get yield list for transport data
         self.yield_list = config.get('yield_list')
 
@@ -288,7 +300,6 @@ class Driver:
                                                 save_path_countyinputs=self.save_path_countyinputs, save_path_nationalinputs=self.save_path_nationalinputs, db=db)
 
             # default values used for running MOVES, actual VMT later used in save_data to compute total emission
-            # @TODO: if we decide that rates does vary with VMT, replace vmt_short_haul with database query to calculate county-level VMT (need to get data into database first)
             vmt_short_haul = config.as_int('vmt_short_haul')  # annual vehicle miles traveled by combination short-haul trucks
             pop_short_haul = config.as_int('pop_short_haul')  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
 
@@ -346,82 +357,62 @@ class Driver:
                 # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
     
-    def save_data(self, fert_feed, fert_dist, pest_feed, operation_dict, alloc, fips_list):
+    def save_data(self, operation_dict, alloc, fips_list):
         """
         Create and populate the schema with the emissions inventory.
-        @param fert_feed: Dictionary containing each feedstock and whether to do fertilizer calculations.
-        dict(boolean)
-        @param fert_dist: The five numbers must add to 1 b/c they represent the percentage of
-        each of the five fertilizers used. list(float)
-        @param pest_feed: whether a feedstock should calculate the pesticides used. A dictionary of
-        feedstocks to what to do. dict(boolean)
-        @param operation_dict: Dictionary containing each feedstock. Each feedstock contains a dictionary
+
+        :param operation_dict: Dictionary containing each feedstock. Each feedstock contains a dictionary
         of harvest, non-harvest, and transport and whether to calculate them. dict(dict(boolean))
-        @param alloc:
-        @param fips_list: list of FIPS codes
+        :param alloc: non-harvest emission allocation factor
+        :param fips_list: list of FIPS codes
         """
 
         logger.info('Saving results to database')
 
-        # initialize database objects
-        fert = Fertilizer.Fertilizer(cont=self.cont, fert_feed_stock=fert_feed, fert_dist=fert_dist)
-        chem = Chemical.Chemical(cont=self.cont, pest_feed=pest_feed)
-        comb = CombustionEmissions.CombustionEmissions(cont=self.cont, operation_dict=operation_dict, alloc=alloc)
+        # update database object
         update = UpdateDatabase.UpdateDatabase(cont=self.cont)
-        fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
-        nei = NEIComparison.NEIComparison(cont=self.cont)
-        logistics = Logistics.Logistics(feedstock_list=self.feedstock_list, cont=self.cont)
 
-        # compute emissions from off-farm transportation
-        # first, join tables for average speed and "dayhour" and create new table for transportation data
+        # create tables for all feedstocks
+        for feedstock in self.feedstock_list:
+            update.create_tables(feedstock=feedstock)
 
-        kvals = dict()
+        self.post_process_nonroad(operation_dict=operation_dict, alloc=alloc)
+        self.post_process_off_farm_transport(fips_list=fips_list)
+        self.post_process_fert()
+        self.post_process_pest()
+        self.post_process_on_farm_transport()
+        self.post_process_logistics()
+
+        # only run the following if all feedstocks are being modeled.
+        if len(self.feedstock_list) == 5:
+            self.single_pass_alloc()
+
+        # generate figures
+        if config.get('figure_plotting') is True:
+            self.figure_plotting()
+
+        logger.info('Successful completion of model run.')
+
+    def post_process_off_farm_transport(self, fips_list):
+        """
+        Compute emissions from off-farm transportation
+
+        :param fips_list: list of fips codes
+        :return:
+        """
+
+        # set values in kvals dictionary for string formatting
+        kvals = self.kvals
         kvals['fips'] = fips_list[0]  # avg speed distribution is the same for all FIPS codes
         kvals['feedstock'] = list(self.moves_feedstock_list)[0]  # and for all crops, so just pick one from each list
-        kvals['scenario_name'] = self.model_run_title
-        kvals['MOVES_database'] = config['moves_database']
-        kvals['moves_output_db'] = config.get('moves_output_db')
 
-        # generate average speed table
-        # @ TODO: creates schema "output_{scenario_name}" - might want to do this elsewhere
-        # @ TODO: may want to move this query for table creation to another location
-        query = """CREATE SCHEMA IF NOT EXISTS output_{scenario_name};
-                   DROP TABLE IF EXISTS output_{scenario_name}.averageSpeed;
-                   CREATE TABLE output_{scenario_name}.averageSpeed
+        # generate average speed table for MOVES data analysis by joining tables for average speed and "dayhour"
+        query = """DROP TABLE IF EXISTS {constants_schema}.averageSpeed;
+                   CREATE TABLE {constants_schema}.averageSpeed
                    AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
                    FROM fips_{fips}_{feedstock}_in.avgspeeddistribution table1
-                   LEFT JOIN {MOVES_database}.hourday table2
+                   LEFT JOIN {moves_database}.hourday table2
                    ON table1.hourDayID = table2.hourDayID);""".format(**kvals)
-        self.db.create(query)
-
-        # create transportation output table
-        #  @ TODO: may want to move this query for table creation to another location
-        query = """DROP TABLE IF EXISTS output_{scenario_name}.transportation;
-                   CREATE TABLE output_{scenario_name}.transportation (fips char(5),
-                                                                       feedstock varchar(5),
-                                                                       yearID char(4),
-                                                                       logistics_type char(2),
-                                                                       pollutantID varchar(45),
-                                                                       run_emissions float,
-                                                                       start_hotel_emissions float,
-                                                                       rest_evap_emissions float DEFAULT 0,
-                                                                       total_emissions_per_trip float,
-                                                                       number_trips float,
-                                                                       total_emissions float);""".format(**kvals)
-        self.db.create(query)
-
-        # create transportation output table
-        #  @ TODO: may want to move this query for table creation to another location
-        query = """DROP TABLE IF EXISTS output_{scenario_name}.fugitive_dust;
-                   CREATE TABLE output_{scenario_name}.fugitive_dust (fips char(5),
-                                                                     feedstock varchar(5),
-                                                                     yearID char(4),
-                                                                     pollutantID varchar(45),
-                                                                     logistics_type varchar (2),
-                                                                     unpaved_fd_emissions float,
-                                                                     sec_paved_fd_emissions float,
-                                                                     total_fd_emissions float);""".format(**kvals)
-
         self.db.create(query)
 
         # now loop through feedstocks and FIPS codes to compute respective transportation emissions
@@ -430,20 +421,91 @@ class Driver:
                 for yield_type in self.yield_list:
                     for fips in fips_list:
                         for logistics_type in self.logistics_list:
-                            vmt = 100  # @TODO: replace with query to get correct county-level VMT data
-                            pop = 1  # @TODO: assuming only one vehicle per trip
-                            silt = 3.9  # @TODO: replace with query to get correct silt data for county
-                            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt, pop=pop, logistics_type=logistics_type, silt=silt, yield_type=yield_type)
+                            kvals = self.kvals
+                            kvals['fips'] = fips
+                            kvals['feed_id'] = self.feed_id_dict[feedstock]
+                            kvals['silt_table'] = config.get('db_table_list')['silt_table']
+
+                            # set truck capacity
+                            truck_capacity = config.get('truck_capacity')
+                            kvals['truck_capacity'] = truck_capacity[feedstock][logistics_type]
+
+                            # set transport table
+                            kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][yield_type][logistics_type]
+
+                            if len(fips) > 4:
+                                kvals['st_fips'] = fips[0:2]
+                            else:
+                                kvals['st_fips'] = '0%s' % (fips[0])
+
+                            query_pop = """ SELECT used_qnty / {truck_capacity}
+                                            FROM {production_schema}.{transport_table}
+                                            WHERE feed_id = '{feed_id}' AND sply_fips = {fips};
+                                        """.format(**kvals)
+                            pop_short_haul = self.db.output(query_pop)[0][0]  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
+
+                            trans_col = self.transport_col[logistics_type]['dist']
+                            if len(self.transport_col[logistics_type]) == 2:
+                                trans_col += '+ %s' % (transport_col[logistics_type]['dist_2'], )
+
+                            kvals['trans_col'] = trans_col
+                            query_vmt = """ SELECT {trans_col}
+                                            FROM {production_schema}.{transport_table}
+                                            WHERE feed_id = '{feed_id}' AND sply_fips = {fips};
+                                        """.format(**kvals)
+                            vmt_short_haul = self.db.output(query_vmt)[0][0] # annual vehicle miles traveled by combination short-haul trucks
+
+                            query_silt = """ SELECT uprsm_pct_silt
+                                             FROM {constants_schema}.{silt_table}
+                                             WHERE st_fips = {st_fips}
+                                         """.format(**kvals)
+
+                            silt = self.db.output(query_silt)[0][0]
+                            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt_short_haul, pop=pop_short_haul, logistics_type=logistics_type, silt=silt, yield_type=yield_type)
                             transportation.calculate_transport_emissions()
 
-        # Create tables, Populate Fertilizer & Chemical tables.
-        for feedstock in self.feedstock_list:
-            update.create_tables(feedstock=feedstock)
-            fert.set_fertilizer(feed=feedstock)
-            chem.set_chemical(feed=feedstock)
-            logger.info("Fertilizer and Chemical complete for " + feedstock)  # @TODO: convert to string formatting
+    def post_process_fert(self):
+        """
+        Calculate NH3 and NOX emissions from nitrogen fertilizer application
 
-        # Populate Combustion Emissions Tables
+        Populate data in {feed}_nfert tables
+        :return:
+        """
+        # initialize fertilizer object
+        fert = Fertilizer.Fertilizer(cont=self.cont)
+
+        # calculate emissions
+        for feedstock in self.feedstock_list:
+            fert.set_fertilizer(feed=feedstock)
+            logger.info("Fertilizer calculations complete for %s" % (feedstock, ))
+
+    def post_process_pest(self):
+        """
+        Calculate VOC emissions from pesticide application
+        Populate data in {feed}_chem tables
+
+        :return:
+        """
+        # initialize chemical object
+        chem = Chemical.Chemical(cont=self.cont)
+
+        for feedstock in self.feedstock_list:
+            chem.set_chemical(feed=feedstock)
+            logger.info("Fertilizer and Chemical complete for %s" (feedstock, ))
+
+    def post_process_nonroad(self, operation_dict, alloc):
+        """
+        Populate combustion emissions from NONROAD equipment
+        Populate data in {feed}_raw tables
+
+        :param operation_dict: dictionary of operations
+        :param alloc: non-harvest emission allocation factor
+        :return:
+        """
+
+        # initialize database object
+        comb = CombustionEmissions.CombustionEmissions(cont=self.cont, operation_dict=operation_dict, alloc=alloc)
+
         logger.info("Populating tables with combustion emissions")
         comb.populate_tables(run_codes=self.run_codes)
         for run_code in self.run_codes:
@@ -452,13 +514,22 @@ class Driver:
                     comb.update_sg(run_code=run_code)
         logger.info("COMPLETED populating tables with combustion emissions")
 
-        # Fugitive Dust Emissions
+    def post_process_on_farm_transport(self):
+        """
+        Calculate fugitive dust emissions associated with on-farm transport
+        Populate under fug_pm10 and fug_pm25 columns in {feed}_raw tables
+
+        :return:
+        """
+
+        fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
+
         modelsg = False
         for run_code in self.run_codes:
             if not run_code.startswith('SG'):
                 if not run_code.endswith('L'):
                     fug_dust.set_emissions(run_code=run_code)
-                    logger.info("Fugitive Dust Emissions complete for " + run_code)  # @TODO: convert to string formatting
+                    logger.info("Fugitive Dust Emissions complete for %s" % (run_code, ))
             else:
                 if not run_code.endswith('L'):
                     modelsg = True
@@ -470,54 +541,74 @@ class Driver:
                     sgfug_dust = FugitiveDust.SG_FugitiveDust(cont=self.cont, run_code=run_code)
                     sgfug_dust.set_emissions()
 
-        # only run the following if all feedstocks are being modeled.
-        if len(self.feedstock_list) == 5:
-            # allocate emissions for single pass methodology - see constructor for ability to allocate CG emissions
-            logger.info("Allocate single pass emissions between corn stover and wheat straw.")
-            SinglePassAllocation.SinglePassAllocation(cont=self.cont)
+    def single_pass_alloc(self):
+        """
+        Perform single pass allocation for emissions generated by the production of agricultural residues
 
-            # Create nei comparison
+        :return:
+        """
+        # allocate emissions for single pass methodology - see constructor for ability to allocate CG emissions
+        logger.info("Allocate single pass emissions between corn stover and wheat straw.")
+        SinglePassAllocation.SinglePassAllocation(cont=self.cont)
 
-            # create a single table that has all emissions in this inventory
-            logger.info('populating Summed Dimmensions table')
-            for feedstock in self.feedstock_list:
-                nei.create_summed_emissions_table(feedstock=feedstock)
+    def nei_comparison(self):
+        """
+        Sum all emissions and compare to NEI data
 
-            # create tables that contain a ratio to NEI
-            count = 0
-            for feedstock in self.feedstock_list:
-                nei.create_nei_comparison(feedstock=feedstock)
-                if count == 4:
-                    # on the last go, make a total query for all cellulosic.
-                    nei.create_nei_comparison(feedstock='cellulosic')
-                count += 1
+        :return:
+        """
 
-        # compute emissions and electricity associated with logistics
-        logistics.calc_logistics(run_codes=self.run_codes, feedstock_list=self.feedstock_list, logistics_list=self.logistics_list)
+        nei = NEIComparison.NEIComparison(cont=self.cont)
 
-        # create graphics and numerical summary
+        # create a single table that has all emissions in this inventory
+        logger.info('populating Summed Dimensions table')
+        for feedstock in self.feedstock_list:
+            nei.create_summed_emissions_table(feedstock=feedstock)
 
-        if config.get('figure_plotting') is True:
-            # Contribution Analysis
-            logger.info('Creating emissions contribution figure.')
-            ContributionFigure.ContributionAnalysis(cont=self.cont)
+        # create tables that contain a ratio to NEI
+        for count, feedstock in enumerate(self.feedstock_list):
+            nei.create_nei_comparison(feedstock=feedstock)
+            if count == 4:
+                # on the last go, make a total query for all cellulosic.
+                nei.create_nei_comparison(feedstock='cellulosic')
 
-            # Emissions Per Gallon
-            logger.info('Creating emissions per gallon figure.')
-            EmissionsPerGalFigure.EmissionsPerGallon(self.cont)
+    def post_process_logistics(self):
+        """
+        Compute emissions and electricity associated with feedstock logistics
+        Does not perform calculations for all feedstock types (only those specified under the feed_id_dict in the config file
+        Populates data in {feed}_processing tables
 
-            # Emissions per a acre figure.
-            logger.info('Creating emissions per acre figure.')
-            EmissionsPerAcreFigure(self.cont)
+        :return:
+        """
 
-            # Emissions per a production lb figure.
-            logger.info('Creating emissions per lb figure.')
-            EmissionPerProdFigure(self.cont)
+        logistics = Logistics.Logistics(feedstock_list=self.feedstock_list, cont=self.cont)
+        logistics.calc_logistics(run_codes=self.run_codes, feedstock_list=self.feedstock_list, logistics_list=self.logistics_list, yield_list=self.yield_list)
 
-            # Ratio to NEI
-            RatioToNEIFigure.RatioToNEIFig(self.cont)
+    def figure_plotting(self):
+        """
+        Create graphics and numerical summary
 
-        logger.info('Successful completion of model run.')
+        :return:
+        """
+
+        # Contribution Analysis
+        logger.info('Creating emissions contribution figure.')
+        ContributionFigure.ContributionAnalysis(cont=self.cont)
+
+        # Emissions Per Gallon
+        logger.info('Creating emissions per gallon figure.')
+        EmissionsPerGalFigure.EmissionsPerGallon(cont=self.cont)
+
+        # Emissions per a acre figure.
+        logger.info('Creating emissions per acre figure.')
+        EmissionsPerAcreFigure(cont=self.cont)
+
+        # Emissions per a production lb figure.
+        logger.info('Creating emissions per lb figure.')
+        EmissionPerProdFigure(cont=self.cont)
+
+        # Ratio to NEI
+        RatioToNEIFigure.RatioToNEIFig(cont=self.cont)
 
 if __name__ == '__main__':
     raise NotImplementedError
