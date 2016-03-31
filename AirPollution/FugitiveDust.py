@@ -1,6 +1,7 @@
 import SaveDataHelper
 from utils import config, logger
 
+
 class FugitiveDust(SaveDataHelper.SaveDataHelper):
     """
     Create the fugitive dust emisisons based on the run code
@@ -240,20 +241,12 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['activity'] = str("%" + activity + "%")
         kvals['till_type'] = str("%" + till_type + "%")
 
-
-        query = """
-                UPDATE {scenario_name}.{feed}_raw raw
-                SET 
-                    fug_pm10 = (SELECT {ef} * cd.{till}_harv_AC
-                                FROM {production_schema}.{feed}_data cd
-                                WHERE   (cd.fips = raw.fips) AND
-                                        (raw.description LIKE '{activity}') AND
-                                        (raw.description LIKE '{till_type}')),
-                    fug_pm25 = (SELECT {ef} * cd.{till}_harv_AC * {pm_ratio}
-                                FROM {production_schema}.{feed}_data cd
-                                WHERE   (cd.fips = raw.fips) AND
-                                        (raw.description LIKE '{activity}') AND
-                                        (raw.description LIKE '{till_type}'))""".format(**kvals)
+        query = """ UPDATE {scenario_name}.{feed}_raw raw
+                    LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
+                    SET fug_pm10 = ({ef} * cd.{till}_harv_AC),
+                        fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio})
+                    WHERE (raw.description LIKE '{activity}') AND
+                          (raw.description LIKE '{till_type}')""".format(**kvals)
         self._execute_query(query)
 
     def transport_query(self, run_code, till_type):
@@ -297,30 +290,18 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['b25'] = str(0.45)
         kvals['b10'] = str(0.45)
         kvals['D'] = str(10)  # default value for distance traveled (in vehicle miles traveled)
-        query = """ DROP VIEW IF EXISTS {constants_schema}.fugdust;
-                    CREATE VIEW {constants_schema}.fugdust
-                    AS (SELECT  prod.fips,
-                            tfd.st_fips,
-                            (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} /3)^{b25})) * {convert_lb_to_mt}) as fug_pm25,
-                            (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} /3)^{b10})) * {convert_lb_to_mt}) as fug_pm10
-                    FROM {constants_schema}.{silt_table} tfd, {production_schema}.{feed}_data prod
-                    WHERE (LEFT(prod.fips, 2) LIKE tfd.st_fips))""".format(**kvals)
-        self._execute_query(query)
 
         query = """ UPDATE {scenario_name}.{feed}_raw raw
-                    SET fug_pm10 = (SELECT fugdust.fug_pm10
-                                    FROM {constants_schema}.fugdust fugdust
-                                    WHERE (raw.fips LIKE fugdust.fips)  AND
-                                          (raw.description LIKE '{till_type}') AND
-                                          (raw.description LIKE '{transport}'))""".format(**kvals)
-        self._execute_query(query)
-
-        query = """ UPDATE {scenario_name}.{feed}_raw raw
-                    SET fug_pm25 = (SELECT fugdust.fug_pm25
-                                    FROM {constants_schema}.fugdust fugdust
-                                    WHERE (raw.fips LIKE fugdust.fips)  AND
-                                          (raw.description LIKE '{till_type}') AND
-                                          (raw.description LIKE '{transport}'))""".format(**kvals)
+                    LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
+                    LEFT JOIN {constants_schema}.{silt_table} tfd ON
+                            CASE
+                                WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
+                                WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips,2))
+                            END
+                    SET fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} /3)^{b25})) * {convert_lb_to_mt}),
+                        fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} /3)^{b10})) * {convert_lb_to_mt})
+                    WHERE (raw.description LIKE '{till_type}') AND
+                          (raw.description LIKE '{transport}')""".format(**kvals)
         self._execute_query(query)
 
     def convert_lbs_to_mt(self, ef):
@@ -338,19 +319,20 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
     #   --structure is kept in the 'long-hand' format so users may easily change
     #        EF's in the future
     
-    def __init__(self, cont, operation):
+    def __init__(self, cont, run_code):
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.document_file = "SG_FugitiveDust"
         # to convert from PM10 to PM2.5, b/c PM2.5 is smaller.
         self.pm_ratio = 0.20
         self.cont = cont
         self.silt_table = config.get('db_table_list')['silt_table']
+        self.run_code = run_code
 
         emission_factors = list()
-        if operation == 'Transport':
+        if run_code.startswith('SG_T'):
             # these emissions are not used any more for calculating emissions. Just tells code how long to loop for.
             # lbs/acre
-            emission_factors = [1.2,  # year 1 transport emission factor
+            self.emission_factors = [1.2,  # year 1 transport emission factor
                                 1.2,  # year 2
                                 1.2,  # year 3
                                 1.2,  # year 4
@@ -363,10 +345,10 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                 ]
             self.description = 'SG_T'
             
-        elif operation == 'Harvest':
+        elif run_code.startswith('SG_H'):
             # Switchgrass fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003
             # http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
-            emission_factors = [1.7,  # year 1 harvest emission factor
+            self.emission_factors = [1.7,  # year 1 harvest emission factor
                                 1.7,  # year 2
                                 1.7,  # year 3
                                 1.7,  # year 4
@@ -379,9 +361,9 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                 ]
             self.description = 'SG_H'
             
-        elif operation == 'Non-Harvest':
+        elif run_code.startswith('SG_N'):
             # lbs/acre
-            emission_factors = [7.6,  # year 1 non-harvest emission factor
+            self.emission_factors = [7.6,  # year 1 non-harvest emission factor
                                 2.0,  # year 2
                                 0.8,  # year 3
                                 0.8,  # year 4
@@ -393,98 +375,84 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                 0.8  # year 10
                                 ]
             self.description = 'SG_N'
-        
-        self.emission_factors = (x * 0.907 / 2000.0 for x in emission_factors)  # convert from lbs to metric tons. mt / acre
 
     def set_emissions(self):
-        for year, ef in enumerate(self.emission_factors):   
-            # return non-transport emissions query      
-            # pm10 = mt/acre * acre =  mt
-            # pm2.5 = mt/acre * acre * constant = mt  
-            # switch grass on a 10 year basis.
-            if self.description == 'SG_N' or self.description == 'SG_H':
-                kvals = self.cont.get('kvals')
-                kvals['ef'] = ef
-                kvals['pm_ratio'] = self.pm_ratio
-                kvals['description'] = str("%" + self.description + str(year + 1) + "%")
+        # initialize kvals dictionary for string formatting
+        kvals = self.cont.get('kvals')
+        kvals['rot_years'] = 10  # set number of rotation years to 10 for SG
+        kvals['transport'] = str("%transport%")
+        kvals['onfarm_truck_capacity'] = config['onfarm_truck_capacity']
+        kvals['convert_lb_to_mt'] = self.convert_lbs_to_mt(1)
+        kvals['silt_table'] = self.silt_table
+        kvals['pm_ratio'] = self.pm_ratio
+        kvals['feed'] = 'sg'
+        kvals['till'] = 'notill'
 
-                query = """
-                        UPDATE {scenario_name}.sg_raw raw
-                        SET 
-                            fug_pm10 = ({ef} * dat.harv_ac) / 10,
-                            fug_pm25 = (({ef}* dat.harv_ac) * {pm_ratio}) / 10
-                        FROM %s.sg_data dat
-                        WHERE     (dat.fips LIKE raw.fips) AND
-                                  (raw.run_code LIKE '%s');
-                    """.format(**kvals)
+        year = int(self.run_code[-1])
+        ef = self.emission_factors[year - 1]
 
-                self._execute_query(query)
+        # return non-transport emissions query
+        # pm10 = mt/acre * acre =  mt
+        # pm2.5 = mt/acre * acre * constant = mt
+        # switch grass on a 10 year basis.
 
-            elif self.description == 'SG_T':
-                """
-                Calculates pm10 and pm2.5 fugitive dust emissions from transportation on unpaved roads 
-                Calculates in units of metric tons
-                
-                Equation for fugitive dust emissions generated by transportation on unpaved roads
-                # equation comes from EPA 2006 http://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf         
-                Equation from EPA 2006 Section 13.2.2 Unpaved Roads on pg 3 at http://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf     
-                EPA equation is given in units of lbs of pollutant per vehicle mile traveled which must be converted to metric tons of pollutant.
-                
-                Final equation is given by         
-                E = [k * v (s/12)^a (W/3)^b]*0.907/2000
-                
-                Where:    v = vehicle miles traveled (default 10)
-                          s = silt content (%)
-                          W = mass of vehicle (short tons)
-                          0.907/2000 converts from lbs to metric tons
-                          
-                @param run_code: Run code to get feed stock from.
-                @param tillType: Tillage type. Used to update correct row in feedstock_raw. 
-                """
+        kvals['description'] = str(self.description + str(year))
+        kvals['ef'] = self.convert_lbs_to_mt(ef)
 
-                kvals = self.cont.get('kvals')
-                kvals['transport'] = str("%transport%")
-                kvals['onfarm_truck_capacity'] = config['onfarm_truck_capacity']
-                kvals['convert_lb_to_mt'] = self.convert_lbs_to_mt(1)
-                kvals['description'] = str("%" + self.description + str(year + 1) + "%")
-                kvals['silt_table'] = self.silt_table
+        if self.description == 'SG_N' or self.description == 'SG_H':
 
-                # factors for equation.
-                kvals['weight'] = str(32.01)  # short tons
-                kvals['k25'] = str(0.15)
-                kvals['k10'] = str(1.5)
-                kvals['a25'] = str(0.9)
-                kvals['a10'] = str(0.9)
-                kvals['b25'] = str(0.45)
-                kvals['b10'] = str(0.45)
-                kvals['D'] = str(10)  # default value for distance traveled (in vehicle miles traveled)
-                kvals['rot_years'] = 10  # set number of rotation years to 10 for SG
+            query = """ UPDATE {scenario_name}.{feed}_raw raw
+                        LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
+                        SET fug_pm10 = ({ef} * cd.{till}_harv_AC) / {rot_years},
+                            fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}
+                        WHERE (raw.run_code = '{description}')""".format(**kvals)
+            self._execute_query(query)
 
-                query = """ DROP VIEW IF EXISTS {constants_schema}.fugdust;
-                            CREATE VIEW {constants_schema}.fugdust
-                            AS (SELECT  prod.fips,
-                                    tfd.st_fips,
-                                    (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} /3)^{b25})) * {convert_lb_to_mt}) as fug_pm25,
-                                    (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} /3)^{b10})) * {convert_lb_to_mt}) as fug_pm10
-                            FROM {constants_schema}.{silt_table} tfd, {production_schema}.{feed}_data prod
-                            WHERE (LEFT(prod.fips, 2) LIKE tfd.st_fips))""".format(**kvals)
-                self._execute_query(query)
+        elif self.description == 'SG_T':
+            """
+            Calculates pm10 and pm2.5 fugitive dust emissions from transportation on unpaved roads
+            Calculates in units of metric tons
 
-                query = """ UPDATE {scenario_name}.{feed}_raw raw
-                            SET fug_pm10 = (SELECT fugdust.fug_pm10 / {rot_years}
-                                            FROM {constants_schema}.fugdust fugdust
-                                            WHERE (raw.fips LIKE fugdust.fips)  AND
-                                                  (raw.description LIKE '{description}'))""".format(**kvals)
-                self._execute_query(query)
+            Equation for fugitive dust emissions generated by transportation on unpaved roads
+            # equation comes from EPA 2006 http://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf
+            Equation from EPA 2006 Section 13.2.2 Unpaved Roads on pg 3 at http://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf
+            EPA equation is given in units of lbs of pollutant per vehicle mile traveled which must be converted to metric tons of pollutant.
 
-                query = """ UPDATE {scenario_name}.{feed}_raw raw
-                            SET fug_pm25 = (SELECT fugdust.fug_pm25 / {rot_years}
-                                            FROM {constants_schema}.fugdust fugdust
-                                            WHERE (raw.fips LIKE fugdust.fips)  AND
-                                                  (raw.description LIKE '{description}'))""".format(**kvals)
-                self._execute_query(query)
+            Final equation is given by
+            E = [k * v (s/12)^a (W/3)^b]*0.907/2000
 
-            logger.info('Calculating fugitive dust emissions for %s, year %s' % (self.description, year, ))
+            Where:    v = vehicle miles traveled (default 10)
+                      s = silt content (%)
+                      W = mass of vehicle (short tons)
+                      0.907/2000 converts from lbs to metric tons
+
+            @param run_code: Run code to get feed stock from.
+            @param tillType: Tillage type. Used to update correct row in feedstock_raw.
+            """
+
+            # factors for equation.
+            kvals['weight'] = str(32.01)  # short tons
+            kvals['k25'] = str(0.15)
+            kvals['k10'] = str(1.5)
+            kvals['a25'] = str(0.9)
+            kvals['a10'] = str(0.9)
+            kvals['b25'] = str(0.45)
+            kvals['b10'] = str(0.45)
+            kvals['D'] = str(10)  # default value for distance traveled (in vehicle miles traveled)
+
+            query = """ UPDATE {scenario_name}.{feed}_raw raw
+                LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
+                LEFT JOIN {constants_schema}.{silt_table} tfd ON
+                        CASE
+                            WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
+                            WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips,2))
+                        END
+                SET fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} /3)^{b25})) * {convert_lb_to_mt}) / {rot_years},
+                    fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} /3)^{b10})) * {convert_lb_to_mt}) / {rot_years}
+                WHERE (raw.run_code = '{description}')""".format(**kvals)
+            self._execute_query(query)
+
+        logger.info('Calculating fugitive dust emissions for %s, year %s' % (self.description, year, ))
 
     def convert_lbs_to_mt(self, ef):
         """

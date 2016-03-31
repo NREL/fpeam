@@ -465,10 +465,10 @@ class Driver:
 
         if modelsg is True:
             # It makes more sense to create fugitive dust emissions using a separate method
-            operations = ['Transport', 'Harvest', 'Non-Harvest']
-            for operation in operations:
-                sgfug_dust = FugitiveDust.SG_FugitiveDust(cont=self.cont, operation=operation)
-                sgfug_dust.set_emissions()
+            for run_code in self.run_codes:
+                if run_code.startswith('SG'):
+                    sgfug_dust = FugitiveDust.SG_FugitiveDust(cont=self.cont, run_code=run_code)
+                    sgfug_dust.set_emissions()
 
         # only run the following if all feedstocks are being modeled.
         if len(self.feedstock_list) == 5:
