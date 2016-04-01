@@ -178,7 +178,7 @@ class ScenarioOptions:
                 # @TODO: why does this query filter for production data greater than 0.0? Should all crops should do this?
                 query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
                         FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                        WHERE dat.fips = ca.fips AND dat.prod > 0.0
+                        WHERE dat.fips = ca.fips AND dat.{till_type}_prod > 0.0
                         ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('SG'):
