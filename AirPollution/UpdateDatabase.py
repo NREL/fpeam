@@ -113,10 +113,11 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                                                                     logistics_type char(2),
                                                                     yield_type char(2),
                                                                     pollutantID varchar(45),
-                                                                    run_emissions float,
-                                                                    start_hotel_emissions float,
-                                                                    rest_evap_emissions float DEFAULT 0,
+                                                                    run_emissions_per_trip float,
+                                                                    start_hotel_emissions_per_trip float,
+                                                                    rest_evap_emissions_per_trip float DEFAULT 0,
                                                                     total_emissions_per_trip float,
+                                                                    vmt_travelled_per_trip float,
                                                                     number_trips float,
                                                                     total_emissions float);""".format(**self.kvals)
         self._execute_query(query)
