@@ -534,7 +534,6 @@ class Driver:
 
         fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
 
-        modelsg = False
         for run_code in self.run_codes:
             if not run_code.startswith('SG'):
                 if not run_code.endswith('L'):
@@ -542,12 +541,6 @@ class Driver:
                     logger.info("Fugitive Dust Emissions complete for %s" % (run_code, ))
             else:
                 if not run_code.endswith('L'):
-                    modelsg = True
-
-        if modelsg is True:
-            # It makes more sense to create fugitive dust emissions using a separate method
-            for run_code in self.run_codes:
-                if run_code.startswith('SG'):
                     sgfug_dust = FugitiveDust.SG_FugitiveDust(cont=self.cont, run_code=run_code)
                     sgfug_dust.set_emissions()
 
