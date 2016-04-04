@@ -451,7 +451,7 @@ class Driver:
 
                             trans_col = self.transport_col[logistics_type]['dist']
                             if len(self.transport_col[logistics_type]) == 2:
-                                trans_col += '+ %s' % (transport_col[logistics_type]['dist_2'], )
+                                trans_col += '+ %s' % (self.transport_col[logistics_type]['dist_2'], )
 
                             kvals['trans_col'] = trans_col
                             query_vmt = """ SELECT {trans_col}
@@ -459,7 +459,7 @@ class Driver:
                                             WHERE feed_id = '{feed_id}' AND sply_fips = {fips};
                                         """.format(**kvals)
                             output_vmt = self.db.output(query_vmt)
-                            if len(output_vmt) > 1:
+                            if len(output_vmt) >= 1:
                                 vmt_short_haul = output_vmt[0][0]  # annual vehicle miles traveled by combination short-haul trucks
                             else:
                                 vmt_short_haul = 0
@@ -470,7 +470,8 @@ class Driver:
                                          """.format(**kvals)
 
                             silt = self.db.output(query_silt)[0][0]
-                            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt_short_haul, pop=pop_short_haul, logistics_type=logistics_type, silt=silt, yield_type=yield_type)
+                            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt_short_haul, pop=pop_short_haul,
+                                                                           logistics_type=logistics_type, silt=silt, yield_type=yield_type)
                             transportation.calculate_transport_emissions()
 
     def post_process_fert(self):
@@ -500,7 +501,7 @@ class Driver:
 
         for feedstock in self.feedstock_list:
             chem.set_chemical(feed=feedstock)
-            logger.info("Fertilizer and Chemical complete for %s" % (feedstock, ))
+            logger.info("Chemical calculations complete for %s" % (feedstock, ))
 
     def post_process_nonroad(self, operation_dict, alloc):
         """
