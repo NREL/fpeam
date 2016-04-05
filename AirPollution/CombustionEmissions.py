@@ -191,43 +191,29 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         @param alloc: dict(string: int) Allocation of non-harvest emissions between cg, cs, and ws
         """
 
-        # multiply the emissions by allocation constant.
+        self.kvals = {'fuel_cons': fuel_cons,
+                      'thc': thc,
+                      'voc': voc,
+                      'co': co,
+                      'nox': nox,
+                      'co2': co2,
+                      'so2': so2,
+                      'pm10': pm10,
+                      'pm25': pm25,
+                      'nh3': nh3,
+                      'description': description,
+                      'row': row,
+                      'scc': scc,
+                      'hp': hp,
+                      'run_code': run_code,
+                      'scenario_name': self.cont.get('model_run_title'),
+                      'feed': feed}
+
+        # multiply the emissions by allocation constant
         if alloc is not None:
-            self.kvals = {'fuel_cons': fuel_cons * alloc[feed],
-                          'thc': thc * alloc[feed],
-                          'voc': voc * alloc[feed],
-                          'co': co * alloc[feed],
-                          'nox': nox * alloc[feed],
-                          'co2': co2 * alloc[feed],
-                          'so2': so2 * alloc[feed],
-                          'pm10': pm10 * alloc[feed],
-                          'pm25': pm25 * alloc[feed],
-                          'nh3': nh3 * alloc[feed],
-                          'description': description,
-                          'row': row,
-                          'scc': scc,
-                          'hp': hp,
-                          'run_code': run_code,
-                          'scenario_name': self.cont.get('model_run_title'),
-                          'feed': feed}
-        else:
-            self.kvals = {'fuel_cons': fuel_cons,
-                          'thc': thc,
-                          'voc': voc,
-                          'co': co,
-                          'nox': nox,
-                          'co2': co2,
-                          'so2': so2,
-                          'pm10': pm10,
-                          'pm25': pm25,
-                          'nh3': nh3,
-                          'description': description,
-                          'row': row,
-                          'scc': scc,
-                          'hp': hp,
-                          'run_code': run_code,
-                          'scenario_name': self.cont.get('model_run_title'),
-                          'feed': feed}
+            pollutants = ('thc', 'voc', 'co', 'nox', 'co2', 'so2', 'pm10', 'pm25', 'nh3')
+            for pollutant in pollutants:
+                self.kvals[pollutant] *= alloc[feed] 
 
         writer.writerow((self.kvals['row'], self.kvals['scc'], self.kvals['hp'], self.kvals['fuel_cons'], self.kvals['thc'], self.kvals['voc'], self.kvals['co'], self.kvals['nox'],
                          self.kvals['co2'], self.kvals['so2'], self.kvals['pm10'], self.kvals['pm25'], self.kvals['nh3'], self.kvals['run_code'],))
