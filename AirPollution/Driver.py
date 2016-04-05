@@ -111,7 +111,7 @@ class Driver:
 
         for feed in self.feedstock_list:
             feed = feed.lower()
-            self.kvals['%s_chem_table' % (feed,)] = self.kvals['chem_tables'][feed]
+            self.kvals['%s_chem_table' % (feed, )] = self.kvals['chem_tables'][feed]
             self.kvals['%s_table' % (feed, )] = self.kvals['feed_tables'][feed]
 
         # container to pass info around
