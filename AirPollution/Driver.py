@@ -438,36 +438,39 @@ class Driver:
                             else:
                                 kvals['st_fips'] = '0%s' % (fips[0])
 
-                            query_pop = """ SELECT used_qnty / {truck_capacity}
-                                            FROM {production_schema}.{transport_table}
-                                            WHERE feed_id = '{feed_id}' AND sply_fips = {fips};
-                                        """.format(**kvals)
+                            query_pop = """SELECT used_qnty / {truck_capacity}
+                                           FROM {production_schema}.{transport_table}
+                                           WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
+                                           ;""".format(**kvals)
 
                             output_pop = self.db.output(query_pop)
-                            if len(output_pop) == 1:
+                            pop_short_haul = 0
+                            try:
                                 pop_short_haul = output_pop[0][0]  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
-                            else:
-                                pop_short_haul = 0
+                            except IndexError:
+                                pass
 
                             trans_col = self.transport_col[logistics_type]['dist']
                             if len(self.transport_col[logistics_type]) == 2:
                                 trans_col += '+ %s' % (self.transport_col[logistics_type]['dist_2'], )
 
                             kvals['trans_col'] = trans_col
-                            query_vmt = """ SELECT {trans_col}
-                                            FROM {production_schema}.{transport_table}
-                                            WHERE feed_id = '{feed_id}' AND sply_fips = {fips};
-                                        """.format(**kvals)
-                            output_vmt = self.db.output(query_vmt)
-                            if len(output_vmt) >= 1:
-                                vmt_short_haul = output_vmt[0][0]  # annual vehicle miles traveled by combination short-haul trucks
-                            else:
-                                vmt_short_haul = 0
+                            query_vmt = """SELECT {trans_col}
+                                           FROM {production_schema}.{transport_table}
+                                           WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
+                                           ;""".format(**kvals)
 
-                            query_silt = """ SELECT uprsm_pct_silt
-                                             FROM {constants_schema}.{silt_table}
-                                             WHERE st_fips = {st_fips}
-                                         """.format(**kvals)
+                            output_vmt = self.db.output(query_vmt)
+                            vmt_short_haul = 0
+                            try:
+                                vmt_short_haul = output_vmt[0][0]  # annual vehicle miles traveled by combination short-haul trucks
+                            except IndexError:
+                                pass
+
+                            query_silt = """SELECT uprsm_pct_silt
+                                            FROM {constants_schema}.{silt_table}
+                                            WHERE st_fips = {st_fips}
+                                            ;""".format(**kvals)
 
                             silt = self.db.output(query_silt)[0][0]
                             transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt_short_haul, pop=pop_short_haul,
@@ -571,7 +574,7 @@ class Driver:
         # create tables that contain a ratio to NEI
         for count, feedstock in enumerate(self.feedstock_list):
             nei.create_nei_comparison(feedstock=feedstock)
-            if count == 4:
+            if count == len(self.feedstock_list):
                 # on the last go, make a total query for all cellulosic.
                 nei.create_nei_comparison(feedstock='cellulosic')
 
