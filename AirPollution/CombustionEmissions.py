@@ -1,10 +1,10 @@
-import SaveDataHelper
 import csv
 import os
-from utils import config, logger
 
-# @TODO: refactor to match PEP8 standards
-# @TODO: refactor to use string formatting
+import SaveDataHelper
+from utils import logger
+
+
 # @TODO: fill out docstrings
 
 
@@ -33,13 +33,12 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         :param alloc: Amount of non harvest emmisions to allocate to cg, cs, and ws. dict(string: int)
             {'CG': .9, 'CS': .1, 'WS': .1}
         :return:
-
         """
 
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.document_file = "CombustionEmissions"
         # not used here?
-        self.pm_ratio = 0.20  # @TODO: remove hardcoded values
+        self.pm_ratio = 0.20
         self.base_path = cont.get('path')
         # operations and feedstock dictionary.
         self.operation_dict = operation_dict
@@ -93,7 +92,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             f = open(os.path.join(self.base_path, 'OUT', run_code + '.csv'), 'wb')
             writer = csv.writer(f)
             writer.writerow(('FIPS', 'scc', 'hp', 'fuel_cons_gal/yr', 'thc_exh', 'voc_exh', 'co_exh', 'nox_exh',
-                            'co2_exh', 'so2_exh', 'pm10_exh', 'pm25_exh', 'nh3_exh', 'Description'))
+                             'co2_exh', 'so2_exh', 'pm10_exh', 'pm25_exh', 'nh3_exh', 'Description'))
 
             queries = []
             for cur_file in listing:
@@ -185,10 +184,8 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         :param run_code:
         :param writer:
         :param queries:
-        :param alloc:
+        :param alloc: dict(string: int) Allocation of non-harvest emissions between cg, cs, and ws
         :return:
-        @param feed:
-        @param alloc: dict(string: int) Allocation of non-harvest emissions between cg, cs, and ws
         """
 
         self.kvals = {'fuel_cons': fuel_cons,
@@ -241,13 +238,16 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         Switch grass harvest and non-harvest uses two different machines that are 60 and 130 hp.
         This creates multiple rows in the db for each operation year. To remove the duplicate columns,
         for each fips and for each operation year, add all the same ones and make a single row.
+
         :param run_code: run code for NONROAD
+        :return:
         """
+
         # @TODO: what is going on here? why insert and then delete? this doesn't make any sense
-        # insert added data to sg_raw.
+        # insert added data to sg_raw
         logger.info('Inserting data for run code: %s' % (run_code, ))
         self._insert_sg_data()
-        # delete old data from sg_raw.
+        # delete old data from sg_raw
         logger.info('Deleting old SG data for run %s' % (run_code, ))
         self._delete_sg_data()
     
@@ -256,9 +256,12 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         Switch grass harvest and non-harvest uses two different machines that are 60 and 130 hp.
         This creates multiple rows in the db for each operation year. This function creates a single column for each run_code,
         by adding together multiple entries from the different hp's. Adds data to sg_raw.
+
+        :return:
         """
+
         # when inserting, leave some of the slots blank that do not matter.
-        # @TODO: not sure we should be using 0s for 'blanks'; maybe should use NULL
+        # @TODO: not sure we should be using 0s for 'blanks'; maybe should use NULL. UPDATE: 0s are used as NODATA throughout; this should be fixed to use NULLs but will require updating all queries to handle NULL data
 
         self.kvals = self.cont.get('kvals')
 
@@ -300,6 +303,8 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
     def _delete_sg_data(self):
         """
         Deletes unwanted data in sg_raw. b/c of multiple entries for each run_code.
+
+        :return:
         """
         self.kvals = self.cont.get('kvals')
 

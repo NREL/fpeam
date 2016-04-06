@@ -10,9 +10,16 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
     """
 
     def __init__(self, cont):
+        """
+
+        :param cont: container object
+        :return:
+        """
+
         SaveDataHelper.SaveDataHelper.__init__(self, cont=cont)
         # gets used to save query to a text file for debugging purposes.
         self.document_file = "Fertilizer"
+
         # add fert distributions here. List of fertilizers.
         self.fert_dist = config['fert_dist']
         self.n_fert_ef = config['n_fert_ef']  # dictionary of fertilizer emission factor
@@ -23,31 +30,27 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
 
     def set_fertilizer(self, feed):
         """
-        Pick the correct feed stock and add fertilizer emmisions to the db.
-        Only one not in use is forest residue b/c it is a forest and does not need fertilizer to grow.
-        @param feed: feed stock. 
-        """    
-        # table format in database
-        #    FIPS    char(5)    ,
-        #    NOx    float    ,
-        #    NH3    float    ,
-        #    SCC    char(10)    ,
-        #    description    text   
-        if feed != 'FR':
-            # grab all of the queries.
-            query = None
-            if feed == 'CS':
-                query = self.__corn_stover__(feed)
-            elif feed == 'WS':
-                query = self.__wheat_straw__(feed)
-            elif feed == 'CG':
-                query = self.__corn_grain__()
-            elif feed == 'SG':
-                query = self.__switchgrass__(feed)
-            # if a query was created, execute it.
-            if query is not None:
-                self._execute_query(query)
-                
+        Add fertilizer emissions to database tables.
+
+        :param feed: feedstock
+        :return:
+
+        """
+
+        query = None
+
+        if feed == 'CS':
+            query = self.__corn_stover__(feed)
+        elif feed == 'WS':
+            query = self.__wheat_straw__(feed)
+        elif feed == 'CG':
+            query = self.__corn_grain__()
+        elif feed == 'SG':
+            query = self.__switchgrass__(feed)
+
+        if query is not None:
+            self._execute_query(query)
+
     def __corn_stover__(self, feed):
         """
         NOX N_app data is in units of % of N volatilized as NO
@@ -60,10 +63,15 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         
         E_NO  = sum(Prod * N_app * N_share * N_fert_percent_ef / 100.0 * 30.0 / 14.0 * 0.90718474 / 2000.0) over all fertilizer types 
         E_NH3 = sum(Prod * N_app * N_share * N_fert_percent_ef / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0) over all fertilizer types 
-        
+
+        :param feed: feedstock
+        :return: string
+
         """
 
         self.kvals = self.cont.get('kvals')
+
+        fert_query = ''
 
         for fert in self.descrip_dict:
             self.kvals['scc'] = self.scc_dict[fert]
@@ -74,14 +82,17 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
             # emission factor: total mt NH3 per dt feedstock
             self.kvals['emissions_nh3'] = float(self.n_fert_app[feed]) * float(self.fert_dist[feed][fert]) * float(self.n_fert_ef['NH3'][fert]) / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0
 
-            fert_query = """INSERT INTO {scenario_name}.{feed}_nfert
-                            SELECT feed.fips,
-                            feed.total_prod * {emissions_nox} AS NOX,
-                            feed.total_prod * {emissions_nh3} AS NH3,
-                            ({scc}) AS SCC,
-                            '{description}' AS Description
-                            FROM {production_schema}.{feed}_data feed
-                            GROUP BY feed.fips;""".format(**self.kvals)
+            fert_query += """INSERT INTO {scenario_name}.{feed}_nfert
+                             SELECT feed.fips,
+                             feed.total_prod * {emissions_nox} AS NOX,
+                             feed.total_prod * {emissions_nh3} AS NH3,
+                             ({scc}) AS SCC,
+                             '{description}' AS Description
+                             FROM {production_schema}.{feed}_data feed
+                             GROUP BY feed.fips;\n""".format(**self.kvals)
+
+        if fert_query == '':
+            fert_query = None
 
         return fert_query
 

@@ -139,36 +139,35 @@ class ScenarioOptions:
 
                 self.kvals['fuel_type'] = fuel_types[run_code[-1]]
 
-                # @TODO: convert config usage
-                # @TODO: remove hardcoded schemas
-                query = """SELECT ca.fips, ca.st, dat.total_harv_ac * irr.perc AS acres, dat.total_prod, irr.fuel, irr.hp, irr.perc, irr.hpa
-                FROM {constants_schema}.county_attributes ca
-                LEFT JOIN {production_schema}.{cg_table} dat ON ca.fips = dat.fips
-                LEFT JOIN (SELECT state, fuel, hp, percent AS perc, hrsperacre AS hpa
-                           FROM {constants_schema}.cg_irrigated_states
-                           WHERE cg_irrigated_states.fuel LIKE '{fuel_type}'
-                           ) AS irr ON irr.state LIKE ca.st
-                WHERE ca.st LIKE irr.state
-                ORDER BY ca.fips ASC;
-                """.format(**self.kvals)  # @TODO: remove hardcoding of schema and tables
+                query = '''SELECT ca.fips, ca.st, dat.total_harv_ac * irr.perc AS acres, dat.total_prod, irr.fuel, irr.hp, irr.perc, irr.hpa
+                           FROM      {constants_schema}.county_attributes ca
+                           LEFT JOIN {production_schema}.{cg_table} dat ON ca.fips = dat.fips
+                           LEFT JOIN (SELECT state, fuel, hp, percent AS perc, hrsperacre AS hpa
+                                      FROM {constants_schema}.cg_irrigated_states
+                                      WHERE cg_irrigated_states.fuel LIKE '{fuel_type}'
+                                     ) irr
+                               ON irr.state LIKE ca.st
+                           WHERE ca.st LIKE irr.state
+                           ORDER BY ca.fips ASC;
+                '''.format(**self.kvals)
             else:
                 # set value for tillage type
                 self.kvals['till_type'] = till_dict[run_code[3]]
 
-                query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
-                        FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                        WHERE dat.fips = ca.fips
-                        ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
+                           FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
+                           WHERE dat.fips = ca.fips
+                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('CS'):
             
             # set value for tillage type
                 self.kvals['till_type'] = till_dict[run_code[3]]
 
-                query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
-                        FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                        WHERE dat.fips = ca.fips
-                        ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
+                           FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
+                           WHERE dat.fips = ca.fips
+                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('WS'):
 
@@ -176,17 +175,17 @@ class ScenarioOptions:
                 self.kvals['till_type'] = till_dict[run_code[3]]
 
                 # @TODO: why does this query filter for production data greater than 0.0? Should all crops should do this?
-                query = ''' SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
-                        FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                        WHERE dat.fips = ca.fips AND dat.{till_type}_prod > 0.0
-                        ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
+                           FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
+                           WHERE dat.fips = ca.fips AND dat.{till_type}_prod > 0.0
+                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         elif run_code.startswith('SG'):
             if self.query_sg:
-                query = ''' SELECT ca.fips, ca.st, dat.notill_harv_ac, dat.notill_prod
-                            FROM {production_schema}.{sg_table} dat, {constants_schema}.county_attributes ca
-                            WHERE dat.fips = ca.fips
-                            ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                query = '''SELECT ca.fips, ca.st, dat.notill_harv_ac, dat.notill_prod
+                           FROM {production_schema}.{sg_table} dat, {constants_schema}.county_attributes ca
+                           WHERE dat.fips = ca.fips
+                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
                 
                 # we have 30 scenarios for SG to run, but only want one to query the database once
                 self.query_sg = False
@@ -194,10 +193,10 @@ class ScenarioOptions:
         elif run_code.startswith('FR'):
             
             if run_code == 'FR':
-                query = ''' SELECT ca.fips, ca.st, dat.fed_minus_55
-                            FROM {production_schema}.{fr_table} dat, {constants_schema}.county_attributes ca
-                            WHERE dat.fips = ca.fips
-                            ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                query = '''SELECT ca.fips, ca.st, dat.fed_minus_55
+                           FROM {production_schema}.{fr_table} dat, {constants_schema}.county_attributes ca
+                           WHERE dat.fips = ca.fips
+                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         return query
 
@@ -251,22 +250,23 @@ class NROptionFile:
         creates the .opt file.
 
         :param fips: Geographical Location
+        :return:
 
-        ###############################
-        @change: NONROAD was not processing files with 10 in it so SG_H10, SG_N10, and SG_T10 inputs
-        files were being made correct, but not processing and saving correctly with NONROAD. Hacked around
-        this by saving SG_*10 in the same folder but using inputs from SG_*9
-        old code: self.run_code
-        new code: run_code = self.run_code
-                  if run_code.endswith('0'):
-                    # remove the last character.
-                    run_code = run_code[:-1]
-                    # change the number from 1 to 9
-                    split = list(run_code)
-                    split[-1] = '9'
-                    run_code = "".join(split)
-        ###############################
         """
+        # ###############################
+        # @change: NONROAD was not processing files with 10 in it so SG_H10, SG_N10, and SG_T10 inputs
+        # files were being made correct, but not processing and saving correctly with NONROAD. Hacked around
+        # this by saving SG_*10 in the same folder but using inputs from SG_*9
+        # old code: self.run_code
+        # new code: run_code = self.run_code
+        #           if run_code.endswith('0'):
+        #             # remove the last character.
+        #             run_code = run_code[:-1]
+        #             # change the number from 1 to 9
+        #             split = list(run_code)
+        #             split[-1] = '9'
+        #             run_code = "".join(split)
+        # ###############################
 
         run_code = self.run_code
 
@@ -288,15 +288,14 @@ class NROptionFile:
         :param fips: county FIPS
         :param new_run_code: Hack for SQ_*10 run code issues in NONROAD
         :return:
-
-            @change: Changes made to run NONROAD with SG_*9 and save it as SG_*10.
-            Leave folder for output to be the same. Change output file to be run_code given.
-            old code: Population File    : ''' + self.out_path_pop_alo + 'POP\\' + self.state + '_' + self.run_code + '''.pop
-                  Harvested acres    : ''' + self.out_path_pop_alo + 'ALLOCATE\\' + self.state + '_' + self.run_code + '''.alo
-            new code: Population File    : ''' + self.out_path_pop_alo + 'POP\\' + self.state + '_' + new_run_code + '''.pop
-                      Harvested acres    : ''' + self.out_path_pop_alo + 'ALLOCATE\\' + self.state + '_' + new_run_code + '''.alo
-
         """
+
+        # @change: Changes made to run NONROAD with SG_*9 and save it as SG_*10.
+        # Leave folder for output to be the same. Change output file to be run_code given.
+        # old code: Population File    : ''' + self.out_path_pop_alo + 'POP\\' + self.state + '_' + self.run_code + '''.pop
+        #       Harvested acres    : ''' + self.out_path_pop_alo + 'ALLOCATE\\' + self.state + '_' + self.run_code + '''.alo
+        # new code: Population File    : ''' + self.out_path_pop_alo + 'POP\\' + self.state + '_' + new_run_code + '''.pop
+        #           Harvested acres    : ''' + self.out_path_pop_alo + 'ALLOCATE\\' + self.state + '_' + new_run_code + '''.alo
 
         kvals = {'episode_year': self.episode_year,
                  'state_fips': '{fips:0<5}'.format(fips=fips[0:2]),

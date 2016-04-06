@@ -13,6 +13,10 @@ class Chemical(SaveDataHelper.SaveDataHelper):
     """
 
     def __init__(self, cont):
+        """
+
+        :param cont:
+        """
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
         self.document_file = "Chemical"
 
@@ -22,9 +26,13 @@ class Chemical(SaveDataHelper.SaveDataHelper):
     def set_chemical(self, feed):
         """
         Find the feedstock and add emmissions if it is switch grass or corn grain.
-        @param feed: Feed stock.
+
+        :param feed: Feedstock
+        :return:
         """
+
         query = None
+
         if feed == 'CG':
             query = self.__corn_grain__()
         elif feed == 'SG':
@@ -43,6 +51,8 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         .9 =  evaporation rate. (lbs active/lbs VOC)
         .835 = voc content. lbs VOC / lb active ingridient.
         (acres) * (lbs VOC/acre) * (lbs active/lbs VOC) * (lbs VOC/lbs active) * (mt/lbs) = mt VOC
+
+        :return: SQL
         """
 
         chem_query = """INSERT INTO {scenario_name}.{cg_chem_table}
@@ -63,6 +73,8 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         Multiply by .1 b/c it is switch grass on a ten year cycle.
         emmisions = .1 * harvested acres * lbs/acre * Evaporation rate * VOC content (lbs VOC / lb active ingridient) * conversion lbs to mt  VOC
         emmisions (mt VOC)
+
+        :return: SQL
         """
 
         chem_query = """INSERT INTO {scenario_name}.{sg_chem_table}

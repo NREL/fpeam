@@ -20,48 +20,54 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         self.scenario_name = cont.get('model_run_title')
 
         query = """
-        CREATE TABLE %s.summedEmissions
+        CREATE TABLE {scenario}.summedEmissions
         (
-        fips    char(5)    ,
-        feedstock    text    ,
-        prod    float    ,
-        harv_Ac    float    ,
-        NOX    float    DEFAULT 0.0,
-        NH3    float    DEFAULT 0.0,
-        SOX    float    DEFAULT 0.0,
-        VOC    float    DEFAULT 0.0,
-        PM10    float    DEFAULT 0.0,
-        PM25    float    DEFAULT 0.0,
-        CO    float    DEFAULT 0.0);""" % (self.scenario_name, )
+        fips      char(5),
+        feedstock text,
+        prod      float,
+        harv_Ac   float,
+        NOX       float DEFAULT 0.0,
+        NH3       float DEFAULT 0.0,
+        SOX       float DEFAULT 0.0,
+        VOC       float DEFAULT 0.0,
+        PM10      float DEFAULT 0.0,
+        PM25      float DEFAULT 0.0,
+        CO        float DEFAULT 0.0);""".format(scenario=self.scenario_name)
 
         self._execute_query(query)
 
-
     def __set_nei_ratio_table__(self, feedstock):
+        """
+
+        :param feedstock:
+        :return:
+        """
 
         query = """
-        CREATE TABLE %s.%s_NEIRatio
+        CREATE TABLE {scenario}.{feedstock}_NEIRatio
         (
-        fips    char(5) ,
-        nox    float    ,
-        sox    float    ,
-        co    float    ,
-        pm10    float    ,
-        pm25    float    ,
-        voc    float    ,
-        nh3    float);""".format(self.scenario_name, feedstock, )
+        fips char(5),
+        nox  float,
+        sox  float,
+        co   float,
+        pm10 float,
+        pm25 float,
+        voc  float,
+        nh3  float);""".format(scenario=self.scenario_name, feedstock=feedstock, )
 
         self._execute_query(query)
 
     def create_summed_emissions_table(self, feedstock):
         """
         Create summed dimmensions table in the db.
-        TODO: fr should have a harv_ac.
-    
-        select ca.fips, ca.st, dat.fed_minus_55 
-        from constants_schema.county_attributes ca, fr_data dat where dat.fips = ca.fips
+
+        :param feedstock:
+        :return:
+
         """
-        
+
+        # @TODO: refactor this whole shebang; I don't even know what to say about 'prod'
+
         if feedstock == 'CG':
             f = "Corn Grain"
             prod = "dat.total_prod, dat.total_harv_ac"
@@ -87,18 +93,18 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         if feedstock != 'FR':
             query += """
                         (SELECT DISTINCT fips,
-                                        sum(nox) as nox,
-                                        sum(nh3) as nh3
+                                        sum(nox) AS nox,
+                                        sum(nh3) AS nh3
                             FROM %s.%s_nfert
-                            GROUP BY fips) as Fert,
+                            GROUP BY fips) AS Fert,
                         ---------------------------------------------------------------------------------------------
                         """ % (self.scenario_name, feedstock,)
 
         # populate table that have pesticides.
         if feedstock == 'CG' or feedstock == 'SG':
             query += """
-                        Chem as (SELECT DISTINCT fips,
-                                        sum(voc) as voc
+                        Chem AS (SELECT DISTINCT fips,
+                                        sum(voc) AS voc
                             FROM %s.%s_chem
                             GROUP BY fips),
                         ---------------------------------------------------------------------------------------------
@@ -115,7 +121,7 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         # ########################
         
         query += """
-                    Raw as (SELECT DISTINCT fips,
+                    Raw AS (SELECT DISTINCT fips,
                             sum(nox) AS nox,
                             sum(nh3) AS nh3,
                             sum(sox) AS sox,
@@ -131,16 +137,14 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         if feedstock == 'CG' or feedstock == 'SG': 
             query += """
                         (SELECT dat.fips, %s, %s,
-                            (raw.nox + fert.nox) as nox,
-                            (raw.nh3 + fert.nh3) as nh3,
-                            (raw.sox) as sox,
-                            (raw.voc + chem.voc) as voc,
-                            (raw.pm10) as pm10,
-                            (raw.pm25) as pm25,
-                            (raw.co) as co
-
+                            (raw.nox + fert.nox) AS nox,
+                            (raw.nh3 + fert.nh3) AS nh3,
+                            (raw.sox) AS sox,
+                            (raw.voc + chem.voc) AS voc,
+                            (raw.pm10) AS pm10,
+                            (raw.pm25) AS pm25,
+                            (raw.co) AS co
                         FROM %s dat
-
                         LEFT JOIN Fert ON fert.fips = dat.fips
                         LEFT JOIN Chem ON chem.fips = dat.fips
                         LEFT JOIN Raw ON raw.fips = dat.fips
@@ -150,16 +154,14 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         elif feedstock == 'CS' or feedstock == 'WS':
             query += """
                         (SELECT dat.fips, %s, %s,
-                            (raw.nox + fert.nox) as nox,
-                            (raw.nh3 + fert.nh3) as nh3,
-                            (raw.sox) as sox,
-                            (raw.voc) as voc,
-                            (raw.pm10) as pm10,
-                            (raw.pm25) as pm25,
-                            (raw.co) as co
-
+                            (raw.nox + fert.nox) AS nox,
+                            (raw.nh3 + fert.nh3) AS nh3,
+                            (raw.sox) AS sox,
+                            (raw.voc) AS voc,
+                            (raw.pm10) AS pm10,
+                            (raw.pm25) AS pm25,
+                            (raw.co) AS co
                         FROM %s dat
-
                         LEFT JOIN Fert ON fert.fips = dat.fips
                         LEFT JOIN Raw ON raw.fips = dat.fips
                         )
@@ -168,16 +170,14 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         elif feedstock == 'FR':
             query += """
                         (SELECT dat.fips, %s, %s,
-                            (raw.nox) as nox,
-                            (raw.nh3) as nh3,
-                            (raw.sox) as sox,
-                            (raw.voc) as voc,
-                            (raw.pm10) as pm10,
-                            (raw.pm25) as pm25,
-                            (raw.co) as co
-
+                            (raw.nox) AS nox,
+                            (raw.nh3) AS nh3,
+                            (raw.sox) AS sox,
+                            (raw.voc) AS voc,
+                            (raw.pm10) AS pm10,
+                            (raw.pm25) AS pm25,
+                            (raw.co) AS co
                         FROM %s dat
-
                         LEFT JOIN Raw ON raw.fips = dat.fips
                         )
                         ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
@@ -186,106 +186,56 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         self._execute_query(query)
 
     def create_nei_comparison(self, feedstock):
-        
-        # Old NEI data from Noah.
-        # self.nei_data_by_county = self.db.constants_schema + ".nei_data_by_county"
-        # new NEI data from Jeremy.
-        # nei_nonroad_nonpoint and nei_total
+
         self.nei_data_by_county = config.get('nei_data_by_county')
-        # @change: Change allocation. Allocation is the amount of the feedstock that actually get's used to produce ethanol.
-        # 9/3
-        # old code:     self.cellulosicAllocation = 0.34 demand to meet 16 billion gal of ethonal
-        #               self.cornGrainAllocation = 0.54 demand to meet 15 billion gal of ethonal flipped with cellulosic
-        # new code:     allocation = 0.52 wrong
-        # @change: convert NEI data from short tons to metric tons.
-        # 9/11
-        # old code:     nei.nox
-        # new code:     nei.nox * 0.907185
-        allocation = str(0.52)  # for cellulosic
+
+        allocation = 0.52
 
         self.__set_nei_ratio_table__(feedstock)
-        
-        if feedstock == 'CG':
-            f = 'Corn Grain'
-        elif feedstock == 'SG':
-            f = 'Switchgrass'
-        elif feedstock == 'CS':
-            f = 'Corn Stover'
-        elif feedstock == 'WS':
-            f = 'Wheat Straw'
-        elif feedstock == 'FR':
-            f = 'Forest Residue' 
-        elif feedstock == 'cellulosic':
-            f = 'cellulosic'
 
-        if f is not 'cellulosic': 
-            # For the NEI data convert from short ton to metric ton by multiplying nei data by 0.907185
-            query = """
-                        INSERT INTO """ + feedstock + """_NEIRatio
-                        WITH
-                           nrel AS (select distinct fips,  sum(nox) as nox,
-                                           sum(sox) as sox,
-                                           sum(co) as co,
-                                           sum(pm10) as pm10,
-                                           sum(pm25) as pm25,
-                                           sum(voc) as voc,
-                                           sum(nh3) as nh3
-                                    from """ + self.db.schema + """.summedemissions
-                                    where feedstock ilike '%""" + f + """%'
-                                    GROUP BY fips),
-                           nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3
-                                   from """ + self.nei_data_by_county + """)
+        f_abbrev = {'CG': 'Corn Grain',
+                    'SG': 'Switchgrass',
+                    'CS': 'Corn Stover',
+                    'WS': 'Wheat Straw',
+                    'FR': 'Forest Residue',
+                    'cellulosic': 'celluslosic'
+                    }
 
-                           select   nrel.fips,
-                                    (nrel.nox * """ + allocation + """) / (nei.nox * 0.907185) as nox,
-                                    (nrel.sox * """ + allocation + """) / (nei.sox * 0.907185) as sox,
-                                    (nrel.co * """ + allocation + """) / (nei.co * 0.907185) as co,
-                                    (nrel.pm10 * """ + allocation + """) / (nei.pm10 * 0.907185) as PM10,
-                                    (nrel.pm25 * """ + allocation + """) / (nei.pm25 * 0.907185) as PM25,
-                                    (nrel.voc * """ + allocation + """) / (nei.voc * 0.907185) as VOC,
-                                    CASE WHEN nei.nh3 > 0 THEN     (nrel.nh3 * """ + allocation + """) / (nei.nh3 * 0.907185)
-                                         ELSE 0.0
-                                    END as NH3
+        # feedstock abbreviation for queries
+        f = f_abbrev[feedstock]
+        # 'not' phrase for where clause
+        n = ''
 
-                            FROM nrel
-                            LEFT JOIN nei ON nrel.fips = nei.fips
-                            WHERE nrel.nh3 > 0 and nei.nox > 0
-                                    """
-
-        else:
+        if f == 'cellulosic':
             # query everything except cg
-            p = 'Corn Grain'
-            query = """
-                        INSERT INTO """ + feedstock + """_NEIRatio
-                        WITH
-                           nrel AS (select distinct fips,  sum(nox) as nox,
-                                           sum(sox) as sox,
-                                           sum(co) as co,
-                                           sum(pm10) as pm10,
-                                           sum(pm25) as pm25,
-                                           sum(voc) as voc,
-                                           sum(nh3) as nh3
-                                    from """ + self.db.schema + """.summedemissions
-                                    where feedstock not ilike '%""" + p + """%'
-                                    GROUP BY fips),
-                           nei as (select fips, nox, sox, co, pm10, pm25, voc, nh3
-                                   from """ + self.nei_data_by_county + """)
+            f = 'Corn Grain'
+            n = 'NOT'
 
-                           select   nrel.fips,
-                                    (nrel.nox  * """ + allocation + """) / (nei.nox * 0.907185) as nox,
-                                    (nrel.sox * """ + allocation + """) / (nei.sox * 0.907185) as sox,
-                                    (nrel.co * """ + allocation + """) / (nei.co * 0.907185) as co,
-                                    (nrel.pm10 * """ + allocation + """) / (nei.pm10 * 0.907185) as PM10,
-                                    (nrel.pm25 * """ + allocation + """) / (nei.pm25 * 0.907185) as PM25,
-                                    (nrel.voc * """ + allocation + """) / (nei.voc * 0.907185) as VOC,
-                                    CASE WHEN nei.nh3 > 0 THEN     (nrel.nh3 * """ + allocation + """) / (nei.nh3 * 0.907185)
-                                         ELSE 0.0
-                                    END as NH3
-
-                            FROM nrel
-                            LEFT JOIN nei ON nrel.fips = nei.fips
-                            WHERE nrel.nh3 > 0 and nei.nox > 0
-                                    """
+        query = """
+                    INSERT INTO {feedstock}_NEIRatio
+                        SELECT nrel.fips,
+                               (nrel.nox  * {allocation}) / (nei.nox  * 0.907185) AS nox,
+                               (nrel.sox  * {allocation}) / (nei.sox  * 0.907185) AS sox,
+                               (nrel.co   * {allocation}) / (nei.co   * 0.907185) AS co,
+                               (nrel.pm10 * {allocation}) / (nei.pm10 * 0.907185) AS PM10,
+                               (nrel.pm25 * {allocation}) / (nei.pm25 * 0.907185) AS PM25,
+                               (nrel.voc  * {allocation}) / (nei.voc  * 0.907185) AS VOC,
+                               CASE WHEN nei.nh3 > 0 THEN (nrel.nh3 * {allocation}) / (nei.nh3 * 0.907185) ELSE 0.0 END AS NH3
+                        FROM (SELECT fips,
+                                     sum(nox)  AS nox,
+                                     sum(sox)  AS sox,
+                                     sum(co)   AS co,
+                                     sum(pm10) AS pm10,
+                                     sum(pm25) AS pm25,
+                                     sum(voc)  AS voc,
+                                     sum(nh3)  AS nh3
+                              FROM {schema}.summedemissions
+                              WHERE feedstock {n} LIKE '%{f}%'
+                              GROUP BY fips
+                             ) nrel
+                        LEFT JOIN (SELECT fips, nox, sox, co, pm10, pm25, voc, nh3 FROM {nei}) nei ON nrel.fips = nei.fips
+                        WHERE nrel.nh3 > 0 AND nei.nox > 0
+                        ;""".format(feedstock=feedstock, allocation=allocation, f=f, n=n, schema=self.db.schema, nei=self.nei_data_by_county)
 
         self._execute_query(query)
 
