@@ -167,9 +167,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         return hours_per_acre_comb
 
-# Sub classes of population for each unique crop.
-# @TODO: Should try to standarize what is in the dat[] array with a variable for each index. ex. state = dat[1]
-
 
 class RegionalEquipment(Population):
     """
@@ -191,7 +188,7 @@ class RegionalEquipment(Population):
 
     def append_pop(self, fips, dat):
         """
-        Calculate the equipment populations for NONROAD
+        Calculate the equipment populations for NONROAD using regional crop budgets
         Then write them to a population file
 
         :param fips: fips county code. (string)
@@ -238,50 +235,54 @@ class RegionalEquipment(Population):
                 hp = equip[1]
                 activity_rate = equip[2]
 
-                # get annual activity for equipment type
-                annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (NonRoad default value)
+                if equip_type != 'aerial':
+                    # get annual activity for equipment type
+                    annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (NonRoad default value)
 
-                # compute population of equipment using activity rate, harvested acreage, and annual activity
-                pop = round(activity_rate * harv_ac / annual_activity, 10)  # population in years of operation
+                    # compute population of equipment using activity rate, harvested acreage, and annual activity
+                    pop = round(activity_rate * harv_ac / annual_activity, 10)  # population in years of operation
 
-                # get hp and useful life dictionaries for NONROAD data
-                hp_list = self.nonroad_equip_dict['power_range']
-                useful_life_dict = self.nonroad_equip_dict['useful_life']
+                    # get hp and useful life dictionaries for NONROAD data
+                    hp_list = self.nonroad_equip_dict['power_range']
+                    useful_life_dict = self.nonroad_equip_dict['useful_life']
 
-                # loop through hp_ranges in hp dictionary
-                for hp_range_type in hp_list:
-                    # check if hp falls in range
-                    hp_range = hp_list[hp_range_type]
-                    if float(hp_range[0]) <= float(hp) < float(hp_range[1]):
-                        # if so, set min and max hp and useful life for this hp range
-                        hp_min = hp_range[0]
-                        hp_max = hp_range[1]
-                        life = useful_life_dict[hp_range_type]
-                        break
+                    # loop through hp_ranges in hp dictionary
+                    for hp_range_type in hp_list:
+                        # check if hp falls in range
+                        hp_range = hp_list[hp_range_type]
+                        if float(hp_range[0]) <= float(hp) < float(hp_range[1]):
+                            # if so, set min and max hp and useful life for this hp range
+                            hp_min = hp_range[0]
+                            hp_max = hp_range[1]
+                            life = useful_life_dict[hp_range_type]
+                            break
 
-                # initialize population line values
-                kvals = {'fips': fips,
-                         'subregion_code': '',
-                         'year': self.episode_year,
-                         'scc_code': self.nonroad_equip_dict['scc'][equip_type],
-                         'equip_desc': self.nonroad_equip_dict['name'][equip_type],
-                         'min_hp': hp_min,
-                         'max_hp': hp_max,
-                         'avg_hp': hp,
-                         'life': life,
-                         'flag': 'DEFAULT',
-                         'pop': pop,
-                         }
+                    # initialize population line values
+                    kvals = {'fips': fips,
+                             'subregion_code': '',
+                             'year': self.episode_year,
+                             'scc_code': self.nonroad_equip_dict['scc'][equip_type],
+                             'equip_desc': self.nonroad_equip_dict['name'][equip_type],
+                             'min_hp': hp_min,
+                             'max_hp': hp_max,
+                             'avg_hp': hp,
+                             'life': life,
+                             'flag': 'DEFAULT',
+                             'pop': pop,
+                             }
 
-                line = self._create_pop_line(**kvals)
-                self.pop_file.writelines(line)
+                    line = self._create_pop_line(**kvals)
+                    self.pop_file.writelines(line)
+                else:
+                    # @TODO: need to implement emission factor for aerial activity
+                    logger.warning('Aerial activity used in crop budget but no emission factor currently implemented for aerial activity')
 
 class ResiduePop(Population):
     """
-    Calculates equipment populations for corn stover and wheat straw residue collection.
+    Calculates equipment populations for corn stover and wheat straw residue collection using national crop budgets
     CS, WS
-    Residues have harvest and transports emmisions, but none for non-harvest.
-    Because these are residues, so the emmisions are going to corn grain.
+    Residues have harvest and transports emissions, but none for non-harvest.
+    Because these are residues, so the emissions are going to corn grain.
     """
 
     def __init__(self, cont, episode_year, run_code):
@@ -289,7 +290,7 @@ class ResiduePop(Population):
 
     def append_pop(self, fips, dat):
         """
-        Calulates the population of combines and tractors needed.
+        Calculates the population of combines and tractors needed.
         Then writes them to a population file.
 
         :param fips: fips county code. (string)
@@ -316,7 +317,6 @@ class ResiduePop(Population):
         scenario_yield = dat[4]  # lbs
 
         # get activity
-        # @TODO: replace with db queries by FIPs
         hours_per_acre_combine = self._get_combine_hours_per_acre(scenario_yield=scenario_yield)  # hrs/acre
 
         # calculate population of combine for harvest.
@@ -324,7 +324,6 @@ class ResiduePop(Population):
         pop_comb = round(hours_per_acre_combine * harv_ac / self.activity_combine, 10)  # yr
         kvals['pop'] = pop_comb
         line = self._create_pop_line(**kvals)
-        # line = '{fips}       {year} 2270005020 Dsl - Combines                             300   600 345.8  7000  DEFAULT         {pop_comb}'.format(**kvals)
         self.pop_file.writelines(line)
 
         # calculate population of tractors for transport.
@@ -332,7 +331,6 @@ class ResiduePop(Population):
         pop_bale_mover = round((scenario_yield / self.transport_bales) * harv_ac / self.activity_tractor, 10)  # yr
         kvals['pop'] = pop_bale_mover
         line = self._create_pop_line(**kvals)
-        # line = '{fips}       {year} 2270005015 Dsl - Agricultural Tractors                100   175 133.6  4667  DEFAULT         {pop_bale_mover}'.format(**kvals)
         self.pop_file.writelines(line)
 
 
@@ -384,7 +382,7 @@ class CornGrainPop(Population):
             prod = dat[3]: Produce. lbs
         :return:
         """
-        # @TODO: CASE WHEN POP = 0.0, NOAH
+
         harv_ac = dat[2]
         prod = dat[3]
         # non harvest model.
@@ -675,7 +673,7 @@ class CornGrainIrrigationPop(Population):
 
     def _cng(self, fips, hp, hpa, indicator):
         """
-        Created compressed natraul gas population.
+        Created compressed natural gas population.
 
         :param fips:
         :param hp:
@@ -746,29 +744,20 @@ class SwitchgrassPop(Population):
         :param dat:
         :return:
         """
+        prod = dat[3] * 0.1  # 10% of acres in each year of the 10-yr production cycle
 
         # case where there is no production
-        if dat[3] == 0.0:
+        if prod == 0.0:
             self.pop_60 = 0.0
             self.pop_130 = 0.0
         else:
             harv_ac = dat[2] * 0.1  # 10% of acres in each year of the 10-yr production cycle
-            prod = dat[3] / 10.0  # Production at maturity
             if self.run_code.startswith('SG_N'):
                 self.__get_non_harv_hrs_per_acre__(harv_ac=harv_ac)
             elif self.run_code.startswith('SG_H'):
                 self.__get_harv_hrs_per_acre__(harv_ac=harv_ac, prod=prod)
             else:
                 self.__get_transport_hrs_per_acre__(prod=prod)
-
-        self.__set_pop_file__(fips=fips)
-
-    def __set_pop_file__(self, fips):
-        """
-
-        :param fips:
-        :return:
-        """
 
         # @TODO: integreate _create_pop_line()
         lines = """%s       %s 2270005015 Dsl - Agricultural Tractors                 50    75 62.18  4667  DEFAULT         %s
@@ -837,8 +826,6 @@ class SwitchgrassPop(Population):
         :param prod:
         :return:
         """
-
-        # @TODO: transport pop calculation
 
         if self.run_code.endswith('T1'):
             self.yield_factor = 1.0 / 3.0
