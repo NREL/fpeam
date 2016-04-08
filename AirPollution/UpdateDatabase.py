@@ -76,6 +76,8 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                             CREATE TABLE {scenario_name}.{feed}_NFert
                             (
                             FIPS    char(5)    ,
+                            tillage char(5)    ,
+                            budget_year char(2),
                             NOx    float    ,
                             NH3    float    ,
                             SCC    char(10)    ,
@@ -88,6 +90,8 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                            CREATE TABLE {scenario_name}.{feed}_CHEM
                            (
                            FIPS    char(5),
+                           tillage char(5)    ,
+                           budget_year char(2),
                            SCC    char(10)    ,
                            VOC    float    ,
                            description    text)""".format(**self.kvals)

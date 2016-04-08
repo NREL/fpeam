@@ -23,6 +23,52 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         self.cont = cont
         self.kvals = cont.get('kvals')
 
+    def regional_chem(self, feed, yr):
+        """
+        Add chemical emissions to database tables using regional crop budget
+
+        :param feed: feedstock
+        :param yr: budget year (for energy crops)
+        :return:
+
+        """
+
+        # set year for crop budget
+        self.kvals['yr'] = yr
+
+        # set crop type
+        self.kvals['feed'] = feed
+
+        till_dict = {'CT': 'convtill',
+                     'RT': 'reducedtill',
+                     'NT': 'notill'}
+
+        for tillage in till_dict:
+            self.kvals['tillage'] = tillage
+            self.kvals['tillage_name'] = till_dict[tillage]
+
+            # set tillage selection for data (if RT then same as CT)
+            if tillage == 'RT':
+                self.kvals['tillage_select'] = 'CT'
+            else:
+                self.kvals['tillage_select'] = tillage
+
+            chem_query = """INSERT INTO {scenario_name}.{feed}_chem
+                             SELECT  feed.fips,
+                                     '{tillage}',
+                                     '{yr}',
+                                     (2461850051) AS SCC,
+                                     (feed.{tillage_name}_harv_ac * (chem.pest_app * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
+                                     'Pesticide Emissions' AS Description
+                             FROM {production_schema}.{feed}_data feed
+                             LEFT JOIN (SELECT fips, sum(herb_lbac + insc_lbac) as pest_app
+                                        FROM {production_schema}.{feed}_equip_fips
+                                        WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
+                                        GROUP BY fips) chem
+                             ON chem.fips = feed.fips
+                             GROUP BY feed.fips;""".format(**self.kvals)
+            self._execute_query(chem_query)
+
     def set_chemical(self, feed):
         """
         Find the feedstock and add emmissions if it is switch grass or corn grain.
@@ -58,6 +104,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         chem_query = """INSERT INTO {scenario_name}.{cg_chem_table}
                         (
                         SELECT  cg.fips,
+                                'total'
                                 (2461850051) AS SCC,
                                 ((cg.total_harv_ac * pest.EF * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
                                 ('Pesticide Emissions') AS Description
@@ -80,6 +127,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         chem_query = """INSERT INTO {scenario_name}.{sg_chem_table}
                         (
                         SELECT sg.fips,
+                               'total'
                                 (2461850099) AS SCC,
                                 (
                                 (

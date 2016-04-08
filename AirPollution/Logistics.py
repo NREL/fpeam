@@ -145,7 +145,6 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                  }
 
         # generate string for query and append to queries
-        # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
         query = """UPDATE {scenario_name}.{feed}_processing
                 SET voc_wood = transport_data.used_qnty * {a} * ({VOC_ef_h} + {VOC_ef_d}) / {b}
                 FROM {production_schema}.{transport_table} transport_data
@@ -200,9 +199,6 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                         UPDATE TABLE {scenario_name}.{feed}_logistics
                         SET voc_total = voc + voc_wood;""".format(**self.kvals)
                 self._execute_query(query)
-
-        # @TODO: for some reason CG is returning zero values for reduced till runs... need to look into this
-        logger.warning('CG is returning zero values for reduced till runs (appears to be problem in NONROAD setup that propagates here). Need to investigate.')
 
         # @TODO: forest residue has not yet been validated (only agricultural crops have been run thus far)
         logger.warning('FR has not yet been validated. Need to revise once data sets are finalized.')

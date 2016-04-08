@@ -25,12 +25,83 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         self.n_fert_ef = config['n_fert_ef']  # dictionary of fertilizer emission factor
         self.scc_dict = config['scc_dict']  # dictionary of fertilizer source category codes
         self.descrip_dict = config['descrip_dict']  # dictionary of fertilizer descriptions
-        self.n_fert_app = config['n_fert_app']  # @TODO: change to DB query based FIPS
+        self.n_fert_app = config['n_fert_app']  # amount of nitrogen fertilizer applied for national crop budget
         self.cont = cont
+        self.col_dict = {'cg': 'n_lbac',
+                         'cs': 'n_lbdt',
+                         'ws': 'n_lbdt',
+                         'sg_yr1': 'n_lbac',
+                         'sg_yr2to10': 'n_lbdt',
+                         'ms_yr1': 'n_lbac',
+                         'ms_yr2to10': 'n_lbdt',}
+
+        self.kvals = self.cont.get('kvals')
+
+    def regional_fert(self, feed, yr):
+        """
+        Add fertilizer emissions to database tables using regional crop budget
+
+        :param feed: feedstock
+        :param yr: budget year (for energy crops)
+        :return:
+
+        """
+        # set column name for N fertilizer data
+        if feed != 'SG' or feed != 'MS':
+            self.kvals['n_column'] = self.col_dict[feed.lower()]
+        else:
+            if yr == 1:
+                name = '%s_yr1' % (feed.lower(), )
+            elif yr > 1:
+                name = '%s_yr2to10' % (feed.lower(), )
+            self.kvals['n_column'] = self.col_dict[name]
+
+        # set year for crop budget
+        self.kvals['yr'] = yr
+
+        for fert in self.descrip_dict:
+            self.kvals['scc'] = self.scc_dict[fert]
+            self.kvals['description'] = self.descrip_dict[fert]
+
+            # emission factor: total mt NO per dt feedstock
+            self.kvals['emissions_nox'] = float(self.fert_dist[feed][fert]) * float(self.n_fert_ef['NOX'][fert]) / 100.0 * 30.0 / 14.0 * 0.90718474 / 2000.0
+            # emission factor: total mt NH3 per dt feedstock
+            self.kvals['emissions_nh3'] = float(self.fert_dist[feed][fert]) * float(self.n_fert_ef['NH3'][fert]) / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0
+
+            till_dict = {'CT': 'convtill',
+                         'RT': 'reducedtill',
+                         'NT': 'notill'}
+
+            for tillage in till_dict:
+                self.kvals['tillage'] = tillage
+                self.kvals['tillage_name'] = till_dict[tillage]
+
+                # set tillage selection for data (if RT then same as CT)
+                if tillage == 'RT':
+                    self.kvals['tillage_select'] = 'CT'
+                else:
+                    self.kvals['tillage_select'] = tillage
+
+                fert_query = """INSERT INTO {scenario_name}.{feed}_nfert
+                                 SELECT  feed.fips,
+                                         '{tillage}',
+                                         '{yr}',
+                                         feed.{tillage_name}_prod * nfert.n_app * {emissions_nox} AS NOX,
+                                         feed.{tillage_name}_prod * nfert.n_app * {emissions_nh3} AS NH3,
+                                         ({scc}) AS SCC,
+                                         '{description}' AS Description
+                                 FROM {production_schema}.{feed}_data feed
+                                 LEFT JOIN (SELECT fips, sum({n_column}) as n_app
+                                            FROM {production_schema}.{feed}_equip_fips
+                                            WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
+                                            GROUP BY fips) nfert
+                                 ON nfert.fips = feed.fips
+                                 GROUP BY feed.fips;""".format(**self.kvals)
+                self._execute_query(fert_query)
 
     def set_fertilizer(self, feed):
         """
-        Add fertilizer emissions to database tables.
+        Add fertilizer emissions to database tables using national crop budget
 
         :param feed: feedstock
         :return:
@@ -84,6 +155,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
 
             fert_query += """INSERT INTO {scenario_name}.{feed}_nfert
                              SELECT feed.fips,
+                             'total',
                              feed.total_prod * {emissions_nox} AS NOX,
                              feed.total_prod * {emissions_nh3} AS NH3,
                              ({scc}) AS SCC,
@@ -123,6 +195,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                               """
             fert_query += """
                             (   SELECT cd.fips,
+                                        'total',
 
                                 (((n.Conventional_N * cd.convtill_harv_ac +
                                    n.Conventional_N * cd.reducedtill_harv_ac +

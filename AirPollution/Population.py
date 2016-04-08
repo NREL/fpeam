@@ -216,10 +216,17 @@ class RegionalEquipment(Population):
             self.kvals['activity'] = self.run_code[4]
 
         # get equipment list from crop budget
-        query = ''' SELECT equip_type, hp, activity_rate
-                    FROM {production_schema}.{feed}_equip_fips
-                    WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%'
-                '''.format(**self.kvals)
+        if self.run_code.startswith('SG'):
+            self.kvals['budget_year'] = self.run_code[4]
+            query = ''' SELECT equip_type, hp, activity_rate
+                        FROM {production_schema}.{feed}_equip_fips
+                        WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}% AND bdgtyr = {budget_year}
+                    '''.format(**self.kvals)
+        else:
+            query = ''' SELECT equip_type, hp, activity_rate
+                        FROM {production_schema}.{feed}_equip_fips
+                        WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%'
+                    '''.format(**self.kvals)
         # return data from query
         equip_list = self.db.output(query)
 

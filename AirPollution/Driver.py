@@ -129,6 +129,10 @@ class Driver:
         # set database object
         self.db = db
 
+        # years for energy crop rotations
+        self.years_energy = {'SG': 10,
+                             'MS': 15}
+
     def _check_title(self, title):
         """
         Make sure the program is less then 8 characters and is not a run code.
@@ -389,10 +393,12 @@ class Driver:
         for feedstock in self.feedstock_list:
             update.create_tables(feedstock=feedstock)
 
+        regional_crop_budget = config.get('regional_crop_budget')
+
         self.post_process_nonroad(operation_dict=operation_dict, alloc=alloc)
         self.post_process_off_farm_transport(fips_list=fips_list)
-        self.post_process_fert()
-        self.post_process_pest()
+        self.post_process_fert(regional_crop_budget=regional_crop_budget)
+        self.post_process_pest(regional_crop_budget=regional_crop_budget)
         self.post_process_on_farm_transport()
         self.post_process_logistics()
 
@@ -490,11 +496,12 @@ class Driver:
                                                                            logistics_type=logistics_type, silt=silt, yield_type=yield_type)
                             transportation.calculate_transport_emissions()
 
-    def post_process_fert(self):
+    def post_process_fert(self, regional_crop_budget):
         """
         Calculate NH3 and NOX emissions from nitrogen fertilizer application
 
         Populate data in {feed}_nfert tables
+        :param regional_crop_budget: toggle for whether to use regional crop budget
         :return:
         """
         # initialize fertilizer object
@@ -502,21 +509,39 @@ class Driver:
 
         # calculate emissions
         for feedstock in self.feedstock_list:
-            fert.set_fertilizer(feed=feedstock)
-            logger.info("Fertilizer calculations complete for %s" % (feedstock, ))
+            if regional_crop_budget is True:
+                if feedstock == 'SG':
+                    for yr in range(1, self.years_energy[feedstock] + 1):
+                        fert.regional_fert(feed=feedstock, yr=yr)
+                else:
+                    fert.regional_fert(feed=feedstock, yr=1)
+                logger.info('Using regional crop budget for fertilizer')
+            else:
+                fert.set_fertilizer(feed=feedstock)
+                logger.info('Using national crop budget for fertilizer')
+        logger.info("Fertilizer calculations complete for %s" % (feedstock, ))
 
-    def post_process_pest(self):
+    def post_process_pest(self, regional_crop_budget):
         """
         Calculate VOC emissions from pesticide application
         Populate data in {feed}_chem tables
-
+        :param regional_crop_budget: toggle for whether to use regional crop budget
         :return:
         """
         # initialize chemical object
         chem = Chemical.Chemical(cont=self.cont)
 
         for feedstock in self.feedstock_list:
-            chem.set_chemical(feed=feedstock)
+            if regional_crop_budget is True:
+                if feedstock == 'SG':
+                    for yr in range(1, self.years_energy[feedstock] + 1):
+                        chem.regional_chem(feed=feedstock, yr=yr)
+                else:
+                    chem.regional_chem(feed=feedstock, yr=1)
+                logger.info('Using regional crop budget for chemicals')
+            else:
+                chem.set_chemical(feed=feedstock)
+                logger.info('Using national crop budget for chemicals')
             logger.info("Chemical calculations complete for %s" % (feedstock, ))
 
     def post_process_nonroad(self, operation_dict, alloc):
