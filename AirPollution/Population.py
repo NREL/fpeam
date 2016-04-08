@@ -1009,7 +1009,7 @@ class LoadingEquipment(Population):
             kvals['fips'] = fips
             kvals['subregion_code'] = ''
             kvals['year'] = self.episode_year
-            kvals['avg_hp'] = self.loading_equip['power'][i]
+            kvals['avg_hp'] = float(self.loading_equip['power'][i])
             kvals['flag'] = 'DEFAULT'
 
             # find information needed for NONROAD population file
@@ -1023,9 +1023,9 @@ class LoadingEquipment(Population):
 
             # determine range for horsepower (match to NONROAD range) and evaluate useful life
             for hp_range in self.nonroad_equip_dict['power_range']:
-                if self.nonroad_equip_dict['power_range'][hp_range][0] < self.kvals['avg_hp'] <= self.nonroad_equip_dict['power_range'][hp_range][1]:
-                    kvals['hp_min'] = self.nonroad_equip_dict['power_range'][hp_range][0]
-                    kvals['hp_max'] = self.nonroad_equip_dict['power_range'][hp_range][1]
+                if float(self.nonroad_equip_dict['power_range'][hp_range][0]) < kvals['avg_hp'] <= float(self.nonroad_equip_dict['power_range'][hp_range][1]):
+                    kvals['min_hp'] = float(self.nonroad_equip_dict['power_range'][hp_range][0])
+                    kvals['max_hp'] = float(self.nonroad_equip_dict['power_range'][hp_range][1])
                     kvals['life'] = self.nonroad_equip_dict['useful_life'][hp_range]
 
             # create line in population file
