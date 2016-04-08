@@ -89,8 +89,13 @@ class ScenarioOptions:
         if query is not None:
             self.data = self._get_prod_data(query)
 
-        # create output directories
-        # @TODO: this belongs somewhere else- in it's own function at the very least
+    def create_output_dir(self, run_code):
+        """
+        Create output directories for the given run_code
+        :param run_code: code for run type
+        :return:
+        """
+
         folders = ('OUT', 'OPT')
         for folder in folders:
             path = os.path.join(self.path, folder, run_code)
@@ -121,17 +126,17 @@ class ScenarioOptions:
         # create tillage dictionary
         till_dict = {'C': 'convtill', 'R': 'reducedtill', 'N': 'notill'}
 
-        # corn grain
-        if run_code.startswith('CG'):
-            # query conventional till data. For specific state and county
-            # fips, state, harv_ac, prod, yield
+        feed = run_code[0:2]
+        feed = feed.lower()
+        self.kvals['feed_table'] = self.kvals['feed_tables'][feed]
 
-            # grab data for irrigation
+        # get agricultural data
+        if not run_code.startswith('FR'):
+
+            # get CG irrigation data
             if run_code.startswith('CG_I'):
 
-                # CTE (WITH statment) is queried in the constant cg_irrigated_states. gets data for different
-                # vehicles and their attributes (fuel, horse power)
-
+                # dictionary for irrigation fuel types
                 fuel_types = {'D': 'diesel',
                               'G': 'gasoline',
                               'L': 'lpg',
@@ -141,7 +146,7 @@ class ScenarioOptions:
 
                 query = '''SELECT ca.fips, ca.st, dat.total_harv_ac * irr.perc AS acres, dat.total_prod, irr.fuel, irr.hp, irr.perc, irr.hpa
                            FROM      {constants_schema}.county_attributes ca
-                           LEFT JOIN {production_schema}.{cg_table} dat ON ca.fips = dat.fips
+                           LEFT JOIN {production_schema}.{feed_table} dat ON ca.fips = dat.fips
                            LEFT JOIN (SELECT state, fuel, hp, percent AS perc, hrsperacre AS hpa
                                       FROM {constants_schema}.cg_irrigated_states
                                       WHERE cg_irrigated_states.fuel LIKE '{fuel_type}'
@@ -150,51 +155,30 @@ class ScenarioOptions:
                            WHERE ca.st LIKE irr.state
                            ORDER BY ca.fips ASC;
                 '''.format(**self.kvals)
+
             else:
                 # set value for tillage type
-                self.kvals['till_type'] = till_dict[run_code[3]]
 
-                query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
-                           FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                           WHERE dat.fips = ca.fips
-                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                if run_code.startswith('SG'):
+                    self.kvals['till_type'] = 'notill'
+                else:
+                    self.kvals['till_type'] = till_dict[run_code[3]]
 
-        elif run_code.startswith('CS'):
-            
-            # set value for tillage type
-                self.kvals['till_type'] = till_dict[run_code[3]]
+                if not run_code.startswith('SG') or self.query_sg is True:
+                    query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
+                               FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
+                               WHERE dat.fips = ca.fips  AND dat.{till_type}_prod > 0.0
+                               ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
-                query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
-                           FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                           WHERE dat.fips = ca.fips
-                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
-
-        elif run_code.startswith('WS'):
-
-            # set value for tillage type
-                self.kvals['till_type'] = till_dict[run_code[3]]
-
-                # @TODO: why does this query filter for production data greater than 0.0? Should all crops should do this?
-                query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
-                           FROM {production_schema}.{cg_table} dat, {constants_schema}.county_attributes ca
-                           WHERE dat.fips = ca.fips AND dat.{till_type}_prod > 0.0
-                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
-
-        elif run_code.startswith('SG'):
-            if self.query_sg:
-                query = '''SELECT ca.fips, ca.st, dat.notill_harv_ac, dat.notill_prod
-                           FROM {production_schema}.{sg_table} dat, {constants_schema}.county_attributes ca
-                           WHERE dat.fips = ca.fips
-                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
-                
-                # we have 30 scenarios for SG to run, but only want one to query the database once
-                self.query_sg = False
+                if run_code.startswith('SG'):
+                    # we have 30 scenarios for SG to run, but only want one to query the database once
+                    self.query_sg = False
 
         elif run_code.startswith('FR'):
             
             if run_code == 'FR':
                 query = '''SELECT ca.fips, ca.st, dat.fed_minus_55
-                           FROM {production_schema}.{fr_table} dat, {constants_schema}.county_attributes ca
+                           FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
                            WHERE dat.fips = ca.fips
                            ORDER BY ca.fips ASC;'''.format(**self.kvals)
 

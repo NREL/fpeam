@@ -28,14 +28,20 @@ class Population(object):
 
         self.run_code = run_code
 
+        # get dictionary for NONROAD equipment
+        self.nonroad_equip_dict = config.get('nonroad_equip_dict')
+
+        # get dictionary for crop budget
+        self.crop_budget_dict = config.get('crop_budget_dict')
+
         # Used in all agricultural feedstocks (i.e. not FR)
-        self.activity_tractor = float(config.get('nonroad_equip_dict')['annual_hrs_operation']['tractor'])              # hr / year (NonRoad default value)
+        self.activity_tractor = float(self.nonroad_equip_dict['annual_hrs_operation']['tractor'])              # hr / year (NonRoad default value)
         # Corn Grain
-        self.activity_combine = float(config.get('nonroad_equip_dict')['annual_hrs_operation']['combine'])              # hr / year (NonRoad default values)
-        self.activity_gas = 716.0                  # hr / year (NonRoad default values)
-        self.activity_diesel = 749.0               # hr / year (NonRoad default values)
-        self.activity_lpg = 716.0                  # hr / year (NonRoad default values)
-        self.activity_cng = 716.0                  # hr / year (NonRoad default values)
+        self.activity_combine = float(self.nonroad_equip_dict['annual_hrs_operation']['combine'])              # hr / year (NonRoad default values)
+        self.activity_gas = float(self.nonroad_equip_dict['annual_hrs_operation']['ir_gas'])                  # hr / year (NonRoad default values)
+        self.activity_diesel = float(self.nonroad_equip_dict['annual_hrs_operation']['ir_diesel'])               # hr / year (NonRoad default values)
+        self.activity_lpg = float(self.nonroad_equip_dict['annual_hrs_operation']['ir_lpg'])                  # hr / year (NonRoad default values)
+        self.activity_cng = float(self.nonroad_equip_dict['annual_hrs_operation']['ir_cng'])                  # hr / year (NonRoad default values)
 
         # data from personal communication with Anthony Turhollow for SG.
         # It is assumed that the transport time for one bale of SG is the same as for one bale of CS or WS)
@@ -72,14 +78,14 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 """
         self.pop_file.writelines(lines)
 
-    def _create_pop_line(self, fips, subregion_code, year, ssc_code, equip_desc, min_hp, max_hp, avg_hp, life, flag, pop):
+    def _create_pop_line(self, fips, subregion_code, year, scc_code, equip_desc, min_hp, max_hp, avg_hp, life, flag, pop):
         """
         Generate population file line
 
         :param fips: FIPS code
         :param subregion_code: subregion code (used for subcounty estimates)
         :param year: year of population estimates
-        :param ssc_code: SCC code (no globals accepted)
+        :param scc_code: SCC code (no globals accepted)
         :param equip_desc: equipment description (ignored)
         :param min_hp: minimum HP range
         :param max_hp: maximum HP range (ranges must match those internal to model)
@@ -93,7 +99,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         kvals = {'fips': fips,
                  'sub_reg': subregion_code,
                  'year': year,
-                 'ssc_code': ssc_code,
+                 'scc_code': scc_code,
                  'equip_desc': equip_desc,
                  'min_hp': min_hp,
                  'max_hp': max_hp,
@@ -103,7 +109,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                  'pop': pop
                  }
 
-        return '{fips:0>5} {sub_reg:<5} {year:<4} {ssc_code:<10} {equip_desc:<40} {min_hp:<5} {max_hp:<5} {avg_hp:<5.2f} {life:<5} {flag:<10} {pop:<17}'.format(**kvals)
+        return '{fips:0>5} {sub_reg:<5} {year:<4} {scc_code:<10} {equip_desc:<40} {min_hp:<5} {max_hp:<5} {avg_hp:<5.2f} {life:<5} {flag:<10} {pop:<17} \n'.format(**kvals)
 
     def append_pop(self, fips, indicator1):
         """
@@ -165,6 +171,105 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 # @TODO: Should try to standarize what is in the dat[] array with a variable for each index. ex. state = dat[1]
 
 
+class RegionalEquipment(Population):
+    """
+    Calculates equipment populations for agricultural crops using regional crop budgets
+    """
+
+    def __init__(self, cont, episode_year, run_code):
+        Population.__init__(self, cont, episode_year, run_code)
+
+        # get database object
+        self.db = cont.get('db')
+
+        # set run_code
+        self.run_code = run_code
+
+        # initialize kvals dictionary
+        self.kvals = cont.get('kvals')
+
+    def append_pop(self, fips, dat):
+        """
+        Calulates the equipment populations for NONROAD
+        Then writes them to a population file
+
+        :param fips: fips county code. (string)
+        :param dat: Data from the db containing harvested acres and the yield from the residues. list(string)
+            harv_ac = dat[2]: Harvested acres
+        """
+        feed = self.run_code[0:2]
+        self.kvals['feed'] = feed.lower()
+        self.kvals['fips'] = fips
+
+        if not self.run_code.startswith('SG'):
+            self.kvals['tillage'] = '%sT' % (self.run_code[3])
+        else:
+            self.kvals['tillage'] = 'NT'
+
+        self.kvals['oper_type'] = self.crop_budget_dict['type'][feed]
+        if self.run_code.startswith('SG'):
+            self.kvals['activity'] = self.run_code[3]
+        else:
+            self.kvals['activity'] = self.run_code[4]
+
+        # get equipment list from crop budget
+        query = ''' SELECT equip_type, hp, activity_rate
+                    FROM {production_schema}.{feed}_equip_fips
+                    WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%'
+                '''.format(**self.kvals)
+        # return data from query
+        equip_list = self.db.output(query)
+
+        # if data is not empty
+        if len(equip_list) >= 1:
+            # get harvested acreage from production data
+            harv_ac = dat[2]
+
+            # loop through equipment in equipment list
+            for equip in equip_list:
+                # set equipment type, hp and activity rate using data returned from equipment budget query
+                equip_type = equip[0]
+                hp = equip[1]
+                activity_rate = equip[2]
+
+                # get annual activity for equipment type
+                annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (NonRoad default value)
+
+                # compute population of equipment using activity rate, harvested acreage, and annual activity
+                pop = round(activity_rate * harv_ac / annual_activity, 10)  # population in years of operation
+
+                # get hp and useful life dictionaries for NONROAD data
+                hp_list = self.nonroad_equip_dict['power_range']
+                useful_life_dict = self.nonroad_equip_dict['useful_life']
+
+                # loop through hp_ranges in hp dictionary
+                for hp_range_type in hp_list:
+                    # check if hp falls in range
+                    hp_range = hp_list[hp_range_type]
+                    if float(hp_range[0]) <= float(hp) < float(hp_range[1]):
+                        # if so, set min and max hp and useful life for this hp range
+                        hp_min = hp_range[0]
+                        hp_max = hp_range[1]
+                        life = useful_life_dict[hp_range_type]
+                        break
+
+                # initialize population line values
+                kvals = {'fips': fips,
+                         'subregion_code': '',
+                         'year': self.episode_year,
+                         'scc_code': self.nonroad_equip_dict['scc'][equip_type],
+                         'equip_desc': self.nonroad_equip_dict['name'][equip_type],
+                         'min_hp': hp_min,
+                         'max_hp': hp_max,
+                         'avg_hp': hp,
+                         'life': life,
+                         'flag': 'DEFAULT',
+                         'pop': pop,
+                         }
+
+                line = self._create_pop_line(**kvals)
+                self.pop_file.writelines(line)
+
 class ResiduePop(Population):
     """
     Calculates equipment populations for corn stover and wheat straw residue collection.
@@ -191,7 +296,7 @@ class ResiduePop(Population):
         kvals = {'fips': fips,
                  'subregion_code': '',
                  'year': self.episode_year,
-                 'ssc_code': 2270005020,
+                 'scc_code': 2270005020,
                  'equip_desc': 'Dsl - Combines',
                  'min_hp': 300,
                  'max_hp': 600,
