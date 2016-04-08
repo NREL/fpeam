@@ -61,18 +61,6 @@ class ScenarioOptions:
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
-    # doesn't appear to be used
-    # def document_efs(self, query):
-    #     """
-    #     Executes query and records it to database. Should be emmission final? from constants though.
-    #     :param query: sql query for selecting and recording.
-    #     """
-    #
-    #     f = 'Emission Factors'
-    #     for q in query:
-    #         data = self.db.output(q, self.db.constants_schema)
-    #         self.qr.documentQuery(f, data)
-
     def get_data(self, run_code):
         """
         Grabs data from the database
@@ -142,8 +130,10 @@ class ScenarioOptions:
                               'L': 'lpg',
                               'C': 'natgas'}
 
+                # set fuel type
                 self.kvals['fuel_type'] = fuel_types[run_code[-1]]
 
+                # create query for irriation data
                 query = '''SELECT ca.fips, ca.st, dat.total_harv_ac * irr.perc AS acres, dat.total_prod, irr.fuel, irr.hp, irr.perc, irr.hpa
                            FROM      {constants_schema}.county_attributes ca
                            LEFT JOIN {production_schema}.{feed_table} dat ON ca.fips = dat.fips
@@ -158,12 +148,12 @@ class ScenarioOptions:
 
             else:
                 # set value for tillage type
-
                 if run_code.startswith('SG'):
                     self.kvals['till_type'] = 'notill'
                 else:
                     self.kvals['till_type'] = till_dict[run_code[3]]
 
+                # create query for production data
                 if not run_code.startswith('SG') or self.query_sg is True:
                     query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
                                FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
@@ -174,13 +164,12 @@ class ScenarioOptions:
                     # we have 30 scenarios for SG to run, but only want one to query the database once
                     self.query_sg = False
 
+        # now get forestry data
         elif run_code.startswith('FR'):
-            
-            if run_code == 'FR':
-                query = '''SELECT ca.fips, ca.st, dat.fed_minus_55
-                           FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
-                           WHERE dat.fips = ca.fips
-                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
+            query = '''SELECT ca.fips, ca.st, dat.fed_minus_55
+                       FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
+                       WHERE dat.fips = ca.fips
+                       ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
         return query
 

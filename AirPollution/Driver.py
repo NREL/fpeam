@@ -173,17 +173,20 @@ class Driver:
 
             # get data from the database (scenario.data = [fips, state fips, production, harvested acreage])
             scenario.get_data(run_code=run_code)
+
+            # create output directories that correspond to state and run code
             scenario.create_output_dir(run_code=run_code)
 
+            # get the year for the scenario
             scenario_year = self.yr[run_code[0:2]]            
             
-            # initialize variables
-            state = scenario.data[0][1]  # get the first state
-            fips_prior = str(scenario.data[0][0])  # get the first FIPS
+            # get the first state and fips code in the list of data for the run code
+            state = scenario.data[0][1]
+            fips_prior = str(scenario.data[0][0])
 
-            if regional_crop_budget is False:
-                # New population object created for each run_code
-                # Pop is the abstract class and .<type> is the concrete class.
+            # check if regional crop budget should be used
+            if regional_crop_budget is False:  # if not, run with national budget
+                # new population object created for each run_code, where Pop is the abstract class and .<type> is the concrete class
                 if run_code.startswith('CG_I'):
                     pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
                 elif run_code.endswith('L'):
@@ -198,23 +201,26 @@ class Driver:
                     pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
                 elif run_code.startswith('CG'):
                     pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-            else:
+            else:  # if regional crop budget should be used
+                # get irrigation data for corn grain using the same method as for national budget
                 if run_code.startswith('CG_I'):
                     pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                # get loading equipment if run code ends with L
                 elif run_code.endswith('L'):
                     pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                # for all other run codes, use regional crop budgets
                 else:
                     pop = Pop.RegionalEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
 
+            # initialize allocation, population, and batch files
             alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
             pop.initialize_pop(dat=scenario.data[0])
-
             self.batch.initialize(run_code)
 
-            # go through each row of the data table
+            # go through each row of the data table for this run code
             for dat in scenario.data:
                 # check to see if production is greater than zero
-                prod_greater_than_zero = dat[2] > 0.0
+                prod_greater_than_zero = dat[2] > 0.0  # dat[2] is the production
 
                 # if production is greater than zero, then append equipment information to population file
                 if prod_greater_than_zero is True:
@@ -235,8 +241,11 @@ class Driver:
                         Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
                         alo.write_sum_and_close(fips=fips_prior)
                         pop.finish_pop()
+
+                        # add state and run code to batch file for running NONROAD
                         self.batch.append(state=state, run_code=run_code)
 
+                        # update fips_prior and state to this fips and state
                         fips_prior = fips
                         state = dat[1]
 
@@ -254,8 +263,10 @@ class Driver:
             alo.write_sum_and_close(fips=fips_prior)
             pop.finish_pop()
 
+            # append final file for batch run with this run code
             self.batch.append(state=state, run_code=run_code)
 
+            # finish batch file for this run code
             self.batch.finish(run_code=run_code)
 
         # close scenariobatchfile

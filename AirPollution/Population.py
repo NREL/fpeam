@@ -174,6 +174,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 class RegionalEquipment(Population):
     """
     Calculates equipment populations for agricultural crops using regional crop budgets
+    :return:
     """
 
     def __init__(self, cont, episode_year, run_code):
@@ -190,22 +191,27 @@ class RegionalEquipment(Population):
 
     def append_pop(self, fips, dat):
         """
-        Calulates the equipment populations for NONROAD
-        Then writes them to a population file
+        Calculate the equipment populations for NONROAD
+        Then write them to a population file
 
         :param fips: fips county code. (string)
         :param dat: Data from the db containing harvested acres and the yield from the residues. list(string)
             harv_ac = dat[2]: Harvested acres
         """
+        # set feedstock from run code
         feed = self.run_code[0:2]
-        self.kvals['feed'] = feed.lower()
-        self.kvals['fips'] = fips
 
+        # set other values in kvals dictionary
+        self.kvals['feed'] = feed.lower()  # feedstock
+        self.kvals['fips'] = fips  # fips code
+
+        # set tillage type
         if not self.run_code.startswith('SG'):
             self.kvals['tillage'] = '%sT' % (self.run_code[3])
         else:
             self.kvals['tillage'] = 'NT'
 
+        # set operation type and activity type from run code
         self.kvals['oper_type'] = self.crop_budget_dict['type'][feed]
         if self.run_code.startswith('SG'):
             self.kvals['activity'] = self.run_code[3]
