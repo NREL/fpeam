@@ -184,7 +184,7 @@ class RegionalEquipment(Population):
         self.run_code = run_code
 
         # initialize kvals dictionary
-        self.kvals = cont.get('kvals')
+        self.cont = cont
 
     def append_pop(self, fips, dat):
         """
@@ -198,35 +198,38 @@ class RegionalEquipment(Population):
         # set feedstock from run code
         feed = self.run_code[0:2]
 
+        kvals = self.cont.get('kvals')
         # set other values in kvals dictionary
-        self.kvals['feed'] = feed.lower()  # feedstock
-        self.kvals['fips'] = fips  # fips code
+        kvals['feed'] = feed.lower()  # feedstock
+        kvals['fips'] = fips  # fips code
 
         # set tillage type
         if not self.run_code.startswith('SG'):
-            self.kvals['tillage'] = '%sT' % (self.run_code[3])
+            kvals['tillage'] = '%sT' % (self.run_code[3])
         else:
-            self.kvals['tillage'] = 'NT'
+            kvals['tillage'] = 'NT'
 
         # set operation type and activity type from run code
-        self.kvals['oper_type'] = self.crop_budget_dict['type'][feed]
+        kvals['oper_type'] = self.crop_budget_dict['type'][feed]
         if self.run_code.startswith('SG'):
-            self.kvals['activity'] = self.run_code[3]
+            kvals['activity'] = self.run_code[3]
         else:
-            self.kvals['activity'] = self.run_code[4]
+            kvals['activity'] = self.run_code[4]
 
         # get equipment list from crop budget
         if self.run_code.startswith('SG'):
-            self.kvals['budget_year'] = self.run_code[4]
-            query = ''' SELECT equip_type, hp, activity_rate
+            kvals['budget_year'] = self.run_code[4]
+            query = """
+                        SELECT equip_type, hp, activity_rate
                         FROM {production_schema}.{feed}_equip_fips
-                        WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}% AND bdgtyr = {budget_year}
-                    '''.format(**self.kvals)
+                        WHERE fips = {fips} AND tillage = ' {tillage} ' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%' AND bdgtyr = '{budget_year}'
+                    """.format(**kvals)
+
         else:
-            query = ''' SELECT equip_type, hp, activity_rate
+            query = """SELECT equip_type, hp, activity_rate
                         FROM {production_schema}.{feed}_equip_fips
                         WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%'
-                    '''.format(**self.kvals)
+                    """.format(**kvals)
         # return data from query
         equip_list = self.db.output(query)
 

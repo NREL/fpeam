@@ -33,7 +33,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                          'sg_yr1': 'n_lbac',
                          'sg_yr2to10': 'n_lbdt',
                          'ms_yr1': 'n_lbac',
-                         'ms_yr2to10': 'n_lbdt',}
+                         'ms_yr2to10': 'n_lbdt', }
 
         self.kvals = self.cont.get('kvals')
 
@@ -46,15 +46,19 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         :return:
 
         """
+        # set feedstock
+        self.kvals['feed'] = feed.lower()
+
         # set column name for N fertilizer data
-        if feed != 'SG' or feed != 'MS':
+        if feed != 'SG' and feed != 'MS':
             self.kvals['n_column'] = self.col_dict[feed.lower()]
         else:
             if yr == 1:
                 name = '%s_yr1' % (feed.lower(), )
+                self.kvals['n_column'] = self.col_dict[name]
             elif yr > 1:
                 name = '%s_yr2to10' % (feed.lower(), )
-            self.kvals['n_column'] = self.col_dict[name]
+                self.kvals['n_column'] = self.col_dict[name]
 
         # set year for crop budget
         self.kvals['yr'] = yr
@@ -71,6 +75,9 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
             till_dict = {'CT': 'convtill',
                          'RT': 'reducedtill',
                          'NT': 'notill'}
+
+            if feed == 'SG' or feed == 'MS':
+                till_dict = {'NT': 'notill'}
 
             for tillage in till_dict:
                 self.kvals['tillage'] = tillage

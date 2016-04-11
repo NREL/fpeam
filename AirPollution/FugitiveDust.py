@@ -402,7 +402,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
     def set_emissions(self):
         # initialize kvals dictionary for string formatting
         kvals = self.cont.get('kvals')
-        kvals['rot_years'] = 10  # set number of rotation years to 10 for SG
+        kvals['rot_years'] = config.get('crop_budget_dict')['years']['SG']  # set number of rotation years to 10 for SG
         kvals['onfarm_truck_capacity'] = config['onfarm_truck_capacity']
         kvals['convert_lb_to_mt'] = self.convert_lbs_to_mt(1)
         kvals['silt_table'] = self.silt_table
@@ -411,6 +411,8 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['till'] = 'notill'
 
         year = int(self.run_code[-1])
+        if year == 0:
+            year = 10
         ef = self.emission_factors[year - 1]
 
         # return non-transport emissions query

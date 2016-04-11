@@ -43,6 +43,9 @@ class Chemical(SaveDataHelper.SaveDataHelper):
                      'RT': 'reducedtill',
                      'NT': 'notill'}
 
+        if feed == 'SG' or feed == 'MS':
+                till_dict = {'NT': 'notill'}
+
         for tillage in till_dict:
             self.kvals['tillage'] = tillage
             self.kvals['tillage_name'] = till_dict[tillage]

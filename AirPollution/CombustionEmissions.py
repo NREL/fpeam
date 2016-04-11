@@ -19,7 +19,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
     Combustion emmisions associated with harvest and non-harvest methods that use non-road vehicles.
     """
 
-    def __init__(self, cont, operation_dict, alloc):
+    def __init__(self, cont, operation_dict, alloc, regional_crop_budget):
         """
 
         Each feedstock contains another dictionary of the harvest methods and weather to do the run with them.
@@ -39,6 +39,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         self.document_file = "CombustionEmissions"
         # not used here?
         self.pm_ratio = 0.20
+        self.pm_ratio = 0.20
         self.base_path = cont.get('path')
         # operations and feedstock dictionary.
         self.operation_dict = operation_dict
@@ -50,6 +51,8 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         self.pm10topm25 = None
 
         self.cont = cont
+
+        self.regional_crop_budget = regional_crop_budget
 
     def populate_tables(self, run_codes):
         """
@@ -135,7 +138,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                                 nh3 = fuel_cons * self.lhv * self.nh3_ef / 1e6  # gal * mmBTU/gal * gnh3/mmBTU = g nh3
 
                                 # allocate non harvest emmisions from cg to cs and ws.
-                                if operation and operation[0] == 'N' and feedstock == 'CG':
+                                if operation and operation[0] == 'N' and feedstock == 'CG' and self.regional_crop_budget is False:
                                     # add to cs.
                                     if self.operation_dict['CS'][operation[0]] and self.alloc['CS'] != 0:
                                         self._record(feed='CS', row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10,

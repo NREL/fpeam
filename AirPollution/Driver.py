@@ -129,9 +129,8 @@ class Driver:
         # set database object
         self.db = db
 
-        # years for energy crop rotations
-        self.years_energy = {'SG': 10,
-                             'MS': 15}
+        # years for crop budgets (energy crops have multiple years; conventional crops only single year)
+        self.years_budget = config.get('crop_budget_dict')['years']
 
     def _check_title(self, title):
         """
@@ -395,7 +394,7 @@ class Driver:
 
         regional_crop_budget = config.get('regional_crop_budget')
 
-        self.post_process_nonroad(operation_dict=operation_dict, alloc=alloc)
+        self.post_process_nonroad(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)
         self.post_process_off_farm_transport(fips_list=fips_list)
         self.post_process_fert(regional_crop_budget=regional_crop_budget)
         self.post_process_pest(regional_crop_budget=regional_crop_budget)
@@ -403,7 +402,7 @@ class Driver:
         self.post_process_logistics()
 
         # only run the following if all feedstocks are being modeled.
-        if len(self.feedstock_list) == 5:
+        if len(self.feedstock_list) == 5 and regional_crop_budget is False:
             self.single_pass_alloc()
 
         # generate figures
@@ -509,17 +508,17 @@ class Driver:
 
         # calculate emissions
         for feedstock in self.feedstock_list:
+            # check if regional crop budget should be used
             if regional_crop_budget is True:
-                if feedstock == 'SG':
-                    for yr in range(1, self.years_energy[feedstock] + 1):
-                        fert.regional_fert(feed=feedstock, yr=yr)
-                else:
-                    fert.regional_fert(feed=feedstock, yr=1)
                 logger.info('Using regional crop budget for fertilizer')
+                year_range = self.years_budget[feedstock]
+                for yr in range(1, year_range + 1):
+                    fert.regional_fert(feed=feedstock, yr=yr)
+                    logger.info('Fertilizer emissions complete for feed: %s, year: %s' % (feedstock, yr, ))
             else:
                 fert.set_fertilizer(feed=feedstock)
                 logger.info('Using national crop budget for fertilizer')
-        logger.info("Fertilizer calculations complete for %s" % (feedstock, ))
+                logger.info('Fertilizer emissions complete for feed: %s' % (feedstock, ))
 
     def post_process_pest(self, regional_crop_budget):
         """
@@ -533,18 +532,17 @@ class Driver:
 
         for feedstock in self.feedstock_list:
             if regional_crop_budget is True:
-                if feedstock == 'SG':
-                    for yr in range(1, self.years_energy[feedstock] + 1):
-                        chem.regional_chem(feed=feedstock, yr=yr)
-                else:
-                    chem.regional_chem(feed=feedstock, yr=1)
                 logger.info('Using regional crop budget for chemicals')
+                year_range = self.years_budget[feedstock]
+                for yr in range(1, year_range + 1):
+                    chem.regional_chem(feed=feedstock, yr=yr)
+                    logger.info('Chemical emissions complete for feed: %s, year: %s' % (feedstock, yr, ))
             else:
                 chem.set_chemical(feed=feedstock)
                 logger.info('Using national crop budget for chemicals')
-            logger.info("Chemical calculations complete for %s" % (feedstock, ))
+                logger.info('Chemical emissions complete for feed: %s' % (feedstock, ))
 
-    def post_process_nonroad(self, operation_dict, alloc):
+    def post_process_nonroad(self, operation_dict, alloc, regional_crop_budget):
         """
         Populate combustion emissions from NONROAD equipment
         Populate data in {feed}_raw tables
@@ -555,12 +553,12 @@ class Driver:
         """
 
         # initialize database object
-        comb = CombustionEmissions.CombustionEmissions(cont=self.cont, operation_dict=operation_dict, alloc=alloc)
+        comb = CombustionEmissions.CombustionEmissions(cont=self.cont, operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)
 
         logger.info("Populating tables with combustion emissions")
         comb.populate_tables(run_codes=self.run_codes)
         for run_code in self.run_codes:
-            if run_code.startswith('SG'):
+            if run_code.startswith('SG') and regional_crop_budget is False:
                 if not run_code.endswith('L'):
                     comb.update_sg(run_code=run_code)
         logger.info("COMPLETED populating tables with combustion emissions")
