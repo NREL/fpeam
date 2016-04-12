@@ -392,16 +392,31 @@ class Driver:
         for feedstock in self.feedstock_list:
             update.create_tables(feedstock=feedstock)
 
+        # get toggle for regional crop budget
         regional_crop_budget = config.get('regional_crop_budget')
 
-        self.post_process_nonroad(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)
-        self.post_process_off_farm_transport(fips_list=fips_list)
-        self.post_process_fert(regional_crop_budget=regional_crop_budget)
-        self.post_process_pest(regional_crop_budget=regional_crop_budget)
-        self.post_process_on_farm_transport()
-        self.post_process_logistics()
+        # post-process data to obtain emissions
+        self.post_process_nonroad(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)  # NONROAD
+        self.post_process_off_farm_transport(fips_list=fips_list)  # off-farm transportation
+        self.post_process_fert(regional_crop_budget=regional_crop_budget)  # fertilizer
+        self.post_process_pest(regional_crop_budget=regional_crop_budget)  # pesticide
+        self.post_process_on_farm_transport()  # on-farm transport
+        self.post_process_logistics()  # logistics (pre-processing)
 
-        # only run the following if all feedstocks are being modeled.
+        # create list of results tables
+        table_list = ['fugitive_dust', 'transportation']
+        for feedstock in self.feedstock_list:
+            table_list.append('%s_raw' % (feedstock.lower(), ))
+            table_list.append('%s_chem' % (feedstock.lower(), ))
+            table_list.append('%s_nfert' % (feedstock.lower(), ))
+            table_list.append('%s_processing' % (feedstock.lower(), ))
+            table_list.append('%s_logistics' % (feedstock.lower(), ))
+
+        # add zero to beginning of FIPS code if FIPS code is 4 characters in length
+        for table_name in table_list:
+            self.concat_zeros(table_name)
+
+        # perform single pass allocation when national crop budget is selected and all feedstocks are modeled
         if len(self.feedstock_list) == 5 and regional_crop_budget is False:
             self.single_pass_alloc()
 
@@ -410,6 +425,24 @@ class Driver:
             self.figure_plotting()
 
         logger.info('Successful completion of model run.')
+
+    def concat_zeros(self, table_name):
+        """
+        Pre-appends zeros to FIPS codes that are 4 characters in length
+        :return:
+        """
+        # get kvals dictionary
+        kvals = self.kvals
+
+        # set table name
+        kvals['table_name'] = table_name
+
+        # create query to pre-append zeros to FIPS codes of 4 characters in length
+        query = """ UPDATE {scenario_name}.{table_name}
+                    SET FIPS = CONCAT('0', FIPS)
+                    WHERE length(FIPS) == 4""".format(**kvals)
+        # execute query
+        self.db.input(query)
 
     def post_process_off_farm_transport(self, fips_list):
         """
