@@ -39,7 +39,6 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         self.document_file = "CombustionEmissions"
         # not used here?
         self.pm_ratio = 0.20
-        self.pm_ratio = 0.20
         self.base_path = cont.get('path')
         # operations and feedstock dictionary.
         self.operation_dict = operation_dict
