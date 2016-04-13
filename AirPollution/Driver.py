@@ -420,12 +420,6 @@ class Driver:
         if len(self.feedstock_list) == 5 and regional_crop_budget is False:
             self.single_pass_alloc()
 
-        # generate figures
-        if config.get('figure_plotting') is True:
-            self.figure_plotting()
-
-        logger.info('Successful completion of model run.')
-
     def concat_zeros(self, table_name):
         """
         Pre-appends zeros to FIPS codes that are 4 characters in length

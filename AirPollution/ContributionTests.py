@@ -98,7 +98,7 @@ class ChooseSQL:
         """        
         
         if self.pol.startswith('PM'):
-            sum_pollutant = "(sum(%s) + sum(fug_%s))" % (self.pol, self.pol)
+            sum_pollutant = "(sum(%s) + IFNULL(sum(fug_%s),0))" % (self.pol, self.pol)
         else:
             sum_pollutant = "sum(%s)" % (self.pol,)
 
@@ -107,21 +107,25 @@ class ChooseSQL:
         else:
             act = self.act
 
-        self.query_string = """
-WITH
-    activitySum AS (SELECT DISTINCT fips, %s AS x
-                    FROM %s.%s
-                    WHERE description ILIKE '%% %s'
-                    GROUP BY fips
-                    ),
-    totalSum AS (SELECT DISTINCT fips, %s AS x
-                 FROM %s.%s
-                 GROUP BY fips
-                 )
-SELECT (a.x / t.x) AS x FROM activitySum a, totalSum t
-WHERE a.fips = t.fips AND t.x > 0.0 AND a.x > 0.0;
+        kvals = {'pollutant': self.pol,
+                 'scenario_name': self.schema,
+                 'raw_table': self.raw_table,
+                 'activity': act,
+                 'sum_pollutant': sum_pollutant}
 
-""" % (sum_pollutant, self.schema, self.raw_table, '%' + act + '%', sum_pollutant, self.schema, self.raw_table)
+        self.query_string = """
+                                SELECT (a.x / t.x) AS x
+                                FROM (SELECT DISTINCT fips, {sum_pollutant} AS x
+                                      FROM {scenario_name}.{raw_table}
+                                      WHERE description LIKE '%% %{activity}%'
+                                      GROUP BY fips
+                                      ) a,
+                                     (SELECT DISTINCT fips, {sum_pollutant} AS x
+                                      FROM {scenario_name}.{raw_table}
+                                      GROUP BY fips
+                                      ) t
+                                WHERE a.fips = t.fips AND t.x > 0.0 AND a.x > 0.0;
+                            """.format(**kvals)
 
 #        if self.feed == 'CG' and (self.pol == 'CO' or self.pol == 'SO2'):
 #            print self.query_string
@@ -134,36 +138,38 @@ WHERE a.fips = t.fips AND t.x > 0.0 AND a.x > 0.0;
         If you are not actually intersested in fertilizers, but are doing a calculation
         to get Nox and nh3, shouldnt you not care about fert.x for the ration in the first part?
         """
+
+        kvals = {'pollutant': self.pol,
+                 'scenario_name': self.schema,
+                 'raw_table': self.raw_table,
+                 'fert_table': self.fert_table,
+                 'activity': self.act}
+
         if self.act != 'Fertilizer':
-            ratio = "(act.x)/(raw.x + fert.x)"
-            conditions = ", activitySum act where act.fips = raw.fips and act.fips = fert.fips and act.x > 0.0"
+            ratio = "(act.x)/(raw.x + act.x)"
+            conditions = """, (SELECT DISTINCT fips, sum({pollutant}) as x
+                                      FROM {scenario_name}.{raw_table}
+                                      WHERE description LIKE '%{activity}%'
+                                      GROUP BY fips) act
+                        WHERE act.fips = raw.fips and act.fips = fert.fips and act.x > 0.0""".format(**kvals)
 
         else:
             ratio = "(fert.x)/(raw.x+fert.x)"
-            conditions = "where raw.fips = fert.fips"
-            
+            conditions = "WHERE raw.fips = fert.fips"
+
+        kvals['ratio'] = ratio
+        kvals['conditions'] = conditions
+
         self.query_string = """
-            WITH
-
-                activitySum as (select distinct fips, sum(%s) as x
-                from %s.%s where description ilike '%s' group by fips),
-                
-                rawSum as (select distinct r.fips, sum(r.%s) as x
-                from %s.%s r group by r.fips),
-
-                fertSum as (select distinct fips, sum(%s) as x
-                from %s.%s group by fips)
-                
-                select (%s) as x
-                FROM rawSum raw, fertSum fert %s 
-                and raw.x > 0.0 and fert.x > 0.0;
-
-
-            """ % (self.pol, self.schema, self.raw_table, '%' + self.act + '%',
-                   self.pol, self.schema, self.raw_table,
-                   self.pol, self.schema, self.fert_table,
-                   ratio,
-                   conditions)       
+                                SELECT {ratio} as x
+                                FROM (SELECT DISTINCT r.fips, sum(r.{pollutant}) as x
+                                      FROM {scenario_name}.{raw_table} r group by r.fips) raw,
+                                     (SELECT DISTINCT fips, sum({pollutant}) as x
+                                      FROM {scenario_name}.{fert_table}
+                                      GROUP BY fips) fert
+                                {conditions}
+                                AND raw.x > 0.0 and fert.x > 0.0;
+                            """.format(**kvals)
 
     def __query_raw_chem__(self):
         """
@@ -172,30 +178,35 @@ WHERE a.fips = t.fips AND t.x > 0.0 AND a.x > 0.0;
         Almost identical code to queryRawFert(), kept separate for the sake of 
         being explicit 
         """
+        kvals = {'pollutant': self.pol,
+                 'scenario_name': self.schema,
+                 'raw_table': self.raw_table,
+                 'chem_table': self.chem_table,
+                 'activity': self.act}
 
         if self.act != 'Chemical':
             ratio = "(act.x)/(raw.x + chem.x)"
-            conditions = ", activitySum act where act.fips = raw.fips and act.fips = chem.fips and act.x > 0.0"
+            conditions = """, (SELECT DISTINCT fips, SUM({pollutant}) AS x
+                               FROM {scenario_name}.{raw_table}
+                               WHERE description LIKE '%% %{activity}%'
+                               GROUP BY fips) act WHERE act.fips = raw.fips and act.fips = chem.fips and act.x > 0.0
+                         """.format(**kvals)
 
         else:
             ratio = "(chem.x)/(raw.x+chem.x)"      
-            conditions = "where raw.fips = chem.fips"
-            
-        self.query_string = """
-WITH
-    activitySum AS (SELECT DISTINCT fips, SUM(%s) AS x
-                    FROM %s.%s
-                    WHERE description ILIKE '%% %s'
-                    GROUP BY fips
-                    ),
-    rawSum AS (SELECT DISTINCT r.fips, SUM(r.%s) AS x
-               FROM %s.%s r
-               GROUP BY r.fips
-               ),
-    chemSum AS (SELECT DISTINCT fips, SUM(%s) AS x
-                FROM %s.%s
-                GROUP BY fips)
-SELECT (%s) AS x
-FROM rawSum raw, chemSum chem %s AND raw.x > 0.0 AND chem.x > 0.0;
+            conditions = "WHERE raw.fips = chem.fips"
 
-""" % (self.pol, self.schema, self.raw_table, '%' + self.act + '%', self.pol, self.schema, self.raw_table, self.pol, self.schema, self.chem_table, ratio, conditions)
+        kvals['ratio'] = ratio
+        kvals['conditions'] = conditions
+
+        self.query_string = """
+                                SELECT ({ratio}) AS x
+                                FROM (SELECT DISTINCT r.fips, SUM(r.{pollutant}) AS x
+                                      FROM {scenario_name}.{raw_table} r
+                                      GROUP BY r.fips) raw,
+                                     (SELECT DISTINCT fips, SUM({pollutant}) AS x
+                                      FROM  {scenario_name}.{chem_table}
+                                      GROUP BY fips) chem
+                                {conditions}
+                                AND raw.x > 0.0 AND chem.x > 0.0;
+                            """.format(**kvals)
