@@ -359,9 +359,9 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 
         elif run_code.startswith('SG_T'):
             if len(run_code) == 4: 
-                description = "Year %s - Transport" % (run_code[4])  # year 1-9
+                description = "Year %s - On-farm Transport" % (run_code[4])  # year 1-9
             else:
-                description = "Year %s - Transport" % (run_code[4:6])  # year 10
+                description = "Year %s - On-farm Transport" % (run_code[4:6])  # year 10
             operation = 'Transport'
                         
         # Forest Residue
@@ -373,15 +373,20 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         elif run_code.startswith('CS') or run_code.startswith('WS'):
         
             # get tillage
-            if run_code.endswith('RT'):
+            if run_code[3] == 'R':
                 tillage = 'Reduced Till'
-            elif run_code.endswith('NT'):
-                tillage = 'No Till'    
-            
-            if scc.endswith('5020'):
+            elif run_code[3] == 'N':
+                tillage = 'No Till'
+            elif run_code[3] == 'C':
+                tillage = 'Conventional Till'
+
+            # get activity type
+            if run_code[4] == 'H':
                 operation = 'Harvest'
-            elif scc.endswith('5015'):
-                operation = 'Transport'
+            elif run_code[4] == 'N':
+                operation = 'Non-Harvest'
+            elif run_code[4] == 'T':
+                operation = 'On-farm Transport'
             
             description = tillage + ' - ' + operation
             
@@ -435,11 +440,9 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 operation = 'Non-Harvest'
                 
             elif run_code.endswith('H'):
-                # get operation (harvest or transport)
-                if scc.endswith('5020'):
-                    operation = 'Harvest'
-                elif scc.endswith('5015'):
-                    operation = 'Transport'
+                operation = 'Harvest'
+            elif run_code.endswith('T'):
+                operation = 'On-farm Transport'
 
             description = tillage + ' - ' + operation    
          

@@ -310,6 +310,16 @@ class ResiduePop(Population):
             scenario_yield = dat[4]: Yield. lbs
         """
 
+        harv_ac = dat[2]  # acre
+        scenario_yield = dat[4]  # lbs
+
+        # get activity
+        hours_per_acre_combine = self._get_combine_hours_per_acre(scenario_yield=scenario_yield)  # hrs/acre
+
+        # calculate population of combine for harvest.
+        # pop = (hr/acre * acre) / (hr/yr) = yr
+        pop_comb = round(hours_per_acre_combine * harv_ac / self.activity_combine, 10)  # yr
+
         # init population line values
         kvals = {'fips': fips,
                  'subregion_code': '',
@@ -321,27 +331,29 @@ class ResiduePop(Population):
                  'avg_hp': 345.8,
                  'life': 7000,
                  'flag': 'DEFAULT',
-                 'pop': None,
+                 'pop': pop_comb,
                  }
 
-        harv_ac = dat[2]  # acre
-        scenario_yield = dat[4]  # lbs
-
-        # get activity
-        hours_per_acre_combine = self._get_combine_hours_per_acre(scenario_yield=scenario_yield)  # hrs/acre
-
-        # calculate population of combine for harvest.
-        # pop = (hr/acre * acre) / (hr/yr) = yr
-        pop_comb = round(hours_per_acre_combine * harv_ac / self.activity_combine, 10)  # yr
-        kvals['pop'] = pop_comb
         line = self._create_pop_line(**kvals)
         self.pop_file.writelines(line)
 
         # calculate population of tractors for transport.
         # pop = [(lbs/acre / dt/hr) * acre] / hr/yr = yr
         pop_bale_mover = round((scenario_yield / self.transport_bales) * harv_ac / self.activity_tractor, 10)  # yr
-        kvals['pop'] = pop_bale_mover
-        line = self._create_pop_line(**kvals)
+        # init population line values
+        kvals_bale = {'fips': fips,
+                      'subregion_code': '',
+                      'year': self.episode_year,
+                      'scc_code': 2270005020,
+                      'equip_desc': 'Dsl - Combines',
+                      'min_hp': 100,
+                      'max_hp': 175,
+                      'avg_hp': 133.6,
+                      'life': 4667,
+                      'flag': 'DEFAULT',
+                      'pop': pop_bale_mover,
+                      }
+        line = self._create_pop_line(**kvals_bale)
         self.pop_file.writelines(line)
 
 

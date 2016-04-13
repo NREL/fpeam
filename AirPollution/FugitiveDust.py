@@ -178,21 +178,44 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
 
         # emission factors
         pm_redu_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
-        pm_no_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre 
+        pm_no_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
+        pm_conv_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
+
+        pm_conv_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
+        pm_redu_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
+        pm_no_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
 
         # choose operation for reduced till
         if run_code.startswith('CS_R'):
             tillage = 'Reduced'
             table_till = 'reducedtill'
-            operation = 'Harvest'
-            ef = pm_redu_till_harv
+            if run_code.endswith('H'):
+                operation = 'Harvest'
+                ef = pm_redu_till_harv
+            elif run_code.endswith('N'):
+                operation = 'Non-Harvest'
+                ef = pm_redu_till_non_harv
 
         # choose operation for no till                
         elif run_code.startswith('CS_N'):
             tillage = 'No Till'
             table_till = 'notill'
-            operation = 'Harvest'
-            ef = pm_no_till_harv
+            if run_code.endswith('H'):
+                operation = 'Harvest'
+                ef = pm_no_till_harv
+            elif run_code.endswith('N'):
+                operation = 'Non-Harvest'
+                ef = pm_no_till_non_harv
+
+        elif run_code.startswith('CS_C'):
+            tillage = 'Conventional Till'
+            table_till = 'convtill'
+            if run_code.endswith('H'):
+                operation = 'Harvest'
+                ef = pm_conv_till_harv
+            elif run_code.endswith('N'):
+                operation = 'Non-Harvest'
+                ef = pm_conv_till_non_harv
 
         # execute query for transport emissions
         # pm10 = dt/acre * acre =  dt
@@ -214,21 +237,32 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
 
         # emission factors:
         pm_redu_till_harv = self.convert_lbs_to_mt(5.8)  # mt / acre
-        pm_no_till_harv = self.convert_lbs_to_mt(5.8)  # mt / acre 
+        pm_no_till_harv = self.convert_lbs_to_mt(5.8)  # mt / acre
+
+        pm_redu_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
+        pm_no_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
 
         # choose operation for reduced till
         if run_code.startswith('WS_R'):
             tillage = 'Reduced'
             table_till = 'reducedtill'
-            operation = 'Harvest'
-            ef = pm_redu_till_harv
+            if run_code.endswith('H'):
+                operation = 'Harvest'
+                ef = pm_redu_till_harv
+            elif run_code.endswith('N'):
+                operation = 'Non-Harvest'
+                ef = pm_redu_till_non_harv
 
         # choose operation for no till                
         elif run_code.startswith('WS_N'):
             tillage = 'No Till'
             table_till = 'notill'
-            operation = 'Harvest'
-            ef = pm_no_till_harv
+            if run_code.endswith('H'):
+                operation = 'Harvest'
+                ef = pm_no_till_harv
+            elif run_code.endswith('N'):
+                operation = 'Non-Harvest'
+                ef = pm_no_till_non_harv
 
         # execute query for transport emissions
         # pm10 = dt/acre * acre =  dt
