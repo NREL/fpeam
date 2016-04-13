@@ -42,7 +42,7 @@ class ContributionAnalysis():
         activity_list = ['Non-Harvest', 'Fertilizer', 'Chemical', 'Harvest', 'Transport']
         activity_labels = ['Non-Harvest', 'N-Fertilizer', 'Pesticide', 'Harvest', 'Transport']
         
-        self.f = open(self.path + 'Figures' + os.sep + 'Contribution_numerical.csv', 'w')
+        self.f = open(os.path.join(self.path, 'Figures', 'Contribution_numerical.csv'), 'w')
     # -----------inputs end
         
         index = 0
@@ -111,7 +111,7 @@ class ContributionAnalysis():
             ax.plot([f_num] * 2, [1, 1], f_color, marker=f_marker, markersize=2)
 
         else:
-            data = self.db.output(query.query_string, self.db.schema)
+            data = self.db.output(query.query_string)
             mean_val = mean(data)
             med_val = median(data)
             max_val = max(data)
