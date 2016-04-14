@@ -247,13 +247,14 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         :param run_code: run code specifying feedstock type, activity type, and tillage type
         :return:
         """
-        pol_list = ['voc', 'co', 'nox', 'so2', 'pm10', 'pm25']
+        pol_list = ['voc', 'co', 'nox', 'sox', 'pm10', 'pm25']
         till_dict = {'R': 'reducedtill',
                      'C': 'convtill',
                      'N': 'notill'}
 
-        kvals = {'scenario_name': self.cont.get('model_run_title'),
-                 'constants_schema': self.cont.get('constants_schema')}
+        kvals = {'scenario_name': config.get('title'),
+                 'constants_schema': config.get('constants_schema'),
+                 'production_schema': config.get('production_schema')}
 
         if run_code.startswith('CG'):
             kvals['tillage'] = till_dict[run_code[4]]
@@ -261,17 +262,27 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             kvals['run_code'] = run_code
             kvals['conv_ton_to_mt'] = 0.90718474
 
-            logger.info('Computing aerial emissions from crop dusting for CG')
+            logger.info('Computing aerial emissions from crop dusting for CG for pollutant for run code: %s' % (run_code, ))
 
-            for pollutant in pol_list:
+            for i, pollutant in enumerate(pol_list):
                 kvals['ef_ton_per_ac'] = self.ef_crop_dust_dict[pollutant]
                 kvals['pollutant'] = pollutant
-                query_airplane = """ INSERT INTO {scenario_name}.aerial (fips, feed, {pollutant}, description, run_code)
-                                     SELECT raw.fips, {feed}, raw.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}, 'Non-harvest - crop dusting', '{run_code}'
-                                     FROM {scenario_name}.cg_data raw
-                                     LEFT JOIN {constants_schema}.fips_region fp ON fp.fips = raw.fips
-                                     WHERE fp.polyfrr = 13 AND raw.total_prod > 0
-                                 """.format(**kvals)
+                if i == 0:
+                    query_airplane = """ INSERT INTO {scenario_name}.aerial (fips, feed, {pollutant}, description, run_code)
+                                         SELECT raw.fips, '{feed}', raw.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}, 'Non-harvest - crop dusting', '{run_code}'
+                                         FROM {production_schema}.cg_data raw
+                                         LEFT JOIN {constants_schema}.fips_region fp ON fp.fips = raw.fips
+                                         WHERE fp.polyfrr = 13 AND raw.total_prod > 0
+                                     """.format(**kvals)
+                else:
+                    query_airplane = """ UPDATE {scenario_name}.aerial aerial
+                                         LEFT JOIN {production_schema}.cg_data raw
+                                         ON raw.fips = aerial.fips
+                                         LEFT JOIN {constants_schema}.fips_region fp
+                                         ON fp.fips = raw.fips
+                                         SET {pollutant} = raw.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}
+                                         WHERE fp.polyfrr = 13 AND raw.total_prod > 0
+                                     """.format(**kvals)
                 self.db.input(query_airplane)
 
     def update_sg(self, run_code):

@@ -405,13 +405,11 @@ class Driver:
         self.post_process_logistics()  # logistics (pre-processing)
 
         # create list of results tables
-        table_list = ['fugitive_dust', 'transportation']
+        table_list = ['fugitive_dust', 'transportation', 'processing']
         for feedstock in self.feedstock_list:
             table_list.append('%s_raw' % (feedstock.lower(), ))
             table_list.append('%s_chem' % (feedstock.lower(), ))
             table_list.append('%s_nfert' % (feedstock.lower(), ))
-            table_list.append('%s_processing' % (feedstock.lower(), ))
-            table_list.append('%s_logistics' % (feedstock.lower(), ))
 
         # add zero to beginning of FIPS code if FIPS code is 4 characters in length
         for table_name in table_list:
@@ -435,7 +433,7 @@ class Driver:
         # create query to pre-append zeros to FIPS codes of 4 characters in length
         query = """ UPDATE {scenario_name}.{table_name}
                     SET FIPS = CONCAT('0', FIPS)
-                    WHERE length(FIPS) == 4""".format(**kvals)
+                    WHERE length(FIPS) = 4""".format(**kvals)
         # execute query
         self.db.input(query)
 
@@ -670,7 +668,7 @@ class Driver:
         """
 
         logistics = Logistics.Logistics(feedstock_list=self.feedstock_list, cont=self.cont)
-        logistics.calc_logistics(run_codes=self.run_codes, feedstock_list=self.feedstock_list, logistics_list=self.logistics_list)
+        logistics.calc_logistics(run_codes=self.run_codes, logistics_list=self.logistics_list)
 
     def figure_plotting(self):
         """

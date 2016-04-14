@@ -342,7 +342,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['a10'] = 0.9
         kvals['b25'] = 0.45
         kvals['b10'] = 0.45
-        kvals['D'] = config.get['onfarm_default_distance']  # default value for distance traveled (in vehicle miles traveled)
+        kvals['D'] = config.get('onfarm_default_distance')  # default value for distance traveled (in vehicle miles traveled)
 
         query = """ UPDATE {scenario_name}.{feed}_raw raw
                     LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips

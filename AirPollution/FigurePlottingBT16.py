@@ -94,7 +94,7 @@ class FigurePlottingBT16:
                                     (SELECT fips, sum(VOC)/{years_rot} as 'VOC'
                                     FROM reg2.cg_chem
                                     GROUP BY fips) chem
-                              WHERE fert.fips = chem.fips
+                              WHERE fert.fips = chem.fips;
                          """.format(**kvals)
         self.db.input(query_fert_chem)
 
@@ -115,9 +115,8 @@ class FigurePlottingBT16:
                                        '{feed}' as 'Feedstock'
                                 FROM {scenario_name}.{feed}_raw
                                 WHERE description LIKE '%Non-Harvest%'
-                                GROUP BY fips
+                                GROUP BY fips;
                             """.format(**kvals)
-
         self.db.input(query_non_harvest)
 
     def get_harvest(self, kvals):
@@ -137,7 +136,7 @@ class FigurePlottingBT16:
                                    '{feed}' as 'Feedstock'
                             FROM {scenario_name}.{feed}_raw
                             WHERE (description LIKE '% Harvest%' OR description = 'Loading')
-                            GROUP BY fips
+                            GROUP BY fips;
                         """.format(**kvals)
         self.db.input(query_harvest)
 
@@ -146,7 +145,7 @@ class FigurePlottingBT16:
         pol_list = ['NOx', 'PM10', 'PM25', 'SOx', 'VOC', 'CO', 'NH3']
         logistics = {'A': 'Advanced', 'C': 'Conventional'}
         feedstock = kvals['feed']
-        
+
         run_logistics = self.feed_id_dict[feedstock.upper()]
         if run_logistics != 'None':
             for system in system_list:
@@ -179,22 +178,22 @@ class FigurePlottingBT16:
                                             """.format(**kvals)
                         self.db.input(query_transport)
 
-                        query_pre_process = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, {pollutant}, Source_Category, NEI_Category, Feedstock)
-                                                SELECT fips,
-                                                       '{year}' as 'Year',
-                                                       '{yield}' as 'Yield',
-                                                       total_emissions/{years_rot} as '{pollutant_name}',
-                                                       '{preprocess_cat}' as 'Source_Category',
-                                                       'P' as 'NEI_Category',
-                                                       '{feed}' as 'Feedstock'
-                                                FROM {scenario_name}.logistics
-                                                WHERE  (logistics_type = '{system}' AND
-                                                       yield_type = '{yield}' AND
-                                                       feedstock = '{feed}' AND
-                                                       pollutantID = '{pollutant_name}')
-                                                GROUP BY fips;
-                                            """.format(**kvals)
-                        self.db.input(query_pre_process)
+                        if pollutant == 'VOC':
+                            query_pre_process = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, {pollutant}, Source_Category, NEI_Category, Feedstock)
+                                                    SELECT fips,
+                                                           '{year}' as 'Year',
+                                                           '{yield}' as 'Yield',
+                                                           IFNULL(voc_wood, 0)/{years_rot} as '{pollutant_name}',
+                                                           '{preprocess_cat}' as 'Source_Category',
+                                                           'P' as 'NEI_Category',
+                                                           '{feed}' as 'Feedstock'
+                                                    FROM {scenario_name}.processing
+                                                    WHERE  (logistics_type = '{system}' AND
+                                                           yield_type = '{yield}' AND
+                                                           feed = '{feed}')
+                                                    GROUP BY fips;
+                                                """.format(**kvals)
+                            self.db.input(query_pre_process)
 
                     elif i > 0:
                         if not pollutant.startswith('PM'):
@@ -203,12 +202,6 @@ class FigurePlottingBT16:
                                                     ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
                                                     SET tot.{pollutant_name} = trans.total_emissions/{years_rot}
                                                     WHERE trans.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}';
-                                              """.format(**kvals)
-                            query_pre_process = """ UPDATE {scenario_name}.total_emissions tot
-                                                    INNER JOIN {scenario_name}.logistics log
-                                                    ON log.fips = tot.fips AND log.yield_type = tot.Yield AND log.feedstock = tot.feedstock
-                                                    SET tot.{pollutant_name} = log.total_emissions/{years_rot}
-                                                    WHERE log.pollutantID = '{pollutant}' AND tot.Source_Category = '{preprocess_cat}' AND log.logistics_type = '{system}';
                                               """.format(**kvals)
                         elif pollutant.startswith('PM'):
                             query_transport = """   UPDATE {scenario_name}.total_emissions tot
@@ -219,15 +212,16 @@ class FigurePlottingBT16:
                                                     SET tot.{pollutant_name} = IF(trans.total_emissions > 0.0, (trans.total_emissions + fd.total_fd_emissions)/{years_rot}, 0)
                                                     WHERE trans.pollutantID = '{pollutant}' AND fd.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}' AND fd.logistics_type = '{system}';
                                               """.format(**kvals)
-                            query_pre_process = """ UPDATE {scenario_name}.total_emissions tot
-                                                    INNER JOIN {scenario_name}.logistics log
-                                                    ON log.fips = tot.fips AND log.yield_type = tot.Yield AND log.feedstock = tot.feedstock
-                                                    SET tot.{pollutant_name} = log.total_emissions/{years_rot}
-                                                    WHERE log.pollutantID = '{pollutant}' AND tot.Source_Category = '{preprocess_cat}' AND log.logistics_type = '{system}';
-                                              """.format(**kvals)
+                            if pollutant == 'VOC':
+                                query_pre_process = """ UPDATE {scenario_name}.total_emissions tot
+                                                        INNER JOIN {scenario_name}.processing log
+                                                        ON log.fips = tot.fips AND log.yield_type = tot.Yield AND log.feedstock = tot.feedstock
+                                                        SET tot.{pollutant_name} = IFNULL(voc_wood, 0)/{years_rot}
+                                                        WHERE tot.Source_Category = '{preprocess_cat}' AND log.logistics_type = '{system}';
+                                                  """.format(**kvals)
+                                self.db.input(query_pre_process)
 
                         self.db.input(query_transport)
-                        self.db.input(query_pre_process)
 
     def plot_total_emissions(self):
 

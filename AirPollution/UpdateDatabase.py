@@ -59,9 +59,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         run_code    text,
                         logistics_type char(2),
                         yield_type char(2),
-                        voc_wood float,
-                        total_emissions float
-                        );""".format(**self.kvals)
+                        voc_wood float);""".format(**self.kvals)
         self._execute_query(query)
 
         # aerial emissions table (only corn grain should populate this table)
@@ -75,7 +73,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         PM10    float    ,
                         PM25    float    ,
                         Description    text    ,
-                        run_code    text    ,
+                        run_code    text
                         );""".format(**self.kvals)
         self._execute_query(query)
 
