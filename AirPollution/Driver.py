@@ -400,7 +400,7 @@ class Driver:
         self.post_process_off_farm_transport(fips_list=fips_list)  # off-farm transportation
         self.post_process_fert(regional_crop_budget=regional_crop_budget)  # fertilizer
         self.post_process_pest(regional_crop_budget=regional_crop_budget)  # pesticide
-        self.post_process_on_farm_transport()  # on-farm transport
+        self.post_process_on_farm_fugitive_dust()  # on-farm fugitive dust
         self.post_process_logistics()  # logistics (pre-processing)
 
         # create list of results tables
@@ -461,66 +461,66 @@ class Driver:
         self.db.create(query)
 
         # now loop through feedstocks and FIPS codes to compute respective transportation emissions
+        yield_type = config.get('yield')
         for feedstock in self.feedstock_list:
             if feedstock in self.transport_feed_list:
-                for yield_type in self.yield_list:
-                    for fips in fips_list:
-                        for logistics_type in self.logistics_list:
-                            kvals = self.kvals
-                            kvals['fips'] = fips
-                            kvals['feed_id'] = self.feed_id_dict[feedstock]
-                            kvals['silt_table'] = config.get('db_table_list')['silt_table']
+                for fips in fips_list:
+                    for logistics_type in self.logistics_list:
+                        kvals = self.kvals
+                        kvals['fips'] = fips
+                        kvals['feed_id'] = self.feed_id_dict[feedstock]
+                        kvals['silt_table'] = config.get('db_table_list')['silt_table']
 
-                            # set truck capacity
-                            truck_capacity = config.get('truck_capacity')
-                            kvals['truck_capacity'] = truck_capacity[feedstock][logistics_type]
+                        # set truck capacity
+                        truck_capacity = config.get('truck_capacity')
+                        kvals['truck_capacity'] = truck_capacity[feedstock][logistics_type]
 
-                            # set transport table
-                            kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][yield_type][logistics_type]
+                        # set transport table
+                        kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][yield_type][logistics_type]
 
-                            if len(fips) > 4:
-                                kvals['st_fips'] = fips[0:2]
-                            else:
-                                kvals['st_fips'] = '0%s' % (fips[0])
+                        if len(fips) > 4:
+                            kvals['st_fips'] = fips[0:2]
+                        else:
+                            kvals['st_fips'] = '0%s' % (fips[0])
 
-                            query_pop = """SELECT used_qnty / {truck_capacity}
-                                           FROM {production_schema}.{transport_table}
-                                           WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
-                                           ;""".format(**kvals)
+                        query_pop = """SELECT used_qnty / {truck_capacity}
+                                       FROM {production_schema}.{transport_table}
+                                       WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
+                                       ;""".format(**kvals)
 
-                            output_pop = self.db.output(query_pop)
-                            pop_short_haul = 0
-                            try:
-                                pop_short_haul = output_pop[0][0]  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
-                            except IndexError:
-                                pass
+                        output_pop = self.db.output(query_pop)
+                        pop_short_haul = 0
+                        try:
+                            pop_short_haul = output_pop[0][0]  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
+                        except IndexError:
+                            pass
 
-                            trans_col = self.transport_col[logistics_type]['dist']
-                            if len(self.transport_col[logistics_type]) == 2:
-                                trans_col += '+ %s' % (self.transport_col[logistics_type]['dist_2'], )
+                        trans_col = self.transport_col[logistics_type]['dist']
+                        if len(self.transport_col[logistics_type]) == 2:
+                            trans_col += '+ %s' % (self.transport_col[logistics_type]['dist_2'], )
 
-                            kvals['trans_col'] = trans_col
-                            query_vmt = """SELECT {trans_col}
-                                           FROM {production_schema}.{transport_table}
-                                           WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
-                                           ;""".format(**kvals)
+                        kvals['trans_col'] = trans_col
+                        query_vmt = """SELECT {trans_col}
+                                       FROM {production_schema}.{transport_table}
+                                       WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
+                                       ;""".format(**kvals)
 
-                            output_vmt = self.db.output(query_vmt)
-                            vmt_short_haul = 0
-                            try:
-                                vmt_short_haul = output_vmt[0][0]  # annual vehicle miles traveled by combination short-haul trucks
-                            except IndexError:
-                                pass
+                        output_vmt = self.db.output(query_vmt)
+                        vmt_short_haul = 0
+                        try:
+                            vmt_short_haul = output_vmt[0][0]  # annual vehicle miles traveled by combination short-haul trucks
+                        except IndexError:
+                            pass
 
-                            query_silt = """SELECT uprsm_pct_silt
-                                            FROM {constants_schema}.{silt_table}
-                                            WHERE st_fips = {st_fips}
-                                            ;""".format(**kvals)
+                        query_silt = """SELECT uprsm_pct_silt
+                                        FROM {constants_schema}.{silt_table}
+                                        WHERE st_fips = {st_fips}
+                                        ;""".format(**kvals)
 
-                            silt = self.db.output(query_silt)[0][0]
-                            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt_short_haul, pop=pop_short_haul,
-                                                                           logistics_type=logistics_type, silt=silt, yield_type=yield_type)
-                            transportation.calculate_transport_emissions()
+                        silt = self.db.output(query_silt)[0][0]
+                        transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt_short_haul, pop=pop_short_haul,
+                                                                       logistics_type=logistics_type, silt=silt, yield_type=yield_type)
+                        transportation.calculate_transport_emissions()
 
     def post_process_fert(self, regional_crop_budget):
         """
@@ -590,7 +590,7 @@ class Driver:
                     comb.update_sg(run_code=run_code)
         logger.info("COMPLETED populating tables with combustion emissions")
 
-    def post_process_on_farm_transport(self):
+    def post_process_on_farm_fugitive_dust(self):
         """
         Calculate fugitive dust emissions associated with on-farm transport
         Populate under fug_pm10 and fug_pm25 columns in {feed}_raw tables
@@ -604,7 +604,7 @@ class Driver:
             if not run_code.startswith('SG'):
                 if not run_code.endswith('L'):
                     fug_dust.set_emissions(run_code=run_code)
-                    logger.info("Fugitive Dust Emissions complete for %s" % (run_code, ))
+                    logger.info("On-Farm Fugitive Dust Emissions complete for %s" % (run_code, ))
             else:
                 if not run_code.endswith('L'):
                     sgfug_dust = FugitiveDust.SG_FugitiveDust(cont=self.cont, run_code=run_code)

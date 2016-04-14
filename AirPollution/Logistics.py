@@ -49,6 +49,9 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         self.feed_type_dict = config.get('feed_type_dict')  # dictionary of feedstock types
         self.transport_table_dict = config.get('transport_table_dict')
 
+        # get yield type for scenario
+        self.yield_type = config.get('yield')
+
     def electricity(self, run_code, logistics, yield_type):
         """
         Tally electricity consumption from feedstock processing
@@ -163,7 +166,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         logger.debug('Combustion emissions from loading equipment is computed in CombustionEmissions.py')
         pass
 
-    def calc_logistics(self, run_codes, feedstock_list, logistics_list, yield_list):
+    def calc_logistics(self, run_codes, feedstock_list, logistics_list):
         # Execute wood drying and electricity functions for all feedstocks in feedstock list
         logger.info('Evaluating logistics')
 
@@ -171,13 +174,12 @@ class Logistics(SaveDataHelper.SaveDataHelper):
             if run_code.endswith('L') and not run_code.startswith('CG_I'):
                 if self.transport_feed_id_dict[run_code[0:2]] != 'None':
                     for logistics_type in logistics_list:
-                        for yield_type in yield_list:
-                            # compute electricity
-                            self.electricity(run_code, logistics_type, yield_type)
+                        # compute electricity
+                        self.electricity(run_code, logistics_type, self.yield_type)
 
-                            if run_code.startswith('FR'):
-                                feed = run_code[0:2]
-                                self.voc_wood_drying(feed, logistics_type, yield_type)
+                        if run_code.startswith('FR'):
+                            feed = run_code[0:2]
+                            self.voc_wood_drying(feed, logistics_type, self.yield_type)
 
         for feed in feedstock_list:
             self.kvals['feed'] = feed

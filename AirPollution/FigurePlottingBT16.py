@@ -31,14 +31,32 @@ class FigurePlottingBT16:
 
     def compile_results(self):
         # initialize kvals dict for string formatting
+
         kvals = {'scenario_name': config.get('title'),
                  'year': config.get('year_dict')['all_crops'],
                  'yield': config.get('yield')}
+
+        query_create_table = """ DROP TABLE IF EXISTS {scenario_name}.total_emissions;
+                                 CREATE TABLE {scenario_name}.total_emissions (fips char(5),
+                                                                              Year char(4),
+                                                                              Yield char(2),
+                                                                              NOx float,
+                                                                              NH3 float,
+                                                                              VOC float,
+                                                                              PM10 float,
+                                                                              PM25 float,
+                                                                              SOx float,
+                                                                              CO float,
+                                                                              Source_Category varchar(255),
+                                                                              NEI_Category char(2),
+                                                                              Feedstock char(2))
+                            """.format(**kvals)
+        self.db.create(query_create_table)
+
         for feedstock in self.f_list:
             kvals['feed'] = feedstock.lower()
             logger.info('Inserting data for fertilizer and chemical emissions')
-            query_fert_chem = """ DROP TABLE IF EXISTS {scenario_name}.total_emissions;
-                                  CREATE TABLE {scenario_name}.total_emissions
+            query_fert_chem = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
                                   SELECT   fert.fips,
                                            '{year}' as 'Year',
                                            '{yield}' as 'Yield',
@@ -111,7 +129,11 @@ class FigurePlottingBT16:
             for system in system_list:
                 kvals['system'] = system
                 for i, pollutant in enumerate(pol_list):
-                    kvals['pollutant'] = pollutant
+                    if pollutant == 'SOx':
+                        kvals['pollutant'] = 'SO2'
+                    else:
+                        kvals['pollutant'] = pollutant
+                    kvals['pollutant_name'] = pollutant
                     kvals['transport_cat'] = 'Transport, %s' % (logistics[system])
                     kvals['preprocess_cat'] = 'Pre-processing, %s' % (logistics[system])
 
@@ -121,7 +143,7 @@ class FigurePlottingBT16:
                                                 SELECT fips,
                                                        '{year}' as 'Year',
                                                        '{yield}' as 'Yield',
-                                                       total_emissions as '{pollutant}',
+                                                       total_emissions as '{pollutant_name}',
                                                        '{transport_cat}' as 'Source_Category',
                                                        'OR' as 'NEI_Category',
                                                        '{feed}' as 'Feedstock'
@@ -129,17 +151,16 @@ class FigurePlottingBT16:
                                                 WHERE  (logistics_type = '{system}' AND
                                                        yield_type = '{yield}' AND
                                                        feedstock = '{feed}' AND
-                                                       pollutantID = '{pollutant}')
+                                                       pollutantID = '{pollutant_name}')
                                                 GROUP BY fips;
                                             """.format(**kvals)
-                        print query_transport
                         self.db.input(query_transport)
-                    elif i > 1:
+                    elif i > 0:
                         if not pollutant.startswith('PM'):
                             query_transport = """   UPDATE {scenario_name}.total_emissions tot
                                                     INNER JOIN {scenario_name}.transportation trans
                                                     ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
-                                                    SET tot.{pollutant} = trans.total_emissions
+                                                    SET tot.{pollutant_name} = trans.total_emissions
                                                     WHERE trans.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}';
                                               """.format(**kvals)
                         elif pollutant.startswith('PM'):
@@ -148,10 +169,9 @@ class FigurePlottingBT16:
                                                     ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
                                                     LEFT JOIN {scenario_name}.fugitive_dust fd
                                                     ON fd.fips = tot.fips AND fd.yield_type = tot.Yield AND fd.feedstock = tot.feedstock
-                                                    SET tot.{pollutant} = trans.total_emissions + fd.total_fd_emissions
+                                                    SET tot.{pollutant_name} = IF(trans.total_emissions > 0.0, trans.total_emissions + fd.total_fd_emissions, 0)
                                                     WHERE trans.pollutantID = '{pollutant}' AND fd.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}' AND fd.logistics_type = '{system}';
                                               """.format(**kvals)
-                        print query_transport
                         self.db.input(query_transport)
 
 

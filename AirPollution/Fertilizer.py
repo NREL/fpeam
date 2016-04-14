@@ -41,10 +41,27 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         """
         Add fertilizer emissions to database tables using regional crop budget
 
+        For a specific pollutant (NOx or NH3), feedstock, and fertilizer type:
+        Emissions (mt pollutant/county/year)  = ( Prod or acreage (dt or acres feedstock/county/year) *
+                                                  amount of nitrogen fertilizer applied to feedstock (lb N fert/dt or lb N fert/ac feedstock) *
+                                                  nitrogen share by fertilizer type (lb fert/lb N fert)
+                                                  emission factor (amount nitrogen in fertilizer volatilized by fertilizer type; lb N/lb fert = % N / 100) *
+                                                  conversion factor to convert from N to pollutant (i.e., 30/14 for NO and 17/14 for NH3; lb pollutant/lb N) *
+                                                  convert lbs to mt)
+
+        For N_app in lb/dt:
+
+        E_NO_fert_type  = (Prod * N_app * N_share * N_fert_percent_ef / 100.0 * 30.0 / 14.0 * 0.90718474 / 2000.0) over all fertilizer types
+        E_NH3_fert_type = (Prod * N_app * N_share * N_fert_percent_ef / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0) over all fertilizer types
+
+        For N_app in lb/ac:
+
+        E_NO_fert_type  = (Harv_ac * N_app * N_share * N_fert_percent_ef / 100.0 * 30.0 / 14.0 * 0.90718474 / 2000.0) over all fertilizer types
+        E_NH3_fert_type = (Harv_ac * N_app * N_share * N_fert_percent_ef / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0) over all fertilizer types
+
         :param feed: feedstock
         :param yr: budget year (for energy crops)
         :return:
-
         """
         # set feedstock
         self.kvals['feed'] = feed.lower()
@@ -89,22 +106,40 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                 else:
                     self.kvals['tillage_select'] = tillage
 
-                fert_query = """INSERT INTO {scenario_name}.{feed}_nfert
-                                 SELECT  feed.fips,
-                                         '{tillage}',
-                                         '{yr}',
-                                         feed.{tillage_name}_prod * nfert.n_app * {emissions_nox} AS NOX,
-                                         feed.{tillage_name}_prod * nfert.n_app * {emissions_nh3} AS NH3,
-                                         ({scc}) AS SCC,
-                                         '{description}' AS Description
-                                 FROM {production_schema}.{feed}_data feed
-                                 LEFT JOIN (SELECT fips, sum({n_column}) as n_app
-                                            FROM {production_schema}.{feed}_equip_fips
-                                            WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
-                                            GROUP BY fips) nfert
-                                 ON nfert.fips = feed.fips
-                                 GROUP BY feed.fips;""".format(**self.kvals)
-                self._execute_query(fert_query)
+                if self.kvals['n_column'].endswith('dt'):
+                    fert_query = """INSERT INTO {scenario_name}.{feed}_nfert
+                                     SELECT  feed.fips,
+                                             '{tillage}',
+                                             '{yr}',
+                                             feed.{tillage_name}_prod * nfert.n_app * {emissions_nox} AS NOX,
+                                             feed.{tillage_name}_prod * nfert.n_app * {emissions_nh3} AS NH3,
+                                             ({scc}) AS SCC,
+                                             '{description}' AS Description
+                                     FROM {production_schema}.{feed}_data feed
+                                     LEFT JOIN (SELECT fips, sum({n_column}) as n_app
+                                                FROM {production_schema}.{feed}_equip_fips
+                                                WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
+                                                GROUP BY fips) nfert
+                                     ON nfert.fips = feed.fips
+                                     GROUP BY feed.fips;""".format(**self.kvals)
+                    self._execute_query(fert_query)
+                elif self.kvals['n_column'].endswith('ac'):
+                    fert_query = """INSERT INTO {scenario_name}.{feed}_nfert
+                                     SELECT  feed.fips,
+                                             '{tillage}',
+                                             '{yr}',
+                                             feed.{tillage_name}_harv_ac * nfert.n_app * {emissions_nox} AS NOX,
+                                             feed.{tillage_name}_harv_ac * nfert.n_app * {emissions_nh3} AS NH3,
+                                             ({scc}) AS SCC,
+                                             '{description}' AS Description
+                                     FROM {production_schema}.{feed}_data feed
+                                     LEFT JOIN (SELECT fips, sum({n_column}) as n_app
+                                                FROM {production_schema}.{feed}_equip_fips
+                                                WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
+                                                GROUP BY fips) nfert
+                                     ON nfert.fips = feed.fips
+                                     GROUP BY feed.fips;""".format(**self.kvals)
+                    self._execute_query(fert_query)
 
     def set_fertilizer(self, feed):
         """
