@@ -316,7 +316,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         
         Where:    E = total emissions
 
-                  D = distance traveled per load (vehicle miles traveled) (default 10)
+                  D = distance traveled per load (vehicle miles traveled) (default 1 mile)
                   s = silt content (%)
                   W = mass of vehicle (short tons)
                   0.907/2000 converts from lbs to metric tons
@@ -342,7 +342,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['a10'] = 0.9
         kvals['b25'] = 0.45
         kvals['b10'] = 0.45
-        kvals['D'] = 10  # default value for distance traveled (in vehicle miles traveled)
+        kvals['D'] = config.get['onfarm_default_distance']  # default value for distance traveled (in vehicle miles traveled)
 
         query = """ UPDATE {scenario_name}.{feed}_raw raw
                     LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
