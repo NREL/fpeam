@@ -49,7 +49,21 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                                                                     vmt_travelled_per_trip float,
                                                                     number_trips float,
                                                                     total_emissions float);""".format(**self.kvals)
+
+        # feedstock processing table (contains VOC emission for wood drying for FR and electricity consumption for all crops)
+        query = """CREATE TABLE {scenario_name}.processing
+                        (fips    char(5)    ,
+                        feed char(2),
+                        electricity    float,
+                        run_code    text,
+                        logistics_type char(2),
+                        yield_type char(2),
+                        voc_wood float,
+                        total_emissions float
+                        );""".format(**self.kvals)
         self._execute_query(query)
+
+
 
     def create_tables(self, feedstock):
         """
@@ -81,23 +95,6 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         fug_pm10    float    , 
                         fug_pm25    float);""".format(**self.kvals)
         self._execute_query(query)
-
-        # feedstock processing table (contains VOC emission for wood drying for FR and electricity consumption for all crops)
-        query = """    DROP TABLE IF EXISTS {scenario_name}.{feed}_processing;
-                        CREATE TABLE {scenario_name}.{feed}_processing
-                        (fips    char(5)    ,
-                        electricity    float,
-                        run_code    text,
-                        logistics_type char(2),
-                        yield_type char(2)
-                        );""".format(**self.kvals)
-        self._execute_query(query)
-
-        if feedstock == 'FR':
-
-            query = """ALTER TABLE {scenario_name}.{feed}_processing
-                        ADD voc_wood float;""".format(**self.kvals)
-            self._execute_query(query)
 
         # fertilizer tables for all crops except FR
         if feedstock != 'FR':

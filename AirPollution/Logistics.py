@@ -65,6 +65,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         B = biomass production (dry short ton per yr per county)
         electricity_per_dt = electricity consumed (kWh per dry short ton?
 
+        :param yield_type: yield type for scenario
         :param run_code: run code associated with NONROAD run
         :param logistics: logistics type being evaluated
         :return: True if update query is successful, False if not
@@ -99,8 +100,8 @@ class Logistics(SaveDataHelper.SaveDataHelper):
 
         # generate string for query
         # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
-        query = """INSERT INTO {scenario_name}.{feed}_processing (fips, electricity, run_code, logistics_type, yield_type)
-                    SELECT transport_data.sply_fips, transport_data.used_qnty * {electricity_per_dt}, '{run_code}', '{logistics}', '{yield_type}'
+        query = """ INSERT INTO {scenario_name}.processing (fips, feed, electricity, run_code, logistics_type, yield_type)
+                    SELECT transport_data.sply_fips, '{feed}', transport_data.used_qnty * {electricity_per_dt}, '{run_code}', '{logistics}', '{yield_type}'
                     FROM {production_schema}.{transport_table} transport_data
                     WHERE transport_data.used_qnty > 0.0
                    ;""".format(**self.kvals)
@@ -124,7 +125,8 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         VOC_ef_d = emission factor for VOC from grain dryer (kg per dry metric ton of feedstock)
         b = constant (1000 kg per metric ton)
 
-        :param feed: abbreviated feedstock name (e.g., 'FR')
+        :param yield_type: type of yield used for scenario
+        :param run_code: run code for feedstock type
         :param logistics: logistics type being evaluated
         :return: True if update query is successful, False if not
         """
@@ -139,7 +141,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                  'transport_table': self.transport_table_dict[self.feed_type_dict[feed]][yield_type][logistics],  # transport table
                  'run_code': run_code,  # run code
                  'feed': feed,  # feedstock id
-                 'logisitcs': logistics,  # logistics type
+                 'logistics': logistics,  # logistics type
                  'yield_type': yield_type,  # yield type
                  'a': 0.9071847,  # metric ton per short ton
                  'b': 1000.0,  # kg per metric ton
@@ -148,25 +150,18 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                  }
 
         # generate string for query and append to queries
-        query = """UPDATE {scenario_name}.{feed}_processing
+        query = """UPDATE {scenario_name}.processing
                 SET voc_wood = transport_data.used_qnty * {a} * ({VOC_ef_h} + {VOC_ef_d}) / {b}
                 FROM {production_schema}.{transport_table} transport_data
                 WHERE   {scenario_name}.{feed}_processing.fips = transport_data.sply_fips AND
                         logistics_type = '{logistics}' AND
                         yield_type = '{yield_type}'
-                        AND run_code = '{run_code}';""".format(**kvals)
+                        AND run_code = '{run_code}'
+                        AND feed = '{feed}';""".format(**kvals)
 
         return self._execute_query(query)
 
-    def loading_equip(self):
-        """
-        Loading equipment is processed in CombustionEmissions.py along with other NONROAD outputs
-        :return:
-        """
-        logger.debug('Combustion emissions from loading equipment is computed in CombustionEmissions.py')
-        pass
-
-    def calc_logistics(self, run_codes, feedstock_list, logistics_list):
+    def calc_logistics(self, run_codes, logistics_list):
         # Execute wood drying and electricity functions for all feedstocks in feedstock list
         logger.info('Evaluating logistics')
 
@@ -180,27 +175,6 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                         if run_code.startswith('FR'):
                             feed = run_code[0:2]
                             self.voc_wood_drying(feed, logistics_type, self.yield_type)
-
-        for feed in feedstock_list:
-            self.kvals['feed'] = feed
-
-            # create logistics table by joining electricity table with combustion emissions for loading equipment
-            query = """CREATE TABLE {scenario_name}.{feed}_logistics
-                        AS (SELECT table1.*, table2.voc, table2.co, table2.nox, table2.sox, table2.nh3, table2.pm10, table2.pm25
-                        FROM {scenario_name}.{feed}_processing table1
-                        LEFT JOIN {scenario_name}.{feed}_raw table2
-                        ON (table1.fips = table2.fips AND table2.run_code = table1.run_code));""".format(**self.kvals)
-            self._execute_query(query)
-
-            if feed == 'FR':
-                # sum voc_wood and voc_comb to get total voc for logistics
-                query = """
-                        ALTER TABLE {scenario_name}.{feed}_logistics
-                        ADD voc_total float;
-
-                        UPDATE TABLE {scenario_name}.{feed}_logistics
-                        SET voc_total = voc + voc_wood;""".format(**self.kvals)
-                self._execute_query(query)
 
         # @TODO: forest residue has not yet been validated (only agricultural crops have been run thus far)
         logger.warning('FR has not yet been validated. Need to revise once data sets are finalized.')
