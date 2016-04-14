@@ -2,7 +2,7 @@ import csv
 import os
 
 import SaveDataHelper
-from utils import logger
+from utils import logger, config
 
 
 # @TODO: fill out docstrings
@@ -52,6 +52,8 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         self.cont = cont
 
         self.regional_crop_budget = regional_crop_budget
+
+        self.ef_crop_dust_dict = config.get('ef_crop_dust_dict')
 
     def populate_tables(self, run_codes):
         """
@@ -250,7 +252,8 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                      'C': 'convtill',
                      'N': 'notill'}
 
-        kvals = {'scenario_name': self.cont.get('model_run_title'), }
+        kvals = {'scenario_name': self.cont.get('model_run_title'),
+                 'constants_schema': self.cont.get('constants_schema')}
 
         if run_code.startswith('CG'):
             kvals['tillage'] = till_dict[run_code[4]]
@@ -258,14 +261,17 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             kvals['run_code'] = run_code
             kvals['conv_ton_to_mt'] = 0.90718474
 
+            logger.info('Computing aerial emissions from crop dusting for CG')
+
             for pollutant in pol_list:
                 kvals['ef_ton_per_ac'] = self.ef_crop_dust_dict[pollutant]
+                kvals['pollutant'] = pollutant
                 query_airplane = """ INSERT INTO {scenario_name}.aerial (fips, feed, {pollutant}, description, run_code)
                                      SELECT raw.fips, {feed}, raw.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}, 'Non-harvest - crop dusting', '{run_code}'
                                      FROM {scenario_name}.cg_data raw
                                      LEFT JOIN {constants_schema}.fips_region fp ON fp.fips = raw.fips
                                      WHERE fp.polyfrr = 13 AND raw.total_prod > 0
-                                 """.format(**self.kvals)
+                                 """.format(**kvals)
                 self.db.input(query_airplane)
 
     def update_sg(self, run_code):

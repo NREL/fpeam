@@ -34,7 +34,8 @@ class ScenarioOptions:
         # directory option file is saved to. Uses run title.
         self.path = cont.get('path')  # non-dev directory
 
-        # break flag used to ensure switchgrass database query only happens once. (all other feedstocks need multiple pulls from the database).
+        # break flag used to ensure switchgrass and miscanthus database queries only happens once. (all other feedstocks need multiple pulls from the database).
+        self.query_sg = True
         self.query_sg = True
 
         self.document_file = 'Options'
@@ -150,11 +151,13 @@ class ScenarioOptions:
                 # set value for tillage type
                 if run_code.startswith('SG'):
                     self.kvals['till_type'] = 'notill'
+                elif run_code.startswith('MS'):
+                    self.kvals['till_type'] = 'convtill'
                 else:
                     self.kvals['till_type'] = till_dict[run_code[3]]
 
                 # create query for production data
-                if not run_code.startswith('SG') or self.query_sg is True:
+                if not (run_code.startswith('SG') or run_code.startswith('MS')) or (self.query_sg is True or self.query_ms is True):
                     query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
                                FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
                                WHERE dat.fips = ca.fips  AND dat.{till_type}_prod > 0.0
@@ -163,6 +166,10 @@ class ScenarioOptions:
                 if run_code.startswith('SG'):
                     # we have 30 scenarios for SG to run, but only want one to query the database once
                     self.query_sg = False
+
+                if run_code.startswith('MS'):
+                    # we have 45 scenarios for MS to run, but only want one to query the database once
+                    self.query_ms = False
 
         # now get forestry data
         elif run_code.startswith('FR'):

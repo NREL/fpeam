@@ -204,20 +204,22 @@ class RegionalEquipment(Population):
         kvals['fips'] = fips  # fips code
 
         # set tillage type
-        if not self.run_code.startswith('SG'):
+        if not (self.run_code.startswith('SG') or self.run_code.startswith('MS')):
             kvals['tillage'] = '%sT' % (self.run_code[3])
-        else:
+        elif self.run_code.startswith('SG'):
             kvals['tillage'] = 'NT'
+        elif self.run_code.startswith('MS'):
+            kvals['tillage'] = 'CT'
 
         # set operation type and activity type from run code
         kvals['oper_type'] = self.crop_budget_dict['type'][feed]
-        if self.run_code.startswith('SG'):
+        if self.run_code.startswith('SG') or self.run_code.startswith('MS'):
             kvals['activity'] = self.run_code[3]
         else:
             kvals['activity'] = self.run_code[4]
 
         # get equipment list from crop budget
-        if self.run_code.startswith('SG'):
+        if self.run_code.startswith('SG') or self.run_code.startswith('MS'):
             kvals['budget_year'] = self.run_code[4]
             query = """
                         SELECT equip_type, hp, activity_rate

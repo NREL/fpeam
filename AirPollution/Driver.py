@@ -670,7 +670,7 @@ class Driver:
         """
 
         logistics = Logistics.Logistics(feedstock_list=self.feedstock_list, cont=self.cont)
-        logistics.calc_logistics(run_codes=self.run_codes, feedstock_list=self.feedstock_list, logistics_list=self.logistics_list, yield_list=self.yield_list)
+        logistics.calc_logistics(run_codes=self.run_codes, feedstock_list=self.feedstock_list, logistics_list=self.logistics_list)
 
     def figure_plotting(self):
         """

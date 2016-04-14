@@ -49,6 +49,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                                                                     vmt_travelled_per_trip float,
                                                                     number_trips float,
                                                                     total_emissions float);""".format(**self.kvals)
+        self._execute_query(query)
 
         # feedstock processing table (contains VOC emission for wood drying for FR and electricity consumption for all crops)
         query = """CREATE TABLE {scenario_name}.processing
