@@ -24,10 +24,12 @@ class FigurePlottingBT16:
         self.pol_list_label = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$CO$', '$PM_{10}$', '$SO_x$' ]
         self.pol_list = ['NOx', 'VOC', 'PM25', 'CO', 'PM10', 'SOx']
 
-        self.feedstock_list = ['Corn Stover', 'Switchgrass', 'Wheat Straw', 'Corn Grain', 'Forest Residue']  # @TODO: remove hardcoded values
-        self.f_list = ['CS']#, 'SG', 'WS', 'CS', 'FR']  # @TODO: remove hardcoded values
+        self.feedstock_list = ['Corn Stover', 'Switchgrass', 'Wheat Straw', 'Corn Grain', ]  # 'Forest Residue'] @TODO: remove hardcoded values
+        self.f_list = ['CS', 'SG', 'WS', 'CG', ]  # 'FR'] # @TODO: remove hardcoded values
 
-        self.etoh_vals = [89.6, 89.6, 89.6, 2.76/0.02756, 75.7,]  # gallons per dry short ton
+        self.etoh_vals = [89.6, 89.6, 89.6, 2.76/0.02756, ]  # 75.7]  # gallons per dry short ton
+
+        self.feed_id_dict = config.get('feed_id_dict')
 
     def compile_results(self):
         # initialize kvals dict for string formatting
@@ -55,7 +57,7 @@ class FigurePlottingBT16:
 
         for feedstock in self.f_list:
             kvals['feed'] = feedstock.lower()
-            logger.info('Inserting data for fertilizer and chemical emissions')
+            logger.info('Inserting data for fertilizer and chemical emissions for feedstock: {feed}'.format(**kvals))
             query_fert_chem = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
                                   SELECT   fert.fips,
                                            '{year}' as 'Year',
@@ -80,7 +82,7 @@ class FigurePlottingBT16:
                              """.format(**kvals)
             self.db.input(query_fert_chem)
 
-            logger.info('Inserting data for non-harvest emissions')
+            logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
             query_non_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
                                     SELECT fips,
                                            '{year}' as 'Year',
@@ -99,9 +101,10 @@ class FigurePlottingBT16:
                                     WHERE description LIKE '%Non-Harvest%'
                                     GROUP BY fips
                                 """.format(**kvals)
+
             self.db.input(query_non_harvest)
 
-            logger.info('Inserting data for harvest emissions')
+            logger.debug('Inserting data for harvest emissions for feedstock: {feed}'.format(**kvals))
             query_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
                                 SELECT fips,
                                        '{year}' as 'Year',
@@ -122,57 +125,64 @@ class FigurePlottingBT16:
                             """.format(**kvals)
             self.db.input(query_harvest)
 
+            if feedstock == 'SG' or feedstock == 'WS':
+                print query_non_harvest
+                print query_harvest
+
             system_list = ['A', 'C']
             pol_list = ['NOx', 'PM10', 'PM25', 'SOx', 'VOC', 'CO', 'NH3']
             logistics = {'A': 'Advanced', 'C': 'Conventional'}
 
-            for system in system_list:
-                kvals['system'] = system
-                for i, pollutant in enumerate(pol_list):
-                    if pollutant == 'SOx':
-                        kvals['pollutant'] = 'SO2'
-                    else:
-                        kvals['pollutant'] = pollutant
-                    kvals['pollutant_name'] = pollutant
-                    kvals['transport_cat'] = 'Transport, %s' % (logistics[system])
-                    kvals['preprocess_cat'] = 'Pre-processing, %s' % (logistics[system])
+            run_transport = self.feed_id_dict[feedstock.upper()]
+            if run_transport != 'None':
+                logger.info('Inserting data for off-farm transportation for feedstock: {feed}'.format(**kvals))
+                for system in system_list:
+                    kvals['system'] = system
+                    for i, pollutant in enumerate(pol_list):
+                        if pollutant == 'SOx':
+                            kvals['pollutant'] = 'SO2'
+                        else:
+                            kvals['pollutant'] = pollutant
+                        kvals['pollutant_name'] = pollutant
+                        kvals['transport_cat'] = 'Transport, %s' % (logistics[system])
+                        kvals['preprocess_cat'] = 'Pre-processing, %s' % (logistics[system])
 
-                    logger.info('Inserting data {transport_cat}, pollutant: {pollutant}'.format(**kvals))
-                    if i == 0:
-                        query_transport = """   INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, {pollutant}, Source_Category, NEI_Category, Feedstock)
-                                                SELECT fips,
-                                                       '{year}' as 'Year',
-                                                       '{yield}' as 'Yield',
-                                                       total_emissions as '{pollutant_name}',
-                                                       '{transport_cat}' as 'Source_Category',
-                                                       'OR' as 'NEI_Category',
-                                                       '{feed}' as 'Feedstock'
-                                                FROM {scenario_name}.transportation
-                                                WHERE  (logistics_type = '{system}' AND
-                                                       yield_type = '{yield}' AND
-                                                       feedstock = '{feed}' AND
-                                                       pollutantID = '{pollutant_name}')
-                                                GROUP BY fips;
-                                            """.format(**kvals)
-                        self.db.input(query_transport)
-                    elif i > 0:
-                        if not pollutant.startswith('PM'):
-                            query_transport = """   UPDATE {scenario_name}.total_emissions tot
-                                                    INNER JOIN {scenario_name}.transportation trans
-                                                    ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
-                                                    SET tot.{pollutant_name} = trans.total_emissions
-                                                    WHERE trans.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}';
-                                              """.format(**kvals)
-                        elif pollutant.startswith('PM'):
-                            query_transport = """   UPDATE {scenario_name}.total_emissions tot
-                                                    INNER JOIN {scenario_name}.transportation trans
-                                                    ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
-                                                    LEFT JOIN {scenario_name}.fugitive_dust fd
-                                                    ON fd.fips = tot.fips AND fd.yield_type = tot.Yield AND fd.feedstock = tot.feedstock
-                                                    SET tot.{pollutant_name} = IF(trans.total_emissions > 0.0, trans.total_emissions + fd.total_fd_emissions, 0)
-                                                    WHERE trans.pollutantID = '{pollutant}' AND fd.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}' AND fd.logistics_type = '{system}';
-                                              """.format(**kvals)
-                        self.db.input(query_transport)
+                        logger.debug('Inserting data {transport_cat}, pollutant: {pollutant}'.format(**kvals))
+                        if i == 0:
+                            query_transport = """   INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, {pollutant}, Source_Category, NEI_Category, Feedstock)
+                                                    SELECT fips,
+                                                           '{year}' as 'Year',
+                                                           '{yield}' as 'Yield',
+                                                           total_emissions as '{pollutant_name}',
+                                                           '{transport_cat}' as 'Source_Category',
+                                                           'OR' as 'NEI_Category',
+                                                           '{feed}' as 'Feedstock'
+                                                    FROM {scenario_name}.transportation
+                                                    WHERE  (logistics_type = '{system}' AND
+                                                           yield_type = '{yield}' AND
+                                                           feedstock = '{feed}' AND
+                                                           pollutantID = '{pollutant_name}')
+                                                    GROUP BY fips;
+                                                """.format(**kvals)
+                            self.db.input(query_transport)
+                        elif i > 0:
+                            if not pollutant.startswith('PM'):
+                                query_transport = """   UPDATE {scenario_name}.total_emissions tot
+                                                        INNER JOIN {scenario_name}.transportation trans
+                                                        ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
+                                                        SET tot.{pollutant_name} = trans.total_emissions
+                                                        WHERE trans.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}';
+                                                  """.format(**kvals)
+                            elif pollutant.startswith('PM'):
+                                query_transport = """   UPDATE {scenario_name}.total_emissions tot
+                                                        INNER JOIN {scenario_name}.transportation trans
+                                                        ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
+                                                        LEFT JOIN {scenario_name}.fugitive_dust fd
+                                                        ON fd.fips = tot.fips AND fd.yield_type = tot.Yield AND fd.feedstock = tot.feedstock
+                                                        SET tot.{pollutant_name} = IF(trans.total_emissions > 0.0, trans.total_emissions + fd.total_fd_emissions, 0)
+                                                        WHERE trans.pollutantID = '{pollutant}' AND fd.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}' AND fd.logistics_type = '{system}';
+                                                  """.format(**kvals)
+                            self.db.input(query_transport)
 
 
     def plot_total_emissions(self):
