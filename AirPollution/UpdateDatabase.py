@@ -63,7 +63,20 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         );""".format(**self.kvals)
         self._execute_query(query)
 
-
+        # aerial emissions table (only corn grain should populate this table)
+        query = """CREATE TABLE {scenario_name}.aerial
+                        (fips    char(5)    ,
+                        feed char(2),
+                        VOC    float    ,
+                        CO    float    ,
+                        NOx    float    ,
+                        SOx    float    ,
+                        PM10    float    ,
+                        PM25    float    ,
+                        Description    text    ,
+                        run_code    text    ,
+                        );""".format(**self.kvals)
+        self._execute_query(query)
 
     def create_tables(self, feedstock):
         """
