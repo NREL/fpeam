@@ -36,7 +36,8 @@ class FigurePlottingBT16:
 
         kvals = {'scenario_name': config.get('title'),
                  'year': config.get('year_dict')['all_crops'],
-                 'yield': config.get('yield')}
+                 'yield': config.get('yield'), }
+
 
         query_create_table = """ DROP TABLE IF EXISTS {scenario_name}.total_emissions;
                                  CREATE TABLE {scenario_name}.total_emissions (fips char(5),
@@ -56,6 +57,7 @@ class FigurePlottingBT16:
         self.db.create(query_create_table)
 
         for feedstock in self.f_list:
+            kvals['years_rot'] = config.get('crop_budget_dict')['years'][feedstock]
             kvals['feed'] = feedstock.lower()
             logger.info('Inserting data for fertilizer and chemical emissions for feedstock: {feed}'.format(**kvals))
             query_fert_chem = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
@@ -72,10 +74,10 @@ class FigurePlottingBT16:
                                            'Fertilizer and Chemical' as 'Source_Category',
                                            'NP' as 'NEI_Category',
                                            '{feed}' as 'Feedstock'
-                                  FROM (SELECT fips, sum(NOx) as 'NOx', sum(NH3) as 'NH3'
+                                  FROM (SELECT fips, sum(NOx)/{years_rot} as 'NOx', sum(NH3)/{years_rot} as 'NH3'
                                         FROM reg2.cg_nfert
                                         GROUP BY fips) fert,
-                                        (SELECT fips, sum(VOC) as 'VOC'
+                                        (SELECT fips, sum(VOC)/{years_rot} as 'VOC'
                                         FROM reg2.cg_chem
                                         GROUP BY fips) chem
                                   WHERE fert.fips = chem.fips
@@ -87,13 +89,13 @@ class FigurePlottingBT16:
                                     SELECT fips,
                                            '{year}' as 'Year',
                                            '{yield}' as 'Yield',
-                                           sum(NOx) as 'NOx',
-                                           sum(NH3) as 'NH3',
-                                           sum(VOC) as 'VOC',
-                                           sum(PM10) + sum(IFNULL(fug_pm10, 0)) as 'PM10',
-                                           sum(PM25) + sum(IFNULL(fug_pm25, 0)) as 'PM25',
-                                           sum(SOx) as 'SOx',
-                                           sum(CO) as 'CO',
+                                           sum(NOx)/{years_rot} as 'NOx',
+                                           sum(NH3)/{years_rot} as 'NH3',
+                                           sum(VOC)/{years_rot} as 'VOC',
+                                           sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)) as 'PM10',
+                                           sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)) as 'PM25',
+                                           sum(SOx)/{years_rot} as 'SOx',
+                                           sum(CO)/{years_rot} as 'CO',
                                            'Non-Harvest' as 'Source_Category',
                                            'NR' as 'NEI_Category',
                                            '{feed}' as 'Feedstock'
@@ -109,13 +111,13 @@ class FigurePlottingBT16:
                                 SELECT fips,
                                        '{year}' as 'Year',
                                        '{yield}' as 'Yield',
-                                       sum(NOx) as 'NOx',
-                                       sum(NH3) as 'NH3',
-                                       sum(VOC) as 'VOC',
-                                       sum(PM10) + sum(IFNULL(fug_pm10, 0)) as 'PM10',
-                                       sum(PM25) + sum(IFNULL(fug_pm25, 0)) as 'PM25',
-                                       sum(SOx) as 'SOx',
-                                       sum(CO) as 'CO',
+                                       sum(NOx)/{years_rot} as 'NOx',
+                                       sum(NH3)/{years_rot} as 'NH3',
+                                       sum(VOC)/{years_rot} as 'VOC',
+                                       sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)/{years_rot}) as 'PM10',
+                                       sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)/{years_rot}) as 'PM25',
+                                       sum(SOx)/{years_rot} as 'SOx',
+                                       sum(CO)/{years_rot} as 'CO',
                                        'Harvest' as 'Source_Category',
                                        'NR' as 'NEI_Category',
                                        '{feed}' as 'Feedstock'
@@ -153,7 +155,7 @@ class FigurePlottingBT16:
                                                     SELECT fips,
                                                            '{year}' as 'Year',
                                                            '{yield}' as 'Yield',
-                                                           total_emissions as '{pollutant_name}',
+                                                           total_emissions/{years_rot} as '{pollutant_name}',
                                                            '{transport_cat}' as 'Source_Category',
                                                            'OR' as 'NEI_Category',
                                                            '{feed}' as 'Feedstock'
@@ -170,7 +172,7 @@ class FigurePlottingBT16:
                                 query_transport = """   UPDATE {scenario_name}.total_emissions tot
                                                         INNER JOIN {scenario_name}.transportation trans
                                                         ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
-                                                        SET tot.{pollutant_name} = trans.total_emissions
+                                                        SET tot.{pollutant_name} = trans.total_emissions/{years_rot}
                                                         WHERE trans.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}';
                                                   """.format(**kvals)
                             elif pollutant.startswith('PM'):
@@ -179,7 +181,7 @@ class FigurePlottingBT16:
                                                         ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
                                                         LEFT JOIN {scenario_name}.fugitive_dust fd
                                                         ON fd.fips = tot.fips AND fd.yield_type = tot.Yield AND fd.feedstock = tot.feedstock
-                                                        SET tot.{pollutant_name} = IF(trans.total_emissions > 0.0, trans.total_emissions + fd.total_fd_emissions, 0)
+                                                        SET tot.{pollutant_name} = IF(trans.total_emissions > 0.0, (trans.total_emissions + fd.total_fd_emissions)/{years_rot}, 0)
                                                         WHERE trans.pollutantID = '{pollutant}' AND fd.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}' AND fd.logistics_type = '{system}';
                                                   """.format(**kvals)
                             self.db.input(query_transport)
