@@ -470,6 +470,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['pm_ratio'] = self.pm_ratio
         kvals['feed'] = 'sg'
         kvals['till'] = 'notill'
+        kvals['run_code'] = self.run_code
 
         year = int(self.run_code[-1])
         if year == 0:
@@ -641,6 +642,7 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['pm_ratio'] = self.pm_ratio
         kvals['feed'] = 'ms'
         kvals['till'] = 'convtill'
+        kvals['run_code'] = self.run_code
 
         year = int(self.run_code[-1])
         if len(self.run_code) > 4:

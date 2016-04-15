@@ -258,9 +258,16 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
 
         if run_code.startswith('CG'):
             kvals['tillage'] = till_dict[run_code[4]]
-            kvals['feed'] = run_code[0:2]
+            kvals['feed'] = 'cg'
             kvals['run_code'] = run_code
             kvals['conv_ton_to_mt'] = 0.90718474
+
+            if run_code[4] == 'R':
+                kvals['till_type'] = 'Reduced Till'
+            elif run_code[4] == 'C':
+                kvals['till_type'] = 'Conventional Till'
+            elif run_code[4] == 'N':
+                kvals['till_type'] = 'No Till'
 
             logger.info('Computing aerial emissions from crop dusting for CG for pollutant for run code: %s' % (run_code, ))
 
@@ -268,20 +275,20 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 kvals['ef_ton_per_ac'] = self.ef_crop_dust_dict[pollutant]
                 kvals['pollutant'] = pollutant
                 if i == 0:
-                    query_airplane = """ INSERT INTO {scenario_name}.aerial (fips, feed, {pollutant}, description, run_code)
-                                         SELECT raw.fips, '{feed}', raw.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}, 'Non-harvest - crop dusting', '{run_code}'
-                                         FROM {production_schema}.cg_data raw
-                                         LEFT JOIN {constants_schema}.fips_region fp ON fp.fips = raw.fips
-                                         WHERE fp.polyfrr = 13 AND raw.total_prod > 0
+                    query_airplane = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, co2, fuel_consumption, nh3, {pollutant}, description, run_code)
+                                         SELECT cd.fips, 0, 0, 0, 0, 0, 0, cd.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}, '{till_type} - Non-Harvest, crop dusting', '{run_code}'
+                                         FROM {production_schema}.cg_data cd
+                                         LEFT JOIN {constants_schema}.fips_region fp ON fp.fips = cd.fips
+                                         WHERE fp.polyfrr = 13 AND cd.total_prod > 0
                                      """.format(**kvals)
                 else:
-                    query_airplane = """ UPDATE {scenario_name}.aerial aerial
-                                         LEFT JOIN {production_schema}.cg_data raw
-                                         ON raw.fips = aerial.fips
+                    query_airplane = """ UPDATE {scenario_name}.{feed}_raw aerial
+                                         LEFT JOIN {production_schema}.cg_data cd
+                                         ON cd.fips = aerial.fips
                                          LEFT JOIN {constants_schema}.fips_region fp
-                                         ON fp.fips = raw.fips
-                                         SET {pollutant} = raw.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}
-                                         WHERE fp.polyfrr = 13 AND raw.total_prod > 0
+                                         ON fp.fips = cd.fips
+                                         SET {pollutant} = cd.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}
+                                         WHERE fp.polyfrr = 13 AND cd.total_prod > 0 AND description LIKE '{till_type} - Non-Harvest, crop dusting' AND run_code = '{run_code}'
                                      """.format(**kvals)
                 self.db.input(query_airplane)
 
