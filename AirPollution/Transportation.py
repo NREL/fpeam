@@ -41,7 +41,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         # set other values in kvals dictionary
         self.kvals['fips'] = fips  # fips
-        self.kvals['feed'] = feed  # feedstock name
+        self.kvals['feed'] = feed.lower()  # feedstock name
         self.kvals['year'] = config['year_dict'][self.feed]  # year of scenario run
         self.kvals['scenarioID'] = '{fips}_{feed}'.format(**self.kvals)  # MOVES scenario ID
         self.kvals['vmt'] = vmt  # vehicle miles travelled

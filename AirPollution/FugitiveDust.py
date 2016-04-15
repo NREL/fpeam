@@ -298,7 +298,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
                     SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC), ({ef} * cd.{till}_harv_AC * {pm_ratio}), 0, 0, '{description}', '{run_code}'
                     FROM {production_schema}.{feed}_data cd
-                    WHERE cd.notill_harv_ac > 0
+                    WHERE cd.{till}_harv_ac > 0
                 """.format(**kvals)
         self._execute_query(query)
 
@@ -485,13 +485,20 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['ef'] = self.convert_lbs_to_mt(ef)
 
         if self.description in ('SG_N', 'SG_H'):
-            query = """ UPDATE {scenario_name}.{feed}_raw raw
-                        LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
-                        SET fug_pm10 = ({ef} * cd.{till}_harv_AC) / {rot_years},
-                            fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}
-                        WHERE (raw.run_code = '{description}')""".format(**kvals)
-
+            query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
+                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC)/{rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio})/{rot_years}, 0, 0, '{description}', '{run_code}'
+                        FROM {production_schema}.{feed}_data cd
+                        WHERE cd.{till}_harv_ac > 0
+                    """.format(**kvals)
             self._execute_query(query)
+
+            # query = """ UPDATE {scenario_name}.{feed}_raw raw
+            #             LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
+            #             SET fug_pm10 = ({ef} * cd.{till}_harv_AC) / {rot_years},
+            #                 fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}
+            #             WHERE (raw.run_code = '{description}')""".format(**kvals)
+            #
+            # self._execute_query(query)
 
         elif self.description == 'SG_T':
             # Calculates pm10 and pm2.5 fugitive dust emissions from transportation on unpaved roads
@@ -649,13 +656,20 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['ef'] = self.convert_lbs_to_mt(ef)
 
         if self.description in ('MS_N', 'MS_H'):
-            query = """ UPDATE {scenario_name}.{feed}_raw raw
-                        LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
-                        SET fug_pm10 = ({ef} * cd.{till}_harv_AC) / {rot_years},
-                            fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}
-                        WHERE (raw.run_code = '{description}')""".format(**kvals)
-
+            query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
+                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC)/{rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio})/{rot_years}, 0, 0, '{description}', '{run_code}'
+                        FROM {production_schema}.{feed}_data cd
+                        WHERE cd.{till}_harv_ac > 0
+                    """.format(**kvals)
             self._execute_query(query)
+
+            # query = """ UPDATE {scenario_name}.{feed}_raw raw
+            #             LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
+            #             SET fug_pm10 = ({ef} * cd.{till}_harv_AC) / {rot_years},
+            #                 fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}
+            #             WHERE (raw.run_code = '{description}')""".format(**kvals)
+            #
+            # self._execute_query(query)
 
         elif self.description == 'MS_T':
             # Calculates pm10 and pm2.5 fugitive dust emissions from transportation on unpaved roads

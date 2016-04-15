@@ -24,10 +24,10 @@ class FigurePlottingBT16:
         self.pol_list_label = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$CO$', '$PM_{10}$', '$SO_x$' ]
         self.pol_list = ['NOx', 'VOC', 'PM25', 'CO', 'PM10', 'SOx']
 
-        self.feedstock_list = ['Corn Stover', 'Switchgrass', 'Wheat Straw', 'Corn Grain', ]  # 'Forest Residue'] @TODO: remove hardcoded values
-        self.f_list = ['CS', 'SG', 'WS', 'CG', ]  # 'FR'] # @TODO: remove hardcoded values
+        self.feedstock_list = ['Corn Stover', 'Switchgrass', 'Wheat Straw', 'Corn Grain', 'Miscanthus' ]  # 'Forest Residue'] @TODO: remove hardcoded values
+        self.f_list = ['CS', 'SG', 'WS', 'CG', 'MS' ]  # 'FR'] # @TODO: remove hardcoded values
 
-        self.etoh_vals = [89.6, 89.6, 89.6, 2.76/0.02756, ]  # 75.7]  # gallons per dry short ton
+        self.etoh_vals = [89.6, 89.6, 89.6, 2.76/0.02756, 89.6 ]  # 75.7]  # gallons per dry short ton
 
         self.feed_id_dict = config.get('feed_id_dict')
 
@@ -89,10 +89,10 @@ class FigurePlottingBT16:
                                        'NP' as 'NEI_Category',
                                        '{feed}' as 'Feedstock'
                               FROM (SELECT fips, sum(NOx)/{years_rot} as 'NOx', sum(NH3)/{years_rot} as 'NH3'
-                                    FROM reg2.cg_nfert
+                                    FROM {scenario_name}.{feed}_nfert
                                     GROUP BY fips) fert,
                                     (SELECT fips, sum(VOC)/{years_rot} as 'VOC'
-                                    FROM reg2.cg_chem
+                                    FROM {scenario_name}.{feed}_chem
                                     GROUP BY fips) chem
                               WHERE fert.fips = chem.fips;
                          """.format(**kvals)
