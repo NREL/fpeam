@@ -89,12 +89,14 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
             # emission factor: total mt NH3 per dt feedstock
             self.kvals['emissions_nh3'] = float(self.fert_dist[feed][fert]) * float(self.n_fert_ef['NH3'][fert]) / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0
 
-            till_dict = {'CT': 'convtill',
-                         'RT': 'reducedtill',
-                         'NT': 'notill'}
-
-            if feed == 'SG' or feed == 'MS':
+            if feed == 'SG':
                 till_dict = {'NT': 'notill'}
+            elif feed == 'MS':
+                till_dict = {'CT': 'convtill'}
+            else:
+                till_dict = {'CT': 'convtill',
+                             'RT': 'reducedtill',
+                             'NT': 'notill'}
 
             for tillage in till_dict:
                 self.kvals['tillage'] = tillage

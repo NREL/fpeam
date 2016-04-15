@@ -39,12 +39,14 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         # set crop type
         self.kvals['feed'] = feed
 
-        till_dict = {'CT': 'convtill',
-                     'RT': 'reducedtill',
-                     'NT': 'notill'}
-
-        if feed == 'SG' or feed == 'MS':
-                till_dict = {'NT': 'notill'}
+        if feed == 'SG':
+            till_dict = {'NT': 'notill'}
+        elif feed == 'MS':
+            till_dict = {'CT': 'convtill'}
+        else:
+            till_dict = {'CT': 'convtill',
+                         'RT': 'reducedtill',
+                         'NT': 'notill'}
 
         for tillage in till_dict:
             self.kvals['tillage'] = tillage
