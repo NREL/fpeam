@@ -394,26 +394,48 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
 
         # Switchgrass
         elif run_code.startswith('SG_H'):
-            if len(run_code) == 4: 
+            if len(run_code) == 4:
                 description = "Year %s - Harvest" % (run_code[4])  # year 1-9
             else:
                 description = "Year %s - Harvest" % (run_code[4:6])  # year 10
             operation = 'Harvest'
 
         elif run_code.startswith('SG_N'):
-            if len(run_code) == 4: 
+            if len(run_code) == 4:
                 description = "Year %s - Non-Harvest" % (run_code[4])  # year 1-9
             else:
                 description = "Year %s - Non-Harvest" % (run_code[4:6])  # year 10
             operation = 'Non-Harvest'
-                
+
         elif run_code.startswith('SG_T'):
-            if len(run_code) == 4: 
+            if len(run_code) == 4:
                 description = "Year %s - On-farm Transport" % (run_code[4])  # year 1-9
             else:
                 description = "Year %s - On-farm Transport" % (run_code[4:6])  # year 10
             operation = 'Transport'
-                        
+
+        # Miscanthus
+        elif run_code.startswith('MS_H'):
+            if len(run_code) == 4:
+                description = "Year %s - Harvest" % (run_code[4])  # year 1-9
+            else:
+                description = "Year %s - Harvest" % (run_code[4:6])  # year 10
+            operation = 'Harvest'
+
+        elif run_code.startswith('MS_N'):
+            if len(run_code) == 4:
+                description = "Year %s - Non-Harvest" % (run_code[4])  # year 1-9
+            else:
+                description = "Year %s - Non-Harvest" % (run_code[4:6])  # year 10
+            operation = 'Non-Harvest'
+
+        elif run_code.startswith('MS_T'):
+            if len(run_code) == 4:
+                description = "Year %s - On-farm Transport" % (run_code[4])  # year 1-9
+            else:
+                description = "Year %s - On-farm Transport" % (run_code[4:6])  # year 10
+            operation = 'Transport'
+
         # Forest Residue
         elif run_code.startswith('FR'):
             # currently no equipment allocated to FR harvest, non-harvest, or on-farm transport

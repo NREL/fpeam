@@ -86,12 +86,6 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # set run_code
         self.kvals['run_code'] = run_code
 
-        # set column for production name
-        if feed == 'SG' or feed == 'FR':
-            self.kvals['prod_column'] = self.column_dict[feed]
-        else:
-            self.kvals['prod_column'] = self.column_dict[run_code]
-
         # set logistics type
         self.kvals['logistics'] = logistics
 
@@ -99,7 +93,6 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         self.kvals['yield_type'] = yield_type
 
         # generate string for query
-        # @TODO: change query to use new table for FIPS code associated with processing rather than production (these data need to be imported into the database first)
         query = """ INSERT INTO {scenario_name}.processing (fips, feed, electricity, run_code, logistics_type, yield_type)
                     SELECT transport_data.sply_fips, '{feed}', transport_data.used_qnty * {electricity_per_dt}, '{run_code}', '{logistics}', '{yield_type}'
                     FROM {production_schema}.{transport_table} transport_data

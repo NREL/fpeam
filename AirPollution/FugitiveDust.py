@@ -301,6 +301,23 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
                           (raw.description LIKE '{till_type}')""".format(**kvals)
         self._execute_query(query)
 
+        # add fugitive dust emissions for lime fertilizer application (corn grain only - varies by region)
+        if run_code.startswith('CG') and run_code.endswith('N'):
+            logger.info('Computing fugitive dust emissions from lime fertilizer application for CG')
+            kvals['till_abr'] = '%sT' % (run_code[3], )
+            kvals['lime_app_ef'] = self.convert_lbs_to_mt(0.8)
+            query_lime = """UPDATE {scenario_name}.{feed}_raw raw
+                            LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
+                            LEFT JOIN {production_schema}.{feed}_equip_fips equip ON equip.fips = raw.fips
+                            SET fug_pm10 = (({ef} + {lime_app_ef}) * cd.{till}_harv_AC),
+                                fug_pm25 = (({ef} + {lime_app_ef}) * cd.{till}_harv_AC * {pm_ratio})
+                            WHERE (raw.description LIKE '{activity}') AND
+                                  (raw.description LIKE '{till_type}') AND
+                                  (equip.lime_lbac > 0) AND
+                                  (equip.tillage = '{till_abr}')""".format(**kvals)
+            print query_lime
+            self._execute_query(query_lime)
+
     def transport_query(self, run_code, till_type):
         """
         Calculates pm10 and pm2.5 fugitive dust emissions from transportation on unpaved roads 
@@ -491,7 +508,171 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
             kvals['a10'] = 0.9
             kvals['b25'] = 0.45
             kvals['b10'] = 0.45
-            kvals['D'] = 10  # default value for distance traveled (in vehicle miles traveled)
+            kvals['D'] = config.get('onfarm_default_distance')  # default value for distance traveled (in vehicle miles traveled)
+
+            # @TODO: clean up FIPS app-wide (i.e., make them all numbers or all 0-padded strings in code and database
+            query = """ UPDATE {scenario_name}.{feed}_raw raw
+                LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
+                LEFT JOIN {constants_schema}.{silt_table} tfd ON
+                        CASE
+                            WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
+                            WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips,2))
+                        END
+                SET fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}) / {rot_years},
+                    fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt}) / {rot_years}
+                WHERE (raw.run_code = '{description}')""".format(**kvals)
+            self._execute_query(query)
+
+        logger.info('Calculating fugitive dust emissions for %s, year %s' % (self.description, year, ))
+
+    def convert_lbs_to_mt(self, ef):
+        """
+        Convert from lbs/acre to metric tons/acre.
+
+        :param ef: Emission factor in lbs/acre. Converted to mt/acre.
+        :return Emission factor in mt/acre
+        """
+        return (ef * 0.907) / 2000.0  # metric tons.
+
+
+class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
+
+    def __init__(self, cont, run_code):
+        """
+        :param cont: Container class
+        :param run_code:
+        :return:
+        """
+
+        SaveDataHelper.SaveDataHelper.__init__(self, cont)
+        self.document_file = "MS_FugitiveDust"
+
+        # to convert from PM10 to PM2.5, b/c PM2.5 is smaller.
+        self.pm_ratio = 0.20
+        self.cont = cont
+        self.silt_table = config.get('db_table_list')['silt_table']
+        self.run_code = run_code
+
+        if run_code.startswith('MS_T'):
+            # lbs/acre
+            self.emission_factors = [1.2,  # year 1 transport emission factor
+                                     1.2,  # year 2
+                                     1.2,  # year 3
+                                     1.2,  # year 4
+                                     1.2,  # year 5
+                                     1.2,  # year 6
+                                     1.2,  # year 7
+                                     1.2,  # year 8
+                                     1.2,  # year 9
+                                     1.2,  # year 10
+                                     1.2,  # year 11
+                                     1.2,  # year 12
+                                     1.2,  # year 13
+                                     1.2,  # year 14
+                                     1.2  # year 15
+                                     ]
+            self.description = 'MS_T'
+
+        elif run_code.startswith('MS_H'):
+            # Switchgrass fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003
+            # http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
+            self.emission_factors = [1.7,  # year 1 harvest emission factor
+                                     1.7,  # year 2
+                                     1.7,  # year 3
+                                     1.7,  # year 4
+                                     1.7,  # year 5
+                                     1.7,  # year 6
+                                     1.7,  # year 7
+                                     1.7,  # year 8
+                                     1.7,  # year 9
+                                     1.7,  # year 10
+                                     1.7,  # year 11
+                                     1.7,  # year 12
+                                     1.7,  # year 13
+                                     1.7,  # year 14
+                                     1.7  # year 15
+                                     ]
+            self.description = 'MS_H'
+
+        elif run_code.startswith('MS_N'):
+            # lbs/acre
+            self.emission_factors = [13,  # year 1 non-harvest emission factor
+                                     1.6,  # year 2
+                                     0.8,  # year 3
+                                     0.8,  # year 4
+                                     0.8,  # year 5
+                                     0.8,  # year 6
+                                     0.8,  # year 7
+                                     0.8,  # year 8
+                                     0.8,  # year 9
+                                     0.8,  # year 10
+                                     0.8,  # year 11
+                                     0.8,  # year 12
+                                     0.8,  # year 13
+                                     0.8,  # year 14
+                                     0.8,  # year 15
+                                    ]
+            self.description = 'MS_N'
+
+    def set_emissions(self):
+        # initialize kvals dictionary for string formatting
+        kvals = self.cont.get('kvals')
+        kvals['rot_years'] = config.get('crop_budget_dict')['years']['MS']  # set number of rotation years to 15 for MS
+        kvals['onfarm_truck_capacity'] = config['onfarm_truck_capacity']
+        kvals['convert_lb_to_mt'] = self.convert_lbs_to_mt(1)
+        kvals['silt_table'] = self.silt_table
+        kvals['pm_ratio'] = self.pm_ratio
+        kvals['feed'] = 'ms'
+        kvals['till'] = 'convtill'
+
+        year = int(self.run_code[-1])
+        if len(self.run_code) > 4:
+            year = int(self.run_code[4:6])
+        ef = self.emission_factors[year - 1]
+
+        # return non-transport emissions query
+        # pm10 = mt/acre * acre =  mt
+        # pm2.5 = mt/acre * acre * constant = mt
+        # switch grass on a 10 year basis.
+
+        kvals['description'] = str(self.description + str(year))
+        kvals['ef'] = self.convert_lbs_to_mt(ef)
+
+        if self.description in ('MS_N', 'MS_H'):
+            query = """ UPDATE {scenario_name}.{feed}_raw raw
+                        LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
+                        SET fug_pm10 = ({ef} * cd.{till}_harv_AC) / {rot_years},
+                            fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}
+                        WHERE (raw.run_code = '{description}')""".format(**kvals)
+
+            self._execute_query(query)
+
+        elif self.description == 'MS_T':
+            # Calculates pm10 and pm2.5 fugitive dust emissions from transportation on unpaved roads
+            # Calculates in units of metric tons
+            #
+            # Equation for fugitive dust emissions generated by transportation on unpaved roads
+            # # equation comes from EPA 2006 http://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf
+            # Equation from EPA 2006 Section 13.2.2 Unpaved Roads on pg 3 at http://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf
+            # EPA equation is given in units of lbs of pollutant per vehicle mile traveled which must be converted to metric tons of pollutant.
+            #
+            # Final equation is given by
+            # E = [k * v (s/12)^a (W/3)^b]*0.907/2000
+            #
+            # Where:    v = vehicle miles traveled (default 10)
+            #           s = silt content (%)
+            #           W = mass of vehicle (short tons)
+            #           0.907/2000 converts from lbs to metric tons
+
+            # factors for equation.
+            kvals['weight'] = 32.01  # short tons
+            kvals['k25'] = 0.15
+            kvals['k10'] = 1.5
+            kvals['a25'] = 0.9
+            kvals['a10'] = 0.9
+            kvals['b25'] = 0.45
+            kvals['b10'] = 0.45
+            kvals['D'] = config.get('onfarm_default_distance')  # default value for distance traveled (in vehicle miles traveled)
 
             # @TODO: clean up FIPS app-wide (i.e., make them all numbers or all 0-padded strings in code and database
             query = """ UPDATE {scenario_name}.{feed}_raw raw
