@@ -292,30 +292,40 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['pm_ratio'] = str(self.pm_ratio)
         kvals['activity'] = str("%" + activity + "%")
         kvals['till_type'] = str("%" + till_type + "%")
+        kvals['description'] = str('%s - %s, Fugitive dust' % (till_type, activity, ))
+        kvals['run_code'] = run_code
 
-        query = """ UPDATE {scenario_name}.{feed}_raw raw
-                    LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
-                    SET fug_pm10 = ({ef} * cd.{till}_harv_AC),
-                        fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio})
-                    WHERE (raw.description LIKE '{activity}') AND
-                          (raw.description LIKE '{till_type}')""".format(**kvals)
+        query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
+                    SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC), ({ef} * cd.{till}_harv_AC * {pm_ratio}), 0, 0, '{description}', '{run_code}'
+                    FROM {production_schema}.{feed}_data cd
+                    WHERE cd.notill_harv_ac > 0
+                """.format(**kvals)
         self._execute_query(query)
 
-        # add fugitive dust emissions for lime fertilizer application (corn grain only - varies by region)
+        # add additional emissions for lime application (corn grain only - varies by region)
         if run_code.startswith('CG') and run_code.endswith('N'):
             logger.info('Computing fugitive dust emissions from lime fertilizer application for CG')
             kvals['till_abr'] = '%sT' % (run_code[3], )
             kvals['lime_app_ef'] = self.convert_lbs_to_mt(0.8)
-            query_lime = """UPDATE {scenario_name}.{feed}_raw raw
-                            LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
-                            LEFT JOIN {production_schema}.{feed}_equip_fips equip ON equip.fips = raw.fips
-                            SET fug_pm10 = (({ef} + {lime_app_ef}) * cd.{till}_harv_AC),
-                                fug_pm25 = (({ef} + {lime_app_ef}) * cd.{till}_harv_AC * {pm_ratio})
-                            WHERE (raw.description LIKE '{activity}') AND
-                                  (raw.description LIKE '{till_type}') AND
-                                  (equip.lime_lbac > 0) AND
-                                  (equip.tillage = '{till_abr}')""".format(**kvals)
-            print query_lime
+            kvals['description'] = str('%s - %s, Fugitive dust lime' % (till_type, activity, ))
+
+            query_view = """ DROP VIEW IF EXISTS {scenario_name}.equip_lime;
+                             CREATE VIEW {scenario_name}.equip_lime
+                             AS (SELECT equip.fips, sum(equip.lime_lbac) AS 'lime_sum'
+                             FROM {production_schema}.cg_equip_fips equip
+                             LEFT JOIN {production_schema}.cg_data cd ON cd.fips = equip.fips
+                             WHERE equip.tillage = '{till_abr}' AND cd.{till}_harv_ac > 0 AND oper_type = 'ESTC'
+                             GROUP BY equip.fips)
+                         """.format(**kvals)
+            self._execute_query(query_view)
+
+            query_lime = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
+                             SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({lime_app_ef} * cd.{till}_harv_AC), ({lime_app_ef} * cd.{till}_harv_AC * {pm_ratio}), 0, 0, '{description}', '{run_code}'
+                             FROM {production_schema}.{feed}_data cd
+                             LEFT JOIN {scenario_name}.equip_lime lime
+                             ON lime.fips = cd.fips
+                             WHERE lime.lime_sum > 0 AND cd.{till}_harv_ac > 0
+                         """.format(**kvals)
             self._execute_query(query_lime)
 
     def transport_query(self, run_code, till_type):
