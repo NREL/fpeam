@@ -247,6 +247,7 @@ class RegionalEquipment(Population):
                 hp = equip[1]
                 activity_rate = equip[2]
 
+                # only evaluate non-road activity for equipment other than airplanes (aerial emissions are calculated during post-processing under CombustionEmissions.py)
                 if equip_type != 'aerial':
                     # get annual activity for equipment type
                     annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (NonRoad default value)
@@ -285,9 +286,6 @@ class RegionalEquipment(Population):
 
                     line = self._create_pop_line(**kvals)
                     self.pop_file.writelines(line)
-                else:
-                    # @TODO: need to implement emission factor for aerial activity
-                    logger.warning('Aerial activity used in crop budget but no emission factor currently implemented for aerial activity')
 
 
 class ResiduePop(Population):
