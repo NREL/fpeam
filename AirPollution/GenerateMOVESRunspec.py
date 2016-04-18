@@ -27,7 +27,7 @@ class GenerateMOVESRunSpec:
 
     def __init__(self, crop, fips, yr, moves_timespan, server):
         config = utils.config
-        self.db_in = "fips_{fips}_{crop}_in".format(fips=fips, crop=crop)  # input database
+        self.db_in = "fips_{fips}_{year}_{crop}_in".format(fips=fips, crop=crop, year=yr)  # input database
         self.db_out = "{moves_output_db}".format(moves_output_db=config.get('moves_output_db'))  # output database
         self.yr = yr  # scenario year
         self.mo = moves_timespan['mo']  # month(s) for analysis

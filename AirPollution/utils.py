@@ -107,15 +107,69 @@ def initialize_logger(output_dir=os.getcwd(), level=None):
     return logger
 
 
-def get_fips():
+def get_fips(scenario_year, state_level_moves, db):
     """
     Collect list of county FIPS codes.
 
+    :param scenario_year: year of scenario analysis
+    :param state_level_moves: toggle for running MOVES on state-level (True) versus county-level (False)
+    :param db: database object
     :return: [<FIPS>]
     """
+    kvals = {'production_schema': config['production_schema'],
+             'year': scenario_year}
 
-    # @TODO: replace with actual list of FIPS codes for run (probably use database table)
-    return ["19109", "10001"]
+    if state_level_moves is True:
+        query = """ DROP TABLE IF EXISTS {production_schema}.prod;
+                    CREATE TEMPORARY TABLE {production_schema}.prod
+                    AS (SELECT total_prod as 'prod', LEFT(fips,2) as state, fips, 'ms' as 'crop'
+                    FROM {production_schema}.ms_data_bc_{year}
+                    WHERE  total_prod > 0);
+
+                    INSERT INTO {production_schema}.prod (prod, state, fips, crop)
+                    SELECT total_prod as 'prod', LEFT(fips,2) as state, fips, 'sg'
+                    FROM {production_schema}.sg_data_bc_{year}
+                    WHERE  total_prod > 0;
+
+                    INSERT INTO {production_schema}.prod (prod, state, fips, crop)
+                    SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips,  'cg'
+                    FROM {production_schema}.herb_bc_{year}
+                    WHERE (crop = 'Corn') AND prod > 0;
+
+                    INSERT INTO {production_schema}.prod (prod, state, fips, crop)
+                    SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'cs'
+                    FROM {production_schema}.herb_bc_{year}
+                    WHERE (crop = 'Corn stover') AND prod > 0;
+
+                    INSERT INTO {production_schema}.prod (prod, state, fips, crop)
+                    SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'ws'
+                    FROM {production_schema}.herb_bc_{year}
+                    WHERE (crop = 'Wheat straw') AND prod > 0;
+
+                    DROP TABLE IF EXISTS {production_schema}.summed_prod;
+                    CREATE TEMPORARY TABLE {production_schema}.summed_prod
+                    SELECT fips, state, sum(prod) as 'summed_prod'
+                    FROM {production_schema}.prod
+                    GROUP BY fips;""".format(**kvals)
+
+        query_get = """ SELECT sum.fips
+                        FROM
+                        (SELECT state, max(summed_prod) as max_sum
+                        FROM {production_schema}.summed_prod
+                        GROUP by state) summed_max
+                        LEFT JOIN (SELECT fips, state, sum(prod) as 'summed_prod'
+                        FROM {production_schema}.prod
+                        WHERE prod > 0
+                        GROUP BY fips) sum ON summed_max.max_sum = sum.summed_prod;""".format(**kvals)
+
+        db.create(query)
+        fips_list = list(db.output(query_get))
+
+    else:
+        # @TODO: replace with actual list of FIPS codes for run (probably use database table)
+        fips_list = ["19109", "10001"]
+
+    return fips_list
 
 # create logger
 logger = initialize_logger()
