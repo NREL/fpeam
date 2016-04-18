@@ -24,12 +24,18 @@ class Transportation(SaveDataHelper.SaveDataHelper):
     Computes the emissions associated with off-farm transportation
     """
 
-    def __init__(self, feed, cont, fips, vmt, pop, logistics_type, silt, yield_type):
+    def __init__(self, feed, cont, fips, vmt, pop, logistics_type, silt, yield_type, moves_fips):
         """
 
         :param feed: feedstock to process
         :param cont: Container object
         :param fips: FIPS code
+        :param vmt: vehicle miles traveled
+        :param pop: popuation of vehicles 
+        :param logistics_type: type of logistics system
+        :param silt: silt content
+        :param yield_type: type of yield considered in scenario
+        :param moves_fips: FIPS code for MOVES data (if state-level MOVES run, then different from fips above)
         :return:
         """
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
@@ -41,6 +47,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         # set other values in kvals dictionary
         self.kvals['fips'] = fips  # fips
+        self.kvals['moves_fips'] = moves_fips  # fips code for moves run (if state-level, then different from fips)
         self.kvals['feed'] = feed.lower()  # feedstock name
         self.kvals['year'] = config['year_dict'][self.feed]  # year of scenario run
         self.kvals['scenarioID'] = '{fips}_{feed}'.format(**self.kvals)  # MOVES scenario ID
@@ -71,12 +78,12 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         # set input database and scenario id depending on moves_by_crop
         if moves_by_crop is True:
-            self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed=feed)  # input database for MOVES run
-            self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0],
+            self.kvals['db_in'] = "fips_{moves_fips}_{year}_{feed}_in".format(moves_fips=moves_fips, feed=feed, year=self.kvals['year'])  # input database for MOVES run
+            self.kvals['moves_scen_id'] = "{moves_fips}_{crop}_{year}_{month}_{day}".format(moves_fips=moves_fips, crop=feed, day=config.get('moves_timespan')['d'][0],
                                                                                       month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
         else:
-            self.kvals['db_in'] = "fips_{fips}_{feed}_in".format(fips=fips, feed='all_crops')  # input database for MOVES run
-            self.kvals['moves_scen_id'] = "{fips}_all_crops_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0],
+            self.kvals['db_in'] = "fips_{moves_fips}_{year}_{feed}_in".format(moves_fips=moves_fips, feed='all_crops', year=self.kvals['year'])  # input database for MOVES run
+            self.kvals['moves_scen_id'] = "{moves_fips}_all_crops_{year}_{month}_{day}".format(moves_fips=moves_fips, crop=feed, day=config.get('moves_timespan')['d'][0],
                                                                                          month=config.get('moves_timespan')['mo'][0], year=self.kvals['year'])
 
         # dictionary of column names for transportation data
@@ -132,7 +139,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         """
 
         for key in self.pollutant_dict:
-            logger.info('Calculating running emissions for %s' % (key, ))
+            logger.debug('Calculating running emissions for %s' % (key, ))
 
             # set pollutant name and ID
             self.kvals['pollutant_name'] = key
@@ -164,7 +171,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         """
 
         for key in self.pollutant_dict:
-            logger.info('Calculating start emissions for %s' % (key, ))
+            logger.debug('Calculating start emissions for %s' % (key, ))
 
             # set pollutant name and ID
             self.kvals['pollutant_name'] = key

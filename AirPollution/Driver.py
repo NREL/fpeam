@@ -86,10 +86,17 @@ class Driver:
         self.transport_table_dict = config.get('transport_table_dict')
 
         # get yield list for transport data
-        self.yield_list = config.get('yield_list')
+        self.scenario_yield = config.get('yield')
+        
+        # get scenario year
+        self.scenario_year = config.get('year_dict')['all_crops']
+
+        # get toggle for running moves by state-level fips
+        self.moves_state_level = config.get('state_level_moves')
 
         # get toggle for running moves by crop
-        moves_by_crop = config.get('moves_by_crop')
+        moves_by_crop = config.get('moves_by_crop')        
+        
         # set moves feedstock list depending on toggle for moves_by_crop
         if moves_by_crop is True:
             self.moves_feedstock_list = self.feedstock_list
@@ -400,12 +407,28 @@ class Driver:
         self.post_process_fert(regional_crop_budget=regional_crop_budget)  # fertilizer
         self.post_process_pest(regional_crop_budget=regional_crop_budget)  # pesticide
         self.post_process_aerial(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)  # aerial emissions from crop dusting
-
-        # post-process data to obtain emissions from off-farm transportation and processing (transporation, adv; transportation, conv; processing, adv; processing, conv)
         self.post_process_on_farm_fugitive_dust()  # on-farm fugitive dust
-        self.post_process_off_farm_transport(fips_list=fips_list)  # off-farm transportation
+        
+        # post-process data to obtain emissions from processing (processing, adv; processing, conv)
         self.post_process_logistics()  # logistics (pre-processing)
-
+        
+        # post-process data to obtain emissions from off-farm transportation (transporation, adv; transportation, conv)
+        kvals = {'yield': self.scenario_yield, 
+                 'year': self.scenario_year}
+        
+        for feedstock in self.feedstock_list:
+            # set feedstock id
+            kvals['feed'] = feedstock.lower()
+            
+            # get fips list for feedstock where production is greater than zero
+            query = """ SELECT prod.fips
+                        FROM bts16.{feed}_data_{yield}_{year} prod
+                        WHERE total_prod > 0;""".format(**kvals)
+            fips_list = list(self.db.output(query))
+            
+            # calculate emissions from off-farm transportation 
+            self.post_process_off_farm_transport(feedstock=feedstock, fips_list=fips_list)
+            
         # perform single pass allocation when national crop budget is selected and all feedstocks are modeled
         if len(self.feedstock_list) == 5 and regional_crop_budget is False:
             self.single_pass_alloc()
@@ -429,89 +452,104 @@ class Driver:
         # execute query
         self.db.input(query)
 
-    def post_process_off_farm_transport(self, fips_list):
+    def post_process_off_farm_transport(self, feedstock, fips_list):
         """
         Compute emissions from off-farm transportation
 
+        :param feed: feedstock
         :param fips_list: list of fips codes
         :return:
         """
-
         # set values in kvals dictionary for string formatting
         kvals = self.kvals
-        kvals['fips'] = fips_list[0]  # avg speed distribution is the same for all FIPS codes
-        kvals['feedstock'] = list(self.moves_feedstock_list)[0]  # and for all crops, so just pick one from each list
-
-        # generate average speed table for MOVES data analysis by joining tables for average speed and "dayhour"
-        query = """DROP TABLE IF EXISTS {constants_schema}.averageSpeed;
-                   CREATE TABLE {constants_schema}.averageSpeed
-                   AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
-                   FROM fips_{fips}_{feedstock}_in.avgspeeddistribution table1
-                   LEFT JOIN {moves_database}.hourday table2
-                   ON table1.hourDayID = table2.hourDayID);""".format(**kvals)
-        self.db.create(query)
+        kvals['year'] = self.scenario_year
 
         # now loop through feedstocks and FIPS codes to compute respective transportation emissions
-        yield_type = config.get('yield')
-        for feedstock in self.feedstock_list:
-            if feedstock in self.transport_feed_list:
-                for fips in fips_list:
-                    for logistics_type in self.logistics_list:
-                        kvals = self.kvals
-                        kvals['fips'] = fips
-                        kvals['feed_id'] = self.feed_id_dict[feedstock]
-                        kvals['silt_table'] = config.get('db_table_list')['silt_table']
+        if feedstock in self.transport_feed_list:
+            kvals['feed'] = feedstock.lower()          
+            for i, fips in enumerate(fips_list):
+                fips = str(fips[0])
+                kvals['fips'] = fips
+                
+                if self.moves_state_level is True:
+                    query = """ SELECT fips_moves_state 
+                                FROM fpeam.{feed}_moves_fips_state_{year}
+                                WHERE fips = '{fips}'""".format(**kvals)
+                    moves_fips = self.db.output(query)[0][0]
+                else:
+                    moves_fips = fips
+                    
+                kvals['moves_fips'] = moves_fips
+                logger.info('Processing off-farm transportation for feedstock: {feed}, fips: {fips}, moves_fips: {moves_fips}'.format(**kvals))
+                
+                if i == 0:
+                    # average speed distribution only needs to be generated once                    
+                    kvals['feedstock'] = list(self.moves_feedstock_list)[0]  # and for all crops, so just pick one from each list
+                    # generate average speed table for MOVES data analysis by joining tables for average speed and "dayhour"
+                    query = """DROP TABLE IF EXISTS {constants_schema}.averageSpeed;
+                               CREATE TABLE {constants_schema}.averageSpeed
+                               AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
+                               FROM fips_{moves_fips}_{year}_{feedstock}_in.avgspeeddistribution table1
+                               LEFT JOIN {moves_database}.hourday table2
+                               ON table1.hourDayID = table2.hourDayID);""".format(**kvals)
+                    self.db.create(query)
+                
+                for logistics_type in self.logistics_list:
+                    kvals = self.kvals
+                    kvals['fips'] = fips
+                    kvals['feed_id'] = self.feed_id_dict[feedstock]
+                    kvals['silt_table'] = config.get('db_table_list')['silt_table']
 
-                        # set truck capacity
-                        truck_capacity = config.get('truck_capacity')
-                        kvals['truck_capacity'] = truck_capacity[feedstock][logistics_type]
+                    # set truck capacity
+                    truck_capacity = config.get('truck_capacity')
+                    kvals['truck_capacity'] = truck_capacity[feedstock][logistics_type]
 
-                        # set transport table
-                        kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][yield_type][logistics_type]
+                    # set transport table
+                    kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][self.scenario_yield][logistics_type]
 
-                        if len(fips) > 4:
-                            kvals['st_fips'] = fips[0:2]
-                        else:
-                            kvals['st_fips'] = '0%s' % (fips[0])
+                    if len(fips) > 4:
+                        kvals['st_fips'] = fips[0:2]
+                    else:
+                        kvals['st_fips'] = '0%s' % (fips[0])
 
-                        query_pop = """SELECT used_qnty / {truck_capacity}
-                                       FROM {production_schema}.{transport_table}
-                                       WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
-                                       ;""".format(**kvals)
+                    query_pop = """SELECT used_qnty / {truck_capacity}
+                                   FROM {production_schema}.{transport_table}
+                                   WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
+                                   ;""".format(**kvals)
 
-                        output_pop = self.db.output(query_pop)
-                        pop_short_haul = 0
-                        try:
-                            pop_short_haul = output_pop[0][0]  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
-                        except IndexError:
-                            pass
+                    output_pop = self.db.output(query_pop)
+                    pop_short_haul = 0
+                    try:
+                        pop_short_haul = output_pop[0][0]  # population of combination short-haul trucks (assume one per trip and only run MOVES for single trip)
+                    except IndexError:
+                        pass
 
-                        trans_col = self.transport_col[logistics_type]['dist']
-                        if len(self.transport_col[logistics_type]) == 2:
-                            trans_col += '+ %s' % (self.transport_col[logistics_type]['dist_2'], )
+                    trans_col = self.transport_col[logistics_type]['dist']
+                    if len(self.transport_col[logistics_type]) == 2:
+                        trans_col += '+ %s' % (self.transport_col[logistics_type]['dist_2'], )
 
-                        kvals['trans_col'] = trans_col
-                        query_vmt = """SELECT {trans_col}
-                                       FROM {production_schema}.{transport_table}
-                                       WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
-                                       ;""".format(**kvals)
+                    kvals['trans_col'] = trans_col
+                    query_vmt = """SELECT {trans_col}
+                                   FROM {production_schema}.{transport_table}
+                                   WHERE feed_id = '{feed_id}' AND sply_fips = {fips}
+                                   ;""".format(**kvals)
 
-                        output_vmt = self.db.output(query_vmt)
-                        vmt_short_haul = 0
-                        try:
-                            vmt_short_haul = output_vmt[0][0]  # annual vehicle miles traveled by combination short-haul trucks
-                        except IndexError:
-                            pass
+                    output_vmt = self.db.output(query_vmt)
+                    vmt_short_haul = 0
+                    try:
+                        vmt_short_haul = output_vmt[0][0]  # annual vehicle miles traveled by combination short-haul trucks
+                    except IndexError:
+                        pass
 
-                        query_silt = """SELECT uprsm_pct_silt
-                                        FROM {constants_schema}.{silt_table}
-                                        WHERE st_fips = {st_fips}
-                                        ;""".format(**kvals)
+                    query_silt = """SELECT uprsm_pct_silt
+                                    FROM {constants_schema}.{silt_table}
+                                    WHERE st_fips = {st_fips}
+                                    ;""".format(**kvals)
 
-                        silt = self.db.output(query_silt)[0][0]
-                        transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt_short_haul, pop=pop_short_haul,
-                                                                       logistics_type=logistics_type, silt=silt, yield_type=yield_type)
-                        transportation.calculate_transport_emissions()
+                    silt = self.db.output(query_silt)[0][0]
+                    transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips, vmt=vmt_short_haul, pop=pop_short_haul,
+                                                                   logistics_type=logistics_type, silt=silt, yield_type=self.scenario_yield, moves_fips=moves_fips)
+                    transportation.calculate_transport_emissions()
 
         # concatenate zeros for fips codes less than 5 characters in length
         self.concat_zeros('transportation')
