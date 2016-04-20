@@ -11,6 +11,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 from utils import config, logger
 from pylab import median, mean
+from scipy.stats import scoreatpercentile
+from pylab import *
+from matplotlib import ticker
 
 
 class FigurePlottingBT16:
@@ -19,15 +22,16 @@ class FigurePlottingBT16:
 
         self.f_color = ['r', 'b', 'g', 'k', 'c']
         self.f_marker = ['o', 'o', 'o', 'o', 'o']
-        self.row_list = [0, 1, 0, 1, 0, 1]
-        self.col_list = [0, 1, 2, 0, 1, 2]
-        self.pol_list_label = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$CO$', '$PM_{10}$', '$SO_x$' ]
-        self.pol_list = ['NOx', 'VOC', 'PM25', 'CO', 'PM10', 'SOx']
+        self.row_list = [0, 0, 1, 1, 2, 2]
+        self.col_list = [0, 1, 0, 1, 0, 1]
+        self.pol_list_label = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', ]
+        self.pol_list = ['NOx', 'VOC', 'PM25', 'CO', 'PM10', 'SOx', ]
 
-        self.feedstock_list = ['Corn Stover', 'Switchgrass', 'Wheat Straw', 'Corn Grain', 'Miscanthus' ]  # 'Forest Residue'] @TODO: remove hardcoded values
-        self.f_list = ['CS', 'SG', 'WS', 'CG', 'MS' ]  # 'FR'] # @TODO: remove hardcoded values
+        self.feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw',]# 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
+        self.f_list = ['CG', 'SG', 'CS', 'WS',]# 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
+        self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']
 
-        self.etoh_vals = [89.6, 89.6, 89.6, 2.76/0.02756, 89.6 ]  # 75.7]  # gallons per dry short ton
+        self.etoh_vals = [2.76/0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton
 
         self.feed_id_dict = config.get('feed_id_dict')
 
@@ -37,7 +41,6 @@ class FigurePlottingBT16:
         kvals = {'scenario_name': config.get('title'),
                  'year': config.get('year_dict')['all_crops'],
                  'yield': config.get('yield'), }
-
 
         query_create_table = """ DROP TABLE IF EXISTS {scenario_name}.total_emissions;
                                  CREATE TABLE {scenario_name}.total_emissions (fips char(5),
@@ -66,11 +69,11 @@ class FigurePlottingBT16:
             logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
             self.get_non_harvest(kvals)
 
-            logger.debug('Inserting data for harvest emissions for feedstock: {feed}'.format(**kvals))
+            logger.info('Inserting data for harvest emissions for feedstock: {feed}'.format(**kvals))
             self.get_harvest(kvals)
 
-            logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
-            self.get_logistics(kvals)
+#            logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
+#            self.get_logistics(kvals)
 
     def get_chem(self, kvals):
 
@@ -201,7 +204,9 @@ class FigurePlottingBT16:
                                                     INNER JOIN {scenario_name}.transportation trans
                                                     ON trans.fips = tot.fips AND trans.yield_type = tot.Yield AND trans.feedstock = tot.feedstock
                                                     SET tot.{pollutant_name} = trans.total_emissions/{years_rot}
-                                                    WHERE trans.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}';
+                                                    WHERE   trans.pollutantID = '{pollutant}' AND
+                                                            tot.Source_Category = '{transport_cat}' AND
+                                                            trans.logistics_type = '{system}';
                                               """.format(**kvals)
                         elif pollutant.startswith('PM'):
                             query_transport = """   UPDATE {scenario_name}.total_emissions tot
@@ -210,95 +215,166 @@ class FigurePlottingBT16:
                                                     LEFT JOIN {scenario_name}.fugitive_dust fd
                                                     ON fd.fips = tot.fips AND fd.yield_type = tot.Yield AND fd.feedstock = tot.feedstock
                                                     SET tot.{pollutant_name} = IF(trans.total_emissions > 0.0, (trans.total_emissions + fd.total_fd_emissions)/{years_rot}, 0)
-                                                    WHERE trans.pollutantID = '{pollutant}' AND fd.pollutantID = '{pollutant}' AND tot.Source_Category = '{transport_cat}' AND trans.logistics_type = '{system}' AND fd.logistics_type = '{system}';
+                                                    WHERE   trans.pollutantID = '{pollutant}' AND
+                                                            fd.pollutantID = '{pollutant}' AND
+                                                            tot.Source_Category = '{transport_cat}' AND
+                                                            trans.logistics_type = '{system}' AND
+                                                            fd.logistics_type = '{system}';
                                               """.format(**kvals)
                             if pollutant == 'VOC':
                                 query_pre_process = """ UPDATE {scenario_name}.total_emissions tot
                                                         INNER JOIN {scenario_name}.processing log
                                                         ON log.fips = tot.fips AND log.yield_type = tot.Yield AND log.feedstock = tot.feedstock
                                                         SET tot.{pollutant_name} = IFNULL(voc_wood, 0)/{years_rot}
-                                                        WHERE tot.Source_Category = '{preprocess_cat}' AND log.logistics_type = '{system}';
+                                                        WHERE   tot.Source_Category = '{preprocess_cat}' AND
+                                                                log.logistics_type = '{system}';
                                                   """.format(**kvals)
                                 self.db.input(query_pre_process)
 
                         self.db.input(query_transport)
 
-    def plot_total_emissions(self):
-
-        fig, axarr = plt.subplots(2, 3)
-        matplotlib.rcParams.update({'font.size': 13})
-
+    def get_data(self): 
+        emissions_per_dt = dict()
+        total_emissions = dict()
         for f_num, feedstock in enumerate(self.f_list):
+            pol_dict_dt = dict()
+            pol_dict_tot = dict()
             for p_num, pollutant in enumerate(self.pol_list):
                 logger.info('Collecting data for pollutant: %s, feedstock: %s' % (pollutant, feedstock, ))
-                emissions_per_dt = self.collect_data(p_num=p_num, f_num=f_num)
+                pol_dict_dt[pollutant] = self.collect_data_per_prod(p_num=p_num, f_num=f_num)
+                pol_dict_tot[pollutant] = self.collect_data_total_emissions(p_num=p_num, f_num=f_num)
+            emissions_per_dt[feedstock] = pol_dict_dt
+            total_emissions[feedstock] = pol_dict_tot
 
-                # compute statistics for emissions (in grams/dt -- must convert from metric tons pollutant to grams pollutant)
-                mean_val = mean(emissions_per_dt)*1e6
-                med_val = median(emissions_per_dt)*1e6
-                max_val = max(emissions_per_dt)[0]*1e6
-                min_val = min(emissions_per_dt)[0]*1e6
+        results = {'emissions_per_dt': emissions_per_dt,
+                   'total_emissions': total_emissions}
+        return results
+        
+    def plot_emissions_per_gal(self, emissions_per_dt_dict):
 
-                row = self.row_list[p_num]
-                col = self.col_list[p_num]
-                ax1 = axarr[row, col]
-                ax1.set_yscale('log')
-                #ax1.set_ylim(bottom=1e1, top=1e3)
+        logger.info('Plotting emissions per gal')
+        fig, axarr = plt.subplots(3, 2, figsize=(9, 9.5))
+        matplotlib.rcParams.update({'font.size': 13})
+        
+        for p_num, pollutant in enumerate(self.pol_list):
+            logger.info('Plotting emissions per gal for pollutant %s' % (pollutant, ))
+            plotvals = list() 
+            for f_num, feedstock in enumerate(self.f_list):
+                total_emissions = emissions_per_dt_dict[feedstock][pollutant]
+                
+                emissions_per_gal = list(x[0]*(1e6/self.etoh_vals[f_num]) for x in total_emissions) 
+                plotvals.append(emissions_per_gal)
 
-                ax1.set_title(self.pol_list_label[p_num])
+            row = self.row_list[p_num]
+            col = self.col_list[p_num]
+            ax1 = axarr[row, col]
+            ax1.set_yscale('log')
+            ax1.set_ylim(bottom=1e-6, top=1e6)
 
-                ax1.plot([f_num + 1], mean_val, 'b', marker='_', markersize=20)
-                ax1.plot([f_num + 1], med_val, 'b', marker='_', markersize=7)
-
-                # Plot the max/min values
-                ax1.plot([f_num + 1] * 2, [max_val, min_val], 'b', marker=self.f_marker[f_num], markersize=2)
-
-                # Set axis limits
-                ax1.set_xlim([0, 9])
-
-                ax2 = ax1.twinx()
-
-                # compute statistics for emissions per gallon (in grams/galEtOH)
-                mean_val /= self.etoh_vals[f_num]
-                med_val /= self.etoh_vals[f_num]
-                max_val /= self.etoh_vals[f_num]
-                min_val /= self.etoh_vals[f_num]
-
-                ax2.plot([f_num + 1], mean_val, 'r', marker='_', markersize=20)
-                ax2.plot([f_num + 1], med_val, 'r', marker='_', markersize=7)
-
-                # Plot the max/min values
-                ax2.plot([f_num + 1] * 2, [max_val, min_val], 'r', marker=self.f_marker[f_num], markersize=2)
-
-                ax2.set_xlim([0, 9])
-                ax2.set_yscale('log')
-                #ax2.set_ylim(bottom=1e-1, top=1e3)
-
-                if col == 2:
-                    ax2.set_ylabel('g/gge', color='r', fontsize=14)
-                else:
-                    plt.setp(ax2.get_yticklabels(), visible=False)
-
-                for tl in ax2.get_yticklabels():
-                    tl.set_color('r')
-
-                for tl in ax1.get_yticklabels():
-                    tl.set_color('b')
-                ax1.set_xticklabels(([''] + self.f_list), rotation='vertical')
+            ax1.set_title(self.pol_list_label[p_num])
+            ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
+            
+            bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
+                
+            plt.setp(bp['boxes'], color='black')
+            plt.setp(bp['whiskers'], color='black', linestyle='-')
+            plt.setp(bp['medians'], color='black')
+            # self.ax1.yaxis.set_major_formatter(FixedFormatter([0.00001, 0.0001, 0.001]))#for below y-axis
+            
+            self.__plot_interval__(plotvals, ax1)
+            ax1.set_xticklabels(self.f_list, rotation='vertical')
 
         # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
         plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
-        # plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
+        plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
         # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
-        axarr[0, 0].set_ylabel('g/dt', color='b', fontsize=14)
-        axarr[1, 0].set_ylabel('g/dt', color='b', fontsize=14)
+        axarr[0, 0].set_ylabel('g/gal EtOH', color='black', fontsize=14)
+        axarr[1, 0].set_ylabel('g/gal EtOH', color='black', fontsize=14)
+        axarr[2, 0].set_ylabel('g/gal EtOH', color='black', fontsize=14)
 
         fig.tight_layout()
 
         plt.show()
+        
+        data = [emissions_per_gal]
+        
+        return data
 
-    def collect_data(self, p_num, f_num):
+    def plot_emissions_per_dt(self, emissions_per_dt_dict):
+
+        logger.info('Plotting emissions per dt')
+
+        fig, axarr = plt.subplots(3, 2, figsize=(9, 10))
+        matplotlib.rcParams.update({'font.size': 13})
+        
+        for p_num, pollutant in enumerate(self.pol_list):
+            logger.info('Plotting emissions per dt for pollutant %s' % (pollutant, ))
+            plotvals = list() 
+            for f_num, feedstock in enumerate(self.f_list):
+                emissions_per_dt = emissions_per_dt_dict[feedstock][pollutant]
+                
+                g_per_dt = list(x[0]*1e6 for x in emissions_per_dt)
+                plotvals.append(g_per_dt)
+
+            row = self.row_list[p_num]
+            col = self.col_list[p_num]
+            ax1 = axarr[row, col]
+            ax1.set_yscale('log')
+            ax1.set_ylim(bottom=1e-4, top=1e8)
+
+            ax1.set_title(self.pol_list_label[p_num])
+            ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
+            
+            bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
+                
+            plt.setp(bp['boxes'], color='black')
+            plt.setp(bp['whiskers'], color='black', linestyle='-')
+            plt.setp(bp['medians'], color='black')
+            # self.ax1.yaxis.set_major_formatter(FixedFormatter([0.00001, 0.0001, 0.001]))#for below y-axis
+            
+            self.__plot_interval__(plotvals, ax1)
+            ax1.set_xticklabels(self.f_list, rotation='vertical')
+
+        # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
+        plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
+        plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
+        # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
+
+        axarr[0, 0].set_ylabel('Emissions (g/dt)', color='black', fontsize=14)
+        axarr[1, 0].set_ylabel('Emissions (g/dt)', color='black', fontsize=14)
+        axarr[2, 0].set_ylabel('Emissions (g/dt)', color='black', fontsize=14)
+
+        fig.tight_layout()
+
+        plt.show()
+        
+        data = [emissions_per_dt]
+        
+        return data
+        
+    def __plot_interval__(self, data_array, ax):
+
+        num_feed = 4
+        num_array = array([x for x in range(num_feed)]) + 1  # index starts at 1, not zero
+
+        perc95list = list()
+        perc5list = list()
+        for i in range(0, num_feed):
+            # plot 95% interval
+            perc95list.append(scoreatpercentile(data_array[i], 95))
+
+            # plot 5% interval
+            perc5list.append(scoreatpercentile(data_array[i], 5))
+        perc95 = array(perc95list)
+        perc5 = array(perc5list)
+
+        ax.plot(num_array, perc95, '_', markersize=15, color='k')
+        ax.plot(num_array, perc5, '_', markersize=15, color='k')
+
+    def collect_data_per_prod(self, p_num, f_num):
         """
         Collect data for one pollutant/feedstock combination
         Return the total emissions
@@ -314,20 +390,126 @@ class FigurePlottingBT16:
                  'scenario_name': config.get('title'),
                  'production_schema': config.get('production_schema')}
 
-        if self.pol_list[p_num].startswith('PM'):
-            query_emissions_per_prod = """ SELECT (sum({pollutant})+ IFNULL(sum(fug_{pollutant}), 0))/prod.total_prod AS 'mt_{pollutant}_perdt'
-                        FROM {scenario_name}.{feed_abr}_raw raw
-                        LEFT JOIN {production_schema}.{feed_abr}_data prod ON raw.fips = prod.fips
-                        GROUP BY raw.FIPS
-                        ORDER BY raw.FIPS""".format(**kvals)
-        else:
-            query_emissions_per_prod = """ SELECT sum({pollutant})/prod.total_prod AS 'mt_{pollutant}_perdt'
-                        FROM {scenario_name}.{feed_abr}_raw raw
-                        LEFT JOIN {production_schema}.{feed_abr}_data prod ON raw.fips = prod.fips
-                        GROUP BY raw.FIPS
-                        ORDER BY raw.FIPS
-                        """.format(**kvals)
-
+        query_emissions_per_prod = """ SELECT (sum({pollutant}))/prod.total_prod AS 'mt_{pollutant}_perdt'
+                                       FROM {scenario_name}.total_emissions tot
+                                       LEFT JOIN {production_schema}.{feed_abr}_data prod ON tot.fips = prod.fips
+                                       WHERE  prod.total_prod > 0.0 AND tot.{pollutant} > 0
+                                       GROUP BY tot.FIPS
+                                       ORDER BY tot.FIPS""".format(**kvals)
         emissions_per_production = self.db.output(query_emissions_per_prod)
 
         return emissions_per_production
+
+    def collect_data_total_emissions(self, p_num, f_num):
+        """
+        Collect data for one pollutant/feedstock combination
+        Return the total emissions
+
+        :param f_num: feedstock number
+        :param p_num: pollutant number
+        :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
+        """
+
+        kvals = {'feed_abr': self.f_list[f_num],
+                 'feedstock': self.f_list[f_num],
+                 'pollutant': self.pol_list[p_num],
+                 'scenario_name': config.get('title'),
+                 'production_schema': config.get('production_schema')}
+
+        query_emissions = """ SELECT (sum({pollutant}))
+                               FROM {scenario_name}.total_emissions tot
+                               LEFT JOIN {production_schema}.{feed_abr}_data prod ON tot.fips = prod.fips
+                               WHERE  prod.total_prod > 0.0 AND tot.{pollutant} > 0
+                               GROUP BY tot.FIPS
+                               ORDER BY tot.FIPS""".format(**kvals)
+
+        emissions = self.db.output(query_emissions)
+
+        return emissions
+
+    def contribution_figure(self):
+        kvals = {'scenario_name': config.get('title'), }
+
+        emissions_per_activity = dict()
+        for f_num, feedstock in enumerate(self.f_list):
+            pol_dict = dict()
+            kvals['feed'] = feedstock.lower()
+            for p_num, pollutant in enumerate(self.pol_list):
+                kvals['pollutant'] = pollutant
+                logger.info('Collecting data for emissions contribution figure for feedstock %s, pollutant %s' % (feedstock, pollutant, ))
+                act_dict = dict()
+                for act_num, activity in enumerate(self.act_list):
+                    kvals['act'] = activity
+                    if activity != 'Harvest':
+                        query = """ SELECT selected.{pollutant}/total.sum_pol
+                                    FROM {scenario_name}.total_emissions selected
+                                    LEFT JOIN (SELECT fips, sum({pollutant}) as 'sum_pol'
+                                                                                FROM {scenario_name}.total_emissions tot
+                                                                                WHERE Feedstock = '{feed}'
+                                                                                GROUP by tot.fips) total ON total.fips = selected.fips
+                                    WHERE Source_Category Like '%{act}%' AND Feedstock = '{feed}' AND total.sum_pol > 0
+                                    GROUP BY selected.fips
+                                    """.format(**kvals)
+                    else:
+                        query = """ SELECT selected.{pollutant}/total.sum_pol
+                                    FROM {scenario_name}.total_emissions selected
+                                    LEFT JOIN (SELECT fips, sum({pollutant}) as 'sum_pol'
+                                                                                FROM {scenario_name}.total_emissions tot
+                                                                                WHERE Feedstock = '{feed}'
+                                                                                GROUP by tot.fips) total ON total.fips = selected.fips
+                                    WHERE Source_Category Like '%{act}%' AND not Source_Category LIKE '%Non-Harvest%' AND Feedstock = '{feed}' AND total.sum_pol > 0
+                                    GROUP BY selected.fips
+                                    """.format(**kvals)
+                    act_dict[activity] = self.db.output(query)
+                pol_dict[pollutant] = act_dict
+            emissions_per_activity[feedstock] = pol_dict
+
+        fig, axarr = plt.subplots(3, 6)
+        matplotlib.rcParams.update({'font.size': 13})
+
+        for i, pollutant in enumerate(self.pol_list):
+            logger.info('Plotting data for emissions contribution figure for pollutant %s' % (pollutant, ))
+            for j, activity in enumerate(self.act_list):
+                for f_num, feedstock in enumerate(self.f_list):
+                    emissions = emissions_per_activity[feedstock][pollutant][activity]
+
+                    mean_val = mean(emissions)
+                    med_val = median(emissions)
+                    max_val = max(emissions)
+                    min_val = min(emissions)
+
+                    col = j
+                    row = i
+                    ax1 = axarr[col, row]
+                    ax1.set_ylim(bottom=-0.05, top=1.05)
+
+                    if col == 0:
+                        ax1.set_title(self.pol_list_label[i])
+
+                    if row == 0:
+                        axarr[col, row].set_ylabel(activity)
+
+                    ax1.plot([f_num + 1], mean_val, color=self.f_color[f_num], marker='_', markersize=20)
+                    ax1.plot([f_num + 1], med_val, color=self.f_color[f_num], marker='_', markersize=7)
+
+                    # Plot the max/min values
+                    ax1.plot([f_num + 1] * 2, [max_val, min_val], color=self.f_color[f_num], marker=self.f_marker[f_num], markersize=2)
+
+                    # Set axis limits
+                    ax1.set_xlim([0, 6])
+
+                    ax1.set_xticklabels(([''] + self.f_list), rotation='vertical')
+
+        # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
+        plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
+        plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 3]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 4]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 5]], visible=False)
+
+
+        fig.tight_layout()
+
+        plt.show()

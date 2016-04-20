@@ -205,7 +205,10 @@ class RegionalEquipment(Population):
 
         # set tillage type
         if not (self.run_code.startswith('SG') or self.run_code.startswith('MS')):
-            kvals['tillage'] = '%sT' % (self.run_code[3])
+            if self.run_code[3] == 'R':
+                kvals['tillage'] = 'CT'  # reduced tillage equipment is the same as conventional tillage
+            else:
+                kvals['tillage'] = '%sT' % (self.run_code[3])
         elif self.run_code.startswith('SG'):
             kvals['tillage'] = 'NT'
         elif self.run_code.startswith('MS'):

@@ -36,7 +36,7 @@ class ScenarioOptions:
 
         # break flag used to ensure switchgrass and miscanthus database queries only happens once. (all other feedstocks need multiple pulls from the database).
         self.query_sg = True
-        self.query_sg = True
+        self.query_ms = True
 
         self.document_file = 'Options'
         self._create_dir()

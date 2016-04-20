@@ -30,15 +30,15 @@ class EmissionsPerGallon():
         self.db = cont.get('db')
         self.document_file = "EmissionsPerGallon"
     
-        self.f = open(self.path + 'FIGURES' + os.sep + 'PerGalEtOH_numerical.csv', 'w')
+        self.f = open(os.path.join(self.path, 'FIGURES', 'PerGalEtOH_numerical.csv'), 'w')
         
         self.f.write('feedstock, pollutant, max, 95, 75, median, 25, 5, min, mean \n')
         
         # define inputs/constants:  
         pollutant_labels = ['$NO_x$', '$NH_3$', '$CO$', '$SO_x$', '$VOC$', '$PM_{10}$', '$PM_{2.5}$']
 
-        feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw', 'Forest Residue']
-        f_list = ['CG', 'SG', 'CS', 'WS', 'FR']
+        feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw']#, 'Forest Residue']
+        f_list = ['CG', 'SG', 'CS', 'WS']#, 'FR']
         pollutant_list = ['NOx', 'NH3', 'CO', 'SOx', 'VOC', 'PM10', 'PM25']
         etoh_vals = [2.76, 89.6, 89.6, 89.6, 75.7]  # gallons per production (bu for CG, dry short ton for everything else)    
 
@@ -97,9 +97,9 @@ class EmissionsPerGallon():
             # % (pollutant,  self.db.schema, query_table, feedstock)
             
             query = """
-                    SELECT (%s) / (prod * %s * 1e-6) FROM %s.%s WHERE prod > 0.0 AND feedstock ILIKE '%s';
+                    SELECT (%s) / (prod * %s * 1e-6) FROM %s.%s WHERE prod > 0.0 AND feedstock LIKE '%s';
                     """ % (pollutant, etoh_vals[fNum], self.db.schema, query_table, feedstock)
-            emmisions = self.db.output(query, self.db.schema)
+            emmisions = self.db.output(query)
             data.append(emmisions)
 
         self.__write_data__(data, feedstock_list, pollutant)

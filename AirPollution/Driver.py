@@ -191,93 +191,94 @@ class Driver:
             scenario_year = self.yr[run_code[0:2]]            
             
             # get the first state and fips code in the list of data for the run code
-            state = scenario.data[0][1]
-            fips_prior = str(scenario.data[0][0])
+            if len(scenario.data) is not 0:
+                state = scenario.data[0][1]
+                fips_prior = str(scenario.data[0][0])
 
-            # check if regional crop budget should be used
-            if regional_crop_budget is False:  # if not, run with national budget
-                # new population object created for each run_code, where Pop is the abstract class and .<type> is the concrete class
-                if run_code.startswith('CG_I'):
-                    pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.endswith('L'):
-                    pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('SG'):
-                    pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('FR'):
-                    pop = Pop.ForestPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('CS'):
-                    pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('WS'):
-                    pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                elif run_code.startswith('CG'):
-                    pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-            else:  # if regional crop budget should be used
-                # get irrigation data for corn grain using the same method as for national budget
-                if run_code.startswith('CG_I'):
-                    pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                # get loading equipment if run code ends with L
-                elif run_code.endswith('L'):
-                    pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                # for all other run codes, use regional crop budgets
-                else:
-                    pop = Pop.RegionalEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-
-            # initialize allocation, population, and batch files
-            alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
-            pop.initialize_pop(dat=scenario.data[0])
-            self.batch.initialize(run_code)
-
-            # go through each row of the data table for this run code
-            for dat in scenario.data:
-                # check to see if production is greater than zero
-                prod_greater_than_zero = dat[2] > 0.0  # dat[2] is the production
-
-                # if production is greater than zero, then append equipment information to population file
-                if prod_greater_than_zero is True:
-                    fips = str(dat[0])
-                    # The db table is ordered alphabetically.
-                    # The search will look through a state. When the state changes in the table,
-                    # then the loop will go to the else, closing the old files. and initializing new files.
-
-                    # dat[1] is the state.
-                    if dat[1] == state:
-                        # indicator is harvested acres. Except for FR when it is produce.
-                        indicator = dat[2]
-                        alo.write_indicator(fips=fips, indicator=indicator)
-                        pop.append_pop(fips=fips, dat=dat)
-                    # last time through a state, will close different files, and start new ones.
+                # check if regional crop budget should be used
+                if regional_crop_budget is False:  # if not, run with national budget
+                    # new population object created for each run_code, where Pop is the abstract class and .<type> is the concrete class
+                    if run_code.startswith('CG_I'):
+                        pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    elif run_code.endswith('L'):
+                        pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    elif run_code.startswith('SG'):
+                        pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    elif run_code.startswith('FR'):
+                        pop = Pop.ForestPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    elif run_code.startswith('CS'):
+                        pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    elif run_code.startswith('WS'):
+                        pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    elif run_code.startswith('CG'):
+                        pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                else:  # if regional crop budget should be used
+                    # get irrigation data for corn grain using the same method as for national budget
+                    if run_code.startswith('CG_I'):
+                        pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    # get loading equipment if run code ends with L
+                    elif run_code.endswith('L'):
+                        pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    # for all other run codes, use regional crop budgets
                     else:
-                        # write *.opt file, close allocation file, close *.pop file
-                        Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
-                        alo.write_sum_and_close(fips=fips_prior)
-                        pop.finish_pop()
+                        pop = Pop.RegionalEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
 
-                        # add state and run code to batch file for running NONROAD
-                        self.batch.append(state=state, run_code=run_code)
+                # initialize allocation, population, and batch files
+                alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
+                pop.initialize_pop(dat=scenario.data[0])
+                self.batch.initialize(run_code)
 
-                        # update fips_prior and state to this fips and state
-                        fips_prior = fips
-                        state = dat[1]
+                # go through each row of the data table for this run code
+                for dat in scenario.data:
+                    # check to see if production is greater than zero
+                    prod_greater_than_zero = dat[2] > 0.0  # dat[2] is the production
 
-                        # initialize new pop and allocation files.
-                        alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
-                        pop.initialize_pop(dat=dat)
+                    # if production is greater than zero, then append equipment information to population file
+                    if prod_greater_than_zero is True:
+                        fips = str(dat[0])
+                        # The db table is ordered alphabetically.
+                        # The search will look through a state. When the state changes in the table,
+                        # then the loop will go to the else, closing the old files. and initializing new files.
 
-                        # indicator is harvested acres. Except for FR when it is produce.
-                        indicator = dat[2]
-                        alo.write_indicator(fips=fips, indicator=indicator)
-                        pop.append_pop(fips=fips, dat=dat)
+                        # dat[1] is the state.
+                        if dat[1] == state:
+                            # indicator is harvested acres. Except for FR when it is produce.
+                            indicator = dat[2]
+                            alo.write_indicator(fips=fips, indicator=indicator)
+                            pop.append_pop(fips=fips, dat=dat)
+                        # last time through a state, will close different files, and start new ones.
+                        else:
+                            # write *.opt file, close allocation file, close *.pop file
+                            Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
+                            alo.write_sum_and_close(fips=fips_prior)
+                            pop.finish_pop()
 
-            # close allocation files
-            Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
-            alo.write_sum_and_close(fips=fips_prior)
-            pop.finish_pop()
+                            # add state and run code to batch file for running NONROAD
+                            self.batch.append(state=state, run_code=run_code)
 
-            # append final file for batch run with this run code
-            self.batch.append(state=state, run_code=run_code)
+                            # update fips_prior and state to this fips and state
+                            fips_prior = fips
+                            state = dat[1]
 
-            # finish batch file for this run code
-            self.batch.finish(run_code=run_code)
+                            # initialize new pop and allocation files.
+                            alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
+                            pop.initialize_pop(dat=dat)
+
+                            # indicator is harvested acres. Except for FR when it is produce.
+                            indicator = dat[2]
+                            alo.write_indicator(fips=fips, indicator=indicator)
+                            pop.append_pop(fips=fips, dat=dat)
+
+                # close allocation files
+                Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
+                alo.write_sum_and_close(fips=fips_prior)
+                pop.finish_pop()
+
+                # append final file for batch run with this run code
+                self.batch.append(state=state, run_code=run_code)
+
+                # finish batch file for this run code
+                self.batch.finish(run_code=run_code)
 
         # close scenariobatchfile
         self.batch.scenario_batch_file.close()
@@ -409,25 +410,25 @@ class Driver:
         self.post_process_aerial(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)  # aerial emissions from crop dusting
         self.post_process_on_farm_fugitive_dust()  # on-farm fugitive dust
         
-        # post-process data to obtain emissions from processing (processing, adv; processing, conv)
-        self.post_process_logistics()  # logistics (pre-processing)
-        
-        # post-process data to obtain emissions from off-farm transportation (transporation, adv; transportation, conv)
-        kvals = {'yield': self.scenario_yield, 
-                 'year': self.scenario_year}
-        
-        for feedstock in self.feedstock_list:
-            # set feedstock id
-            kvals['feed'] = feedstock.lower()
-            
-            # get fips list for feedstock where production is greater than zero
-            query = """ SELECT prod.fips
-                        FROM bts16.{feed}_data_{yield}_{year} prod
-                        WHERE total_prod > 0;""".format(**kvals)
-            fips_list = list(self.db.output(query))
-            
-            # calculate emissions from off-farm transportation 
-            self.post_process_off_farm_transport(feedstock=feedstock, fips_list=fips_list)
+#        # post-process data to obtain emissions from processing (processing, adv; processing, conv)
+#        self.post_process_logistics()  # logistics (pre-processing)
+#        
+#        # post-process data to obtain emissions from off-farm transportation (transporation, adv; transportation, conv)
+#        kvals = {'yield': self.scenario_yield, 
+#                 'year': self.scenario_year}
+#        
+#        for feedstock in self.feedstock_list:
+#            # set feedstock id
+#            kvals['feed'] = feedstock.lower()
+#            
+#            # get fips list for feedstock where production is greater than zero
+#            query = """ SELECT prod.fips
+#                        FROM bts16.{feed}_data_{yield}_{year} prod
+#                        WHERE total_prod > 0;""".format(**kvals)
+#            fips_list = list(self.db.output(query))
+#            
+#            # calculate emissions from off-farm transportation 
+#            self.post_process_off_farm_transport(feedstock=feedstock, fips_list=fips_list)
             
         # perform single pass allocation when national crop budget is selected and all feedstocks are modeled
         if len(self.feedstock_list) == 5 and regional_crop_budget is False:
@@ -654,7 +655,7 @@ class Driver:
                 comb.airplane_emission(run_code=run_code)
 
         # concatenate zeros for fips codes less than 5 characters in length
-        self.concat_zeros('aerial')
+        self.concat_zeros('cg_raw')
 
     def post_process_on_farm_fugitive_dust(self):
         """
@@ -732,6 +733,8 @@ class Driver:
 
         :return:
         """
+
+        self.nei_comparison()
 
         # Contribution Analysis
         logger.info('Creating emissions contribution figure.')
