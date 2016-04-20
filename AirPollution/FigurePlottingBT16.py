@@ -269,7 +269,7 @@ class FigurePlottingBT16:
             col = self.col_list[p_num]
             ax1 = axarr[row, col]
             ax1.set_yscale('log')
-            ax1.set_ylim(bottom=1e-6, top=1e6)
+            ax1.set_ylim(bottom=1e-3, top=1e2)
 
             ax1.set_title(self.pol_list_label[p_num])
             ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
