@@ -208,7 +208,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                       'hp': hp,
                       'run_code': run_code,
                       'scenario_name': self.cont.get('model_run_title'),
-                      'feed': feed}
+                      'feed': feed.lower()}
 
         # multiply the emissions by allocation constant
         if alloc is not None:

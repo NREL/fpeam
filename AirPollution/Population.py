@@ -462,7 +462,7 @@ class CornGrainPop(Population):
 
         # calculate population for transport
         # [(lbs/acre) / (bu/hr)] * (acre) / (hr/yr) = yr
-        pop_transport = (scenario_yield / self.transport_tractor) * harv_ac / self.activity_tractor
+        pop_transport = round((scenario_yield / self.transport_tractor) * harv_ac / self.activity_tractor, 10)
         kvals = {'fips': fips,
                  'subregion_code': '',
                  'year': self.episode_year,
@@ -491,7 +491,7 @@ class CornGrainPop(Population):
 
         if self.run_code.endswith('CN'):
             #  pop = (hrs/acre) * (acre) / (hrs/yr) = yr
-            pop_conv_till = self.hrs_per_acre_conv_till * harv_ac / self.activity_tractor  # yr
+            pop_conv_till = round(self.hrs_per_acre_conv_till * harv_ac / self.activity_tractor, 10)  # yr
             kvals = {'fips': fips,
                      'subregion_code': '',
                      'year': self.episode_year,
@@ -511,7 +511,7 @@ class CornGrainPop(Population):
 
         elif self.run_code.endswith('RN'):
             # pop = (hrs/acre * acre) / (hrs/yr) = yr
-            pop_reduced_till = self.hrs_per_acre_red_till * harv_ac / self.activity_tractor  # yr
+            pop_reduced_till = round(self.hrs_per_acre_red_till * harv_ac / self.activity_tractor, 10)  # yr
             kvals = {'fips': fips,
                      'subregion_code': '',
                      'year': self.episode_year,
@@ -530,7 +530,7 @@ class CornGrainPop(Population):
 
         elif self.run_code.endswith('NN'):
             # pop = (hrs/acre * acre) / (hrs/yr) = yr
-            pop_conventional_till = self.hrs_per_acre_no_till * harv_ac / self.activity_tractor  # yr
+            pop_conventional_till = round(self.hrs_per_acre_no_till * harv_ac / self.activity_tractor, 10)  # yr
             kvals = {'fips': fips,
                      'subregion_code': '',
                      'year': self.episode_year,
@@ -957,8 +957,8 @@ class SwitchgrassPop(Population):
         rake = 0.191 * 1.1  # hrs/acre
 
         # (hrs/acre * acres) / (hrs/yr) = yr
-        self.pop_60 = (rake * harv_ac) / self.activity_tractor
-        self.pop_130 = ((mower + baler) * harv_ac) / self.activity_tractor
+        self.pop_60 = round((rake * harv_ac) / self.activity_tractor, 10)
+        self.pop_130 = round(((mower + baler) * harv_ac) / self.activity_tractor, 10)
 
     def __get_transport_hrs_per_acre__(self, prod):
         """
@@ -979,7 +979,7 @@ class SwitchgrassPop(Population):
         scenario_prod = prod * self.yield_factor  # lbs
         self.pop_60 = 0.0
         # lbs / (dt/hr * hr/yr) = yr
-        self.pop_130 = (scenario_prod / (self.transport_bales * self.activity_tractor)) * 1.1  # yr
+        self.pop_130 = round((scenario_prod / (self.transport_bales * self.activity_tractor)) * 1.1, 10)  # yr
 
 
 class LoadingEquipment(Population):

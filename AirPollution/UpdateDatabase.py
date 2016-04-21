@@ -68,7 +68,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         @attention: Insert Primary Keys (from Noah)
         @param feedstock = feedstock type
         """
-        self.kvals['feed'] = feedstock
+        self.kvals['feed'] = feedstock.lower()
 
         # raw data tables for fugitive dust and combustion emissions associated with NONROAD equipment
         query = """
@@ -96,7 +96,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         # fertilizer tables for all crops except FR
         if feedstock != 'FR':
             query = """
-                            CREATE TABLE {scenario_name}.{feed}_NFert
+                            CREATE TABLE {scenario_name}.{feed}_nfert
                             (
                             FIPS    char(5)    ,
                             tillage char(5)    ,
@@ -109,7 +109,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
 
         # chemical tables for those crops that use herbicides (previously only CG and SG, now populating for all crops when using regional crop budget)
         query = """
-                       CREATE TABLE {scenario_name}.{feed}_CHEM
+                       CREATE TABLE {scenario_name}.{feed}_chem
                        (
                        FIPS    char(5),
                        tillage char(5)    ,

@@ -109,11 +109,12 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         chem_query = """INSERT INTO {scenario_name}.{cg_chem_table}
                         (
                         SELECT  cg.fips,
-                                'total'
+                                'total',
+                                '1',
                                 (2461850051) AS SCC,
                                 ((cg.total_harv_ac * pest.EF * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
                                 ('Pesticide Emissions') AS Description
-                        FROM {production_schema}.{cg_table} cg, {constants_schema}.CG_pest_app_factor pest
+                        FROM {production_schema}.{cg_table} cg, {constants_schema}.cg_pest_app_factor pest
                         WHERE substr(fips, 1, 2) = pest.STFIPS
                         )""".format(**self.kvals)
 
@@ -132,7 +133,8 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         chem_query = """INSERT INTO {scenario_name}.{sg_chem_table}
                         (
                         SELECT sg.fips,
-                               'total'
+                               'total',
+                               '1',
                                 (2461850099) AS SCC,
                                 (
                                 (
@@ -142,7 +144,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
                                  sg.total_harv_ac * 0.1 * (1.5)
                                 ) * 0.9 * 0.835
                                 ) * 0.90718474 / 2000.0 AS VOC,
-                                ('Establishment Year: quinclorac + Atrazine + 2-4-D-Amine') AS Description
+                                ('Pesticide Emissions') AS Description
                         FROM {production_schema}.{sg_table} sg
                         )""".format(**self.kvals)
 

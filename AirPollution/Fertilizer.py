@@ -200,6 +200,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
             fert_query += """INSERT INTO {scenario_name}.{feed}_nfert
                              SELECT feed.fips,
                              'total',
+                             '1',
                              feed.total_prod * {emissions_nox} AS NOX,
                              feed.total_prod * {emissions_nh3} AS NH3,
                              ({scc}) AS SCC,
@@ -240,6 +241,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
             fert_query += """
                             (   SELECT cd.fips,
                                         'total',
+                                        '1',
 
                                 (((n.Conventional_N * cd.convtill_harv_ac +
                                    n.Conventional_N * cd.reducedtill_harv_ac +
