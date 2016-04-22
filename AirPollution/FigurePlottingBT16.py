@@ -102,7 +102,8 @@ class FigurePlottingBT16:
                      'RT': 'reducedtill',
                      'NT': 'notill'}
 
-        for i, feed in enumerate(self.f_list):
+        i = 0
+        for feed in self.f_list:
             kvals['feed'] = feed.lower()
             for till in till_dict:
                 kvals['till'] = till
@@ -122,6 +123,7 @@ class FigurePlottingBT16:
                                         LEFT JOIN {production_schema}.cs_data cd ON cd.fips = tot.fips
                                         WHERE tot.Tillage = '{till}' AND tot.Feedstock = '{feed}';""".format(**kvals)
                     self.db.input(query_insert)
+                i += 1
 
     def get_chem(self, kvals):
 
