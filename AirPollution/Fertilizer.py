@@ -237,8 +237,8 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                      'NT': 'notill'}
 
         n_till_dict = {'CT': 'Conventional_N ',
-                         'RT': 'Conventional_N ',
-                         'NT': 'NoTill_N'}
+                       'RT': 'Conventional_N ',
+                       'NT': 'NoTill_N'}
 
         i = 0
         for till in till_dict:
