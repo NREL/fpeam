@@ -197,16 +197,23 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
             # emission factor: total mt NH3 per dt feedstock
             self.kvals['emissions_nh3'] = float(self.n_fert_app[feed]) * float(self.fert_dist[feed][fert]) * float(self.n_fert_ef['NH3'][fert]) / 100.0 * 17.0 / 14.0 * 0.90718474 / 2000.0
 
-            fert_query += """INSERT INTO {scenario_name}.{feed}_nfert
-                             SELECT feed.fips,
-                             'total',
-                             '1',
-                             feed.total_prod * {emissions_nox} AS NOX,
-                             feed.total_prod * {emissions_nh3} AS NH3,
-                             ({scc}) AS SCC,
-                             '{description}' AS Description
-                             FROM {production_schema}.{feed}_data feed
-                             GROUP BY feed.fips;\n""".format(**self.kvals)
+            till_dict = {'CT': 'convtill',
+                         'RT': 'reducedtill',
+                         'NT': 'notill'}
+
+            for till in till_dict:
+                self.kvals['tillage'] = till_dict[till]
+                self.kvals['till'] = till
+                fert_query += """INSERT INTO {scenario_name}.{feed}_nfert
+                                 SELECT feed.fips,
+                                 '{till}',
+                                 '1',
+                                 feed.{tillage}_prod * {emissions_nox} AS NOX,
+                                 feed.{tillage}_prod * {emissions_nh3} AS NH3,
+                                 ({scc}) AS SCC,
+                                 '{description}' AS Description
+                                 FROM {production_schema}.{feed}_data feed
+                                 GROUP BY feed.fips;\n""".format(**self.kvals)
 
         if fert_query == '':
             fert_query = None
@@ -225,43 +232,52 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
 
         fert_query = """INSERT INTO {scenario_name}.cg_nfert""".format(**self.kvals)
 
-        for i, fert in enumerate(self.descrip_dict):
+        till_dict = {'CT': 'convtill',
+                     'RT': 'reducedtill',
+                     'NT': 'notill'}
 
-            # set additional values in dictionary for string formatting
-            self.kvals['fert_dist'] = self.fert_dist['CG'][fert]
-            self.kvals['fert_ef_nh3'] = self.n_fert_ef['NH3'][fert]
-            self.kvals['fert_ef_nox'] = self.n_fert_ef['NOX'][fert]
-            self.kvals['scc'] = self.scc_dict[fert]
-            self.kvals['description'] = self.descrip_dict[fert]
+        n_till_dict = {'CT': 'Conventional_N ',
+                         'RT': 'Conventional_N ',
+                         'NT': 'NoTill_N'}
 
-            if i > 0:
+        i = 0
+        for till in till_dict:
+            self.kvals['till']
+            self.kvals['tillage'] = till_dict[till]
+            self.kvals['n_till'] = n_till_dict[till]
+            for fert in self.descrip_dict:
+                if i > 0:
+                    fert_query += """
+                                  UNION
+                                  """
+                # set additional values in dictionary for string formatting
+                self.kvals['fert_dist'] = self.fert_dist['CG'][fert]
+                self.kvals['fert_ef_nh3'] = self.n_fert_ef['NH3'][fert]
+                self.kvals['fert_ef_nox'] = self.n_fert_ef['NOX'][fert]
+                self.kvals['scc'] = self.scc_dict[fert]
+                self.kvals['description'] = self.descrip_dict[fert]
+
                 fert_query += """
-                              UNION
-                              """
-            fert_query += """
-                            (   SELECT cd.fips,
-                                        'total',
-                                        '1',
+                                    (   SELECT cd.fips,
+                                                '{till}',
+                                                '1',
 
-                                (((n.Conventional_N * cd.convtill_harv_ac +
-                                   n.Conventional_N * cd.reducedtill_harv_ac +
-                                   n.NoTill_N * cd.notill_harv_ac) / 2000.0) * ({fert_dist} * {fert_ef_nox} / 100) * 0.90718474 * 30.0 / 14.0) AS NOX,
+                                        (((n.{n_till} * cd.{tillage}_harv_ac) / 2000.0) * ({fert_dist} * {fert_ef_nox} / 100) * 0.90718474 * 30.0 / 14.0) AS NOX,
 
-                                (((n.Conventional_N * cd.convtill_harv_ac +
-                                   n.Conventional_N * cd.reducedtill_harv_ac +
-                                   n.NoTill_N * cd.notill_harv_ac) / 2000.0) * ({fert_dist} * {fert_ef_nh3} / 100) * 0.90718474 * 17.0 / 14.0) AS NH3,
+                                        (((n.{n_till} * cd.{tillage}_harv_ac) / 2000.0) * ({fert_dist} * {fert_ef_nh3} / 100) * 0.90718474 * 17.0 / 14.0) AS NH3,
 
-                                ({scc}) AS SCC,
+                                        ({scc}) AS SCC,
 
-                                '{description}' AS Description
+                                        '{description}' AS Description
 
-                                FROM {constants_schema}.cg_napp n, {production_schema}.cg_data cd
+                                        FROM {constants_schema}.cg_napp n, {production_schema}.cg_data cd
 
-                                WHERE n.fips = cd.fips
+                                        WHERE n.fips = cd.fips
 
-                                GROUP BY cd.fips,
-                                cd.convtill_harv_ac, cd.reducedtill_harv_ac,
-                                cd.notill_harv_ac, n.Conventional_N, n.NoTill_N
-                            )""".format(**self.kvals)
+                                        GROUP BY cd.fips,
+                                        cd.{tillage}_harv_ac, n.{n_till}
+                                    )""".format(**self.kvals)
+
+                i += 1
 
         return fert_query

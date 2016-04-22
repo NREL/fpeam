@@ -106,19 +106,25 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         :return: SQL
         """
 
-        chem_query = """INSERT INTO {scenario_name}.{cg_chem_table}
-                        (
-                        SELECT  cg.fips,
-                                'total',
-                                '1',
-                                (2461850051) AS SCC,
-                                ((cg.total_harv_ac * pest.EF * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
-                                ('Pesticide Emissions') AS Description
-                        FROM {production_schema}.{cg_table} cg, {constants_schema}.cg_pest_app_factor pest
-                        WHERE substr(fips, 1, 2) = pest.STFIPS
-                        )""".format(**self.kvals)
+        till_dict = {'CT': 'convtill',
+                     'RT': 'reducedtill',
+                     'NT': 'notill'}
 
-        return chem_query
+        for till in till_dict:
+            self.kvals['tillage'] = till_dict[till]
+            chem_query = """INSERT INTO {scenario_name}.{cg_chem_table}
+                            (
+                            SELECT  cg.fips,
+                                    '{till}',
+                                    '1',
+                                    (2461850051) AS SCC,
+                                    ((cg.{tillage}_harv_ac * pest.EF * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
+                                    ('Pesticide Emissions') AS Description
+                            FROM {production_schema}.{cg_table} cg, {constants_schema}.cg_pest_app_factor pest
+                            WHERE substr(fips, 1, 2) = pest.STFIPS
+                            )""".format(**self.kvals)
+
+            return chem_query
 
     def __switchgrass__(self):
         """
@@ -133,15 +139,15 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         chem_query = """INSERT INTO {scenario_name}.{sg_chem_table}
                         (
                         SELECT sg.fips,
-                               'total',
+                               'NT',
                                '1',
                                 (2461850099) AS SCC,
                                 (
                                 (
-                                 sg.total_harv_ac * 0.1 * (0.5) +
-                                 sg.total_harv_ac * 0.1 * (1.0) +
-                                 sg.total_harv_ac * 0.1 * (1.0) +
-                                 sg.total_harv_ac * 0.1 * (1.5)
+                                 sg.notill_harv_ac * 0.1 * (0.5) +
+                                 sg.notill_harv_ac * 0.1 * (1.0) +
+                                 sg.notill_harv_ac * 0.1 * (1.0) +
+                                 sg.notill_harv_ac * 0.1 * (1.5)
                                 ) * 0.9 * 0.835
                                 ) * 0.90718474 / 2000.0 AS VOC,
                                 ('Pesticide Emissions') AS Description

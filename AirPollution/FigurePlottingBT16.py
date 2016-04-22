@@ -46,6 +46,7 @@ class FigurePlottingBT16:
                                  CREATE TABLE {scenario_name}.total_emissions (fips char(5),
                                                                               Year char(4),
                                                                               Yield char(2),
+                                                                              Tillage varchar(255),
                                                                               NOx float,
                                                                               NH3 float,
                                                                               VOC float,
@@ -63,8 +64,16 @@ class FigurePlottingBT16:
             kvals['years_rot'] = config.get('crop_budget_dict')['years'][feedstock]
             kvals['feed'] = feedstock.lower()
 
-            logger.info('Inserting data for fertilizer and chemical emissions for feedstock: {feed}'.format(**kvals))
+            logger.info('Inserting data for chemical emissions for feedstock: {feed}'.format(**kvals))
             self.get_chem(kvals)
+
+            logger.info('Inserting data for fertilizer emissions for feedstock: {feed}'.format(**kvals))
+            self.get_fert(kvals)
+
+            self.get_irrig(kvals)
+            self.get_loading(kvals)
+            self.get_h_fd(kvals)
+            self.get_nh_fd(kvals)
 
             logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
             self.get_non_harvest(kvals)
@@ -77,35 +86,122 @@ class FigurePlottingBT16:
 
     def get_chem(self, kvals):
 
-        query_fert_chem = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
-                              SELECT   fert.fips,
+        query_fert_chem = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                              SELECT   chem.fips,
                                        '{year}' as 'Year',
                                        '{yield}' as 'Yield',
-                                       fert.NOx as 'NOx',
-                                       fert.NH3 as 'NH3',
+                                       chem.tillage as 'Tillage',
+                                       0 as 'NOx',
+                                       0 as 'NH3',
                                        chem.VOC as 'VOC',
                                        0 as 'PM10',
                                        0 as 'PM25',
                                        0 as 'SOx',
                                        0 as 'CO',
-                                       'Fertilizer and Chemical' as 'Source_Category',
+                                       'Chemical' as 'Source_Category',
                                        'NP' as 'NEI_Category',
                                        '{feed}' as 'Feedstock'
-                              FROM (SELECT fips, sum(NOx)/{years_rot} as 'NOx', sum(NH3)/{years_rot} as 'NH3'
-                                    FROM {scenario_name}.{feed}_nfert
-                                    GROUP BY fips) fert,
-                                    (SELECT fips, sum(VOC)/{years_rot} as 'VOC'
+                              FROM  (SELECT fips, sum(VOC)/{years_rot} as 'VOC', tillage
                                     FROM {scenario_name}.{feed}_chem
-                                    GROUP BY fips) chem
-                              WHERE fert.fips = chem.fips;
+                                    GROUP BY fips) chem;
                          """.format(**kvals)
         self.db.input(query_fert_chem)
 
+    def get_fert(self, kvals):
+
+        query_fert_fert = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                              SELECT   fert.fips,
+                                       '{year}' as 'Year',
+                                       '{yield}' as 'Yield',
+                                       fert.tillage as 'Tillage',
+                                       fert.NOx as 'NOx',
+                                       fert.NH3 as 'NH3',
+                                       0 as 'VOC',
+                                       0 as 'PM10',
+                                       0 as 'PM25',
+                                       0 as 'SOx',
+                                       0 as 'CO',
+                                       'Fertilizer' as 'Source_Category',
+                                       'NP' as 'NEI_Category',
+                                       '{feed}' as 'Feedstock'
+                              FROM (SELECT fips, sum(NOx)/{years_rot} as 'NOx', sum(NH3)/{years_rot} as 'NH3', tillage
+                                    FROM {scenario_name}.{feed}_nfert
+                                    GROUP BY fips) fert;
+                         """.format(**kvals)
+        self.db.input(query_fert_fert)
+
     def get_non_harvest(self, kvals):
-        query_non_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+        if kvals['feed'] != 'sg':
+            query_non_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                    SELECT fips,
+                                           '{year}' as 'Year',
+                                           '{yield}' as 'Yield',
+                                           CONCAT(LEFT(RIGHT(run_code, 2),1), 'T') as 'Tillage',
+                                           sum(NOx)/{years_rot} as 'NOx',
+                                           sum(NH3)/{years_rot} as 'NH3',
+                                           sum(VOC)/{years_rot} as 'VOC',
+                                           sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)) as 'PM10',
+                                           sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)) as 'PM25',
+                                           sum(SOx)/{years_rot} as 'SOx',
+                                           sum(CO)/{years_rot} as 'CO',
+                                           'Non-Harvest' as 'Source_Category',
+                                           'NR' as 'NEI_Category',
+                                           '{feed}' as 'Feedstock'
+                                    FROM {scenario_name}.{feed}_raw
+                                    WHERE description LIKE '%Non-Harvest%' AND description not LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) != 'I'
+                                    GROUP BY fips;
+                                """.format(**kvals)
+            self.db.input(query_non_harvest)
+        else:
+            query_non_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                    SELECT fips,
+                                           '{year}' as 'Year',
+                                           '{yield}' as 'Yield',
+                                           'NT' as 'Tillage',
+                                           sum(NOx)/{years_rot} as 'NOx',
+                                           sum(NH3)/{years_rot} as 'NH3',
+                                           sum(VOC)/{years_rot} as 'VOC',
+                                           sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)) as 'PM10',
+                                           sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)) as 'PM25',
+                                           sum(SOx)/{years_rot} as 'SOx',
+                                           sum(CO)/{years_rot} as 'CO',
+                                           'Non-Harvest' as 'Source_Category',
+                                           'NR' as 'NEI_Category',
+                                           '{feed}' as 'Feedstock'
+                                    FROM {scenario_name}.{feed}_raw
+                                    WHERE description LIKE '%Non-Harvest%' AND description not LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) != 'I'
+                                    GROUP BY fips;
+                                """.format(**kvals)
+            self.db.input(query_non_harvest)
+
+    def get_nh_fd(self, kvals):
+        if kvals['feed'] != 'sg':
+            query_non_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                    SELECT fips,
+                                           '{year}' as 'Year',
+                                           '{yield}' as 'Yield',
+                                           CONCAT(LEFT(RIGHT(run_code, 2),1), 'T') as 'Tillage',
+                                           sum(NOx)/{years_rot} as 'NOx',
+                                           sum(NH3)/{years_rot} as 'NH3',
+                                           sum(VOC)/{years_rot} as 'VOC',
+                                           sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)) as 'PM10',
+                                           sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)) as 'PM25',
+                                           sum(SOx)/{years_rot} as 'SOx',
+                                           sum(CO)/{years_rot} as 'CO',
+                                           'Non-Harvest - fug dust' as 'Source_Category',
+                                           'NR' as 'NEI_Category',
+                                           '{feed}' as 'Feedstock'
+                                    FROM {scenario_name}.{feed}_raw
+                                    WHERE description LIKE '%Non-Harvest%' AND description LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) != 'I'
+                                    GROUP BY fips;
+                                """.format(**kvals)
+            self.db.input(query_non_harvest)
+        else:
+            query_non_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
                                 SELECT fips,
                                        '{year}' as 'Year',
                                        '{yield}' as 'Yield',
+                                       'NT',
                                        sum(NOx)/{years_rot} as 'NOx',
                                        sum(NH3)/{years_rot} as 'NH3',
                                        sum(VOC)/{years_rot} as 'VOC',
@@ -113,20 +209,106 @@ class FigurePlottingBT16:
                                        sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)) as 'PM25',
                                        sum(SOx)/{years_rot} as 'SOx',
                                        sum(CO)/{years_rot} as 'CO',
-                                       'Non-Harvest' as 'Source_Category',
+                                       'Non-Harvest - fug dust' as 'Source_Category',
                                        'NR' as 'NEI_Category',
                                        '{feed}' as 'Feedstock'
                                 FROM {scenario_name}.{feed}_raw
-                                WHERE description LIKE '%Non-Harvest%'
+                                WHERE description LIKE '%Non-Harvest%' AND description LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) != 'I'
                                 GROUP BY fips;
                             """.format(**kvals)
         self.db.input(query_non_harvest)
 
+    def get_irrig(self, kvals):
+        if kvals['feed'] == 'cg':
+            query_non_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                    SELECT fips,
+                                           '{year}' as 'Year',
+                                           '{yield}' as 'Yield',
+                                           'CT',
+                                           sum(NOx)/{years_rot} as 'NOx',
+                                           sum(NH3)/{years_rot} as 'NH3',
+                                           sum(VOC)/{years_rot} as 'VOC',
+                                           sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)) as 'PM10',
+                                           sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)) as 'PM25',
+                                           sum(SOx)/{years_rot} as 'SOx',
+                                           sum(CO)/{years_rot} as 'CO',
+                                           'Irrigation' as 'Source_Category',
+                                           'NR' as 'NEI_Category',
+                                           '{feed}' as 'cg'
+                                    FROM {scenario_name}.{feed}_raw
+                                    WHERE description LIKE '%Non-Harvest%' AND description not LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) = 'I'
+                                    GROUP BY fips;
+                                """.format(**kvals)
+            self.db.input(query_non_harvest)
+            query_non_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                    SELECT fips,
+                                           '{year}' as 'Year',
+                                           '{yield}' as 'Yield',
+                                           'RT',
+                                           sum(NOx)/{years_rot} as 'NOx',
+                                           sum(NH3)/{years_rot} as 'NH3',
+                                           sum(VOC)/{years_rot} as 'VOC',
+                                           sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)) as 'PM10',
+                                           sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)) as 'PM25',
+                                           sum(SOx)/{years_rot} as 'SOx',
+                                           sum(CO)/{years_rot} as 'CO',
+                                           'Irrigation' as 'Source_Category',
+                                           'NR' as 'NEI_Category',
+                                           '{feed}' as 'cg'
+                                    FROM {scenario_name}.{feed}_raw
+                                    WHERE description LIKE '%Non-Harvest%' AND description not LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) = 'I'
+                                    GROUP BY fips;
+                                """.format(**kvals)
+            self.db.input(query_non_harvest)
+            query_non_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                    SELECT fips,
+                                           '{year}' as 'Year',
+                                           '{yield}' as 'Yield',
+                                           'NT',
+                                           sum(NOx)/{years_rot} as 'NOx',
+                                           sum(NH3)/{years_rot} as 'NH3',
+                                           sum(VOC)/{years_rot} as 'VOC',
+                                           sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)) as 'PM10',
+                                           sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)) as 'PM25',
+                                           sum(SOx)/{years_rot} as 'SOx',
+                                           sum(CO)/{years_rot} as 'CO',
+                                           'Irrigation' as 'Source_Category',
+                                           'NR' as 'NEI_Category',
+                                           '{feed}' as 'cg'
+                                    FROM {scenario_name}.{feed}_raw
+                                    WHERE description LIKE '%Non-Harvest%' AND description not LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) = 'I'
+                                    GROUP BY fips;
+                                """.format(**kvals)
+            self.db.input(query_non_harvest)
+
     def get_harvest(self, kvals):
-        query_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+        if kvals['feed'] != 'sg':
+            query_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                SELECT fips,
+                                       '{year}' as 'Year',
+                                       '{yield}' as 'Yield',
+                                       CONCAT(LEFT(RIGHT(run_code, 2),1), 'T') as 'Tillage',
+                                       sum(NOx)/{years_rot} as 'NOx',
+                                       sum(NH3)/{years_rot} as 'NH3',
+                                       sum(VOC)/{years_rot} as 'VOC',
+                                       sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)/{years_rot}) as 'PM10',
+                                       sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)/{years_rot}) as 'PM25',
+                                       sum(SOx)/{years_rot} as 'SOx',
+                                       sum(CO)/{years_rot} as 'CO',
+                                       'Harvest' as 'Source_Category',
+                                       'NR' as 'NEI_Category',
+                                       '{feed}' as 'Feedstock'
+                                FROM {scenario_name}.{feed}_raw
+                                WHERE (description LIKE '% Harvest%' AND description not LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) != 'I')
+                                GROUP BY fips;
+                            """.format(**kvals)
+            self.db.input(query_harvest)
+        else:
+            query_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
                             SELECT fips,
                                    '{year}' as 'Year',
                                    '{yield}' as 'Yield',
+                                   'NT',
                                    sum(NOx)/{years_rot} as 'NOx',
                                    sum(NH3)/{years_rot} as 'NH3',
                                    sum(VOC)/{years_rot} as 'VOC',
@@ -138,10 +320,98 @@ class FigurePlottingBT16:
                                    'NR' as 'NEI_Category',
                                    '{feed}' as 'Feedstock'
                             FROM {scenario_name}.{feed}_raw
-                            WHERE (description LIKE '% Harvest%' OR description = 'Loading')
+                            WHERE (description LIKE '% Harvest%' AND description not LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) != 'I')
                             GROUP BY fips;
                         """.format(**kvals)
         self.db.input(query_harvest)
+
+    def get_h_fd(self, kvals):
+        if kvals['feed'] != 'sg':
+            query_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                SELECT fips,
+                                       '{year}' as 'Year',
+                                       '{yield}' as 'Yield',
+                                       CONCAT(LEFT(RIGHT(run_code, 2),1), 'T') as 'Tillage',
+                                       sum(NOx)/{years_rot} as 'NOx',
+                                       sum(NH3)/{years_rot} as 'NH3',
+                                       sum(VOC)/{years_rot} as 'VOC',
+                                       sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)/{years_rot}) as 'PM10',
+                                       sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)/{years_rot}) as 'PM25',
+                                       sum(SOx)/{years_rot} as 'SOx',
+                                       sum(CO)/{years_rot} as 'CO',
+                                       'Harvest - fug dust' as 'Source_Category',
+                                       'NR' as 'NEI_Category',
+                                       '{feed}' as 'Feedstock'
+                                FROM {scenario_name}.{feed}_raw
+                                WHERE (description LIKE '% Harvest%' AND description LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) != 'I')
+                                GROUP BY fips;
+                            """.format(**kvals)
+            self.db.input(query_harvest)
+        else:
+            query_harvest = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                SELECT fips,
+                                       '{year}' as 'Year',
+                                       '{yield}' as 'Yield',
+                                       'NT',
+                                       sum(NOx)/{years_rot} as 'NOx',
+                                       sum(NH3)/{years_rot} as 'NH3',
+                                       sum(VOC)/{years_rot} as 'VOC',
+                                       sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)/{years_rot}) as 'PM10',
+                                       sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)/{years_rot}) as 'PM25',
+                                       sum(SOx)/{years_rot} as 'SOx',
+                                       sum(CO)/{years_rot} as 'CO',
+                                       'Harvest - fug dust' as 'Source_Category',
+                                       'NR' as 'NEI_Category',
+                                       '{feed}' as 'Feedstock'
+                                FROM {scenario_name}.{feed}_raw
+                                WHERE (description LIKE '% Harvest%' AND description LIKE '%dust%' AND LEFT(RIGHT(run_code,2),1) != 'I')
+                                GROUP BY fips;
+                            """.format(**kvals)
+            self.db.input(query_harvest)
+
+    def get_loading(self, kvals):
+        if kvals['feed'] != 'sg':
+            query_loading = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                                SELECT fips,
+                                       '{year}' as 'Year',
+                                       '{yield}' as 'Yield',
+                                       CONCAT(LEFT(RIGHT(run_code, 2),1), 'T') as 'Tillage',
+                                       sum(NOx)/{years_rot} as 'NOx',
+                                       sum(NH3)/{years_rot} as 'NH3',
+                                       sum(VOC)/{years_rot} as 'VOC',
+                                       sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)/{years_rot}) as 'PM10',
+                                       sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)/{years_rot}) as 'PM25',
+                                       sum(SOx)/{years_rot} as 'SOx',
+                                       sum(CO)/{years_rot} as 'CO',
+                                       'Loading' as 'Source_Category',
+                                       'NR' as 'NEI_Category',
+                                       '{feed}' as 'Feedstock'
+                                FROM {scenario_name}.{feed}_raw
+                                WHERE (description = 'Loading' AND LEFT(RIGHT(run_code,2),1) != 'I')
+                                GROUP BY fips;
+                            """.format(**kvals)
+            self.db.input(query_loading)
+        else:
+            query_loading = """ INSERT INTO {scenario_name}.total_emissions (fips, Year, Yield, Tillage, NOx, NH3, VOC, PM10, PM25, SOx, CO, Source_Category, NEI_Category, Feedstock)
+                            SELECT fips,
+                                   '{year}' as 'Year',
+                                   '{yield}' as 'Yield',
+                                   'NT',
+                                   sum(NOx)/{years_rot} as 'NOx',
+                                   sum(NH3)/{years_rot} as 'NH3',
+                                   sum(VOC)/{years_rot} as 'VOC',
+                                   sum(PM10)/{years_rot} + sum(IFNULL(fug_pm10, 0)/{years_rot}) as 'PM10',
+                                   sum(PM25)/{years_rot} + sum(IFNULL(fug_pm25, 0)/{years_rot}) as 'PM25',
+                                   sum(SOx)/{years_rot} as 'SOx',
+                                   sum(CO)/{years_rot} as 'CO',
+                                   'Loading' as 'Source_Category',
+                                   'NR' as 'NEI_Category',
+                                   '{feed}' as 'Feedstock'
+                            FROM {scenario_name}.{feed}_raw
+                            WHERE (description = 'Loading' AND LEFT(RIGHT(run_code,2),1) != 'I')
+                            GROUP BY fips;
+                        """.format(**kvals)
+        self.db.input(query_loading)
 
     def get_logistics(self, kvals):
         system_list = ['A', 'C']
