@@ -111,6 +111,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
                      'NT': 'notill'}
 
         for till in till_dict:
+            self.kvals['till'] = till
             self.kvals['tillage'] = till_dict[till]
             chem_query = """INSERT INTO {scenario_name}.{cg_chem_table}
                             (
