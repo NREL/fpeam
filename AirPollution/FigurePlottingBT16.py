@@ -27,17 +27,16 @@ class FigurePlottingBT16:
         self.pol_list_label = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', ]
         self.pol_list = ['NOx', 'VOC', 'PM25', 'CO', 'PM10', 'SOx', ]
 
-        self.feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw',]# 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
-        self.f_list = ['CG', 'SG', 'CS', 'WS',]# 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
+        self.feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw',]  # 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
+        self.f_list = ['CG', 'SG', 'CS', 'WS',]  # 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']
 
-        self.etoh_vals = [2.76/0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton
+        self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton
 
         self.feed_id_dict = config.get('feed_id_dict')
 
     def compile_results(self):
         # initialize kvals dict for string formatting
-
         kvals = {'scenario_name': config.get('title'),
                  'year': config.get('year_dict')['all_crops'],
                  'yield': config.get('yield'),
@@ -57,7 +56,7 @@ class FigurePlottingBT16:
                                                                               CO float,
                                                                               Source_Category varchar(255),
                                                                               NEI_Category char(2),
-                                                                              Feedstock char(2))
+                                                                              Feedstock char(2));
                             """.format(**kvals)
         self.db.create(query_create_table)
 
@@ -109,18 +108,19 @@ class FigurePlottingBT16:
                 kvals['till'] = till
                 kvals['tillage'] = till_dict[till]
                 if i == 0:
-                    query_create = """  DROP TABLE IF EXISTS {scenario_name}.total_emissions_join_prod;
-                                        CREATE TABLE {scenario_name}.total_emissions_join_prod
-                                        AS (SELECT tot.*, cd.convtill_prod as 'prod', cd.convtill_harv_ac as 'harv_ac'
-                                        FROM {scenario_name}.total_emissions tot
-                                        LEFT JOIN {production_schema}.cg_data cd ON cd.fips = tot.fips
-                                        WHERE tot.Tillage = 'CT' AND tot.Feedstock = 'cg');""".format(**kvals)
+                    query_create = """ DROP TABLE IF EXISTS {scenario_name}.total_emissions_join_prod;
+                                       CREATE TABLE {scenario_name}.total_emissions_join_prod
+                                       AS (SELECT tot.*, cd.{tillage}_prod as 'prod', cd.{tillage}_harv_ac as 'harv_ac'
+                                           FROM {scenario_name}.total_emissions tot
+                                           LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = tot.fips
+                                           WHERE tot.Tillage = '{till}' AND tot.Feedstock = '{feed}');
+                                    """.format(**kvals)
                     self.db.create(query_create)
                 else:
                     query_insert = """  INSERT INTO {scenario_name}.total_emissions_join_prod
                                         SELECT tot.*, cd.{tillage}_prod as 'prod', cd.{tillage}_harv_ac as 'harv_ac'
                                         FROM {scenario_name}.total_emissions tot
-                                        LEFT JOIN {production_schema}.cs_data cd ON cd.fips = tot.fips
+                                        LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = tot.fips
                                         WHERE tot.Tillage = '{till}' AND tot.Feedstock = '{feed}';""".format(**kvals)
                     self.db.input(query_insert)
                 i += 1
@@ -142,9 +142,9 @@ class FigurePlottingBT16:
                                        'Chemical' as 'Source_Category',
                                        'NP' as 'NEI_Category',
                                        '{feed}' as 'Feedstock'
-                              FROM  (SELECT fips, sum(VOC)/{years_rot} as 'VOC', tillage
-                                    FROM {scenario_name}.{feed}_chem
-                                    GROUP BY fips) chem;
+                              FROM  (SELECT fips, sum(VOC) / {years_rot} as 'VOC', tillage
+                                     FROM {scenario_name}.{feed}_chem
+                                     GROUP BY fips) chem;
                          """.format(**kvals)
         self.db.input(query_fert_chem)
 
@@ -165,7 +165,7 @@ class FigurePlottingBT16:
                                        'Fertilizer' as 'Source_Category',
                                        'NP' as 'NEI_Category',
                                        '{feed}' as 'Feedstock'
-                              FROM (SELECT fips, sum(NOx)/{years_rot} as 'NOx', sum(NH3)/{years_rot} as 'NH3', tillage
+                              FROM (SELECT fips, sum(NOx) / {years_rot} as 'NOx', sum(NH3) / {years_rot} as 'NH3', tillage
                                     FROM {scenario_name}.{feed}_nfert
                                     GROUP BY fips) fert;
                          """.format(**kvals)

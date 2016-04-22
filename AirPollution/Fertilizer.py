@@ -242,7 +242,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
 
         i = 0
         for till in till_dict:
-            self.kvals['till']
+            self.kvals['till'] = till
             self.kvals['tillage'] = till_dict[till]
             self.kvals['n_till'] = n_till_dict[till]
             for fert in self.descrip_dict:
