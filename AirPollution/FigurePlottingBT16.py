@@ -390,12 +390,13 @@ class FigurePlottingBT16:
                  'scenario_name': config.get('title'),
                  'production_schema': config.get('production_schema')}
 
-        query_emissions_per_prod = """ SELECT (sum({pollutant}))/prod.total_prod AS 'mt_{pollutant}_perdt'
+        query_emissions_per_prod = """ SELECT (sum({pollutant}) / prod.total_prod) AS 'mt_{pollutant}_perdt'
                                        FROM {scenario_name}.total_emissions tot
                                        LEFT JOIN {production_schema}.{feed_abr}_data prod ON tot.fips = prod.fips
-                                       WHERE  prod.total_prod > 0.0 AND tot.{pollutant} > 0
+                                       WHERE prod.total_prod > 0.0 AND tot.{pollutant} > 0
                                        GROUP BY tot.FIPS
-                                       ORDER BY tot.FIPS""".format(**kvals)
+                                       ORDER BY tot.FIPS;
+                                   """.format(**kvals)
         emissions_per_production = self.db.output(query_emissions_per_prod)
 
         return emissions_per_production
