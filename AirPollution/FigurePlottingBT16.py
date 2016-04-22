@@ -40,7 +40,8 @@ class FigurePlottingBT16:
 
         kvals = {'scenario_name': config.get('title'),
                  'year': config.get('year_dict')['all_crops'],
-                 'yield': config.get('yield'), }
+                 'yield': config.get('yield'),
+                 'production_schema': config.get('production_schema')}
 
         query_create_table = """ DROP TABLE IF EXISTS {scenario_name}.total_emissions;
                                  CREATE TABLE {scenario_name}.total_emissions (fips char(5),
@@ -70,9 +71,17 @@ class FigurePlottingBT16:
             logger.info('Inserting data for fertilizer emissions for feedstock: {feed}'.format(**kvals))
             self.get_fert(kvals)
 
-            self.get_irrig(kvals)
+            if feedstock == 'CG':
+                logger.info('Inserting data for irrigation for feedstock: {feed}'.format(**kvals))
+                self.get_irrig(kvals)
+
+            logger.info('Inserting data for loading for feedstock: {feed}'.format(**kvals))
             self.get_loading(kvals)
+
+            logger.info('Inserting data for harvest fugitive dust: {feed}'.format(**kvals))
             self.get_h_fd(kvals)
+
+            logger.info('Inserting data for non-harvest fugitive dust for feedstock: {feed}'.format(**kvals))
             self.get_nh_fd(kvals)
 
             logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
@@ -83,6 +92,36 @@ class FigurePlottingBT16:
 
 #            logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
 #            self.get_logistics(kvals)
+
+        logger.info('Joining total emissions with production data')
+        self.join_with_production_data(kvals)
+
+    def join_with_production_data(self, kvals):
+
+        till_dict = {'CT': 'convtill',
+                     'RT': 'reducedtill',
+                     'NT': 'notill'}
+
+        for i, feed in enumerate(self.f_list):
+            kvals['feed'] = feed.lower()
+            for till in till_dict:
+                kvals['till'] = till
+                kvals['tillage'] = till_dict[till]
+                if i == 0:
+                    query_create = """  DROP TABLE IF EXISTS {scenario_name}.total_emissions_join_prod;
+                                        CREATE TABLE {scenario_name}.total_emissions_join_prod
+                                        AS (SELECT tot.*, cd.convtill_prod as 'prod', cd.convtill_harv_ac as 'harv_ac'
+                                        FROM {scenario_name}.total_emissions tot
+                                        LEFT JOIN {production_schema}.cg_data cd ON cd.fips = tot.fips
+                                        WHERE tot.Tillage = 'CT' AND tot.Feedstock = 'cg');""".format(**kvals)
+                    self.db.create(query_create)
+                else:
+                    query_insert = """  INSERT INTO {scenario_name}.total_emissions_join_prod
+                                        SELECT tot.*, cd.{tillage}_prod as 'prod', cd.{tillage}_harv_ac as 'harv_ac'
+                                        FROM {scenario_name}.total_emissions tot
+                                        LEFT JOIN {production_schema}.cs_data cd ON cd.fips = tot.fips
+                                        WHERE tot.Tillage = '{till}' AND tot.Feedstock = '{feed}';""".format(**kvals)
+                    self.db.input(query_insert)
 
     def get_chem(self, kvals):
 
