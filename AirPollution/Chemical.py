@@ -139,7 +139,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         kvals = self.kvals
 
         # yearly percent
-        yr_pct = 0.1
+        kvals['yr_pct'] = 0.1
 
         # pesticide amount for each year in cycle
         crop_years = {1: 2.5,  # @TODO: remove hardcoded year allocations
