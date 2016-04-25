@@ -31,14 +31,14 @@ class RatioToNEIFig():
         self.path = cont.get('path')
         self.document_file = "RatioToNEIFig"
     
-        self.f = open(self.path + 'Figures' + os.sep + 'RatioToNEI_Numerical.csv', 'w')  # @TODO: remove hardcoded filename
+        self.f = open(os.path.join(self.path, 'Figures', 'RatioToNEI_Numerical.csv'), 'w')  # @TODO: remove hardcoded filename
         
         self.f.write('feedstock, pollutant, max, 95, 75, median, 25, 5, min \n')
         
         pollutant_list = ['NH3', 'NOX', 'VOC', 'PM25', 'PM10', 'CO', 'SOX']  # @TODO: remove hardcoded values
         # define inputs/constants:
         data_labels = ['$NH_3$', '$NO_x$', '$VOC$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$']
-        feedstock_list = ['corn grain', 'switchgrass', 'corn stover', 'wheat straw', 'forest residue', 'cellulosic']  # @TODO: remove hardcoded values
+        feedstock_list = ['corn grain', 'switchgrass', 'corn stover', 'wheat straw', ]# 'cellulosic'] # 'forest residue',  # @TODO: remove hardcoded values
 
         # return number arrays for plotting
         self.num_pollut = 6
@@ -46,7 +46,7 @@ class RatioToNEIFig():
         
         plot_title = ''
     
-        for feedstock in range(6):  # @TODO: refactor to use dictionary lookup
+        for feedstock in range(4):  # @TODO: refactor to use dictionary lookup
             # Model Corn Grain Scenario
             if feedstock == 0:
                 query_table = "cg_neiratio"
@@ -62,18 +62,19 @@ class RatioToNEIFig():
             # Model Wheat Straw scenario
             elif feedstock == 3:
                 query_table = "ws_neiratio"
-                
-            # Model Forest Residue scenario
-            elif feedstock == 4:
-                query_table = "fr_neiratio"
+
             # Model all cellulosic
-            elif feedstock == 5:
+            elif feedstock == 4:
                 query_table = "cellulosic_neiratio"
+
+            # Model Forest Residue scenario
+            elif feedstock == 5:
+                query_table = "fr_neiratio"
                 
             print query_table  # @TODO: convert to logger
             # Sets Y-Axis label to include (n) county totals---------
             query_count = 'SELECT COUNT(fips) FROM %s.%s' % (self.db.schema, query_table)
-            county_num = self.db.output(query_count, self.db.schema)
+            county_num = self.db.output(query_count)
             county_fix = ''.join(str(s) for s in str(county_num) if s not in "()L[],")  # @TODO: replace with standard function
             axis_title = 'Ratio (R) of %s emissions to 2008 NEI\n (n = %s counties)' % (feedstock_list[feedstock], county_fix)
             # PART 1, EXTRACT DATA FROM THE DATABASE-----------------
@@ -105,13 +106,13 @@ class RatioToNEIFig():
             # perc95 = self.__plot_interval__(data_array)
             self.__plot_interval__(data_array)
             
-            # tT = self.__count_at_threshold__(query_table)
-            self.__count_at_threshold__(query_table)
+            # # tT = self.__count_at_threshold__(query_table)
+            # self.__count_at_threshold__(query_table)
             
             self.__set_axis__(plot_title, axis_title, data_array, data_labels)    
 
             # show()
-            fig.savefig(self.path + 'Figures' + os.sep + 'RatioToNEI_' + query_table + '.png', format='png')
+            fig.savefig(os.path.join(self.path, 'Figures', 'RatioToNEI_' + query_table + '.png'), format='png')
 
     #        print figure to a .png file (small file size)
     #        canvas.print_figure(query_table + '.tiff')
@@ -158,7 +159,7 @@ class RatioToNEIFig():
         query = """SELECT """ + pollutant + """
                 FROM """ + self.db.schema + """.""" + query_table + """
                 WHERE """ + pollutant + """ > 0.0;"""  
-        data = self.db.output(query, self.db.schema)
+        data = self.db.output(query)
         return data
 
     def __general_stats__(self, data_array, pollutant_list, feedstock_list, feedstock):
@@ -345,7 +346,7 @@ class RatioToNEIFig():
                                                                                 query_table, query_table, query_table, 
                                                                                 query_table, query_table, query_table)
 
-        nh302_data = self.db.output(query1, self.db.schema)
+        nh302_data = self.db.output(query1)
         nh302_fix = ''.join(str(s) for s in str(nh302_data) if s not in "()L[],")  # @TODO: replace with standard function
         self.ax1.text(0.8, 0.7e-7, nh302_fix, size=11, color='red')
         # plt.figtext(0.2, 0.2, nh302_fix)

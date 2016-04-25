@@ -30,7 +30,7 @@ class ContributionAnalysis():
     #    startTime = time.time()
     # -----------inputs begin
         # create container and canvas for all plots.
-        fig = Figure(figsize=(7,5), dpi=200) 
+        fig = Figure(figsize=(7,5), dpi=200)
         canvas = FigureCanvas(fig)
             
         f_color = ['r', 'b', 'g', 'k', 'c']
@@ -39,8 +39,8 @@ class ContributionAnalysis():
         feedstock_list = ['CG', 'SG', 'CS', 'WS'] # , 'FR']
         pollutant_list = [ 'NOx', 'VOC', 'PM25', 'PM10', 'CO', 'SOx'] # 'NH3',
         pollutant_labels = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$'] #'$NH_3$', 
-        activity_list = ['Non-Harvest', 'Fertilizer and Chemical', 'Harvest'] #, 'Transport']
-        activity_labels = ['Non-Harvest', 'N-Fertilizer and Pesticide', 'Harvest'] #, 'Transport']
+        activity_list = ['Non-Harvest', 'Fertilizer', 'Chemical', 'Harvest' ] #, 'Transport']
+        activity_labels = ['Non-Harvest', 'N-Fertilizer', 'Pesticide', 'Harvest'] #, 'Transport']
         
         self.f = open(os.path.join(self.path, 'Figures', 'Contribution_numerical.csv'), 'w')
     # -----------inputs end
@@ -51,24 +51,24 @@ class ContributionAnalysis():
             # create subplots.
             for titleLabel, pollutant in enumerate(pollutant_list):
                 # add a sublot to the figure.
-                ax = fig.add_subplot(5, 7, index + 1)
+                ax = fig.add_subplot(5, len(pollutant_list), index + 1)
                 # set the min and max of the axis.
                 ax.set_xlim([-1, 5])
                 ax.set_ylim([-0.1, 1.1])
           
                 # show y labels on first column only
-                if index % 7 == 0:
+                if index % len(pollutant_list) == 0:
                     matplotlib.rcParams.update({'font.size': 8})
                     ax.set_ylabel(activity_labels[y_label])
                 else: 
                     ax.set_yticklabels([])
                 
                 # show pollutant labels above first row of plots
-                if index < 7:
+                if index < len(pollutant_list):
                     ax.set_title(pollutant_labels[titleLabel])
                 
                 # show x labels below last row only
-                if index < 28:
+                if index < len(pollutant_list)*len(activity_list):
                     ax.set_xticklabels([])
                 else:
                     ax.set_xticklabels(([''] + feedstock_list), rotation='vertical')
@@ -85,7 +85,7 @@ class ContributionAnalysis():
         
     #    print figure to a .png file (small file size)
     #    canvas.print_figure('Contribution Analysis.tiff')      
-        fig.savefig(self.path + 'Figures' + os.sep + 'Contribution_Figure.png', format='png')
+        fig.savefig(os.path.join(self.path, 'Figures', 'Contribution_Figure.png'), format='png')
            
         self.f.close()
     #    print time.time() - startTime, ' seconds'

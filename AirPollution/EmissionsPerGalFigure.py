@@ -76,7 +76,7 @@ class EmissionsPerGallon():
             # perc95 = self.__plot_interval__(data_array)
             self.__plot_interval__(data_array)
 
-            fig.savefig(self.path + 'Figures' + os.sep + 'PerGalEtOH_' + pollutant + '.png', format='png')
+            fig.savefig(os.path.join(self.path, 'Figures', 'PerGalEtOH_' + pollutant + '.png'), format='png')
 
             print pollutant
 
@@ -108,18 +108,19 @@ class EmissionsPerGallon():
 
     def __plot_interval__(self, data_array):
 
-        num_feed = 5
+        num_feed = 4
         num_array = array([x for x in range(num_feed)]) + 1  # index starts at 1, not zero
 
-        # plot 95% interval
-        perc95 = array([scoreatpercentile(data_array[0], 95), scoreatpercentile(data_array[1], 95),
-                        scoreatpercentile(data_array[2], 95), scoreatpercentile(data_array[3], 95), 
-                        scoreatpercentile(data_array[4], 95)])
+        perc95list = list()
+        perc5list = list()
+        for i in range(0, num_feed):
+            # plot 95% interval
+            perc95list.append(scoreatpercentile(data_array[i], 95))
 
-        # plot 5% interval
-        perc5 = array([scoreatpercentile(data_array[0], 5), scoreatpercentile(data_array[1], 5),
-                       scoreatpercentile(data_array[2], 5), scoreatpercentile(data_array[3], 5), 
-                       scoreatpercentile(data_array[4], 5)])
+            # plot 5% interval
+            perc5list.append(scoreatpercentile(data_array[i], 5))
+        perc95 = array(perc95list)
+        perc5 = array(perc5list)
 
         plt.plot(num_array, perc95, '_', markersize=15, color='k')
         plt.plot(num_array, perc5, '_', markersize=15, color='k')
@@ -151,7 +152,7 @@ class EmissionsPerGallon():
         # -------------------------------------------------------------------------------
         # This section plots the smallest values that do not show up on the graph
         # Labeled with an arrow, and the max/min values.
-        position_list = [0, 2, 3, 4, 5]
+        position_list = [0, 1, 2, 3]
         position_data = []
         for p_num, position in enumerate(position_list):
             min_val = min(data_array[p_num])[0]

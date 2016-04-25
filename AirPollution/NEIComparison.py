@@ -18,9 +18,11 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         self.document_file = "NEIComparison"
         self.nei_data_by_county = None
         self.scenario_name = cont.get('model_run_title')
+        self.db = cont.get('db')
 
         query = """
-        CREATE TABLE {scenario}.summedEmissions
+        DROP TABLE IF EXISTS {scenario}.summedemissions;
+        CREATE TABLE {scenario}.summedemissions
         (
         fips      char(5),
         feedstock text,
@@ -34,7 +36,7 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         PM25      float DEFAULT 0.0,
         CO        float DEFAULT 0.0);""".format(scenario=self.scenario_name)
 
-        self._execute_query(query)
+        self.db.create(query)
 
     def __set_nei_ratio_table__(self, feedstock):
         """
@@ -44,7 +46,8 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         """
 
         query = """
-        CREATE TABLE {scenario}.{feedstock}_NEIRatio
+        DROP TABLE IF EXISTS {scenario}.{feedstock}_neiratio;
+        CREATE TABLE {scenario}.{feedstock}_neiratio
         (
         fips char(5),
         nox  float,
@@ -55,7 +58,7 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         voc  float,
         nh3  float);""".format(scenario=self.scenario_name, feedstock=feedstock, )
 
-        self._execute_query(query)
+        self.db.create(query)
 
     def create_summed_emissions_table(self, feedstock):
         """
@@ -73,70 +76,23 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
             prod = "dat.total_prod, dat.total_harv_ac"
         elif feedstock == 'SG':
             f = "Switchgrass"
-            prod = "dat.prod, dat.harv_ac"
+            prod = "dat.total_prod, dat.total_harv_ac"
         elif feedstock == 'WS':
             f = "Wheat Straw"
-            prod = "dat.prod, dat.harv_ac"
+            prod = "dat.total_prod, dat.total_harv_ac"
         elif feedstock == 'CS':
             f = "Corn Stover"
-            prod = "dat.prod, dat.harv_ac"
+            prod = "dat.total_prod, dat.total_harv_ac"
         elif feedstock == 'FR':
             f = "Forest Residue"
             prod = "dat.fed_minus_55, 0"
 
-        query = """
-                INSERT INTO {scenario_name}.summedEmissions
-                WITH
-                """
-        # populate tables that have fertilizer emissions
-        # if feedstock == 'CG' or feedstock == 'SG':
-        if feedstock != 'FR':
-            query += """
-                        (SELECT DISTINCT fips,
-                                        sum(nox) AS nox,
-                                        sum(nh3) AS nh3
-                            FROM %s.%s_nfert
-                            GROUP BY fips) AS Fert,
-                        ---------------------------------------------------------------------------------------------
-                        """ % (self.scenario_name, feedstock,)
-
-        # populate table that have pesticides.
-        if feedstock == 'CG' or feedstock == 'SG':
-            query += """
-                        Chem AS (SELECT DISTINCT fips,
-                                        sum(voc) AS voc
-                            FROM %s.%s_chem
-                            GROUP BY fips),
-                        ---------------------------------------------------------------------------------------------
-                        """ % (self.scenario_name, feedstock,)
-
-        # populate everything else.
-        
-        # ########################
-        # @change: Not adding fug_pm10
-        # old code: (sum(pm10) + sum(fug_pm10)) AS pm10, 
-        #           (sum(pm25) + sum(fug_pm25)) AS pm25,
-        # new code: (sum(pm10) + 0.0) AS pm10, 
-        #           (sum(pm25) + 0.0) AS pm25,
-        # ########################
-        
-        query += """
-                    Raw AS (SELECT DISTINCT fips,
-                            sum(nox) AS nox,
-                            sum(nh3) AS nh3,
-                            sum(sox) AS sox,
-                            sum(voc) AS voc,
-                            (sum(pm10) + sum(fug_pm10)) AS pm10,
-                            (sum(pm25) + sum(fug_pm25)) AS pm25,
-                            (sum(co)) AS co
-                    FROM %s.%s_raw
-                    GROUP BY fips)
-            ---------------------------------------------------------------------------------------------
-            """ % (self.scenario_name, feedstock,)
+        query = """INSERT INTO %s.summedemissions""" % (self.scenario_name, )
+        # populate tables
 
         if feedstock == 'CG' or feedstock == 'SG': 
             query += """
-                        (SELECT dat.fips, %s, %s,
+                        SELECT dat.fips, %s, %s,
                             (raw.nox + fert.nox) AS nox,
                             (raw.nh3 + fert.nh3) AS nh3,
                             (raw.sox) AS sox,
@@ -144,16 +100,34 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                             (raw.pm10) AS pm10,
                             (raw.pm25) AS pm25,
                             (raw.co) AS co
-                        FROM %s dat
-                        LEFT JOIN Fert ON fert.fips = dat.fips
-                        LEFT JOIN Chem ON chem.fips = dat.fips
-                        LEFT JOIN Raw ON raw.fips = dat.fips
-                        )
-                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
+                        FROM    %s dat
+                        LEFT JOIN
+                                (SELECT DISTINCT fips,
+                                sum(nox) AS nox,
+                                sum(nh3) AS nh3,
+                                sum(sox) AS sox,
+                                sum(voc) AS voc,
+                                (sum(pm10) + sum(IFNULL(fug_pm10, 0))) AS pm10,
+                                (sum(pm25) + sum(IFNULL(fug_pm25, 0))) AS pm25,
+                                (sum(co)) AS co
+                                FROM %s.%s_raw
+                                GROUP BY fips) raw ON raw.fips = dat.fips
+                        LEFT JOIN
+                                (SELECT DISTINCT fips,
+                                sum(voc) AS voc
+                                FROM %s.%s_chem
+                                GROUP BY fips) chem ON chem.fips = dat.fips
+                        LEFT JOIN
+                                (SELECT DISTINCT fips,
+                                sum(nox) AS nox,
+                                sum(nh3) AS nh3
+                                FROM %s.%s_nfert
+                                GROUP BY fips) fert ON fert.fips = dat.fips
+                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data", self.scenario_name, feedstock, self.scenario_name, feedstock, self.scenario_name, feedstock, )
 
         elif feedstock == 'CS' or feedstock == 'WS':
             query += """
-                        (SELECT dat.fips, %s, %s,
+                        SELECT dat.fips, %s, %s,
                             (raw.nox + fert.nox) AS nox,
                             (raw.nh3 + fert.nh3) AS nh3,
                             (raw.sox) AS sox,
@@ -161,15 +135,29 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                             (raw.pm10) AS pm10,
                             (raw.pm25) AS pm25,
                             (raw.co) AS co
-                        FROM %s dat
-                        LEFT JOIN Fert ON fert.fips = dat.fips
-                        LEFT JOIN Raw ON raw.fips = dat.fips
-                        )
-                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
+                        FROM    %s dat
+                        LEFT JOIN
+                                (SELECT DISTINCT fips,
+                                sum(nox) AS nox,
+                                sum(nh3) AS nh3,
+                                sum(sox) AS sox,
+                                sum(voc) AS voc,
+                                (sum(pm10) + sum(IFNULL(fug_pm10, 0))) AS pm10,
+                                (sum(pm25) + sum(IFNULL(fug_pm25, 0))) AS pm25,
+                                (sum(co)) AS co
+                                FROM %s.%s_raw
+                                GROUP BY fips) raw ON raw.fips = dat.fips
+                        LEFT JOIN
+                                (SELECT DISTINCT fips,
+                                sum(nox) AS nox,
+                                sum(nh3) AS nh3
+                                FROM %s.%s_nfert
+                                GROUP BY fips) fert ON fert.fips = dat.fips
+                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data", self.scenario_name, feedstock, self.scenario_name, feedstock, )
     
         elif feedstock == 'FR':
             query += """
-                        (SELECT dat.fips, %s, %s,
+                        SELECT dat.fips, %s, %s,
                             (raw.nox) AS nox,
                             (raw.nh3) AS nh3,
                             (raw.sox) AS sox,
@@ -177,13 +165,20 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                             (raw.pm10) AS pm10,
                             (raw.pm25) AS pm25,
                             (raw.co) AS co
-                        FROM %s dat
-                        LEFT JOIN Raw ON raw.fips = dat.fips
-                        )
-                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data")
+                        FROM %s dat,
+                        LEFT JOIN (SELECT DISTINCT fips,
+                                        sum(nox) AS nox,
+                                        sum(nh3) AS nh3,
+                                        sum(sox) AS sox,
+                                        sum(voc) AS voc,
+                                        (sum(pm10) + sum(IFNULL(fug_pm10, 0))) AS pm10,
+                                        (sum(pm25) + sum(IFNULL(fug_pm25, 0))) AS pm25,
+                                        (sum(co)) AS co
+                                        FROM %s.%s_raw
+                                        GROUP BY fips) raw ON raw.fips = dat.fips
+                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data", self.scenario_name, feedstock, )
 
-        print query
-        self._execute_query(query)
+        self.db.input(query)
 
     def create_nei_comparison(self, feedstock):
 
@@ -212,7 +207,7 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
             n = 'NOT'
 
         query = """
-                    INSERT INTO {feedstock}_NEIRatio
+                    INSERT INTO {scenario}.{feedstock}_neiratio
                         SELECT nrel.fips,
                                (nrel.nox  * {allocation}) / (nei.nox  * 0.907185) AS nox,
                                (nrel.sox  * {allocation}) / (nei.sox  * 0.907185) AS sox,
@@ -235,9 +230,9 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                              ) nrel
                         LEFT JOIN (SELECT fips, nox, sox, co, pm10, pm25, voc, nh3 FROM {nei}) nei ON nrel.fips = nei.fips
                         WHERE nrel.nh3 > 0 AND nei.nox > 0
-                        ;""".format(feedstock=feedstock, allocation=allocation, f=f, n=n, schema=self.db.schema, nei=self.nei_data_by_county)
+                        ;""".format(scenario=self.scenario_name, feedstock=feedstock.lower(), allocation=allocation, f=f, n=n, schema=self.db.schema, nei=self.nei_data_by_county)
 
-        self._execute_query(query)
+        self.db.input(query)
 
 if __name__ == '__main__':
     raise NotImplementedError

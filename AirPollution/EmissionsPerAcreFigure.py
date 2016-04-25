@@ -71,7 +71,7 @@ class EmissionsPerAcreFigure():
             # plot 95% intervals 
             self.__plot_interval__(data_array)
     
-            fig.savefig(self.path + 'Figures' + os.sep + 'EmissionsPerAcre_' + pollutant + '.png', format='png')
+            fig.savefig(os.path.join(self.path, 'Figures', 'EmissionsPerAcre_' + pollutant + '.png'), format='png')
 
             print pollutant  # @TODO: convert to logger
 
@@ -91,9 +91,9 @@ class EmissionsPerAcreFigure():
             # @TODO: Should harv_ac > 0.0 be here? Should this be in the Options class to eliminate the problem in the first place?
 
             query = """
-                    SELECT (%s) / (harv_ac) FROM %s.%s WHERE harv_ac > 0.0 AND feedstock ILIKE '%s';
+                    SELECT (%s) / (harv_ac) FROM %s.%s WHERE harv_ac > 0.0 AND feedstock LIKE '%s';
                     """ % (pollutant, self.db.schema, query_table, feedstock)
-            emmisions = self.db.output(query, self.db.schema)
+            emmisions = self.db.output(query)
             data.append(emmisions)
 
         return data

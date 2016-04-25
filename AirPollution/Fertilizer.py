@@ -185,6 +185,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         """
 
         self.kvals = self.cont.get('kvals')
+        self.kvals['feed'] = feed.lower()
 
         fert_query = ''
 
@@ -229,6 +230,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
     def __corn_grain__(self):
 
         self.kvals = self.cont.get('kvals')
+        self.kvals['feed'] = 'cg'
 
         fert_query = """INSERT INTO {scenario_name}.cg_nfert""".format(**self.kvals)
 

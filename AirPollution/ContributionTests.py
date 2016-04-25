@@ -18,13 +18,13 @@ class ChooseSQL:
         self.feed = feedstock
         self.query_string = ''
 
-        self.raw_table = feedstock + '_raw'
+        self.raw_table = feedstock.lower() + '_raw'
         
         if pollutant == 'NOx' or pollutant == 'NH3':
-            self.fert_table = feedstock + '_nfert'
+            self.fert_table = feedstock.lower() + '_nfert'
 
         if pollutant == 'VOC' and (feedstock == 'CG' or feedstock == 'SG'):
-            self.chem_table = feedstock + '_chem'
+            self.chem_table = feedstock.lower() + '_chem'
 
     def get_query(self):
         """
@@ -117,7 +117,7 @@ class ChooseSQL:
                                 SELECT (a.x / t.x) AS x
                                 FROM (SELECT DISTINCT fips, {sum_pollutant} AS x
                                       FROM {scenario_name}.{raw_table}
-                                      WHERE description LIKE '%% %{activity}%'
+                                      WHERE description LIKE '%{activity}%'
                                       GROUP BY fips
                                       ) a,
                                      (SELECT DISTINCT fips, {sum_pollutant} AS x
@@ -126,9 +126,6 @@ class ChooseSQL:
                                       ) t
                                 WHERE a.fips = t.fips AND t.x > 0.0 AND a.x > 0.0;
                             """.format(**kvals)
-
-#        if self.feed == 'CG' and (self.pol == 'CO' or self.pol == 'SO2'):
-#            print self.query_string
 
     def __queryRawFert__(self):
         """

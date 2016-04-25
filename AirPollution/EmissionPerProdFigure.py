@@ -29,8 +29,8 @@ class EmissionPerProdFigure(object):
         # define inputs/constants:
         pollutant_labels = ['$PM_{10}$', '$PM_{2.5}$']
         # the order of the 2 list has to be the same.
-        feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw', 'Forest Residue']  # @TODO: remove hardcoded values
-        f_list = ['CG', 'SG', 'CS', 'WS', 'FR']  # @TODO: remove hardcoded values
+        feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw',]# 'Forest Residue']  # @TODO: remove hardcoded values
+        f_list = ['CG', 'SG', 'CS', 'WS']#, 'FR']  # @TODO: remove hardcoded values
         pollutant_list = ['pm10', 'pm25']  # @TODO: remove hardcoded values
         
         for p_num, pollutant in enumerate(pollutant_list):
@@ -61,7 +61,7 @@ class EmissionPerProdFigure(object):
             # plot 95% intervals 
             self.__plot_interval__(data_array)
     
-            fig.savefig(self.path + 'Figures' + os.sep + 'EmissionsPerProd_' + pollutant + '.png', format='png')
+            fig.savefig(os.path.join(self.path, 'Figures', 'EmissionsPerProd_' + pollutant + '.png'), format='png')
     
             print pollutant  # @TODO: convert to logger
 
@@ -82,20 +82,20 @@ class EmissionPerProdFigure(object):
 
             feed_abr = f_list[fNum]
             query = """
-                WITH fug AS (
-                    SELECT 
-                      """ + feed_abr + """_raw.fips, 
-                      SUM(""" + feed_abr + """_raw.fug_""" + pollutant + """) AS """ + pollutant + """
-                    FROM 
-                      """ + self.db.schema + """.""" + feed_abr + """_raw
-                    GROUP BY """ + feed_abr + """_raw.fips
-                    )
                 SELECT (fug.""" + pollutant + """ / s.prod)
                 FROM """ + self.db.schema + """.summedemissions AS s
-                LEFT JOIN fug ON fug.fips = s.fips
-                WHERE s.feedstock ILIKE '%""" + feedstock + """%' AND s.prod > 0.0
+                LEFT JOIN (
+                    SELECT
+                      """ + feed_abr + """_raw.fips,
+                      SUM(""" + feed_abr + """_raw.""" + pollutant + """) AS """ + pollutant + """, description
+                    FROM
+                      """ + self.db.schema + """.""" + feed_abr + """_raw
+                    WHERE description LIKE '%Fugitive dust%'
+                    GROUP BY """ + feed_abr + """_raw.fips
+                    ) fug ON fug.fips = s.fips
+                WHERE s.feedstock LIKE '%""" + feedstock + """%' AND s.prod > 0.0 AND fug.description IS NOT NULL
                     """
-            emmisions = self.db.output(query, self.db.schema)
+            emmisions = self.db.output(query, )
             data.append(emmisions)
 
         return data
