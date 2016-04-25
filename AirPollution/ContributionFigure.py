@@ -112,10 +112,10 @@ class ContributionAnalysis():
 
         else:
             data = self.db.output(query.query_string)
-            mean_val = mean(data)
-            med_val = median(data)
-            max_val = max(data)
-            min_val = min(data)
+            mean_val = mean(data[0])
+            med_val = median(data[0])
+            max_val = max(data[0])
+            min_val = min(data[0])
 
             ax.plot([f_num], mean_val, f_color, marker='_', markersize=20)
             ax.plot([f_num], med_val, f_color, marker='_', markersize=7)

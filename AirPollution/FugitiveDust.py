@@ -487,7 +487,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
 
         if self.description in ('SG_N', 'SG_H'):
             query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
-                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC) / {rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}, 0, 0, '{description}', '{run_code}'
+                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC) / {rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}, 0, 0, '{description}, Fugitive dust', '{run_code}'
                         FROM {production_schema}.{feed}_data cd
                         WHERE cd.{till}_harv_ac > 0
                     """.format(**kvals)
@@ -659,7 +659,7 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
 
         if self.description in ('MS_N', 'MS_H'):
             query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
-                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC)/{rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio})/{rot_years}, 0, 0, '{description}', '{run_code}'
+                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC)/{rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio})/{rot_years}, 0, 0, '{description}, Fugitive dust', '{run_code}'
                         FROM {production_schema}.{feed}_data cd
                         WHERE cd.{till}_harv_ac > 0
                     """.format(**kvals)

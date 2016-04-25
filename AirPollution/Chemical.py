@@ -156,9 +156,9 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         chem_query = ''
 
         # process non-zero years
-        for year, pest_amt in [x for x in crop_years.items() if x[1] is not 0]:
+        for year in crop_years:
             kvals['year'] = year
-            kvals['pest_amt'] = pest_amt
+            kvals['pest_amt'] = crop_years[year]
 
             chem_query += """INSERT INTO {scenario_name}.{sg_chem_table}
                              (
@@ -169,6 +169,6 @@ class Chemical(SaveDataHelper.SaveDataHelper):
                                      sg.notill_harv_ac * {yr_pct} * {pest_amt} * 0.9 * 0.835 * 0.90718474 / 2000.0 AS VOC,
                                      'Pesticide Emissions' AS Description
                              FROM {production_schema}.{sg_table} sg
-                             )""".format(**self.kvals)
+                             );""".format(**self.kvals)
 
         return chem_query
