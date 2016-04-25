@@ -109,7 +109,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                  'pop': pop
                  }
 
-        return '{fips:0>5} {sub_reg:<5} {year:<4} {scc_code:<10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:<5.2f} {life:<5} {flag:<10} {pop:>17} \n'.format(**kvals)
+        return '{fips:0>5} {sub_reg:<5} {year:<4} {scc_code:<10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5} {life:<5} {flag:<10} {pop:>17.10f} \n'.format(**kvals)
 
     def append_pop(self, fips, indicator1):
         """

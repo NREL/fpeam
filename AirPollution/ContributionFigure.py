@@ -68,7 +68,7 @@ class ContributionAnalysis():
                     ax.set_title(pollutant_labels[titleLabel])
                 
                 # show x labels below last row only
-                if index < len(pollutant_list)*len(activity_list):
+                if index < len(pollutant_list)*(len(activity_list)-1):
                     ax.set_xticklabels([])
                 else:
                     ax.set_xticklabels(([''] + feedstock_list), rotation='vertical')

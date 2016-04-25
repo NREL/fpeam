@@ -191,9 +191,9 @@ class Driver:
             scenario_year = self.yr[run_code[0:2]]            
             
             # get the first state and fips code in the list of data for the run code
-            if len(scenario.data) is not 0:
-                state = scenario.data[0][1]
-                fips_prior = str(scenario.data[0][0])
+            if scenario.data is not None:
+                state = scenario.data[0][0][1]
+                fips_prior = str(scenario.data[0][0][0])
 
                 # check if regional crop budget should be used
                 if regional_crop_budget is False:  # if not, run with national budget
@@ -225,11 +225,11 @@ class Driver:
 
                 # initialize allocation, population, and batch files
                 alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
-                pop.initialize_pop(dat=scenario.data[0])
+                pop.initialize_pop(dat=scenario.data[0][0])
                 self.batch.initialize(run_code)
 
                 # go through each row of the data table for this run code
-                for dat in scenario.data:
+                for dat in scenario.data[0]:
                     # check to see if production is greater than zero
                     prod_greater_than_zero = dat[2] > 0.0  # dat[2] is the production
 
@@ -410,25 +410,25 @@ class Driver:
         self.post_process_aerial(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)  # aerial emissions from crop dusting
         self.post_process_on_farm_fugitive_dust()  # on-farm fugitive dust
 
-        # post-process data to obtain emissions from processing (processing, adv; processing, conv)
-        self.post_process_logistics()  # logistics (pre-processing)
-
-        # post-process data to obtain emissions from off-farm transportation (transporation, adv; transportation, conv)
-        kvals = {'yield': self.scenario_yield,
-                 'year': self.scenario_year}
-
-        for feedstock in self.feedstock_list:
-            # set feedstock id
-            kvals['feed'] = feedstock.lower()
-
-            # get fips list for feedstock where production is greater than zero
-            query = """ SELECT prod.fips
-                        FROM bts16.{feed}_data_{yield}_{year} prod
-                        WHERE total_prod > 0;""".format(**kvals)
-            fips_list = list(self.db.output(query))
-
-            # calculate emissions from off-farm transportation
-            self.post_process_off_farm_transport(feedstock=feedstock, fips_list=fips_list)
+        # # post-process data to obtain emissions from processing (processing, adv; processing, conv)
+        # self.post_process_logistics()  # logistics (pre-processing)
+        #
+        # # post-process data to obtain emissions from off-farm transportation (transporation, adv; transportation, conv)
+        # kvals = {'yield': self.scenario_yield,
+        #          'year': self.scenario_year}
+        #
+        # for feedstock in self.feedstock_list:
+        #     # set feedstock id
+        #     kvals['feed'] = feedstock.lower()
+        #
+        #     # get fips list for feedstock where production is greater than zero
+        #     query = """ SELECT prod.fips
+        #                 FROM bts16.{feed}_data_{yield}_{year} prod
+        #                 WHERE total_prod > 0;""".format(**kvals)
+        #     fips_list = list(self.db.output(query))
+        #
+        #     # calculate emissions from off-farm transportation
+        #     self.post_process_off_farm_transport(feedstock=feedstock, fips_list=fips_list)
             
         # perform single pass allocation when national crop budget is selected and all feedstocks are modeled
         if len(self.feedstock_list) == 5 and regional_crop_budget is False:
