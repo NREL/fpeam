@@ -355,7 +355,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
 
         kvals = self.cont.get('kvals')
         kvals['feed'] = run_code.lower()[0:2]
-        kvals['transport'] = 'transport%'
+        kvals['transport'] = 'transport'
         kvals['till_type'] = till_type
         kvals['onfarm_truck_capacity'] = config['onfarm_truck_capacity']
         kvals['convert_lb_to_mt'] = self.convert_lbs_to_mt(1)
@@ -375,11 +375,11 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
                     LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
                     LEFT JOIN {constants_schema}.{silt_table} tfd ON
                             CASE
-                                WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
-                                WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips,2))
+                                WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2)     = LEFT(tfd.st_fips, 2))
+                                WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips, 2))
                             END
-                    SET fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}),
-                        fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt})
+                    SET fug_pm25 = (prod.total_prod / {onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}),
+                        fug_pm10 = (prod.total_prod / {onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt})
                     WHERE (raw.description LIKE '%{till_type}%') AND
                           (raw.description LIKE '%{transport}%')""".format(**kvals)
 
@@ -487,7 +487,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
 
         if self.description in ('SG_N', 'SG_H'):
             query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
-                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC)/{rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio})/{rot_years}, 0, 0, '{description}', '{run_code}'
+                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC) / {rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}, 0, 0, '{description}', '{run_code}'
                         FROM {production_schema}.{feed}_data cd
                         WHERE cd.{till}_harv_ac > 0
                     """.format(**kvals)
