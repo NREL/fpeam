@@ -136,23 +136,39 @@ class Chemical(SaveDataHelper.SaveDataHelper):
 
         :return: SQL
         """
+        kvals = self.kvals
 
-        chem_query = """INSERT INTO {scenario_name}.{sg_chem_table}
-                        (
-                        SELECT sg.fips,
-                               'NT',
-                               '1',
-                                (2461850099) AS SCC,
-                                (
-                                (
-                                 sg.notill_harv_ac * 0.1 * (0.5) +
-                                 sg.notill_harv_ac * 0.1 * (1.0) +
-                                 sg.notill_harv_ac * 0.1 * (1.0) +
-                                 sg.notill_harv_ac * 0.1 * (1.5)
-                                ) * 0.9 * 0.835
-                                ) * 0.90718474 / 2000.0 AS VOC,
-                                ('Pesticide Emissions') AS Description
-                        FROM {production_schema}.{sg_table} sg
-                        )""".format(**self.kvals)
+        # yearly percent
+        yr_pct = 0.1
+
+        # pesticide amount for each year in cycle
+        crop_years = {1: 2.5,  # @TODO: remove hardcoded year allocations
+                      2: 0.0,
+                      3: 0.0,
+                      4: 0.0,
+                      5: 1.5,
+                      6: 0.0,
+                      7: 0.0,
+                      8: 0.0,
+                      9: 0.0,
+                      10: 0.0}
+
+        chem_query = ''
+
+        # process non-zero years
+        for year, pest_amt in [x for x in crop_years.items() if x[1] is not 0]:
+            kvals['year'] = year
+            kvals['pest_amt'] = pest_amt
+
+            chem_query += """INSERT INTO {scenario_name}.{sg_chem_table}
+                             (
+                             SELECT sg.fips,
+                                    'NT',
+                                    '{year}',
+                                     2461850099 AS SCC,
+                                     sg.notill_harv_ac * {yr_pct} * {pest_amt} * 0.9 * 0.835 * 0.90718474 / 2000.0 AS VOC,
+                                     'Pesticide Emissions' AS Description
+                             FROM {production_schema}.{sg_table} sg
+                             )""".format(**self.kvals)
 
         return chem_query
