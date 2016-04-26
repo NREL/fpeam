@@ -628,10 +628,6 @@ class Driver:
 
         logger.info("Populating tables with combustion emissions")
         comb.populate_tables(run_codes=self.run_codes)
-        for run_code in self.run_codes:
-            if run_code.startswith('SG') and regional_crop_budget is False:
-                if not run_code.endswith('L'):
-                    comb.update_sg(run_code=run_code)
         logger.info("COMPLETED populating tables with combustion emissions")
 
         # concatenate zeros for fips codes less than 5 characters in length
