@@ -769,7 +769,7 @@ class FigurePlottingBT16:
                  'te_table': 'total_emissions'  # @TODO: defined multiple places
                  }
 
-        query_emissions = """SELECT    sum({pollutant}) AS {pollutant}
+        query_emissions = """SELECT    SUM({pollutant}) AS {pollutant}
                              FROM      {scenario_name}.{te_table} tot
                              LEFT JOIN {production_schema}.{feed_abr}_data prod
                                     ON tot.fips = prod.fips
