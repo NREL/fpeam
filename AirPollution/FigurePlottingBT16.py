@@ -26,18 +26,19 @@ class FigurePlottingBT16:
         # init properties
         self.db = db
 
-        self.f_color = ['r', 'b', 'g', 'k', 'c']
-        self.f_marker = ['o', 'o', 'o', 'o', 'o']
-        self.row_list = [0, 0, 1, 1, 2, 2]
-        self.col_list = [0, 1, 0, 1, 0, 1]
-        self.pol_list_label = ['$NO_x$', '$voc$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$']
-        self.pol_list = ['nox', 'voc', 'pm25', 'co', 'pm10', 'sox']
+        self.f_color = ['r', 'b', 'g', 'k', 'c']  # @TODO: remove hardcoded values
+        self.f_marker = ['o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
+        self.row_list = [0, 0, 1, 1, 2, 2]  # @TODO: remove hardcoded values
+        self.col_list = [0, 1, 0, 1, 0, 1]  # @TODO: remove hardcoded values
+        self.pol_list_label = ['$NO_x$', '$voc$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$']  # @TODO: remove hardcoded values
+
+        self.pol_list = ['nox', 'voc', 'pm25', 'co', 'pm10', 'sox']  # @TODO: remove hardcoded values
 
         self.feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw']  # 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
         self.f_list = ['CG', 'SG', 'CS', 'WS', ]  # 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
-        self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']
+        self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
-        self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton
+        self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values
 
         self.feed_id_dict = config.get('feed_id_dict')
 
@@ -222,7 +223,7 @@ class FigurePlottingBT16:
                                  '{feed}'     AS feedstock
                              FROM (SELECT
                                        fips                   AS fips,
-                                       tillage                AS tillage
+                                       tillage                AS tillage,
                                        SUM(voc) / {years_rot} AS voc,
                                    FROM {scenario_name}.{feed}_chem
                                    GROUP BY fips, tillage
@@ -319,24 +320,24 @@ class FigurePlottingBT16:
             kvals['tillage'] = 'NT'
 
         query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
-                               SELECT fips,
-                                      '{year}'                                      AS year,
-                                      '{yield}'                                     AS yield,
-                                      {tillage}                                     AS tillage,
-                                      SUM(nox)                        / {years_rot} AS nox,
-                                      SUM(nh3)                        / {years_rot} AS nh3,
-                                      SUM(voc)                        / {years_rot} AS voc,
-                                      SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} AS pm10,
-                                      SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
-                                      SUM(sox)                        / {years_rot} AS sox,
-                                      SUM(co)                         / {years_rot} AS co,
-                                      '{source_category}                            AS source_category,
-                                      'NR'                                          AS nei_category,
-                                      '{feed}'                                      AS feedstock
-                              FROM {scenario_name}.{feed}_raw
-                              WHERE description LIKE '%Non-Harvest%'
-                                AND description LIKE '%dust%'
-                              GROUP BY fips, CONCAT(LEFT(RIGHT(run_code, 2), 1), 'T')
+                               SELECT  fips,
+                                       '{year}'                                      AS year,
+                                       '{yield}'                                     AS yield,
+                                       {tillage}                                     AS tillage,
+                                       SUM(nox)                        / {years_rot} AS nox,
+                                       SUM(nh3)                        / {years_rot} AS nh3,
+                                       SUM(voc)                        / {years_rot} AS voc,
+                                       SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} AS pm10,
+                                       SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
+                                       SUM(sox)                        / {years_rot} AS sox,
+                                       SUM(co)                         / {years_rot} AS co,
+                                       '{source_category}                            AS source_category,
+                                       'NR'                                          AS nei_category,
+                                       '{feed}'                                      AS feedstock
+                              FROM     {scenario_name}.{feed}_raw
+                              WHERE    description LIKE '%Non-Harvest%' AND
+                                       description LIKE '%dust%'
+                              GROUP BY fips, {tillage}
                               ;""".format(**kvals)
 
         self.db.input(query_non_harvest)
@@ -407,7 +408,7 @@ class FigurePlottingBT16:
                            WHERE description     LIKE '% Harvest%'
                              AND description NOT LIKE '%dust%'
                              AND LEFT(RIGHT(run_code, 2), 1) != 'I'
-                           GROUP BY fips
+                           GROUP BY fips, {tillage}
                            ;""".format(**kvals)
 
         self.db.input(query_harvest)
@@ -438,7 +439,7 @@ class FigurePlottingBT16:
                            WHERE description LIKE '% Harvest%'
                              AND description LIKE '%dust%'
                              AND LEFT(RIGHT(run_code, 2), 1) != 'I'
-                           GROUP BY fips
+                           GROUP BY fips, {tillage}
                            ;""".format(**kvals)
 
         self.db.input(query_harvest)
@@ -451,23 +452,23 @@ class FigurePlottingBT16:
 
         query_loading = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT fips,
-                               '{year}'                                      AS year,
-                               '{yield}'                                     AS yield,
-                               {tillage}                                     AS tillage,
-                               SUM(nox)                        / {years_rot} AS nox,
-                               SUM(nh3)                        / {years_rot} AS nh3,
-                               SUM(voc)                        / {years_rot} AS voc,
-                               SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} AS pm10,
-                               SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
-                               SUM(sox)                        / {years_rot} AS sox,
-                               SUM(co)                         / {years_rot} AS co,
-                               'Loading'                                     AS source_category,
-                               'NR'                                          AS nei_category,
-                               '{feed}'                                      AS feedstock
-                        FROM {scenario_name}.{feed}_raw
-                        WHERE description                  = 'Loading'
-                          AND LEFT(RIGHT(run_code, 2), 1) != 'I')
-                        GROUP BY fips
+                                  '{year}'                                      AS year,
+                                  '{yield}'                                     AS yield,
+                                  {tillage}                                     AS tillage,
+                                  SUM(nox)                        / {years_rot} AS nox,
+                                  SUM(nh3)                        / {years_rot} AS nh3,
+                                  SUM(voc)                        / {years_rot} AS voc,
+                                  SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} AS pm10,
+                                  SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
+                                  SUM(sox)                        / {years_rot} AS sox,
+                                  SUM(co)                         / {years_rot} AS co,
+                                  'Loading'                                     AS source_category,
+                                  'NR'                                          AS nei_category,
+                                  '{feed}'                                      AS feedstock
+                        FROM      {scenario_name}.{feed}_raw
+                        WHERE     description                  = 'Loading' AND
+                                  LEFT(RIGHT(run_code, 2), 1) != 'I')
+                        GROUP BY  fips, {tillage}
                         ;""".format(**kvals)
 
         self.db.input(query_loading)
@@ -512,33 +513,33 @@ class FigurePlottingBT16:
                         self.db.input(query_transport)
 
                         if pollutant == 'voc':
-                            query_pre_process = """ INSERT INTO {scenario_name}.{te_table} (fips, year, yield, {pollutant}, source_category, nei_category, feedstock)
-                                                    SELECT   fips,
-                                                             '{year}'                          AS year,
-                                                             '{yield}'                         AS yield,
-                                                             IFNULL(voc_wood, 0) / {years_rot} AS {pollutant_name},
-                                                             '{preprocess_cat}'                AS source_category,
-                                                             'P'                               AS nei_category,
-                                                             '{feed}'                          AS feedstock
-                                                    FROM     {scenario_name}.processing
-                                                    WHERE    logistics_type = '{system}' AND
-                                                             yield_type     = '{yield}'  AND
-                                                             feed           = '{feed}'
-                                                    GROUP BY fips
-                                                    ;""".format(**kvals)
+                            query_pre_process = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, {pollutant}, source_category, nei_category, feedstock)
+                                                   SELECT   fips,
+                                                            '{year}'                          AS year,
+                                                            '{yield}'                         AS yield,
+                                                            IFNULL(voc_wood, 0) / {years_rot} AS {pollutant_name},
+                                                            '{preprocess_cat}'                AS source_category,
+                                                            'P'                               AS nei_category,
+                                                            '{feed}'                          AS feedstock
+                                                   FROM     {scenario_name}.processing
+                                                   WHERE    logistics_type = '{system}' AND
+                                                            yield_type     = '{yield}'  AND
+                                                            feed           = '{feed}'
+                                                   GROUP BY fips
+                                                   ;""".format(**kvals)
                             self.db.input(query_pre_process)
                     elif i > 0:
                         if not pollutant.startswith('PM'):
-                            query_transport = """   UPDATE     {scenario_name}.{te_table} tot
-                                                    INNER JOIN {scenario_name}.transportation  trans
-                                                            ON trans.fips       = tot.fips  AND
-                                                               trans.yield_type = tot.yield AND
-                                                               trans.feedstock  = tot.feedstock
-                                                    SET        tot.{pollutant_name} = trans.total_emissions / {years_rot}
-                                                    WHERE      trans.pollutantID    = '{pollutant}'     AND
-                                                               tot.source_category  = '{transport_cat}' AND
-                                                               trans.logistics_type = '{system}';
-                                              """.format(**kvals)
+                            query_transport = """UPDATE     {scenario_name}.{te_table} tot
+                                                 INNER JOIN {scenario_name}.transportation  trans
+                                                         ON trans.fips       = tot.fips  AND
+                                                            trans.yield_type = tot.yield AND
+                                                            trans.feedstock  = tot.feedstock
+                                                 SET        tot.{pollutant_name} = trans.total_emissions / {years_rot}
+                                                 WHERE      trans.pollutantID    = '{pollutant}'     AND
+                                                            tot.source_category  = '{transport_cat}' AND
+                                                            trans.logistics_type = '{system}'
+                                                 ;""".format(**kvals)
                             self.db.input(query_transport)
                         elif pollutant.startswith('PM'):
                             query_transport = """UPDATE     {scenario_name}.{te_table} tot
