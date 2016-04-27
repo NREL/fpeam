@@ -49,7 +49,7 @@ class FigurePlottingBT16:
         """
 
         # initialize kvals dict for string formatting
-        kvals = {'scenario_name': db.schema,
+        kvals = {'scenario_name': self.db.schema,
                  'year': config.get('year_dict')['all_crops'],
                  'yield': config.get('yield'),
                  'production_schema': config.get('production_schema'),
@@ -150,11 +150,12 @@ class FigurePlottingBT16:
                 sql += "FROM        {scenario_name}.{te_table} tot\n"
                 sql += "LEFT JOIN   {production_schema}.{feed}_data cd\n"
                 sql += "       ON   cd.fips = tot.fips\n"
-                sql += "WHERE       tot.tillage   = %(till)s AND\n"
-                sql += "            tot.feedstock = %(feed)s\n"
-                sql += ";".format(**kvals)
+                sql += "WHERE       tot.tillage   = '{till}' AND\n"
+                sql += "            tot.feedstock = '{feed}' \n"
+                sql += ";"
+                sql = sql.format(**kvals)
 
-                self.db.execute_sql(sql=sql, vals=kvals)
+                self.db.execute_sql(sql=sql)
 
                 i += 1
 
@@ -224,7 +225,7 @@ class FigurePlottingBT16:
                              FROM (SELECT
                                        fips                   AS fips,
                                        tillage                AS tillage,
-                                       SUM(voc) / {years_rot} AS voc,
+                                       SUM(voc) / {years_rot} AS voc
                                    FROM {scenario_name}.{feed}_chem
                                    GROUP BY fips, tillage
                                   ) chem
@@ -278,13 +279,13 @@ class FigurePlottingBT16:
         if kvals['feed'] != 'sg':
             kvals['tillage'] = "coNCAT(LEFT(RIGHT(run_code, 2), 1), 'T')"
         else:
-            kvals['tillage'] = 'NT'
+            kvals['tillage'] = "'NT'"
 
         query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                SELECT fips                                          AS fips,
                                       '{year}'                                      AS year,
                                       '{yield}'                                     AS yield,
-                                      '{tillage}'                                   AS tillage,
+                                      {tillage}                                   AS tillage,
                                       SUM(nox)                        / {years_rot} AS nox,
                                       SUM(nh3)                        / {years_rot} AS nh3,
                                       SUM(voc)                        / {years_rot} AS voc,
@@ -306,7 +307,7 @@ class FigurePlottingBT16:
 
     def get_nh_fd(self, kvals):
         """
-        Add non-harvest fugiitive dust emissions to total emissions table.
+        Add non-harvest fugitive dust emissions to total emissions table.
 
         :param kvals: dictionary for string formatting
         :return:
@@ -317,7 +318,7 @@ class FigurePlottingBT16:
         if kvals['feed'] != 'sg':
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2), 1), 'T')"
         else:
-            kvals['tillage'] = 'NT'
+            kvals['tillage'] = "'NT'"
 
         query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                SELECT  fips,
@@ -331,7 +332,7 @@ class FigurePlottingBT16:
                                        SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
                                        SUM(sox)                        / {years_rot} AS sox,
                                        SUM(co)                         / {years_rot} AS co,
-                                       '{source_category}                            AS source_category,
+                                       '{source_category}'                            AS source_category,
                                        'NR'                                          AS nei_category,
                                        '{feed}'                                      AS feedstock
                               FROM     {scenario_name}.{feed}_raw
@@ -387,7 +388,7 @@ class FigurePlottingBT16:
         if kvals['feed'] != 'sg':
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
         else:
-            kvals['tillage'] = 'NT'
+            kvals['tillage'] = "'NT'"
 
         query_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT fips,
@@ -418,7 +419,7 @@ class FigurePlottingBT16:
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
 
         else:
-            kvals['tillage'] = 'NT'
+            kvals['tillage'] = "'NT'"
 
         query_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT fips,
@@ -448,7 +449,7 @@ class FigurePlottingBT16:
         if kvals['feed'] != 'sg':
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
         else:
-            kvals['tillage'] = 'NT'
+            kvals['tillage'] = "'NT'"
 
         query_loading = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT fips,
@@ -467,7 +468,7 @@ class FigurePlottingBT16:
                                   '{feed}'                                      AS feedstock
                         FROM      {scenario_name}.{feed}_raw
                         WHERE     description                  = 'Loading' AND
-                                  LEFT(RIGHT(run_code, 2), 1) != 'I')
+                                  LEFT(RIGHT(run_code, 2), 1) != 'I'
                         GROUP BY  fips, {tillage}
                         ;""".format(**kvals)
 
@@ -560,17 +561,17 @@ class FigurePlottingBT16:
                                                  ;""".format(**kvals)
                             self.db.input(query_transport)
 
-                            if pollutant == 'voc':
-                                query_pre_process = """UPDATE     {scenario_name}.{te_table} tot
-                                                       INNER JOIN {scenario_name}.processing log
-                                                               ON log.fips       = tot.fips  AND
-                                                                  log.yield_type = tot.yield AND
-                                                                  log.feedstock  = tot.feedstock
-                                                       SET        tot.{pollutant_name} = IFNULL(voc_wood, 0) / {years_rot}
-                                                       WHERE      tot.source_category = '{preprocess_cat}' AND
-                                                                  log.logistics_type  = '{system}'
-                                                       ;""".format(**kvals)
-                                self.db.input(query_pre_process)
+                        if pollutant == 'voc':
+                            query_pre_process = """UPDATE     {scenario_name}.{te_table} tot
+                                                   INNER JOIN {scenario_name}.processing log
+                                                           ON log.fips       = tot.fips  AND
+                                                              log.yield_type = tot.yield AND
+                                                              log.feedstock  = tot.feedstock
+                                                   SET        tot.{pollutant_name} = IFNULL(voc_wood, 0) / {years_rot}
+                                                   WHERE      tot.source_category = '{preprocess_cat}' AND
+                                                              log.logistics_type  = '{system}'
+                                                   ;""".format(**kvals)
+                            self.db.input(query_pre_process)
 
     def get_data(self):
         """

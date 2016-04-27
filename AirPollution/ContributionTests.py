@@ -122,6 +122,7 @@ class ChooseSQL:
                                       ) a,
                                      (SELECT DISTINCT fips, {sum_pollutant} AS x
                                       FROM {scenario_name}.{raw_table}
+                                      WHERE description not like '%load%'
                                       GROUP BY fips
                                       ) t
                                 WHERE a.fips = t.fips AND t.x > 0.0 AND a.x > 0.0;
@@ -160,7 +161,9 @@ class ChooseSQL:
         self.query_string = """
                                 SELECT {ratio} as x
                                 FROM (SELECT DISTINCT r.fips, sum(r.{pollutant}) as x
-                                      FROM {scenario_name}.{raw_table} r group by r.fips) raw,
+                                      FROM {scenario_name}.{raw_table} r
+                                      WHERE description not like '%load%'
+                                      group by r.fips) raw,
                                      (SELECT DISTINCT fips, sum({pollutant}) as x
                                       FROM {scenario_name}.{fert_table}
                                       GROUP BY fips) fert
@@ -200,6 +203,7 @@ class ChooseSQL:
                                 SELECT ({ratio}) AS x
                                 FROM (SELECT DISTINCT r.fips, SUM(r.{pollutant}) AS x
                                       FROM {scenario_name}.{raw_table} r
+                                      WHERE description not like '%load%'
                                       GROUP BY r.fips) raw,
                                      (SELECT DISTINCT fips, SUM({pollutant}) AS x
                                       FROM  {scenario_name}.{chem_table}
