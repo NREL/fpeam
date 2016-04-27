@@ -36,7 +36,7 @@ class FigurePlottingBT16:
 
     def compile_results(self):
         # initialize kvals dict for string formatting
-        kvals = {'scenario_name': db.schema,
+        kvals = {'scenario_name': self.db.schema,
                  'year': config.get('year_dict')['all_crops'],
                  'yield': config.get('yield'),
                  'production_schema': config.get('production_schema')
@@ -503,17 +503,17 @@ class FigurePlottingBT16:
                                                  ;""".format(**kvals)
                         self.db.input(query_transport)
 
-                            if pollutant == 'voc':
-                                query_pre_process = """UPDATE     {scenario_name}.total_emissions tot
-                                                       INNER JOIN {scenario_name}.processing log
-                                                               ON log.fips       = tot.fips  AND
-                                                                  log.yield_type = tot.yield AND
-                                                                  log.feedstock  = tot.feedstock
-                                                       SET        tot.{pollutant_name} = IFNULL(voc_wood, 0) / {years_rot}
-                                                       WHERE      tot.source_category = '{preprocess_cat}' AND
-                                                                  log.logistics_type  = '{system}'
-                                                       ;""".format(**kvals)
-                                self.db.input(query_pre_process)
+                        if pollutant == 'voc':
+                            query_pre_process = """UPDATE     {scenario_name}.total_emissions tot
+                                                   INNER JOIN {scenario_name}.processing log
+                                                           ON log.fips       = tot.fips  AND
+                                                              log.yield_type = tot.yield AND
+                                                              log.feedstock  = tot.feedstock
+                                                   SET        tot.{pollutant_name} = IFNULL(voc_wood, 0) / {years_rot}
+                                                   WHERE      tot.source_category = '{preprocess_cat}' AND
+                                                              log.logistics_type  = '{system}'
+                                                   ;""".format(**kvals)
+                            self.db.input(query_pre_process)
 
 
     def get_data(self): 

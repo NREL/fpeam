@@ -111,6 +111,7 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                                 (sum(pm25) + sum(IFNULL(fug_pm25, 0))) AS pm25,
                                 (sum(co)) AS co
                                 FROM %s.%s_raw
+                                WHERE description not like '%s'
                                 GROUP BY fips) raw ON raw.fips = dat.fips
                         LEFT JOIN
                                 (SELECT DISTINCT fips,
@@ -123,7 +124,7 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                                 sum(nh3) AS nh3
                                 FROM %s.%s_nfert
                                 GROUP BY fips) fert ON fert.fips = dat.fips
-                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data", self.scenario_name, feedstock, self.scenario_name, feedstock, self.scenario_name, feedstock, )
+                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data", self.scenario_name,  feedstock, '%load%', self.scenario_name, feedstock, self.scenario_name, feedstock, )
 
         elif feedstock == 'CS' or feedstock == 'WS':
             query += """
@@ -146,6 +147,7 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                                 (sum(pm25) + sum(IFNULL(fug_pm25, 0))) AS pm25,
                                 (sum(co)) AS co
                                 FROM %s.%s_raw
+                                WHERE description not like '%s'
                                 GROUP BY fips) raw ON raw.fips = dat.fips
                         LEFT JOIN
                                 (SELECT DISTINCT fips,
@@ -153,7 +155,7 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                                 sum(nh3) AS nh3
                                 FROM %s.%s_nfert
                                 GROUP BY fips) fert ON fert.fips = dat.fips
-                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data", self.scenario_name, feedstock, self.scenario_name, feedstock, )
+                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data", self.scenario_name, feedstock, '%load%', self.scenario_name, feedstock, )
     
         elif feedstock == 'FR':
             query += """
@@ -175,9 +177,9 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                                         (sum(pm25) + sum(IFNULL(fug_pm25, 0))) AS pm25,
                                         (sum(co)) AS co
                                         FROM %s.%s_raw
+                                        WHERE description not like '%s'
                                         GROUP BY fips) raw ON raw.fips = dat.fips
-                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data", self.scenario_name, feedstock, )
-
+                        ;""" % ("'" + f + "'", prod, self.db.production_schema + '.' + feedstock + "_data", self.scenario_name, feedstock, '%load%', )
         self.db.input(query)
 
     def create_nei_comparison(self, feedstock):
