@@ -8,38 +8,43 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
     The run code tells you the feedstock, tillage, and operation
     (harvest/non-harvest/irrigation). 
     Fugitive dust occurs from vehicles such as tractors going over the field and creating lots of dust.
-    ******************
-    @note: Emission factors are calculated on a spread sheet. 
-    https://docs.google.com/spreadsheet/ccc?key=0ArgAX3FKoio9dGdQcnRqRlZoS2FiZDVvODJHY3J0bHc#gid=1 
-    *****************
+
+    Note: Emission factors are calculated on a spread sheet:
+
+        https://docs.google.com/spreadsheet/ccc?key=0ArgAX3FKoio9dGdQcnRqRlZoS2FiZDVvODJHY3J0bHc#gid=1
     """
+
     def __init__(self, cont):
+        """
+
+        :param cont: Container object for global values
+        :return:
+        """
+
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
+
+        # init properties
         self.document_file = "FugitiveDust"
-        self.pm_ratio = 0.20  # @TODO: remove hardcoded values
+        self.pm_ratio = 0.20
         self.cont = cont
         self.silt_table = config.get('db_table_list')['silt_table']
 
     def set_emissions(self, run_code):
         """
-        loop through run_codes and call this method to create fugitive
-        dust emissions in database.
-        Adds pm10, and pm25 emissions.
-        @param run_code: Specific run code with info on feedstock and operation.
+        Add fugitive dust emissions for <run_code>. Combines pm10, and pm25 emissions.
+
+        :param run_code: NONROAD run-code
+        :return:
         """
-        # Forest Residue fugitive dust emissions
+
         if run_code.startswith('FR'):
             self.__forest_res__()
-            # Corn Grain fugitivie dust emissions
         elif run_code.startswith('CG'):
             self.__corn_grain__(run_code)
-            # Wheat straw fugitive dust emissions
         elif run_code.startswith('WS'):
             self.__wheat_straw__(run_code)
-        # Corn stover fugitive dust emissions            
         elif run_code.startswith('CS'):
             self.__corn_stover__(run_code)
-        # switchgrass fugitive dust emissions            
         elif run_code.startswith('SG'):
             pass
 
