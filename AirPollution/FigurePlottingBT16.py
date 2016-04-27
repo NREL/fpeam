@@ -38,7 +38,7 @@ class FigurePlottingBT16:
         self.f_list = ['CG', 'SG', 'CS', 'WS', ]  # 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
-        self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values
+        self.etoh_vals = [2.76, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
 
         self.feed_id_dict = config.get('feed_id_dict')
 
@@ -92,8 +92,9 @@ class FigurePlottingBT16:
                 logger.info('Inserting data for irrigation for feedstock: {feed}'.format(**kvals))
                 self.get_irrig(kvals)
 
-            logger.info('Inserting data for loading for feedstock: {feed}'.format(**kvals))
-            self.get_loading(kvals)
+            if config['regional_crop_budget'] is True:
+                logger.info('Inserting data for loading for feedstock: {feed}'.format(**kvals))
+                self.get_loading(kvals)
 
             logger.info('Inserting data for harvest fugitive dust: {feed}'.format(**kvals))
             self.get_h_fd(kvals)
@@ -129,35 +130,39 @@ class FigurePlottingBT16:
         i = 0
         for feed in self.f_list:
             kvals['feed'] = feed.lower()
-            for till in till_dict:
-                kvals['till'] = till
-                kvals['tillage'] = till_dict[till]
-                if i == 0:
-                    # back up table
-                    self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
+            if feed == 'CG':
+                kvals['convert_bushel'] = 0.025
+            else:
+                kvals['convert_bushel'] = 1
+                for till in till_dict:
+                    kvals['till'] = till
+                    kvals['tillage'] = till_dict[till]
+                    if i == 0:
+                        # back up table
+                        self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
 
-                    # drop old table and create new table
-                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
-                    sql += "CREATE TABLE           {scenario_name}.{table} AS\n"
-                else:
-                    # insert data
-                    sql = "INSERT INTO {scenario_name}.{table}\n"
+                        # drop old table and create new table
+                        sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
+                        sql += "CREATE TABLE           {scenario_name}.{table} AS\n"
+                    else:
+                        # insert data
+                        sql = "INSERT INTO {scenario_name}.{table}\n"
 
-                # gather data
-                sql += "SELECT      tot.*,\n"
-                sql += "            cd.{tillage}_prod    AS prod,\n"
-                sql += "            cd.{tillage}_harv_ac AS harv_ac\n"
-                sql += "FROM        {scenario_name}.{te_table} tot\n"
-                sql += "LEFT JOIN   {production_schema}.{feed}_data cd\n"
-                sql += "       ON   cd.fips = tot.fips\n"
-                sql += "WHERE       tot.tillage   = '{till}' AND\n"
-                sql += "            tot.feedstock = '{feed}' \n"
-                sql += ";"
-                sql = sql.format(**kvals)
+                    # gather data
+                    sql += "SELECT      tot.*,\n"
+                    sql += "            cd.{tillage}_prod * {convert_bushel}    AS prod,\n"
+                    sql += "            cd.{tillage}_harv_ac AS harv_ac\n"
+                    sql += "FROM        {scenario_name}.{te_table} tot\n"
+                    sql += "LEFT JOIN   {production_schema}.{feed}_data cd\n"
+                    sql += "       ON   cd.fips = tot.fips\n"
+                    sql += "WHERE       tot.tillage   = '{till}' AND\n"
+                    sql += "            tot.feedstock = '{feed}' \n"
+                    sql += ";"
+                    sql = sql.format(**kvals)
 
-                self.db.execute_sql(sql=sql)
+                    self.db.execute_sql(sql=sql)
 
-                i += 1
+                    i += 1
 
     def _make_query(self, tillage, source_category, from_clause):
         """
@@ -733,22 +738,19 @@ class FigurePlottingBT16:
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
-        kvals = {'feed_abr': self.f_list[f_num],
-                 'feedstock': self.f_list[f_num],
+        kvals = {'feedstock': self.f_list[f_num],
                  'pollutant': self.pol_list[p_num],
                  'scenario_name': config.get('title'),
-                 'production_schema': config.get('production_schema'),
-                 'te_table': 'total_emissions'  # @TODO: this is manually defined several places; consolidate
+                 'te_table': 'total_emissions_join_prod'  # @TODO: this is manually defined several places; consolidate
                  }
 
-        query_emissions_per_prod = """SELECT    (sum({pollutant}) / prod.total_prod) AS mt_{pollutant}_perdt
-                                      FROM      {scenario_name}.{te_table} tot
-                                      LEFT JOIN {production_schema}.{feed_abr}_data prod ON tot.fips = prod.fips
-                                      WHERE     prod.total_prod > 0.0 AND tot.{pollutant} > 0
-                                      GROUP BY  tot.FIPS
-                                      ORDER BY  tot.FIPS
+        query_emissions_per_prod = """SELECT    sum({pollutant}/prod) AS mt_{pollutant}_perdt
+                                      FROM      {scenario_name}.{te_table}
+                                      WHERE     prod > 0.0 AND {pollutant} > 0 AND feedstock = '{feedstock}'
+                                      GROUP BY  fips
+                                      ORDER BY  fips
                                       ;""".format(**kvals)
-        emissions_per_production = self.db.output(query_emissions_per_prod)
+        emissions_per_production = self.db.output(query_emissions_per_prod)[0]
 
         return emissions_per_production
 
@@ -762,24 +764,20 @@ class FigurePlottingBT16:
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
-        kvals = {'feed_abr': self.f_list[f_num],
-                 'feedstock': self.f_list[f_num],
+        kvals = {'feedstock': self.f_list[f_num].lower(),
                  'pollutant': self.pol_list[p_num],
                  'scenario_name': config.get('title'),
-                 'production_schema': config.get('production_schema'),
-                 'te_table': 'total_emissions'  # @TODO: defined multiple places
+                 'te_table': 'total_emissions_join_prod'  # @TODO: defined multiple places
                  }
 
         query_emissions = """SELECT    sum({pollutant}) AS {pollutant}
-                             FROM      {scenario_name}.{te_table} tot
-                             LEFT JOIN {production_schema}.{feed_abr}_data prod
-                                    ON tot.fips = prod.fips
-                             WHERE     prod.total_prod > 0.0 AND tot.{pollutant} > 0
-                             GROUP BY  tot.FIPS
-                             ORDER BY  tot.FIPS
+                             FROM      {scenario_name}.{te_table}
+                             WHERE     prod > 0.0 AND {pollutant} > 0 AND feedstock = '{feedstock}'
+                             GROUP BY  fips
+                             ORDER BY  fips
                              ;""".format(**kvals)
 
-        emissions = self.db.output(query_emissions)
+        emissions = self.db.output(query_emissions)[0]
 
         return emissions
 

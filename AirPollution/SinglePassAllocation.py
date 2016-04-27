@@ -15,6 +15,7 @@ single pass allocation.
 """
 
 import SaveDataHelper
+from utils import config, logger
 
 
 class SinglePassAllocation(SaveDataHelper.SaveDataHelper):
@@ -27,12 +28,13 @@ class SinglePassAllocation(SaveDataHelper.SaveDataHelper):
         self.residue_allocation = str(380.0 / 540.0)
         self.corn_grain_allocation = str(160.0 / 540.0)
 
+        scenario_name = config['title']
         # @attention: allocate_cg never gets called...
         # so the second query is never made either...
 
         # whether to do corn grain or residue.
         # leave as is until corn grain data for 2022 is obtained.
-        self.allocate_cg = False
+        self.allocate_cg = True
 
         residues = ['cs', 'ws']
 
@@ -46,7 +48,7 @@ class SinglePassAllocation(SaveDataHelper.SaveDataHelper):
         
         for r in residues: 
             query = """
-                UPDATE """ + r + """_raw
+                UPDATE """ + scenario_name + """.""" + r + """_raw
                 SET
                     fuel_consumption = fuel_consumption * """ + self.residue_allocation + """,
                     thc = thc * """ + self.residue_allocation + """,
@@ -60,15 +62,15 @@ class SinglePassAllocation(SaveDataHelper.SaveDataHelper):
                     nh3 = nh3 * """ + self.residue_allocation + """,
                     fug_pm10 = fug_pm10 * """ + self.residue_allocation + """,
                     fug_pm25 = fug_pm25 * """ + self.residue_allocation + """
-                WHERE description ilike '%Harvest%';
-            """             
+                WHERE description LIKE '% Harvest%';
+            """
             self._execute_query(query)
             
         # define corn grain query - 160/540
         # do not use this until corn grain data for 2022 is obtained.
         if self.allocate_cg:
             query = """
-                UPDATE cs_raw
+                UPDATE """ + scenario_name + """.cg_raw
                 SET
                     fuel_consumption = fuel_consumption * """ + self.corn_grain_allocation + """,
                     thc = thc * """ + self.corn_grain_allocation + """,
@@ -83,7 +85,7 @@ class SinglePassAllocation(SaveDataHelper.SaveDataHelper):
                     fug_pm10 = fug_pm10 * """ + self.corn_grain_allocation + """,
                     fug_pm25 = fug_pm25 * """ + self.corn_grain_allocation + """
                 WHERE 
-                    description NOT ilike '%Conventional%' AND
-                    description ilike '% Harvest%';
-            """            
+                    description NOT LIKE '%Conventional%' AND
+                    description LIKE '% Harvest%';
+            """
             self._execute_query(query)
