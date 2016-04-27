@@ -392,6 +392,7 @@ class CornGrainPop(Population):
         Population.__init__(self, cont, episode_year, run_code)
 
         # Harvest hours per acre
+        # @TODO: what is 29.5? Where did it come from? Appears to be 3x the value specified in SI table S9 (13 dry short tons/hr, which works out to about 525 bu/hr)
         self.transport_tractor = 29.5 * 60  # bu/min * 60 min/hr = bu/hr
 
         # Non-Harvest hours per acre, from UT database
@@ -434,7 +435,8 @@ class CornGrainPop(Population):
         # lbs/acre
         scenario_yield = 0
         if harv_ac > 0:
-            scenario_yield = (prod / harv_ac) * 56.0 * (1.0 - 0.155) / 2000.0
+            # dt_to_bu = 56.0 * (1.0 - 0.155) / 2000.0
+            scenario_yield = (prod / harv_ac)
 
         # hrs/acre
         hours_per_acre_combine = self._get_combine_hours_per_acre(scenario_yield=scenario_yield)
@@ -443,7 +445,8 @@ class CornGrainPop(Population):
         # EDIT 12.07.12 - REDUCED COMBINE HRS/ACRE BY 10% DUE TO TRANSPORT CART
         # (hrs/acre * acre) / (hrs/yr) = yr
         # init population line values
-        pop_combine = round((hours_per_acre_combine * 0.9) * harv_ac / self.activity_combine, 10)
+
+        pop_combine = round((hours_per_acre_combine * 0.9) * harv_ac / self.activity_combine , 10)
         kvals = {'fips': fips,
                  'subregion_code': '',
                  'year': self.episode_year,
@@ -461,7 +464,8 @@ class CornGrainPop(Population):
         self.pop_file.writelines(line)
 
         # calculate population for transport
-        # [(lbs/acre) / (bu/hr)] * (acre) / (hr/yr) = yr
+        # to convert to dt, if needed
+        # bu_to_dt = 39.3680  # agric.gov.ab.ca/app19/calc/crop/bushel2tonne.jsp
         pop_transport = round((scenario_yield / self.transport_tractor) * harv_ac / self.activity_tractor, 10)
         kvals = {'fips': fips,
                  'subregion_code': '',

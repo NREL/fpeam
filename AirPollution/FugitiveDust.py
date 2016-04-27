@@ -8,38 +8,43 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
     The run code tells you the feedstock, tillage, and operation
     (harvest/non-harvest/irrigation). 
     Fugitive dust occurs from vehicles such as tractors going over the field and creating lots of dust.
-    ******************
-    @note: Emission factors are calculated on a spread sheet. 
-    https://docs.google.com/spreadsheet/ccc?key=0ArgAX3FKoio9dGdQcnRqRlZoS2FiZDVvODJHY3J0bHc#gid=1 
-    *****************
+
+    Note: Emission factors are calculated on a spread sheet:
+
+        https://docs.google.com/spreadsheet/ccc?key=0ArgAX3FKoio9dGdQcnRqRlZoS2FiZDVvODJHY3J0bHc#gid=1
     """
+
     def __init__(self, cont):
+        """
+
+        :param cont: Container object for global values
+        :return:
+        """
+
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
+
+        # init properties
         self.document_file = "FugitiveDust"
-        self.pm_ratio = 0.20  # @TODO: remove hardcoded values
+        self.pm_ratio = 0.20
         self.cont = cont
         self.silt_table = config.get('db_table_list')['silt_table']
 
     def set_emissions(self, run_code):
         """
-        loop through run_codes and call this method to create fugitive
-        dust emissions in database.
-        Adds pm10, and pm25 emissions.
-        @param run_code: Specific run code with info on feedstock and operation.
+        Add fugitive dust emissions for <run_code>. Combines pm10, and pm25 emissions.
+
+        :param run_code: NONROAD run-code
+        :return:
         """
-        # Forest Residue fugitive dust emissions
+
         if run_code.startswith('FR'):
             self.__forest_res__()
-            # Corn Grain fugitivie dust emissions
         elif run_code.startswith('CG'):
             self.__corn_grain__(run_code)
-            # Wheat straw fugitive dust emissions
         elif run_code.startswith('WS'):
             self.__wheat_straw__(run_code)
-        # Corn stover fugitive dust emissions            
         elif run_code.startswith('CS'):
             self.__corn_stover__(run_code)
-        # switchgrass fugitive dust emissions            
         elif run_code.startswith('SG'):
             pass
 
@@ -428,7 +433,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      1.2  # year 10
                                     ]
             self.description = 'SG_T'
-            
+
         elif run_code.startswith('SG_H'):
             # Switchgrass fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003
             # http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
@@ -444,7 +449,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      1.7  # year 10
                                     ]
             self.description = 'SG_H'
-            
+
         elif run_code.startswith('SG_N'):
             # lbs/acre
             self.emission_factors = [7.6,  # year 1 non-harvest emission factor
@@ -487,10 +492,26 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
 
         if self.description in ('SG_N', 'SG_H'):
             query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
-                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC) / {rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}, 0, 0, '{description}, Fugitive dust', '{run_code}'
-                        FROM {production_schema}.{feed}_data cd
-                        WHERE cd.{till}_harv_ac > 0
-                    """.format(**kvals)
+                        SELECT      cd.fips,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    ({ef} * cd.{till}_harv_AC) / {rot_years},
+                                    ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years},
+                                    0,
+                                    0,
+                                    '{description},
+                                    Fugitive dust',
+                                    '{run_code}'
+                        FROM        {production_schema}.{feed}_data cd
+                        WHERE       cd.{till}_harv_ac > 0
+                        ;""".format(**kvals)
+
             self._execute_query(query)
 
             # query = """ UPDATE {scenario_name}.{feed}_raw raw
@@ -529,16 +550,20 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
             kvals['D'] = config.get('onfarm_default_distance')  # default value for distance traveled (in vehicle miles traveled)
 
             # @TODO: clean up FIPS app-wide (i.e., make them all numbers or all 0-padded strings in code and database
-            query = """ UPDATE {scenario_name}.{feed}_raw raw
-                LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
-                LEFT JOIN {constants_schema}.{silt_table} tfd ON
-                        CASE
-                            WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
-                            WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips,2))
-                        END
-                SET fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}) / {rot_years},
-                    fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt}) / {rot_years}
-                WHERE (raw.run_code = '{description}')""".format(**kvals)
+            # @TODO: change case statement to lpad()
+            query = """ UPDATE    {scenario_name}.{feed}_raw raw
+                        LEFT JOIN {production_schema}.{feed}_data prod
+                               ON raw.fips = prod.fips
+                        LEFT JOIN {constants_schema}.{silt_table} tfd
+                               ON CASE
+                                    WHEN (length(prod.fips) = 5) THEN (    LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
+                                    WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips, 2))
+                                  END
+                        SET       fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}) / {rot_years},
+                                  fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt}) / {rot_years}
+                        WHERE (raw.run_code = '{description}')
+                        ;""".format(**kvals)
+
             self._execute_query(query)
 
         logger.info('Calculating fugitive dust emissions for %s, year %s' % (self.description, year, ))
