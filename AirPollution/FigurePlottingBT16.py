@@ -38,7 +38,7 @@ class FigurePlottingBT16:
         self.f_list = ['CG', 'SG', 'CS', 'WS', ]  # 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
-        self.etoh_vals = [2.76, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
+        self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
 
         self.feed_id_dict = config.get('feed_id_dict')
 
@@ -130,39 +130,41 @@ class FigurePlottingBT16:
         i = 0
         for feed in self.f_list:
             kvals['feed'] = feed.lower()
-            if feed == 'CG':
-                kvals['convert_bushel'] = 0.025
-            else:
-                kvals['convert_bushel'] = 1
-                for till in till_dict:
-                    kvals['till'] = till
-                    kvals['tillage'] = till_dict[till]
-                    if i == 0:
-                        # back up table
-                        self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
+            for till in till_dict:
+                kvals['till'] = till
+                kvals['tillage'] = till_dict[till]
+                logger.info('Joining production data for {feed} {till}')
+                if i == 0:
+                    # back up table
+                    self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
 
-                        # drop old table and create new table
-                        sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
-                        sql += "CREATE TABLE           {scenario_name}.{table} AS\n"
-                    else:
-                        # insert data
-                        sql = "INSERT INTO {scenario_name}.{table}\n"
+                    # drop old table and create new table
+                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
+                    sql += "CREATE TABLE           {scenario_name}.{table} AS\n"
+                else:
+                    # insert data
+                    sql = "INSERT INTO {scenario_name}.{table}\n"
 
-                    # gather data
-                    sql += "SELECT      tot.*,\n"
-                    sql += "            cd.{tillage}_prod * {convert_bushel}    AS prod,\n"
-                    sql += "            cd.{tillage}_harv_ac AS harv_ac\n"
-                    sql += "FROM        {scenario_name}.{te_table} tot\n"
-                    sql += "LEFT JOIN   {production_schema}.{feed}_data cd\n"
-                    sql += "       ON   cd.fips = tot.fips\n"
-                    sql += "WHERE       tot.tillage   = '{till}' AND\n"
-                    sql += "            tot.feedstock = '{feed}' \n"
-                    sql += ";"
-                    sql = sql.format(**kvals)
+                if feed == 'CG':
+                    kvals['convert_bushel'] = 0.025
+                else:
+                    kvals['convert_bushel'] = 1
 
-                    self.db.execute_sql(sql=sql)
+                # gather data
+                sql += "SELECT      tot.*,\n"
+                sql += "            cd.{tillage}_prod * {convert_bushel}    AS prod,\n"
+                sql += "            cd.{tillage}_harv_ac AS harv_ac\n"
+                sql += "FROM        {scenario_name}.{te_table} tot\n"
+                sql += "LEFT JOIN   {production_schema}.{feed}_data cd\n"
+                sql += "       ON   cd.fips = tot.fips\n"
+                sql += "WHERE       tot.tillage   = '{till}' AND\n"
+                sql += "            tot.feedstock = '{feed}' \n"
+                sql += ";"
+                sql = sql.format(**kvals)
 
-                    i += 1
+                self.db.execute_sql(sql=sql)
+
+                i += 1
 
     def _make_query(self, tillage, source_category, from_clause):
         """
@@ -738,7 +740,7 @@ class FigurePlottingBT16:
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
-        kvals = {'feedstock': self.f_list[f_num],
+        kvals = {'feedstock': self.f_list[f_num].lower(),
                  'pollutant': self.pol_list[p_num],
                  'scenario_name': config.get('title'),
                  'te_table': 'total_emissions_join_prod'  # @TODO: this is manually defined several places; consolidate

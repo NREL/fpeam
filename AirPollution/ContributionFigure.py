@@ -39,8 +39,8 @@ class ContributionAnalysis():
         feedstock_list = ['CG', 'SG', 'CS', 'WS'] # , 'FR']
         pollutant_list = [ 'NOx', 'VOC', 'PM25', 'PM10', 'CO', 'SOx'] # 'NH3',
         pollutant_labels = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$'] #'$NH_3$', 
-        activity_list = ['Non-Harvest', 'Fertilizer', 'Chemical', 'Harvest', 'Transport']
-        activity_labels = ['Non-Harvest', 'N-Fertilizer', 'Pesticide', 'Harvest', 'Transport']
+        activity_list = ['Non-Harvest', 'Fertilizer', 'Chemical', 'Harvest',]# 'Transport']
+        activity_labels = ['Non-Harvest', 'N-Fertilizer', 'Pesticide', 'Harvest',]# 'Transport']
         
         self.f = open(os.path.join(self.path, 'Figures', 'Contribution_numerical.csv'), 'w')
     # -----------inputs end
