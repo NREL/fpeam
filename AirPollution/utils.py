@@ -163,7 +163,7 @@ def get_fips(scenario_year, state_level_moves, db):
                         GROUP BY fips) sum ON summed_max.max_sum = sum.summed_prod;""".format(**kvals)
 
         db.create(query)
-        fips_list = list(db.output(query_get))
+        fips_list = db.output(query_get)
 
     else:
         # @TODO: replace with actual list of FIPS codes for run (probably use database table)
