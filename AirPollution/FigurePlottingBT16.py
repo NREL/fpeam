@@ -30,7 +30,7 @@ class FigurePlottingBT16:
         self.f_marker = ['o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
         self.row_list = [0, 0, 1, 1, 2, 2]  # @TODO: remove hardcoded values
         self.col_list = [0, 1, 0, 1, 0, 1]  # @TODO: remove hardcoded values
-        self.pol_list_label = ['$NO_x$', '$voc$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$']  # @TODO: remove hardcoded values
+        self.pol_list_label = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$']  # @TODO: remove hardcoded values
 
         self.pol_list = ['nox', 'voc', 'pm25', 'co', 'pm10', 'sox']  # @TODO: remove hardcoded values
 
@@ -59,8 +59,9 @@ class FigurePlottingBT16:
         # create backup
         self.db.backup_table(schema=kvals['scenario_name'], table=kvals['te_table'])
 
-        query_create_table = """DROP TABLE IF EXISTS {scenario_name}.{te_table};
-                                CREATE TABLE {scenario_name}.{te_table} (fips            char(5),
+        query_drop_table = """DROP TABLE IF EXISTS {scenario_name}.{te_table};""".format(**kvals)
+
+        query_create_table = """CREATE TABLE {scenario_name}.{te_table} (fips            char(5),
                                                                          year            char(4),
                                                                          yield           char(2),
                                                                          tillage         varchar(255),
@@ -76,10 +77,10 @@ class FigurePlottingBT16:
                                                                          feedstock       char(2))
                                 ;""".format(**kvals)
 
+        self.db.execute_sql(query_drop_table)
         self.db.execute_sql(query_create_table)
 
         for feedstock in self.f_list:
-            kvals['years_rot'] = config.get('crop_budget_dict')['years'][feedstock]
             kvals['feed'] = feedstock.lower()
 
             logger.info('Inserting data for chemical emissions for feedstock: {feed}'.format(**kvals))
@@ -197,7 +198,7 @@ class FigurePlottingBT16:
               "FROM (SELECT" \
               "          fips                   AS fips," \
               "          tillage                AS tillage" \
-              "          SUM(voc) / {years_rot} AS voc," \
+              "          SUM(voc) AS voc," \
               "          FROM {scenario_name}.{feed}_chem" \
               "          GROUP BY fips, tillage" \
               "      ) chem" \
@@ -232,7 +233,7 @@ class FigurePlottingBT16:
                              FROM (SELECT
                                        fips                   AS fips,
                                        tillage                AS tillage,
-                                       SUM(voc) / {years_rot} AS voc
+                                       SUM(voc) AS voc
                                    FROM {scenario_name}.{feed}_chem
                                    GROUP BY fips, tillage
                                   ) chem
@@ -265,8 +266,8 @@ class FigurePlottingBT16:
                                     '{feed}'     AS feedstock
                              FROM (SELECT
                                        fips,
-                                       SUM(nox) / {years_rot} AS nox,
-                                       SUM(nh3) / {years_rot} AS nh3,
+                                       SUM(nox) AS nox,
+                                       SUM(nh3) AS nh3,
                                        tillage
                                    FROM {scenario_name}.{feed}_nfert
                                    GROUP BY fips, tillage
@@ -284,7 +285,7 @@ class FigurePlottingBT16:
         """
 
         if kvals['feed'] != 'sg':
-            kvals['tillage'] = "coNCAT(LEFT(RIGHT(run_code, 2), 1), 'T')"
+            kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2), 1), 'T')"
         else:
             kvals['tillage'] = "'NT'"
 
@@ -292,14 +293,14 @@ class FigurePlottingBT16:
                                SELECT fips                                          AS fips,
                                       '{year}'                                      AS year,
                                       '{yield}'                                     AS yield,
-                                      {tillage}                                   AS tillage,
-                                      SUM(nox)                        / {years_rot} AS nox,
-                                      SUM(nh3)                        / {years_rot} AS nh3,
-                                      SUM(voc)                        / {years_rot} AS voc,
-                                      SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} AS pm10,
-                                      SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
-                                      SUM(sox)                        / {years_rot} AS sox,
-                                      SUM(co)                         / {years_rot} AS co,
+                                      {tillage}                                     AS tillage,
+                                      SUM(nox)                                      AS nox,
+                                      SUM(nh3)                                      AS nh3,
+                                      SUM(voc)                                      AS voc,
+                                      SUM(pm10 + IFNULL(fug_pm10, 0))               AS pm10,
+                                      SUM(pm25 + IFNULL(fug_pm25, 0))               AS pm25,
+                                      SUM(sox)                                      AS sox,
+                                      SUM(co)                                       AS co,
                                       'Non-Harvest'                                 AS source_category,
                                       'NR'                                          AS nei_category,
                                       '{feed}'                                      AS feedstock
@@ -332,14 +333,14 @@ class FigurePlottingBT16:
                                        '{year}'                                      AS year,
                                        '{yield}'                                     AS yield,
                                        {tillage}                                     AS tillage,
-                                       SUM(nox)                        / {years_rot} AS nox,
-                                       SUM(nh3)                        / {years_rot} AS nh3,
-                                       SUM(voc)                        / {years_rot} AS voc,
-                                       SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} AS pm10,
-                                       SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
-                                       SUM(sox)                        / {years_rot} AS sox,
-                                       SUM(co)                         / {years_rot} AS co,
-                                       '{source_category}'                            AS source_category,
+                                       SUM(nox)                                      AS nox,
+                                       SUM(nh3)                                      AS nh3,
+                                       SUM(voc)                                      AS voc,
+                                       SUM(pm10 + IFNULL(fug_pm10, 0))               AS pm10,
+                                       SUM(pm25 + IFNULL(fug_pm25, 0))               AS pm25,
+                                       SUM(sox)                                      AS sox,
+                                       SUM(co)                                       AS co,
+                                       '{source_category}'                           AS source_category,
                                        'NR'                                          AS nei_category,
                                        '{feed}'                                      AS feedstock
                               FROM     {scenario_name}.{feed}_raw
@@ -372,13 +373,13 @@ class FigurePlottingBT16:
                                               '{year}'                                                   AS year,
                                               '{yield}'                                                  AS yield,
                                               '{tillage}'                                                AS tillage,
-                                              SUM(nox)                        / {years_rot} * {red_fact} AS nox,
-                                              SUM(nh3)                        / {years_rot} * {red_fact} AS nh3,
-                                              SUM(voc)                        / {years_rot} * {red_fact} AS voc,
-                                              SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} * {red_fact} AS pm10,
-                                              SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} * {red_fact} AS pm25,
-                                              SUM(sox)                        / {years_rot} * {red_fact} AS sox,
-                                              SUM(co)                         / {years_rot} * {red_fact} AS co,
+                                              SUM(nox)                                      * {red_fact} AS nox,
+                                              SUM(nh3)                                      * {red_fact} AS nh3,
+                                              SUM(voc)                                      * {red_fact} AS voc,
+                                              SUM(pm10 + IFNULL(fug_pm10, 0))               * {red_fact} AS pm10,
+                                              SUM(pm25 + IFNULL(fug_pm25, 0))               * {red_fact} AS pm25,
+                                              SUM(sox)                                      * {red_fact} AS sox,
+                                              SUM(co)                                       * {red_fact} AS co,
                                               'Irrigation'                                               AS source_category,
                                               'NR'                                                       AS nei_category,
                                               '{feed}'                                                   AS cg
@@ -402,13 +403,13 @@ class FigurePlottingBT16:
                                   '{year}'                                      AS year,
                                   '{yield}'                                     AS yield,
                                   {tillage}                                     AS tillage,
-                                  SUM(nox)                        / {years_rot} AS nox,
-                                  SUM(nh3)                        / {years_rot} AS nh3,
-                                  SUM(voc)                        / {years_rot} AS voc,
-                                  SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} AS pm10,
-                                  SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
-                                  SUM(sox)                        / {years_rot} AS sox,
-                                  SUM(co)                         / {years_rot} AS co,
+                                  SUM(nox)                                      AS nox,
+                                  SUM(nh3)                                      AS nh3,
+                                  SUM(voc)                                      AS voc,
+                                  SUM(pm10 + IFNULL(fug_pm10, 0))               AS pm10,
+                                  SUM(pm25 + IFNULL(fug_pm25, 0))               AS pm25,
+                                  SUM(sox)                                      AS sox,
+                                  SUM(co)                                       AS co,
                                   'Harvest'                                     AS source_category,
                                   'NR'                                          AS nei_category,
                                   '{feed}'                                      AS feedstock
@@ -433,13 +434,13 @@ class FigurePlottingBT16:
                                   '{year}'                                      AS year,
                                   '{yield}'                                     AS yield,
                                   {tillage}                                     AS tillage,
-                                  SUM(nox)                        / {years_rot} AS nox,
-                                  SUM(nh3)                        / {years_rot} AS nh3,
-                                  SUM(voc)                        / {years_rot} AS voc,
-                                  SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} AS pm10,
-                                  SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
-                                  SUM(sox)                        / {years_rot} AS sox,
-                                  SUM(co)                         / {years_rot} AS co,
+                                  SUM(nox)                                      AS nox,
+                                  SUM(nh3)                                      AS nh3,
+                                  SUM(voc)                                      AS voc,
+                                  SUM(pm10 + IFNULL(fug_pm10, 0))               AS pm10,
+                                  SUM(pm25 + IFNULL(fug_pm25, 0))               AS pm25,
+                                  SUM(sox)                                      AS sox,
+                                  SUM(co)                                       AS co,
                                   'Harvest - fug dust'                          AS source_category,
                                   'NR'                                          AS nei_category,
                                   '{feed}'                                      AS feedstock
@@ -463,13 +464,13 @@ class FigurePlottingBT16:
                                   '{year}'                                      AS year,
                                   '{yield}'                                     AS yield,
                                   {tillage}                                     AS tillage,
-                                  SUM(nox)                        / {years_rot} AS nox,
-                                  SUM(nh3)                        / {years_rot} AS nh3,
-                                  SUM(voc)                        / {years_rot} AS voc,
-                                  SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} AS pm10,
-                                  SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} AS pm25,
-                                  SUM(sox)                        / {years_rot} AS sox,
-                                  SUM(co)                         / {years_rot} AS co,
+                                  SUM(nox)                                      AS nox,
+                                  SUM(nh3)                                      AS nh3,
+                                  SUM(voc)                                      AS voc,
+                                  SUM(pm10 + IFNULL(fug_pm10, 0))               AS pm10,
+                                  SUM(pm25 + IFNULL(fug_pm25, 0))               AS pm25,
+                                  SUM(sox)                                      AS sox,
+                                  SUM(co)                                       AS co,
                                   'Loading'                                     AS source_category,
                                   'NR'                                          AS nei_category,
                                   '{feed}'                                      AS feedstock
@@ -627,10 +628,11 @@ class FigurePlottingBT16:
             ax1.set_yscale('log')
             ax1.set_ylim(bottom=1e-3, top=1e2)
 
-            ax1.set_title(self.pol_list_label[p_num])
+            #ax1.set_title(self.pol_list_label[p_num])
             ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
 
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
+            ax1.set_xlim(0.5, 5.5)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
@@ -638,13 +640,13 @@ class FigurePlottingBT16:
             # self.ax1.yaxis.set_major_formatter(FixedFormatter([0.00001, 0.0001, 0.001]))#for below y-axis
 
             self.__plot_interval__(plotvals, ax1)
-            ax1.set_xticklabels(self.f_list, rotation='vertical')
+            ax1.set_xticklabels(self.f_list, rotation='horizontal')
 
-        # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
-        plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
-        plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
-        plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
-        # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
+        # # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
+        # plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
+        # plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
+        # plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
+        # # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
         axarr[0, 0].set_ylabel('g/gal EtOH', color='black', fontsize=14)
         axarr[1, 0].set_ylabel('g/gal EtOH', color='black', fontsize=14)
@@ -678,12 +680,12 @@ class FigurePlottingBT16:
             col = self.col_list[p_num]
             ax1 = axarr[row, col]
             ax1.set_yscale('log')
-            ax1.set_ylim(bottom=1e-4, top=1e8)
+            ax1.set_ylim(bottom=1e-3, top=1e4)
 
-            ax1.set_title(self.pol_list_label[p_num])
+            #ax1.set_title(self.pol_list_label[p_num])
             ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
-
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
+            ax1.set_xlim(0.5, 5.5)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
@@ -691,13 +693,13 @@ class FigurePlottingBT16:
             # self.ax1.yaxis.set_major_formatter(FixedFormatter([0.00001, 0.0001, 0.001]))#for below y-axis
 
             self.__plot_interval__(plotvals, ax1)
-            ax1.set_xticklabels(self.f_list, rotation='vertical')
+            ax1.set_xticklabels(self.f_list, rotation='horizontal')
 
-        # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
-        plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
-        plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
-        plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
-        # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
+        # # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
+        # plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
+        # plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
+        # plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
+        # # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
         axarr[0, 0].set_ylabel('Emissions (g/dt)', color='black', fontsize=14)
         axarr[1, 0].set_ylabel('Emissions (g/dt)', color='black', fontsize=14)
@@ -746,7 +748,7 @@ class FigurePlottingBT16:
                  'te_table': 'total_emissions_join_prod'  # @TODO: this is manually defined several places; consolidate
                  }
 
-        query_emissions_per_prod = """SELECT    sum({pollutant}/prod) AS mt_{pollutant}_perdt
+        query_emissions_per_prod = """SELECT    sum({pollutant})/(prod) AS mt_{pollutant}_perdt
                                       FROM      {scenario_name}.{te_table}
                                       WHERE     prod > 0.0 AND {pollutant} > 0 AND feedstock = '{feedstock}'
                                       GROUP BY  fips
