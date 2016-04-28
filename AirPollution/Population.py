@@ -109,7 +109,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                  'pop': pop
                  }
 
-        return '{fips:0>5} {sub_reg:>5} {year:>4} {scc_code:>10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5.1f} {life:>5} {flag:<10} {pop:>17.10f} \n'.format(**kvals)
+        return '{fips:0>5} {sub_reg:>5} {year:>4} {scc_code:>10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5.1f} {life:>5} {flag:<10} {pop:>17.7f} \n'.format(**kvals)
 
     def append_pop(self, fips, indicator1):
         """
@@ -240,6 +240,7 @@ class RegionalEquipment(Population):
 
         # if data is not empty
         if len(equip_list) >= 1:
+            equip_list = equip_list[0]
             # get harvested acreage from production data
             harv_ac = dat[2]
 
@@ -256,7 +257,7 @@ class RegionalEquipment(Population):
                     annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (NonRoad default value)
 
                     # compute population of equipment using activity rate, harvested acreage, and annual activity
-                    pop = round(activity_rate * harv_ac / annual_activity, 10)  # population in years of operation
+                    pop = round(activity_rate * harv_ac / annual_activity, 7)  # population in years of operation
 
                     # get hp and useful life dictionaries for NONROAD data
                     hp_list = self.nonroad_equip_dict['power_range']
@@ -321,7 +322,7 @@ class ResiduePop(Population):
 
         # calculate population of combine for harvest.
         # pop = (hr/acre * acre) / (hr/yr) = yr
-        pop_comb = round(hours_per_acre_combine * harv_ac / self.activity_combine, 10)  # yr
+        pop_comb = round(hours_per_acre_combine * harv_ac / self.activity_combine, 7)  # yr
 
         # init population line values
         kvals = {'fips': fips,
@@ -342,7 +343,7 @@ class ResiduePop(Population):
 
         # calculate population of tractors for transport.
         # pop = [(lbs/acre / dt/hr) * acre] / hr/yr = yr
-        pop_bale_mover = round((scenario_yield / self.transport_bales) * harv_ac / self.activity_tractor, 10)  # yr
+        pop_bale_mover = round((scenario_yield / self.transport_bales) * harv_ac / self.activity_tractor, 7)  # yr
         # init population line values
         kvals_bale = {'fips': fips,
                       'subregion_code': '',
@@ -446,7 +447,7 @@ class CornGrainPop(Population):
         # (hrs/acre * acre) / (hrs/yr) = yr
         # init population line values
 
-        pop_combine = round((hours_per_acre_combine * 0.9) * harv_ac / self.activity_combine , 10)
+        pop_combine = round((hours_per_acre_combine * 0.9) * harv_ac / self.activity_combine, 7)
         kvals = {'fips': fips,
                  'subregion_code': '',
                  'year': self.episode_year,
@@ -466,7 +467,7 @@ class CornGrainPop(Population):
         # calculate population for transport
         # to convert to dt, if needed
         # bu_to_dt = 39.3680  # agric.gov.ab.ca/app19/calc/crop/bushel2tonne.jsp
-        pop_transport = round((scenario_yield / self.transport_tractor) * harv_ac / self.activity_tractor, 10)
+        pop_transport = round((scenario_yield / self.transport_tractor) * harv_ac / self.activity_tractor, 7)
         kvals = {'fips': fips,
                  'subregion_code': '',
                  'year': self.episode_year,
@@ -495,7 +496,7 @@ class CornGrainPop(Population):
 
         if self.run_code.endswith('CN'):
             #  pop = (hrs/acre) * (acre) / (hrs/yr) = yr
-            pop_conv_till = round(self.hrs_per_acre_conv_till * harv_ac / self.activity_tractor, 10)  # yr
+            pop_conv_till = round(self.hrs_per_acre_conv_till * harv_ac / self.activity_tractor, 7)  # yr
             kvals = {'fips': fips,
                      'subregion_code': '',
                      'year': self.episode_year,
@@ -515,7 +516,7 @@ class CornGrainPop(Population):
 
         elif self.run_code.endswith('RN'):
             # pop = (hrs/acre * acre) / (hrs/yr) = yr
-            pop_reduced_till = round(self.hrs_per_acre_red_till * harv_ac / self.activity_tractor, 10)  # yr
+            pop_reduced_till = round(self.hrs_per_acre_red_till * harv_ac / self.activity_tractor, 7)  # yr
             kvals = {'fips': fips,
                      'subregion_code': '',
                      'year': self.episode_year,
@@ -534,7 +535,7 @@ class CornGrainPop(Population):
 
         elif self.run_code.endswith('NN'):
             # pop = (hrs/acre * acre) / (hrs/yr) = yr
-            pop_conventional_till = round(self.hrs_per_acre_no_till * harv_ac / self.activity_tractor, 10)  # yr
+            pop_conventional_till = round(self.hrs_per_acre_no_till * harv_ac / self.activity_tractor, 7)  # yr
             kvals = {'fips': fips,
                      'subregion_code': '',
                      'year': self.episode_year,
@@ -661,7 +662,7 @@ class CornGrainIrrigationPop(Population):
 
         hp, hpa = self.hp_check(hp, hpa, 750)
         # pop = (acres * hrs/acre) / (hrs/yr) = yr
-        pop = round(indicator * hpa / self.activity_diesel, 10)
+        pop = round(indicator * hpa / self.activity_diesel, 7)
 
         for hp_range_type in self.hp_list:
             # check if hp falls in range
@@ -705,7 +706,7 @@ class CornGrainIrrigationPop(Population):
         hp, hpa = self.hp_check(hp, hpa, 300)
 
         # pop = (acres * hrs/acre) / (hrs/yr) = yr
-        pop = round(indicator * hpa / self.activity_gas, 10)
+        pop = round(indicator * hpa / self.activity_gas, 7)
 
         for hp_range_type in self.hp_list:
             # check if hp falls in range
@@ -757,7 +758,7 @@ class CornGrainIrrigationPop(Population):
         hp, hpa = self.hp_check(hp, hpa, 175)
 
         # pop = (acres * hrs/acre) / (hrs/yr) = yr
-        pop = round(indicator * hpa / self.activity_lpg, 10)
+        pop = round(indicator * hpa / self.activity_lpg, 7)
 
         # set kvals dictionary for string formatting
         kvals = {'fips': fips,
@@ -791,7 +792,7 @@ class CornGrainIrrigationPop(Population):
         hp, hpa = self.hp_check(hp, hpa, 600)
 
         # pop = (acres * hrs/acre) / (hrs/yr) = yr
-        pop = round(indicator * hpa / self.activity_cng, 10)
+        pop = round(indicator * hpa / self.activity_cng, 7)
 
         for hp_range_type in self.hp_list:
             # check if hp falls in range
@@ -939,8 +940,8 @@ class SwitchgrassPop(Population):
             self.hrs_per_ac_130hp = 0.0
 
         # (acres * hrs/acre) / (hr/year) = year
-        self.pop_60 = round((harv_ac * self.hrs_per_ac_60hp) / self.activity_tractor, 10)
-        self.pop_130 = round((harv_ac * self.hrs_per_ac_130hp) / self.activity_tractor, 10)
+        self.pop_60 = round((harv_ac * self.hrs_per_ac_60hp) / self.activity_tractor, 7)
+        self.pop_130 = round((harv_ac * self.hrs_per_ac_130hp) / self.activity_tractor, 7)
 
     def __get_harv_hrs_per_acre__(self, harv_ac, prod):
         """
@@ -961,8 +962,8 @@ class SwitchgrassPop(Population):
         rake = 0.191 * 1.1  # hrs/acre
 
         # (hrs/acre * acres) / (hrs/yr) = yr
-        self.pop_60 = round((rake * harv_ac) / self.activity_tractor, 10)
-        self.pop_130 = round(((mower + baler) * harv_ac) / self.activity_tractor, 10)
+        self.pop_60 = round((rake * harv_ac) / self.activity_tractor, 7)
+        self.pop_130 = round(((mower + baler) * harv_ac) / self.activity_tractor, 7)
 
     def __get_transport_hrs_per_acre__(self, prod):
         """
@@ -983,7 +984,7 @@ class SwitchgrassPop(Population):
         scenario_prod = prod * self.yield_factor  # lbs
         self.pop_60 = 0.0
         # lbs / (dt/hr * hr/yr) = yr
-        self.pop_130 = round((scenario_prod / (self.transport_bales * self.activity_tractor)) * 1.1, 10)  # yr
+        self.pop_130 = round((scenario_prod / (self.transport_bales * self.activity_tractor)) * 1.1, 7)  # yr
 
 
 class LoadingEquipment(Population):
@@ -1048,7 +1049,7 @@ class LoadingEquipment(Population):
             # calculate population
             annual_hrs_operation = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # annual hours of operation
             hrs_per_dt = float(self.loading_equip['process_rate'][i])  # processing rate (hr/dt)
-            kvals['pop'] = round(hrs_per_dt * prod / annual_hrs_operation, 10)  # population (years)
+            kvals['pop'] = round(hrs_per_dt * prod / annual_hrs_operation, 7)  # population (years)
 
             # determine range for horsepower (match to NONROAD range) and evaluate useful life
             for hp_range in self.nonroad_equip_dict['power_range']:

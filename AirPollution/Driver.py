@@ -431,7 +431,7 @@ class Driver:
         #     self.post_process_off_farm_transport(feedstock=feedstock, fips_list=fips_list)
             
         # perform single pass allocation when national crop budget is selected and all feedstocks are modeled
-        if len(self.feedstock_list) == 5 and regional_crop_budget is False:
+        if regional_crop_budget is False:
             self.single_pass_alloc()
 
     def concat_zeros(self, table_name):
