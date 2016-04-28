@@ -503,7 +503,7 @@ class CornGrainPop(Population):
                      'scc_code': 2270005015,
                      'equip_desc': 'Dsl - Agricultural Tractors',
                      'min_hp': 175,
-                     'max_hp': 200,
+                     'max_hp': 300,
                      'avg_hp': 236.5,
                      'life': 4667,
                      'flag': 'DEFAULT',
