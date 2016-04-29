@@ -34,8 +34,8 @@ class FigurePlottingBT16:
 
         self.pol_list = ['nox', 'voc', 'pm25', 'co', 'pm10', 'sox']  # @TODO: remove hardcoded values
 
-        self.feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw',]# 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
-        self.f_list = ['CG', 'SG', 'CS', 'WS', ]# 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
+        self.feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw', 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
+        self.f_list = ['CG', 'SG', 'CS', 'WS', 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
         self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
@@ -355,10 +355,12 @@ class FigurePlottingBT16:
         :return:
         """
 
-        if kvals['feed'] != 'sg':
-            kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2), 1), 'T')"
-        else:
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
+            kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
+        elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
+        elif kvals['feed'] == 'ms':
+            kvals['tillage'] = "'CT'"
 
         query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                SELECT fips                                          AS fips,
@@ -394,10 +396,12 @@ class FigurePlottingBT16:
 
         kvals['source_category'] = 'Non-Harvest - fug dust'
 
-        if kvals['feed'] != 'sg':
-            kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2), 1), 'T')"
-        else:
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
+            kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
+        elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
+        elif kvals['feed'] == 'ms':
+            kvals['tillage'] = "'CT'"
 
         query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                SELECT  fips,
@@ -464,10 +468,12 @@ class FigurePlottingBT16:
                 self.db.input(query_non_harvest)
 
     def get_harvest(self, kvals):
-        if kvals['feed'] != 'sg':
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
-        else:
+        elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
+        elif kvals['feed'] == 'ms':
+            kvals['tillage'] = "'CT'"
 
         query_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT fips,
@@ -494,11 +500,12 @@ class FigurePlottingBT16:
         self.db.input(query_harvest)
 
     def get_h_fd(self, kvals):
-        if kvals['feed'] != 'sg':
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
-
-        else:
+        elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
+        elif kvals['feed'] == 'ms':
+            kvals['tillage'] = "'CT'"
 
         query_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT fips,
@@ -525,10 +532,12 @@ class FigurePlottingBT16:
         self.db.input(query_harvest)
 
     def get_loading(self, kvals):
-        if kvals['feed'] != 'sg':
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
-        else:
+        elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
+        elif kvals['feed'] == 'ms':
+            kvals['tillage'] = "'CT'"
 
         query_loading = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT fips,
