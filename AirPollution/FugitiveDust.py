@@ -432,7 +432,10 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      1.2,  # year 9
                                      1.2  # year 10
                                     ]
-            self.description = 'SG_T'
+            if len(run_code) == 4:
+                self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4])  # year 1-9
+            else:
+                self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4:6])  # year 10
 
         elif run_code.startswith('SG_H'):
             # Switchgrass fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003
@@ -448,7 +451,10 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      1.7,  # year 9
                                      1.7  # year 10
                                     ]
-            self.description = 'SG_H'
+            if len(run_code) == 4:
+                self.description = "Year %s - Harvest, Fugitive dust" % (run_code[4])  # year 1-9
+            else:
+                self.description = "Year %s - Harvest, Fugitive dust" % (run_code[4:6])  # year 10
 
         elif run_code.startswith('SG_N'):
             # lbs/acre
@@ -463,7 +469,10 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      0.8,  # year 9
                                      0.8  # year 10
                                     ]
-            self.description = 'SG_N'
+            if len(run_code) == 4:
+                self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4])  # year 1-9
+            else:
+                self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4:6])  # year 10
 
     def set_emissions(self):
         # initialize kvals dictionary for string formatting
@@ -487,10 +496,10 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
         # pm2.5 = mt/acre * acre * constant = mt
         # switch grass on a 10 year basis.
 
-        kvals['description'] = str(self.description + str(year))
+        kvals['description'] = str(self.description)
         kvals['ef'] = self.convert_lbs_to_mt(ef)
 
-        if self.description in ('SG_N', 'SG_H'):
+        if self.run_code.startswith('SG_N') or self.run_code.startswith('SG_H'):
             query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
                         SELECT      cd.fips,
                                     0,
@@ -505,8 +514,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                     ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years},
                                     0,
                                     0,
-                                    '{description},
-                                    Fugitive dust',
+                                    '{description}',
                                     '{run_code}'
                         FROM        {production_schema}.{feed}_data cd
                         WHERE       cd.{till}_harv_ac > 0
@@ -514,15 +522,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
 
             self._execute_query(query)
 
-            # query = """ UPDATE {scenario_name}.{feed}_raw raw
-            #             LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
-            #             SET fug_pm10 = ({ef} * cd.{till}_harv_AC) / {rot_years},
-            #                 fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}
-            #             WHERE (raw.run_code = '{description}')""".format(**kvals)
-            #
-            # self._execute_query(query)
-
-        elif self.description == 'SG_T':
+        elif self.run_code.startswith('SG_T'):
             # Calculates pm10 and pm2.5 fugitive dust emissions from transportation on unpaved roads
             # Calculates in units of metric tons
             #
@@ -614,7 +614,10 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      1.2,  # year 14
                                      1.2  # year 15
                                      ]
-            self.description = 'MS_T'
+            if len(run_code) == 4:
+                self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4])  # year 1-9
+            else:
+                self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4:6])  # year > 10
 
         elif run_code.startswith('MS_H'):
             # Switchgrass fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003
@@ -635,7 +638,10 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      1.7,  # year 14
                                      1.7  # year 15
                                      ]
-            self.description = 'MS_H'
+            if len(run_code) == 4:
+                self.description = "Year %s - Harvest, Fugitive dust" % (run_code[4])  # year 1-9
+            else:
+                self.description = "Year %s - Harvest, Fugitive dust" % (run_code[4:6])  # year > 10
 
         elif run_code.startswith('MS_N'):
             # lbs/acre
@@ -655,7 +661,11 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      0.8,  # year 14
                                      0.8,  # year 15
                                     ]
-            self.description = 'MS_N'
+
+            if len(run_code) == 4:
+                self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4])  # year 1-9
+            else:
+                self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4:6])  # year > 10
 
     def set_emissions(self):
         # initialize kvals dictionary for string formatting
@@ -679,7 +689,7 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
         # pm2.5 = mt/acre * acre * constant = mt
         # switch grass on a 10 year basis.
 
-        kvals['description'] = str(self.description + str(year))
+        kvals['description'] = str(self.description + str(year)) + ', Fugitive dust'
         kvals['ef'] = self.convert_lbs_to_mt(ef)
 
         if self.description in ('MS_N', 'MS_H'):
@@ -690,13 +700,6 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
                     """.format(**kvals)
             self._execute_query(query)
 
-            # query = """ UPDATE {scenario_name}.{feed}_raw raw
-            #             LEFT JOIN {production_schema}.{feed}_data cd ON cd.fips = raw.fips
-            #             SET fug_pm10 = ({ef} * cd.{till}_harv_AC) / {rot_years},
-            #                 fug_pm25 = ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years}
-            #             WHERE (raw.run_code = '{description}')""".format(**kvals)
-            #
-            # self._execute_query(query)
 
         elif self.description == 'MS_T':
             # Calculates pm10 and pm2.5 fugitive dust emissions from transportation on unpaved roads

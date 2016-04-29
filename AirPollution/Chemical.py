@@ -37,7 +37,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         self.kvals['yr'] = yr
 
         # set crop type
-        self.kvals['feed'] = feed
+        self.kvals['feed'] = feed.lower()
 
         if feed == 'SG':
             till_dict = {'NT': 'notill'}

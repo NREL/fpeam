@@ -276,7 +276,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 kvals['pollutant'] = pollutant
                 if i == 0:
                     query_airplane = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, co2, fuel_consumption, nh3, {pollutant}, description, run_code)
-                                         SELECT cd.fips, 0, 0, 0, 0, 0, 0, cd.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}, '{till_type} - Non-Harvest, crop dusting', '{run_code}'
+                                         SELECT cd.fips, 0, 0, 0, 0, 0, 0, cd.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}, '{till_type} - Non-Harvest, aerial', '{run_code}'
                                          FROM {production_schema}.cg_data cd
                                          LEFT JOIN {constants_schema}.fips_region fp ON fp.fips = cd.fips
                                          WHERE fp.polyfrr = 13 AND cd.total_prod > 0
@@ -288,7 +288,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                                          LEFT JOIN {constants_schema}.fips_region fp
                                          ON fp.fips = cd.fips
                                          SET {pollutant} = cd.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}
-                                         WHERE fp.polyfrr = 13 AND cd.total_prod > 0 AND description LIKE '{till_type} - Non-Harvest, crop dusting' AND run_code = '{run_code}'
+                                         WHERE fp.polyfrr = 13 AND cd.total_prod > 0 AND description LIKE '{till_type} - Non-Harvest, aerial' AND run_code = '{run_code}'
                                      """.format(**kvals)
                 self.db.input(query_airplane)
 
