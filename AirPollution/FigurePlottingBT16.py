@@ -57,9 +57,9 @@ class FigurePlottingBT16:
                  }
 
         # create backup
-        # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['te_table'])
+        self.db.backup_table(schema=kvals['scenario_name'], table=kvals['te_table'])
 
-        #query_drop_table = """DROP TABLE IF EXISTS {scenario_name}.{te_table};""".format(**kvals)
+        query_drop_table = """DROP TABLE IF EXISTS {scenario_name}.{te_table};""".format(**kvals)
 
         query_create_table = """CREATE TABLE {scenario_name}.{te_table} (fips            char(5),
                                                                          year            char(4),
@@ -129,7 +129,7 @@ class FigurePlottingBT16:
             kvals['feed'] = feed.lower()
             if i == 0:
                     # back up table
-                    #self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
+                    self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
 
                     # drop old table and create new table
                     sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n"
@@ -208,7 +208,7 @@ class FigurePlottingBT16:
                 logger.info('Joining production data for %s %s' % (feed, till))
                 if i == 0:
                     # back up table
-                    #self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
+                    self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
 
                     # drop old table and create new table
                     sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
