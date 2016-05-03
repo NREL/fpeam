@@ -306,7 +306,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
         tillage = ''
 
         # Loading
-        if run_code.endswith('L'):
+        if run_code.endswith('L') and not run_code.startswith('CG_I'):
             if run_code.startswith('SG') or run_code.startswith('MS'):
                 if len(run_code) == 4:
                     description = "Year %s - Loading" % (run_code[3])  # year 1-9

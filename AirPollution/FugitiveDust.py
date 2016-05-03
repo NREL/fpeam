@@ -510,8 +510,8 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                     0,
                                     0,
                                     0,
-                                    ({ef} * cd.{till}_harv_AC) / {rot_years},
-                                    ({ef} * cd.{till}_harv_AC * {pm_ratio}) / {rot_years},
+                                    ({ef} * cd.{till}_harv_AC),
+                                    ({ef} * cd.{till}_harv_AC * {pm_ratio}),
                                     0,
                                     0,
                                     '{description}',
@@ -559,9 +559,9 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                     WHEN (length(prod.fips) = 5) THEN (    LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
                                     WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips, 2))
                                   END
-                        SET       fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}) / {rot_years},
-                                  fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt}) / {rot_years}
-                        WHERE (raw.run_code = '{description}')
+                        SET       fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}),
+                                  fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt})
+                        WHERE (raw.description = '{description}')
                         ;""".format(**kvals)
 
             self._execute_query(query)
@@ -689,17 +689,17 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
         # pm2.5 = mt/acre * acre * constant = mt
         # switch grass on a 10 year basis.
 
-        kvals['description'] = str(self.description + str(year)) + ', Fugitive dust'
+        kvals['description'] = str(self.description)
         kvals['ef'] = self.convert_lbs_to_mt(ef)
 
-        if self.description in ('MS_N', 'MS_H'):
+        if self.run_code.startswith('MS_N') or self.run_code.startswith('MS_H'):
             query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
-                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC)/{rot_years}, ({ef} * cd.{till}_harv_AC * {pm_ratio})/{rot_years}, 0, 0, '{description}, Fugitive dust', '{run_code}'
+                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC), ({ef} * cd.{till}_harv_AC * {pm_ratio}), 0, 0, '{description}', '{run_code}'
                         FROM {production_schema}.{feed}_data cd
                         WHERE cd.{till}_harv_ac > 0
                     """.format(**kvals)
+            print query
             self._execute_query(query)
-
 
         elif self.description == 'MS_T':
             # Calculates pm10 and pm2.5 fugitive dust emissions from transportation on unpaved roads
@@ -736,9 +736,10 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
                             WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
                             WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips,2))
                         END
-                SET fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}) / {rot_years},
-                    fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt}) / {rot_years}
-                WHERE (raw.run_code = '{description}')""".format(**kvals)
+                SET fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}),
+                    fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt})
+                WHERE (raw.description = '{description}')""".format(**kvals)
+            print query
             self._execute_query(query)
 
         logger.info('Calculating fugitive dust emissions for %s, year %s' % (self.description, year, ))

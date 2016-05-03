@@ -420,21 +420,28 @@ class Driver:
         self.post_process_logistics()  # logistics (pre-processing)
 
         # post-process data to obtain emissions from off-farm transportation (transporation, adv; transportation, conv)
-        kvals = {'yield': self.scenario_yield,
-                 'year': self.scenario_year}
+        kvals = self.kvals
+        kvals['yield'] = self.scenario_yield
+        kvals['year'] = self.scenario_year
+
+        feed_id_dict = config.get('feed_id_dict')
 
         for feedstock in self.feedstock_list:
             # set feedstock id
-            kvals['feed'] = feedstock.lower()
+            kvals['feed'] = feed_id_dict[feedstock]
 
-            # # get fips list for feedstock where production is greater than zero
-            # query = """ SELECT prod.fips
-            #             FROM bts16.{feed}_data_{yield}_{year} prod
-            #             WHERE total_prod > 0;""".format(**kvals)
-            # fips_list = list(self.db.output(query))[0]
+            # get fips list for feedstock where production is greater than zero
+            if kvals['feed'] != 'None':
+                kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][self.scenario_yield]['C']  # @TODO: fix so that logistics_type varies
 
-            # calculate emissions from off-farm transportation
-            self.post_process_off_farm_transport(feedstock=feedstock, fips_list=fips_list)
+                query = """ SELECT LPAD(sply_fips, 5, '0')
+                            FROM {production_schema}.{transport_table}
+                            WHERE feed_id = '{feed}'
+                            ORDER BY LPAD(sply_fips, 5, '0');""".format(**kvals)
+                fips_list = list(self.db.output(query))[0]
+
+                # calculate emissions from off-farm transportation
+                self.post_process_off_farm_transport(feedstock=feedstock, fips_list=fips_list)
 
     def concat_zeros(self, table_name):
         """
@@ -470,7 +477,7 @@ class Driver:
         # now loop through feedstocks and FIPS codes to compute respective transportation emissions
         if feedstock in self.transport_feed_list:
             kvals['feed'] = feedstock.lower()
-            for i, fips in enumerate(fips_list[0]):
+            for i, fips in enumerate(fips_list):
                 fips = str(fips[0])
                 kvals['fips'] = fips
                 kvals['state'] = fips[0:2]
