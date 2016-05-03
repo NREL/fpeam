@@ -31,6 +31,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                                                                     logistics_type varchar (2),
                                                                     unpaved_fd_emissions float,
                                                                     sec_paved_fd_emissions float,
+                                                                    pri_paved_fd_emissions float,
                                                                     total_fd_emissions float);""".format(**self.kvals)
 
         self._execute_query(query)
