@@ -563,7 +563,7 @@ class FigurePlottingBT16:
         self.db.input(query_loading)
 
     def get_logistics(self, kvals):
-        system_list = ['C']
+        system_list = ['A', 'C']
         pol_list = ['sox', 'nox', 'pm10', 'pm25', 'voc', 'co', 'nh3']
         logistics = {'A': 'Advanced', 'C': 'Conventional'}
         feedstock = kvals['feed']
