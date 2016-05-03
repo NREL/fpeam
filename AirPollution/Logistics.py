@@ -52,7 +52,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # get yield type for scenario
         self.yield_type = config.get('yield')
 
-    def electricity(self, run_code, logistics, yield_type):
+    def electricity(self, feed, logistics, yield_type):
         """
         Tally electricity consumption from feedstock processing
         Update logistics table with these values
@@ -72,8 +72,10 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         """
 
         # set feedstock name
-        feed = run_code[0:2]
         self.kvals['feed'] = feed.lower()
+
+        # set feedstock id name for transportation table
+        self.kvals['feed_id'] = self.transport_feed_id_dict[feed]
 
         # set transport table name
         self.kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feed]][yield_type][logistics]
@@ -83,9 +85,6 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         # set electricity consumption factor using feedstock type
         self.kvals['electricity_per_dt'] = self.electricity_per_dt[feed][logistics]
 
-        # set run_code
-        self.kvals['run_code'] = run_code
-
         # set logistics type
         self.kvals['logistics'] = logistics
 
@@ -93,10 +92,10 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         self.kvals['yield_type'] = yield_type
 
         # generate string for query
-        query = """ INSERT INTO {scenario_name}.processing (fips, feed, electricity, run_code, logistics_type, yield_type)
-                    SELECT transport_data.sply_fips, '{feed}', transport_data.used_qnty * {electricity_per_dt}, '{run_code}', '{logistics}', '{yield_type}'
+        query = """ INSERT INTO {scenario_name}.processing (fips, feed, electricity, logistics_type, yield_type)
+                    SELECT transport_data.sply_fips, '{feed}', transport_data.used_qnty * {electricity_per_dt}, '{logistics}', '{yield_type}'
                     FROM {production_schema}.{transport_table} transport_data
-                    WHERE transport_data.used_qnty > 0.0
+                    WHERE transport_data.used_qnty > 0.0 AND transport_data.feed_id = '{feed_id}'
                    ;""".format(**self.kvals)
 
         # execute query
@@ -154,20 +153,18 @@ class Logistics(SaveDataHelper.SaveDataHelper):
 
         return self._execute_query(query)
 
-    def calc_logistics(self, run_codes, logistics_list):
+    def calc_logistics(self, logistics_list):
         # Execute wood drying and electricity functions for all feedstocks in feedstock list
         logger.info('Evaluating logistics')
 
-        for run_code in run_codes:
-            if run_code.endswith('L') and not run_code.startswith('CG_I'):
-                if self.transport_feed_id_dict[run_code[0:2]] != 'None':
-                    for logistics_type in logistics_list:
-                        # compute electricity
-                        self.electricity(run_code, logistics_type, self.yield_type)
+        for feed in self.feedstock_list:
+            if self.transport_feed_id_dict[feed] != 'None':
+                for logistics_type in logistics_list:
+                    # compute electricity
+                    self.electricity(feed, logistics_type, self.yield_type)
 
-                        if run_code.startswith('FR'):
-                            feed = run_code[0:2]
-                            self.voc_wood_drying(feed, logistics_type, self.yield_type)
+                    if feed == 'FR':
+                        self.voc_wood_drying(feed, logistics_type, self.yield_type)
 
         # @TODO: forest residue has not yet been validated (only agricultural crops have been run thus far)
         logger.warning('FR has not yet been validated. Need to revise once data sets are finalized.')
