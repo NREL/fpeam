@@ -161,7 +161,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
                 ef = pm_cng_irrigation
 
         # execute query for transport operations
-        if model_transport:
+        if run_code.startswith('CG_T'):
             # pm10 = mt/acre * acre =  mt
             # pm2.5 = mt/acre * acre * constant = mt
             self.transport_query(run_code, tillage)
@@ -225,7 +225,8 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         # execute query for transport emissions
         # pm10 = dt/acre * acre =  dt
         # pm2.5 = dt/acre * acre * constant = dt
-        self.transport_query(run_code, tillage)
+        if run_code.startswith('CS_T'):
+            self.transport_query(run_code, tillage)
 
         # non-transport emissions query
         self.pm_query(run_code=run_code, ef=ef, till=table_till, activity=operation, till_type=tillage)
@@ -272,7 +273,8 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         # execute query for transport emissions
         # pm10 = dt/acre * acre =  dt
         # pm2.5 = dt/acre * acre * constant = dt
-        self.transport_query(run_code=run_code, till_type=tillage)
+        if run_code.startswith('WS_T'):
+            self.transport_query(run_code=run_code, till_type=tillage)
 
         # non-transport emissions query
         self.pm_query(run_code=run_code, ef=ef, till=table_till, activity=operation, till_type=tillage)
