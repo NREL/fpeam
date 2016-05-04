@@ -475,7 +475,7 @@ class Driver:
             kvals['truck_capacity'] = truck_capacity[feedstock][logistics_type]
 
             # set transport table
-            kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][self.scenario_yield][logistics_type]
+            kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][self.scenario_yield][logistics_type] + '_%s' % (self.scenario_year)
 
             # get list of fips codes from transportation table
             query = """ SELECT LPAD(sply_fips, 5, '0')
