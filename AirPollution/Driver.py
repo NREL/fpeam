@@ -381,14 +381,13 @@ class Driver:
                 # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
     
-    def save_data(self, operation_dict, alloc, fips_list):
+    def save_data(self, operation_dict, alloc):
         """
         Create and populate the schema with the emissions inventory.
 
         :param operation_dict: Dictionary containing each feedstock. Each feedstock contains a dictionary
         of harvest, non-harvest, and transport and whether to calculate them. dict(dict(boolean))
         :param alloc: non-harvest emission allocation factor
-        :param fips_list: list of FIPS codes
         """
 
         logger.info('Saving results to database')
