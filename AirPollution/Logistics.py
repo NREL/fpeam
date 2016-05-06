@@ -78,7 +78,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         self.kvals['feed_id'] = self.transport_feed_id_dict[feed]
 
         # set transport table name
-        self.kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feed]][yield_type][logistics]
+        self.kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feed]][yield_type][logistics] + '_%s' % (config.get('year_dict')[feed])
 
         logger.debug('Calculating electricity consumption for {feed}'.format(feed=feed))
 

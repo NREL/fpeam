@@ -68,7 +68,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         # set name of table for transportation data
         feed_type_dict = config.get('feed_type_dict')  # dictionary of feedstock types
-        self.kvals['transport_table'] = config.get('transport_table_dict')[feed_type_dict[feed]][yield_type][logistics_type]
+        self.kvals['transport_table'] = config.get('transport_table_dict')[feed_type_dict[feed]][yield_type][logistics_type] + '_%s' % (config['year_dict'][self.feed])
 
         # get toggle for running moves by crop
         moves_by_crop = config.get('moves_by_crop')
@@ -107,8 +107,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         Update transportation table with total emissions
         """
         logger.info('Post-processing MOVES output for feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
-
-
 
         query = """ SELECT state
                     FROM {constants_schema}.moves_statelevel_fips_list_{year}""".format(**self.kvals)

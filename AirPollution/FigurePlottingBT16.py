@@ -119,6 +119,42 @@ class FigurePlottingBT16:
         logger.info('Adding summed emissions and production columns')
         self.sum_emissions(kvals)
 
+        # logger.info('Adding NEI data (summed OR, NR, NP)')
+        # self.add_nei_and_transport(kvals)
+
+    def add_nei_and_transport(self, kvals):
+
+        kvals['new_table'] = 'total_emissions_join_prod_sum_emissions_nei_trans'
+
+        feed_type_dict = config.get('feed_type_dict')
+        table_dict = config.get('transport_table_dict')
+        logistics = config.get('logistics_type')
+
+        # back up table
+        self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
+
+        # drop old table and create new table
+        sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n".format(**kvals)
+        sql += "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
+
+        sql += """  SELECT * FROM {scenario_name}.total_emissions_join_prod_sum_emissions te
+                    LEFT JOIN (SELECT fips, sum(nox) as nei_nox, sum(sox) as nei_sox, sum(pm10) as nei_pm10, sum(pm25) as nei_pm25, sum(voc) as nei_voc, sum(nh3) as nei_nh3, sum(co) as nei_co
+                    FROM nei.nei_2011
+                    WHERE category != 'BVOC' AND category != 'P'
+                    GROUP BY fips) nei
+                    ON nei.fips = te.fips""".format(**kvals)
+
+        for feedstock in self.feed_id_dict:
+            if self.feed_id_dict[feedstock] != 'None':
+                feed_type = feed_type_dict[feedstock]
+                kvals['transport_table'] = table_dict[feed_type][kvals['yield']][logistics]
+                kvals['feed'] = feedstock.lower()
+                sql += """ LEFT JOIN (SELECT fips, avg_total_cost, avg_dist
+                                      FROM {production_schema}.{transport_table}_{year}) trans
+                           ON trans.fips = te.fips AND te.feedstock = '{feed}' AND source_category LIKE '%transport%'""".format(**kvals)
+
+        self.db.execute_sql(sql=sql)
+
     def sum_emissions(self, kvals):
 
         kvals['table'] = 'total_emissions_join_prod'
@@ -167,7 +203,7 @@ class FigurePlottingBT16:
                                         sum(sox) as total_sox,
                                         sum(co) as total_co
                                     FROM {scenario_name}.{table}
-                                    WHERE feedstock = '{feed}'
+                                    WHERE feedstock = '{feed}' AND source_category NOT LIKE '%transport%' AND source_category NOT LIKE '%process%'
                                     GROUP BY fips, feedstock, year, yield) sum
                         ON tot.fips = sum.fips AND tot.feedstock = sum.feedstock AND tot.year = sum.year AND tot.yield = sum.yield
                         LEFT JOIN  (SELECT fips, total_prod, total_harv_ac
