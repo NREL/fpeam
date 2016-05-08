@@ -59,14 +59,12 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['pm_ratio'] = self.pm_ratio
         kvals['pm_fr'] = self.convert_lbs_to_mt(0.0)  # currently there are no pm emissions from FR operations
 
-        query = """
-            UPDATE {scenario_name}.fr_raw fr
-                SET 
-                    fug_pm10 = ({pm_fr} * dat.fed_minus_55),
-                    fug_pm25 = ({pm_fr} * dat.fed_minus_55 * {pm_ratio})
-                FROM {production_schema}.fr_data dat
-                WHERE dat.fips = fr.fips
-            """.format(**kvals)
+        query = """UPDATE {scenario_name}.fr_raw fr
+                   SET    fug_pm10 = ({pm_fr} * dat.fed_minus_55),
+                          fug_pm25 = ({pm_fr} * dat.fed_minus_55 * {pm_ratio})
+                   FROM   {production_schema}.fr_data dat
+                   WHERE  dat.fips = fr.fips
+                   ;""".format(**kvals)
 
         self._execute_query(query)
 
@@ -580,7 +578,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
         return (ef * 0.907) / 2000.0  # metric tons.
 
 
-class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
+class MSFugitiveDust(SaveDataHelper.SaveDataHelper):
 
     def __init__(self, cont, run_code):
         """
@@ -590,7 +588,7 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
         """
 
         SaveDataHelper.SaveDataHelper.__init__(self, cont)
-        self.document_file = "MS_FugitiveDust"
+        self.document_file = "MSFugitiveDust"
 
         # to convert from PM10 to PM2.5, b/c PM2.5 is smaller.
         self.pm_ratio = 0.20
@@ -695,11 +693,11 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['ef'] = self.convert_lbs_to_mt(ef)
 
         if self.run_code.startswith('MS_N') or self.run_code.startswith('MS_H'):
-            query = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
-                        SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC), ({ef} * cd.{till}_harv_AC * {pm_ratio}), 0, 0, '{description}', '{run_code}'
-                        FROM {production_schema}.{feed}_data cd
-                        WHERE cd.{till}_harv_ac > 0
-                    """.format(**kvals)
+            query = """INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
+                       SELECT cd.fips, 0, 0, 0, 0, 0, 0, 0, 0, ({ef} * cd.{till}_harv_AC), ({ef} * cd.{till}_harv_AC * {pm_ratio}), 0, 0, '{description}', '{run_code}'
+                       FROM   {production_schema}.{feed}_data cd
+                       WHERE  cd.{till}_harv_ac > 0
+                       ;""".format(**kvals)
             print query
             self._execute_query(query)
 
@@ -731,17 +729,18 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
             kvals['D'] = config.get('onfarm_default_distance')  # default value for distance traveled (in vehicle miles traveled)
 
             # @TODO: clean up FIPS app-wide (i.e., make them all numbers or all 0-padded strings in code and database
-            query = """ UPDATE {scenario_name}.{feed}_raw raw
-                LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
-                LEFT JOIN {constants_schema}.{silt_table} tfd ON
-                        CASE
-                            WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
-                            WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips,2))
-                        END
-                SET fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}),
-                    fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt})
-                WHERE (raw.description = '{description}')""".format(**kvals)
-            print query
+            query = """UPDATE {scenario_name}.{feed}_raw raw
+                       LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
+                       LEFT JOIN {constants_schema}.{silt_table} tfd
+                              ON CASE
+                                    WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
+                                    WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips,2))
+                                 END
+                       SET       fug_pm25 = (prod.total_prod / {onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}),
+                                 fug_pm10 = (prod.total_prod / {onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt})
+                       WHERE     raw.description = '{description}'
+                       ;""".format(**kvals)
+
             self._execute_query(query)
 
         logger.info('Calculating fugitive dust emissions for %s, year %s' % (self.description, year, ))
@@ -753,4 +752,4 @@ class MS_FugitiveDust(SaveDataHelper.SaveDataHelper):
         :param ef: Emission factor in lbs/acre. Converted to mt/acre.
         :return Emission factor in mt/acre
         """
-        return (ef * 0.907) / 2000.0  # metric tons.
+        return (ef * 0.907) / 2000.0  # metric tons

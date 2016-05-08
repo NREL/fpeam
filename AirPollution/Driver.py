@@ -374,8 +374,9 @@ class Driver:
                 logger.debug('Command line output: %s' % output)
 
                 self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.yr[feed])
-                query_moves_metadata = """  INSERT INTO {constants_schema}.moves_metadata(scen_id)
-                                            VALUES ('{moves_scen_id}')""".format(**self.kvals)
+                query_moves_metadata = """INSERT INTO {constants_schema}.moves_metadata(scen_id)
+                                          VALUES ('{moves_scen_id}')
+                                          ;""".format(**self.kvals)
                 self.db.input(query_moves_metadata)
             else:
                 # otherwise, report that MOVES run already complete
@@ -447,9 +448,11 @@ class Driver:
         kvals['table_name'] = table_name
 
         # create query to pre-append zeros to FIPS codes of 4 characters in length
-        query = """ UPDATE {scenario_name}.{table_name}
-                    SET FIPS = CONCAT('0', FIPS)
-                    WHERE length(FIPS) = 4""".format(**kvals)
+        query = """UPDATE {scenario_name}.{table_name}
+                   SET FIPS = CONCAT('0', FIPS)
+                   WHERE length(FIPS) = 4
+                   ;""".format(**kvals)
+
         # execute query
         self.db.input(query)
 
@@ -474,13 +477,14 @@ class Driver:
             kvals['truck_capacity'] = truck_capacity[feedstock][logistics_type]
 
             # set transport table
-            kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][self.scenario_yield][logistics_type] + '_%s' % (self.scenario_year)
+            kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][self.scenario_yield][logistics_type] + '_%s' % (self.scenario_year, )
 
             # get list of fips codes from transportation table
-            query = """ SELECT LPAD(sply_fips, 5, '0')
-                        FROM {production_schema}.{transport_table}
-                        WHERE feed_id = '{feed_id}'
-                        ORDER BY LPAD(sply_fips, 5, '0');""".format(**kvals)
+            query = """SELECT LPAD(sply_fips, 5, '0')
+                       FROM {production_schema}.{transport_table}
+                       WHERE feed_id = '{feed_id}'
+                       ORDER BY LPAD(sply_fips, 5, '0')
+                       ;""".format(**kvals)
             fips_list = list(self.db.output(query))[0]
 
             # loop through fips codes and calculate transportation emissions
@@ -493,9 +497,10 @@ class Driver:
                 # check if scenario requires moves to run on state-level
                 if self.moves_state_level is True:
                     # if so, collect the state-level moves fips code that corresponds to the production fips code
-                    query = """ SELECT fips
-                                FROM fpeam.moves_statelevel_fips_list_{year}
-                                WHERE state = '{state}'""".format(**kvals)
+                    query = """SELECT fips
+                               FROM fpeam.moves_statelevel_fips_list_{year}
+                               WHERE state = '{state}'
+                               ;""".format(**kvals)
                     output = self.db.output(query)
 
                     # check to make sure output is not none
@@ -508,7 +513,7 @@ class Driver:
                     # if not run on state-level, then moves is run on county-level so production fips equals moves_fips
                     moves_fips = fips
 
-                if moves_fips is not None:
+                if moves_fips is not None:  # @TODO: remove check or handle case when moves_fips is None
                     # set moves fips in kvals
                     kvals['moves_fips'] = moves_fips
 
@@ -524,7 +529,8 @@ class Driver:
                                    AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
                                    FROM fips_{moves_fips}_{year}_{feedstock}_in.avgspeeddistribution table1
                                    LEFT JOIN {moves_database}.hourday table2
-                                   ON table1.hourDayID = table2.hourDayID);""".format(**kvals)
+                                   ON table1.hourDayID = table2.hourDayID)
+                                   ;""".format(**kvals)
                         self.db.create(query)
 
                     # query database to determine required population of trucks (i.e., number of trips)
@@ -577,7 +583,7 @@ class Driver:
                         try:
                             silt = output_silt[0][0][0]  # local silt content
                         except IndexError:
-                            logger.error('Database query returned no silt data for state fips: {state}, from table {constants_schema}.{silt_table}'.format(**kvals))
+                            logger.error('no silt data found for state fips: {state} in {constants_schema}.{silt_table}'.format(**kvals))
 
                     # if population of trucks (i.e., number of trips) and vehicle miles travelled are both greater than zero, then post-process moves output to compute emissions
                     if pop_short_haul > 0 and vmt_short_haul > 0:
@@ -708,7 +714,7 @@ class Driver:
                     sgfug_dust.set_emissions()
             elif run_code.startswith('MS'):
                 if not run_code.endswith('L'):
-                    msfug_dust = FugitiveDust.MS_FugitiveDust(cont=self.cont, run_code=run_code)
+                    msfug_dust = FugitiveDust.MSFugitiveDust(cont=self.cont, run_code=run_code)
                     msfug_dust.set_emissions()
 
     def single_pass_alloc(self):
@@ -718,7 +724,7 @@ class Driver:
         :return:
         """
         # allocate emissions for single pass methodology - see constructor for ability to allocate CG emissions
-        logger.info("Allocate single pass emissions between corn stover and wheat straw.")
+        logger.info("Allocate single pass emissions between corn stover and wheat straw")
         SinglePassAllocation.SinglePassAllocation(cont=self.cont)
 
     def nei_comparison(self):
@@ -767,19 +773,19 @@ class Driver:
         self.nei_comparison()
 
         # Contribution Analysis
-        logger.info('Creating emissions contribution figure.')
+        logger.info('Creating emissions contribution figure')
         ContributionFigure.ContributionAnalysis(cont=self.cont)
 
         # Emissions Per Gallon
-        logger.info('Creating emissions per gallon figure.')
+        logger.info('Creating emissions per gallon figure')
         EmissionsPerGalFigure.EmissionsPerGallon(cont=self.cont)
 
         # Emissions per a acre figure.
-        logger.info('Creating emissions per acre figure.')
+        logger.info('Creating emissions per acre figure')
         EmissionsPerAcreFigure(cont=self.cont)
 
         # Emissions per a production lb figure.
-        logger.info('Creating emissions per lb figure.')
+        logger.info('Creating emissions per lb figure')
         EmissionPerProdFigure(cont=self.cont)
 
         # Ratio to NEI
