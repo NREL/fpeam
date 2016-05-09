@@ -666,7 +666,7 @@ class FigurePlottingBT16:
                                             FROM {scenario_name}.fugitive_dust fd
                                             WHERE 		fd.feedstock  = '{feed}' AND
                                                         fd.pollutantID    = 'pm25'     AND
-                                                        fd.logistics_type = 'C' AND
+                                                        fd.logistics_type = '{system}' AND
                                                         fd.yield_type = 'bc' AND
                                                         fd.yearID = '{year}') feed_{pollutant}fd
                                             ON feed_{pollutant}fd.fips = feed_sox.fips
