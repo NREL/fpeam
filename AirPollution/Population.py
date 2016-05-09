@@ -227,19 +227,19 @@ class RegionalEquipment(Population):
             query = """
                         SELECT equip_type, hp, activity_rate
                         FROM {production_schema}.{feed}_equip_fips
-                        WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%' AND bdgtyr = '{budget_year}'
+                        WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%' AND bdgtyr = '{budget_year}' AND equip_type != 'NULL'
                     """.format(**kvals)
 
         else:
             query = """SELECT equip_type, hp, activity_rate
                         FROM {production_schema}.{feed}_equip_fips
-                        WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%'
+                        WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%' AND equip_type != 'NULL'
                     """.format(**kvals)
         # return data from query
         equip_list = self.db.output(query)
 
         # if data is not empty
-        if len(equip_list) >= 1:
+        if equip_list is not None:
             equip_list = equip_list[0]
             # get harvested acreage from production data
             harv_ac = dat[2]
