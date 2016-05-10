@@ -692,7 +692,7 @@ class FigurePlottingBT16:
             ax1.set_yscale('log')
             ax1.set_ylim(bottom=1e-4, top=1e3)
 
-            #ax1.set_title(self.pol_list_label[p_num])
+            # ax1.set_title(self.pol_list_label[p_num])
             ax1.text(5.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
 
@@ -707,11 +707,11 @@ class FigurePlottingBT16:
             self.__plot_interval__(plotvals, ax1)
             ax1.set_xticklabels(self.f_list, rotation='horizontal')
 
-        # # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
+        # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
         plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
         plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
-        #plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
+        # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
         axarr[0, 0].set_ylabel('Emissions \n (g/gal EtOH)', color='black', fontsize=13)
         axarr[1, 0].set_ylabel('Emissions \n (g/gal EtOH)', color='black', fontsize=13)
@@ -748,7 +748,7 @@ class FigurePlottingBT16:
             ax1.set_ylim(bottom=1e-2, top=1e5)
 
             ax1.text(5.3, 4e4, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
-            #ax1.set_title(self.pol_list_label[p_num])
+            # ax1.set_title(self.pol_list_label[p_num])
             ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
             ax1.set_xlim(0.5, 5.5)
@@ -761,11 +761,11 @@ class FigurePlottingBT16:
             self.__plot_interval__(plotvals, ax1)
             ax1.set_xticklabels(self.f_list, rotation='horizontal')
 
-        # # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
+        # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
         plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
         plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
-        # # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
+        # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
         axarr[0, 0].set_ylabel('Emissions \n (g/dt)', color='black', fontsize=13)
         axarr[1, 0].set_ylabel('Emissions \n (g/dt)', color='black', fontsize=13)
@@ -816,13 +816,9 @@ class FigurePlottingBT16:
 
         query_emissions_per_prod = """SELECT    sum({pollutant}) / (prod) AS mt_{pollutant}_perdt
                                       FROM      {scenario_name}.{te_table}
-<<<<<<< HEAD
-                                      WHERE     prod > 0.0 AND feedstock = '{feedstock}' AND source_category not LIKE '%transport%'
-=======
                                       WHERE     prod > 0.0
-                                        AND     {pollutant} > 0
                                         AND     feedstock = '{feedstock}'
->>>>>>> origin/transport_moves_statelevel
+                                        AND     source_category not LIKE '%transport%'
                                       GROUP BY  fips
                                       ORDER BY  fips
                                       ;""".format(**kvals)
@@ -848,13 +844,9 @@ class FigurePlottingBT16:
 
         query_emissions = """SELECT    sum({pollutant}) AS {pollutant}
                              FROM      {scenario_name}.{te_table}
-<<<<<<< HEAD
-                             WHERE     prod > 0.0 AND feedstock = '{feedstock}' AND source_category not LIKE '%transport%'
-=======
                              WHERE     prod > 0.0
-                               AND     {pollutant} > 0
                                AND     feedstock = '{feedstock}'
->>>>>>> origin/transport_moves_statelevel
+                               AND     source_category not LIKE '%transport%'
                              GROUP BY  fips
                              ORDER BY  fips
                              ;""".format(**kvals)
@@ -866,7 +858,6 @@ class FigurePlottingBT16:
     def contribution_figure(self):
         kvals = {'scenario_name': config.get('title'),
                  'te_table': 'total_emissions_join_prod_sum_emissions'}
-
 
         condition_list = {'Non-Harvest': """(source_category = \'Irrigation\' OR source_category = \'Non-Harvest\' OR source_category = \'Non-Harvest - fug dust\')""",
                           'Harvest': """(source_category = \'Harvest\' OR source_category = \'Harvest - fug dust\' OR source_category = \'Loading\')""",
@@ -921,7 +912,7 @@ class FigurePlottingBT16:
                     if row == 0:
                         axarr[col, row].set_ylabel(activity)
 
-                    #ax1.plot([f_num + 1], mean_val, color=self.f_color[f_num], marker='_', markersize=20)
+                    # ax1.plot([f_num + 1], mean_val, color=self.f_color[f_num], marker='_', markersize=20)
                     ax1.plot([f_num + 1], med_val, color=self.f_color[f_num], marker='_', markersize=12, markeredgewidth=2)
 
                     # Plot the max/min values
@@ -948,7 +939,7 @@ class FigurePlottingBT16:
 
 if __name__ == '__main__':
     # get scenario title
-    title = 'b2nat'  # config.get('title')
+    title = config.get('title')
     logger.debug('Saving figure data in: %s' % (title, ))
 
     # create database
