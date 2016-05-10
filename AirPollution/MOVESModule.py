@@ -21,8 +21,6 @@ import csv
 import os
 import subprocess
 
-import pymysql
-
 import GenerateMOVESImport as GenMOVESIm
 import GenerateMOVESRunspec as GenMOVESRun
 import MOVESBatch as MOVESBatch
@@ -247,7 +245,7 @@ class MOVESModule:
         moves_output_exists = False
         if len(scen_id_output) > 0:
             # if query for MOVES scenario ID returns a value, check to make sure matches this FIPS, yearID, monthID, and dayID and then set moves_output_exists to true
-            if scen_id_output[0][0] == "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=self.crop, day=self.moves_timespan['d'][0], month=self.moves_timespan['mo'][0], year=self.yr): # scenario ID for MOVES runs
+            if scen_id_output[0][0] == "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=self.crop, day=self.moves_timespan['d'][0], month=self.moves_timespan['mo'][0], year=self.yr):  # scenario ID for MOVES runs
                 moves_output_exists = True
 
         # instantiate MOVESBatch if MOVES output does not already exist
@@ -288,9 +286,9 @@ class MOVESModule:
         fips = self.fips
 
         kvals = {'fips': fips,
-                     'year': self.yr,
-                     'crop': self.crop
-                     }
+                 'year': self.yr,
+                 'crop': self.crop
+                 }
 
         # filepaths for county-level input files
         metfilename = os.path.join(self.save_path_countyinputs, '{fips}_met.csv'.format(**kvals))
