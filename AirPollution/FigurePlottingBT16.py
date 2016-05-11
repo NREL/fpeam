@@ -891,6 +891,7 @@ class FigurePlottingBT16:
                                 """.format(**kvals)
 
                     output = self.db.output(query)
+                    act_dict[activity] = list()
                     if output is not None:
                         act_dict[activity] = output[0]
 
