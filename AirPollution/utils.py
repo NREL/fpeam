@@ -167,7 +167,7 @@ def get_fips(scenario_year, state_level_moves, db):
 
     else:
         # @TODO: replace with actual list of FIPS codes for run (probably use database table)
-        fips_list = [(("1029",),)]
+        fips_list = [(("01029",),)]
 
     return fips_list
 
