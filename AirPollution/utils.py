@@ -121,7 +121,7 @@ def get_fips(scenario_year, state_level_moves, db):
 
     if state_level_moves is True:
         query = """ DROP TABLE IF EXISTS {production_schema}.prod;
-                    CREATE TEMPORARY TABLE {production_schema}.prod
+                    CREATE TABLE {production_schema}.prod
                     AS (SELECT total_prod as 'prod', LEFT(fips,2) as state, fips, 'ms' as 'crop'
                     FROM {production_schema}.ms_data_bc_{year}
                     WHERE  total_prod > 0);
@@ -147,7 +147,7 @@ def get_fips(scenario_year, state_level_moves, db):
                     WHERE (crop = 'Wheat straw') AND prod > 0;
 
                     DROP TABLE IF EXISTS {production_schema}.summed_prod;
-                    CREATE TEMPORARY TABLE {production_schema}.summed_prod
+                    CREATE TABLE {production_schema}.summed_prod
                     SELECT fips, state, sum(prod) as 'summed_prod'
                     FROM {production_schema}.prod
                     GROUP BY fips;""".format(**kvals)
@@ -167,7 +167,7 @@ def get_fips(scenario_year, state_level_moves, db):
 
     else:
         # @TODO: replace with actual list of FIPS codes for run (probably use database table)
-        fips_list = ["19109", "10001"]
+        fips_list = [(("1029",),)]
 
     return fips_list
 
