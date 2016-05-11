@@ -136,7 +136,7 @@ class MOVESModule:
         # export county-level fuel supply data
         sql = """SELECT * FROM {moves_database}.fuelsupply
                             WHERE {moves_database}.fuelsupply.fuelRegionID =
-                            (SELECT regionID FROM {moves_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID = '{year}')
+                            (SELECT DISTINCT regionID FROM {moves_database}.regioncounty WHERE countyID = '{countyID}' AND fuelYearID = '{year}')
                             AND {moves_database}.fuelsupply.fuelYearID = '{year}'""".format(**kvals)
         self._get_and_write_data_file_lines(sql, fuelsupplyname)
 
