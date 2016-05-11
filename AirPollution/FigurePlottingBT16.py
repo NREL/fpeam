@@ -816,17 +816,17 @@ class FigurePlottingBT16:
 
         query_emissions_per_prod = """SELECT    sum({pollutant}) / (prod) AS mt_{pollutant}_perdt
                                       FROM      {scenario_name}.{te_table}
-<<<<<<< HEAD
-                                      WHERE     prod > 0.0 AND feedstock = '{feedstock}' AND source_category not LIKE '%transport%'
-=======
                                       WHERE     prod > 0.0
-                                        AND     {pollutant} > 0
                                         AND     feedstock = '{feedstock}'
->>>>>>> origin/transport_moves_statelevel
+                                        AND     source_category not LIKE '%transport%'
                                       GROUP BY  fips
                                       ORDER BY  fips
                                       ;""".format(**kvals)
-        emissions_per_production = self.db.output(query_emissions_per_prod)[0]
+        output = self.db.output(query_emissions_per_prod)
+
+        emissions_per_production = list()
+        if output is not None:
+            emissions_per_production = output[0]
 
         return emissions_per_production
 
@@ -848,25 +848,24 @@ class FigurePlottingBT16:
 
         query_emissions = """SELECT    sum({pollutant}) AS {pollutant}
                              FROM      {scenario_name}.{te_table}
-<<<<<<< HEAD
-                             WHERE     prod > 0.0 AND feedstock = '{feedstock}' AND source_category not LIKE '%transport%'
-=======
                              WHERE     prod > 0.0
-                               AND     {pollutant} > 0
-                               AND     feedstock = '{feedstock}'
->>>>>>> origin/transport_moves_statelevel
+                                AND    feedstock = '{feedstock}'
+                                AND    source_category not LIKE '%transport%'
                              GROUP BY  fips
                              ORDER BY  fips
                              ;""".format(**kvals)
 
-        emissions = self.db.output(query_emissions)[0]
+        output = self.db.output(query_emissions)
+
+        emissions = list()
+        if output is not None:
+            emissions = output[0]
 
         return emissions
 
     def contribution_figure(self):
         kvals = {'scenario_name': config.get('title'),
                  'te_table': 'total_emissions_join_prod_sum_emissions'}
-
 
         condition_list = {'Non-Harvest': """(source_category = \'Irrigation\' OR source_category = \'Non-Harvest\' OR source_category = \'Non-Harvest - fug dust\')""",
                           'Harvest': """(source_category = \'Harvest\' OR source_category = \'Harvest - fug dust\' OR source_category = \'Loading\')""",
