@@ -71,6 +71,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
                                         WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
                                         GROUP BY fips) chem
                              ON chem.fips = feed.fips
+                             WHERE feed.{tillage_name}_prod > 0
                              GROUP BY feed.fips;""".format(**self.kvals)
             self._execute_query(chem_query)
 
