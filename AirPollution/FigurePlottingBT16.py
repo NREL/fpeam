@@ -816,7 +816,7 @@ class FigurePlottingBT16:
                  'te_table': 'total_emissions_join_prod'  # @TODO: this is manually defined several places; consolidate
                  }
 
-        query_emissions_per_prod = """SELECT    sum({pollutant}) / (prod) AS mt_{pollutant}_perdt
+        query_emissions_per_prod = """SELECT    sum({pollutant}/ (prod)) AS mt_{pollutant}_perdt
                                       FROM      {scenario_name}.{te_table}
                                       WHERE     prod > 0.0
                                         AND     feedstock = '{feedstock}'
