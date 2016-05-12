@@ -81,41 +81,41 @@ class FigurePlottingBT16:
         self.db.execute_sql(query_drop_table)
         self.db.execute_sql(query_create_table)
 
-        # for feedstock in self.f_list:
-        #     kvals['feed'] = feedstock.lower()
-        #     kvals['years_rot'] = config.get('crop_budget_dict')['years'][feedstock]
-        #
-        #     logger.info('Inserting data for chemical emissions for feedstock: {feed}'.format(**kvals))
-        #     self.get_chem(kvals)
-        #
-        #     logger.info('Inserting data for fertilizer emissions for feedstock: {feed}'.format(**kvals))
-        #     self.get_fert(kvals)
-        #
-        #     if feedstock == 'CG':
-        #         logger.info('Inserting data for irrigation for feedstock: {feed}'.format(**kvals))
-        #         self.get_irrig(kvals)
-        #
-        #     if config['regional_crop_budget'] is True:
-        #         logger.info('Inserting data for loading for feedstock: {feed}'.format(**kvals))
-        #         self.get_loading(kvals)
-        #
-        #     logger.info('Inserting data for harvest fugitive dust: {feed}'.format(**kvals))
-        #     self.get_h_fd(kvals)
-        #
-        #     logger.info('Inserting data for non-harvest fugitive dust for feedstock: {feed}'.format(**kvals))
-        #     self.get_nh_fd(kvals)
-        #
-        #     logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
-        #     self.get_non_harvest(kvals)
-        #
-        #     logger.info('Inserting data for harvest emissions for feedstock: {feed}'.format(**kvals))
-        #     self.get_harvest(kvals)
-        #
-        #     logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
-        #     self.get_logistics(kvals)
-        #
-        # logger.info('Joining total emissions with production data')
-        # self.join_with_production_data(kvals)
+        for feedstock in self.f_list:
+            kvals['feed'] = feedstock.lower()
+            kvals['years_rot'] = config.get('crop_budget_dict')['years'][feedstock]
+
+            logger.info('Inserting data for chemical emissions for feedstock: {feed}'.format(**kvals))
+            self.get_chem(kvals)
+
+            logger.info('Inserting data for fertilizer emissions for feedstock: {feed}'.format(**kvals))
+            self.get_fert(kvals)
+
+            if feedstock == 'CG':
+                logger.info('Inserting data for irrigation for feedstock: {feed}'.format(**kvals))
+                self.get_irrig(kvals)
+
+            if config['regional_crop_budget'] is True:
+                logger.info('Inserting data for loading for feedstock: {feed}'.format(**kvals))
+                self.get_loading(kvals)
+
+            logger.info('Inserting data for harvest fugitive dust: {feed}'.format(**kvals))
+            self.get_h_fd(kvals)
+
+            logger.info('Inserting data for non-harvest fugitive dust for feedstock: {feed}'.format(**kvals))
+            self.get_nh_fd(kvals)
+
+            logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
+            self.get_non_harvest(kvals)
+
+            logger.info('Inserting data for harvest emissions for feedstock: {feed}'.format(**kvals))
+            self.get_harvest(kvals)
+
+            logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
+            self.get_logistics(kvals)
+
+        logger.info('Joining total emissions with production data')
+        self.join_with_production_data(kvals)
 
         logger.info('Adding summed emissions and production columns')
         self.sum_emissions(kvals)
@@ -607,36 +607,38 @@ class FigurePlottingBT16:
                                                   AND  trans.yield_type     = '{yield}'
                                                   AND  trans.yearID         = '{year}'
                                                ) feed_sox
-                                        ;""".format(**kvals)
+                                        """.format(**kvals)
                         else:
                             if not pollutant.startswith('pm'):
                                 query += """LEFT JOIN (SELECT trans.total_emissions / {reduction_factor} AS {pollutant},
                                                               trans.fips                                 AS fips
                                                        FROM   {scenario_name}.transportation trans
                                                        WHERE  trans.feedstock      = '{feed}'
-                                                              trans.pollutantID    = '{pollutant}'
-                                                              trans.logistics_type = '{system}'
-                                                              trans.yield_type     = '{yield}'
-                                                              trans.yearID         = '{year}'
+                                                         AND  trans.pollutantID    = '{pollutant}'
+                                                         AND  trans.logistics_type = '{system}'
+                                                         AND  trans.yield_type     = '{yield}'
+                                                         AND  trans.yearID         = '{year}'
                                                       ) feed_{pollutant}
                                                    ON feed_{pollutant}.fips = feed_sox.fips
-                                            ;""".format(**kvals)
+
+                                            """.format(**kvals)
                             elif pollutant.startswith('pm'):
                                 query += """LEFT JOIN (SELECT trans.total_emissions/{reduction_factor} AS '{pollutant}_trans', trans.fips as 'fips'
                                             FROM {scenario_name}.transportation  trans
-                                            WHERE 		trans.feedstock  = '{feed}' AND
-                                                        trans.pollutantID    = '{pollutant}'     AND
-                                                        trans.logistics_type = '{system}' AND
-                                                        trans.yield_type = '{yield}' AND
-                                                        trans.yearID = '{year}') feed_{pollutant}
-                                                        ON feed_{pollutant}.fips = feed_sox.fips
+                                            WHERE 		trans.feedstock  = '{feed}'
+                                              AND       trans.pollutantID    = '{pollutant}'
+                                              AND       trans.logistics_type = '{system}'
+                                              AND       trans.yield_type = '{yield}'
+                                              AND       trans.yearID = '{year}') feed_{pollutant}
+                                            ON feed_{pollutant}.fips = feed_sox.fips
+
                                             LEFT JOIN (SELECT fd.total_fd_emissions/{reduction_factor} AS '{pollutant}_fug', fd.fips as 'fips'
                                             FROM {scenario_name}.fugitive_dust fd
-                                            WHERE 		fd.feedstock  = '{feed}' AND
-                                                        fd.pollutantID    = 'pm25'     AND
-                                                        fd.logistics_type = '{system}' AND
-                                                        fd.yield_type = 'bc' AND
-                                                        fd.yearID = '{year}') feed_{pollutant}fd
+                                            WHERE 		fd.feedstock  = '{feed}'
+                                              AND       fd.pollutantID    = 'pm25'
+                                              AND       fd.logistics_type = '{system}'
+                                              AND       fd.yield_type = 'bc'
+                                              AND       fd.yearID = '{year}') feed_{pollutant}fd
                                             ON feed_{pollutant}fd.fips = feed_sox.fips
                                         """.format(**kvals)
 
