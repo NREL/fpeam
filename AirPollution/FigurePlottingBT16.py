@@ -13,6 +13,7 @@ from scipy.stats import scoreatpercentile
 
 from model.Database import Database
 from utils import config, logger
+from matplotlib import ticker
 
 
 class FigurePlottingBT16:
@@ -28,11 +29,11 @@ class FigurePlottingBT16:
 
         self.f_color = ['r', 'b', 'g', 'k', 'c']  # @TODO: remove hardcoded values
         self.f_marker = ['o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
-        self.row_list = [0, 0, 1, 1, 2, 2]  # @TODO: remove hardcoded values
-        self.col_list = [0, 1, 0, 1, 0, 1]  # @TODO: remove hardcoded values
-        self.pol_list_label = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$CO$', '$PM_{10}$', '$SO_x$']  # @TODO: remove hardcoded values
+        self.row_list = [0, 0, 1, 1, 2, 2, 0]  # @TODO: remove hardcoded values
+        self.col_list = [0, 1, 0, 1, 0, 1, 2]  # @TODO: remove hardcoded values
+        self.pol_list_label = ['$NO_x$', '$NH_3$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', '$VOC$']  # @TODO: remove hardcoded values
 
-        self.pol_list = ['nox', 'voc', 'pm25', 'co', 'pm10', 'sox']  # @TODO: remove hardcoded values
+        self.pol_list = ['nox', 'nh3', 'pm25', 'pm10', 'co', 'sox', 'voc']  # @TODO: remove hardcoded values
 
         self.feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw', 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
         self.f_list = ['CG', 'SG', 'CS', 'WS', 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
@@ -80,41 +81,41 @@ class FigurePlottingBT16:
         self.db.execute_sql(query_drop_table)
         self.db.execute_sql(query_create_table)
 
-        for feedstock in self.f_list:
-            kvals['feed'] = feedstock.lower()
-            kvals['years_rot'] = config.get('crop_budget_dict')['years'][feedstock]
-
-            logger.info('Inserting data for chemical emissions for feedstock: {feed}'.format(**kvals))
-            self.get_chem(kvals)
-
-            logger.info('Inserting data for fertilizer emissions for feedstock: {feed}'.format(**kvals))
-            self.get_fert(kvals)
-
-            if feedstock == 'CG':
-                logger.info('Inserting data for irrigation for feedstock: {feed}'.format(**kvals))
-                self.get_irrig(kvals)
-
-            if config['regional_crop_budget'] is True:
-                logger.info('Inserting data for loading for feedstock: {feed}'.format(**kvals))
-                self.get_loading(kvals)
-
-            logger.info('Inserting data for harvest fugitive dust: {feed}'.format(**kvals))
-            self.get_h_fd(kvals)
-
-            logger.info('Inserting data for non-harvest fugitive dust for feedstock: {feed}'.format(**kvals))
-            self.get_nh_fd(kvals)
-
-            logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
-            self.get_non_harvest(kvals)
-
-            logger.info('Inserting data for harvest emissions for feedstock: {feed}'.format(**kvals))
-            self.get_harvest(kvals)
-
-            logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
-            self.get_logistics(kvals)
-
-        logger.info('Joining total emissions with production data')
-        self.join_with_production_data(kvals)
+        # for feedstock in self.f_list:
+        #     kvals['feed'] = feedstock.lower()
+        #     kvals['years_rot'] = config.get('crop_budget_dict')['years'][feedstock]
+        #
+        #     logger.info('Inserting data for chemical emissions for feedstock: {feed}'.format(**kvals))
+        #     self.get_chem(kvals)
+        #
+        #     logger.info('Inserting data for fertilizer emissions for feedstock: {feed}'.format(**kvals))
+        #     self.get_fert(kvals)
+        #
+        #     if feedstock == 'CG':
+        #         logger.info('Inserting data for irrigation for feedstock: {feed}'.format(**kvals))
+        #         self.get_irrig(kvals)
+        #
+        #     if config['regional_crop_budget'] is True:
+        #         logger.info('Inserting data for loading for feedstock: {feed}'.format(**kvals))
+        #         self.get_loading(kvals)
+        #
+        #     logger.info('Inserting data for harvest fugitive dust: {feed}'.format(**kvals))
+        #     self.get_h_fd(kvals)
+        #
+        #     logger.info('Inserting data for non-harvest fugitive dust for feedstock: {feed}'.format(**kvals))
+        #     self.get_nh_fd(kvals)
+        #
+        #     logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
+        #     self.get_non_harvest(kvals)
+        #
+        #     logger.info('Inserting data for harvest emissions for feedstock: {feed}'.format(**kvals))
+        #     self.get_harvest(kvals)
+        #
+        #     logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
+        #     self.get_logistics(kvals)
+        #
+        # logger.info('Joining total emissions with production data')
+        # self.join_with_production_data(kvals)
 
         logger.info('Adding summed emissions and production columns')
         self.sum_emissions(kvals)
@@ -161,6 +162,7 @@ class FigurePlottingBT16:
         kvals['new_table'] = 'total_emissions_join_prod_sum_emissions'
 
         for i, feed in enumerate(self.f_list):
+            logger.info('Adding summed emissions for feed: %s' % (feed, ))
             kvals['feed'] = feed.lower()
             if i == 0:
                     # back up table
@@ -674,7 +676,7 @@ class FigurePlottingBT16:
         """
 
         logger.info('Plotting emissions per gal')
-        fig, axarr = plt.subplots(3, 2, figsize=(6.5, 7))
+        fig, axarr = plt.subplots(3, 3, figsize=(8.5, 7))
         matplotlib.rcParams.update({'font.size': 13})
 
         for p_num, pollutant in enumerate(self.pol_list):
@@ -691,10 +693,13 @@ class FigurePlottingBT16:
             ax1 = axarr[row, col]
             ax1.set_yscale('log')
             ax1.set_ylim(bottom=1e-4, top=1e3)
+            formatter = ticker.ScalarFormatter(useMathText=True)
+            formatter.set_scientific(True)
+            formatter.set_powerlimits((-4, 3))
 
             # ax1.set_title(self.pol_list_label[p_num])
             ax1.text(5.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
-            ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
+            # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
 
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
             ax1.set_xlim(0.5, 5.5)
@@ -702,7 +707,6 @@ class FigurePlottingBT16:
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
             plt.setp(bp['medians'], color='black')
-            # self.ax1.yaxis.set_major_formatter(FixedFormatter([0.00001, 0.0001, 0.001]))#for below y-axis
 
             self.__plot_interval__(plotvals, ax1)
             ax1.set_xticklabels(self.f_list, rotation='horizontal')
@@ -729,7 +733,7 @@ class FigurePlottingBT16:
 
         logger.info('Plotting emissions per dt')
 
-        fig, axarr = plt.subplots(3, 2, figsize=(6.5, 7))
+        fig, axarr = plt.subplots(3, 3, figsize=(8.5, 7))
         matplotlib.rcParams.update({'font.size': 13})
 
         for p_num, pollutant in enumerate(self.pol_list):
@@ -745,14 +749,16 @@ class FigurePlottingBT16:
             col = self.col_list[p_num]
             ax1 = axarr[row, col]
             ax1.set_yscale('log')
-            ax1.set_ylim(bottom=1e-6, top=1e4)
+            ax1.set_ylim(bottom=1e-6, top=1e3)
+            formatter = ticker.ScalarFormatter(useMathText=True)
+            formatter.set_scientific(True)
+            formatter.set_powerlimits((-6, 3))
 
             for label in ax1.get_yticklabels()[::2]:
                 label.set_visible(False)
 
-            ax1.text(5.3, 4e3, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
-            # ax1.set_title(self.pol_list_label[p_num])
-            ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
+            ax1.text(5.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
+            # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
             ax1.set_xlim(0.5, 5.5)
 
@@ -764,10 +770,11 @@ class FigurePlottingBT16:
             ax1.set_xticklabels(self.f_list, rotation='horizontal')
 
         # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
-        plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
+        plt.setp([axarr[0, 0].get_xticklabels()], visible=False)
+        plt.setp([axarr[0, 1].get_xticklabels()], visible=False)
         plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
-        # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
         axarr[0, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
         axarr[1, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
@@ -898,7 +905,7 @@ class FigurePlottingBT16:
                 pol_dict[pollutant] = act_dict
             emissions_per_activity[feedstock] = pol_dict
 
-        fig, axarr = plt.subplots(3, 6, figsize=(10, 5.5))
+        fig, axarr = plt.subplots(3, 7, figsize=(12, 5.5))
 
         matplotlib.rcParams.update({'font.size': 13})
 
@@ -943,6 +950,7 @@ class FigurePlottingBT16:
         plt.setp([a.get_yticklabels() for a in axarr[:, 3]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 4]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 5]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 6]], visible=False)
 
         fig.tight_layout()
 
