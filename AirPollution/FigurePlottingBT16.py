@@ -13,6 +13,7 @@ from scipy.stats import scoreatpercentile
 
 from model.Database import Database
 from utils import config, logger
+from matplotlib import ticker
 
 
 class FigurePlottingBT16:
@@ -28,11 +29,11 @@ class FigurePlottingBT16:
 
         self.f_color = ['r', 'b', 'g', 'k', 'c']  # @TODO: remove hardcoded values
         self.f_marker = ['o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
-        self.row_list = [0, 0, 1, 1, 2, 2]  # @TODO: remove hardcoded values
-        self.col_list = [0, 1, 0, 1, 0, 1]  # @TODO: remove hardcoded values
-        self.pol_list_label = ['$NO_x$', '$VOC$', '$PM_{2.5}$', '$CO$', '$PM_{10}$', '$SO_x$']  # @TODO: remove hardcoded values
+        self.row_list = [0, 0, 1, 1, 2, 2, 0]  # @TODO: remove hardcoded values
+        self.col_list = [0, 1, 0, 1, 0, 1, 2]  # @TODO: remove hardcoded values
+        self.pol_list_label = ['$NO_x$', '$NH_3$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', '$VOC$']  # @TODO: remove hardcoded values
 
-        self.pol_list = ['nox', 'voc', 'pm25', 'co', 'pm10', 'sox']  # @TODO: remove hardcoded values
+        self.pol_list = ['nox', 'nh3', 'pm25', 'pm10', 'co', 'sox', 'voc']  # @TODO: remove hardcoded values
 
         self.feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw', 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
         self.f_list = ['CG', 'SG', 'CS', 'WS', 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
@@ -161,6 +162,7 @@ class FigurePlottingBT16:
         kvals['new_table'] = 'total_emissions_join_prod_sum_emissions'
 
         for i, feed in enumerate(self.f_list):
+            logger.info('Adding summed emissions for feed: %s' % (feed, ))
             kvals['feed'] = feed.lower()
             if i == 0:
                     # back up table
@@ -605,36 +607,38 @@ class FigurePlottingBT16:
                                                   AND  trans.yield_type     = '{yield}'
                                                   AND  trans.yearID         = '{year}'
                                                ) feed_sox
-                                        ;""".format(**kvals)
+                                        """.format(**kvals)
                         else:
                             if not pollutant.startswith('pm'):
                                 query += """LEFT JOIN (SELECT trans.total_emissions / {reduction_factor} AS {pollutant},
                                                               trans.fips                                 AS fips
                                                        FROM   {scenario_name}.transportation trans
                                                        WHERE  trans.feedstock      = '{feed}'
-                                                              trans.pollutantID    = '{pollutant}'
-                                                              trans.logistics_type = '{system}'
-                                                              trans.yield_type     = '{yield}'
-                                                              trans.yearID         = '{year}'
+                                                         AND  trans.pollutantID    = '{pollutant}'
+                                                         AND  trans.logistics_type = '{system}'
+                                                         AND  trans.yield_type     = '{yield}'
+                                                         AND  trans.yearID         = '{year}'
                                                       ) feed_{pollutant}
                                                    ON feed_{pollutant}.fips = feed_sox.fips
-                                            ;""".format(**kvals)
+
+                                            """.format(**kvals)
                             elif pollutant.startswith('pm'):
                                 query += """LEFT JOIN (SELECT trans.total_emissions/{reduction_factor} AS '{pollutant}_trans', trans.fips as 'fips'
                                             FROM {scenario_name}.transportation  trans
-                                            WHERE 		trans.feedstock  = '{feed}' AND
-                                                        trans.pollutantID    = '{pollutant}'     AND
-                                                        trans.logistics_type = '{system}' AND
-                                                        trans.yield_type = '{yield}' AND
-                                                        trans.yearID = '{year}') feed_{pollutant}
-                                                        ON feed_{pollutant}.fips = feed_sox.fips
+                                            WHERE 		trans.feedstock  = '{feed}'
+                                              AND       trans.pollutantID    = '{pollutant}'
+                                              AND       trans.logistics_type = '{system}'
+                                              AND       trans.yield_type = '{yield}'
+                                              AND       trans.yearID = '{year}') feed_{pollutant}
+                                            ON feed_{pollutant}.fips = feed_sox.fips
+
                                             LEFT JOIN (SELECT fd.total_fd_emissions/{reduction_factor} AS '{pollutant}_fug', fd.fips as 'fips'
                                             FROM {scenario_name}.fugitive_dust fd
-                                            WHERE 		fd.feedstock  = '{feed}' AND
-                                                        fd.pollutantID    = 'pm25'     AND
-                                                        fd.logistics_type = '{system}' AND
-                                                        fd.yield_type = 'bc' AND
-                                                        fd.yearID = '{year}') feed_{pollutant}fd
+                                            WHERE 		fd.feedstock  = '{feed}'
+                                              AND       fd.pollutantID    = 'pm25'
+                                              AND       fd.logistics_type = '{system}'
+                                              AND       fd.yield_type = 'bc'
+                                              AND       fd.yearID = '{year}') feed_{pollutant}fd
                                             ON feed_{pollutant}fd.fips = feed_sox.fips
                                         """.format(**kvals)
 
@@ -674,7 +678,7 @@ class FigurePlottingBT16:
         """
 
         logger.info('Plotting emissions per gal')
-        fig, axarr = plt.subplots(3, 2, figsize=(6.5, 7))
+        fig, axarr = plt.subplots(3, 3, figsize=(8.5, 7))
         matplotlib.rcParams.update({'font.size': 13})
 
         for p_num, pollutant in enumerate(self.pol_list):
@@ -691,10 +695,13 @@ class FigurePlottingBT16:
             ax1 = axarr[row, col]
             ax1.set_yscale('log')
             ax1.set_ylim(bottom=1e-4, top=1e3)
+            formatter = ticker.ScalarFormatter(useMathText=True)
+            formatter.set_scientific(True)
+            formatter.set_powerlimits((-4, 3))
 
             # ax1.set_title(self.pol_list_label[p_num])
             ax1.text(5.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
-            ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
+            # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
 
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
             ax1.set_xlim(0.5, 5.5)
@@ -702,7 +709,6 @@ class FigurePlottingBT16:
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
             plt.setp(bp['medians'], color='black')
-            # self.ax1.yaxis.set_major_formatter(FixedFormatter([0.00001, 0.0001, 0.001]))#for below y-axis
 
             self.__plot_interval__(plotvals, ax1)
             ax1.set_xticklabels(self.f_list, rotation='horizontal')
@@ -729,7 +735,7 @@ class FigurePlottingBT16:
 
         logger.info('Plotting emissions per dt')
 
-        fig, axarr = plt.subplots(3, 2, figsize=(6.5, 7))
+        fig, axarr = plt.subplots(3, 3, figsize=(8.5, 7))
         matplotlib.rcParams.update({'font.size': 13})
 
         for p_num, pollutant in enumerate(self.pol_list):
@@ -745,14 +751,16 @@ class FigurePlottingBT16:
             col = self.col_list[p_num]
             ax1 = axarr[row, col]
             ax1.set_yscale('log')
-            ax1.set_ylim(bottom=1e-6, top=1e4)
+            ax1.set_ylim(bottom=1e-6, top=1e3)
+            formatter = ticker.ScalarFormatter(useMathText=True)
+            formatter.set_scientific(True)
+            formatter.set_powerlimits((-6, 3))
 
             for label in ax1.get_yticklabels()[::2]:
                 label.set_visible(False)
 
-            ax1.text(5.3, 4e3, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
-            # ax1.set_title(self.pol_list_label[p_num])
-            ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))
+            ax1.text(5.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
+            # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
             ax1.set_xlim(0.5, 5.5)
 
@@ -764,10 +772,11 @@ class FigurePlottingBT16:
             ax1.set_xticklabels(self.f_list, rotation='horizontal')
 
         # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
-        plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
+        plt.setp([axarr[0, 0].get_xticklabels()], visible=False)
+        plt.setp([axarr[0, 1].get_xticklabels()], visible=False)
         plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
-        # plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
         axarr[0, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
         axarr[1, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
@@ -816,7 +825,7 @@ class FigurePlottingBT16:
                  'te_table': 'total_emissions_join_prod'  # @TODO: this is manually defined several places; consolidate
                  }
 
-        query_emissions_per_prod = """SELECT    sum({pollutant}) / (prod) AS mt_{pollutant}_perdt
+        query_emissions_per_prod = """SELECT    sum({pollutant}/ (prod)) AS mt_{pollutant}_perdt
                                       FROM      {scenario_name}.{te_table}
                                       WHERE     prod > 0.0
                                         AND     feedstock = '{feedstock}'
@@ -898,7 +907,7 @@ class FigurePlottingBT16:
                 pol_dict[pollutant] = act_dict
             emissions_per_activity[feedstock] = pol_dict
 
-        fig, axarr = plt.subplots(3, 6, figsize=(10, 5.5))
+        fig, axarr = plt.subplots(3, 7, figsize=(12, 5.5))
 
         matplotlib.rcParams.update({'font.size': 13})
 
@@ -943,6 +952,7 @@ class FigurePlottingBT16:
         plt.setp([a.get_yticklabels() for a in axarr[:, 3]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 4]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 5]], visible=False)
+        plt.setp([a.get_yticklabels() for a in axarr[:, 6]], visible=False)
 
         fig.tight_layout()
 

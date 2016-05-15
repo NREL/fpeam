@@ -123,6 +123,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                                                 WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
                                                 GROUP BY fips) nfert
                                      ON nfert.fips = feed.fips
+                                     WHERE feed.{tillage_name}_prod > 0
                                      GROUP BY feed.fips;""".format(**self.kvals)
                     self._execute_query(fert_query)
                 elif self.kvals['n_column'].endswith('ac'):
@@ -140,6 +141,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                                                 WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
                                                 GROUP BY fips) nfert
                                      ON nfert.fips = feed.fips
+                                     WHERE feed.{tillage_name}_prod > 0
                                      GROUP BY feed.fips;""".format(**self.kvals)
                     self._execute_query(fert_query)
 
