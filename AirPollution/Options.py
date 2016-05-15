@@ -52,6 +52,7 @@ class ScenarioOptions:
         """
 
         folders = (self.path,
+                   os.path.join(self.path, 'MESSAGES'),
                    os.path.join(self.path, 'ALLOCATE'),
                    os.path.join(self.path, 'POP'),
                    os.path.join(self.path, 'OPT'),
@@ -208,7 +209,7 @@ class NROptionFile:
         self.run_code = run_code
 
         # path to the .opt file that is saved
-        self.path = os.path.join(cont.get('path'), 'OPT', run_code)
+        self.path = cont.get('path')
 
         # out path for NONROAD to read
         self.out_path_pop_alo = cont.get('path')
@@ -261,12 +262,12 @@ class NROptionFile:
 
         self._add_opt(fips, run_code)
 
-    def _add_opt(self, fips, new_run_code):
+    def _add_opt(self, fips, run_code):
         """
         Add lines to .opt file.
 
         :param fips: county FIPS
-        :param new_run_code: Hack for SQ_*10 run code issues in NONROAD
+        :param run_code: Hack for SQ_*10 run code issues in NONROAD
         :return:
         """
 
@@ -283,54 +284,54 @@ class NROptionFile:
                  'temp_min': self.temp_min,
                  'temp_max': self.temp_max,
                  'temp_mean': self.temp_mean,
-                 'ALLOC_XREF': os.path.join('data', 'allocate', 'allocate.xrf'),
-                 'ACTIVITY': os.path.join(config.get('project_path'), 'data', 'activity', 'activity.dat'),
-                 'EXH_TECHNOLOGY': os.path.join('data', 'tech', 'tech-exh.dat'),
-                 'EVP_TECHNOLOGY': os.path.join('data', 'tech', 'tech-evp.dat'),
-                 'SEASONALITY': os.path.join('data', 'season', 'season.dat'),
-                 'REGIONS': os.path.join('data', 'season', 'season.dat'),
-                 'MESSAGE': os.path.join(config.get('project_path'), 'outputs', '%s.msg' % (self.state, )),
+                 'ALLOC_XREF': os.path.join(config.get('nonroad_path'), 'data', 'allocate', 'allocate.xrf'),
+                 'ACTIVITY': os.path.join(config.get('nonroad_path'), 'data', 'activity', 'activity.dat'),
+                 'EXH_TECHNOLOGY': os.path.join(config.get('nonroad_path'), 'data', 'tech', 'tech-exh.dat'),
+                 'EVP_TECHNOLOGY': os.path.join(config.get('nonroad_path'), 'data', 'tech', 'tech-evp.dat'),
+                 'SEASONALITY': os.path.join(config.get('nonroad_path'), 'data', 'season', 'season.dat'),
+                 'REGIONS': os.path.join(config.get('nonroad_path'), 'data', 'season', 'season.dat'),
+                 'MESSAGE': os.path.join(self.path, 'MESSAGES', '%s.msg' % (self.state, )),
                  'OUTPUT_DATA': os.path.join(self.out_path_pop_alo, 'OUT', self.run_code, '%s.out' % (self.state, )),
                  'EPS2_AMS': '',
-                 'US_COUNTIES_FIPS': os.path.join('data', 'allocate', 'fips.dat'),
+                 'US_COUNTIES_FIPS': os.path.join(config.get('nonroad_path'), 'data', 'allocate', 'fips.dat'),
                  'RETROFIT': '',
-                 'Population_File': os.path.join(self.out_path_pop_alo, 'POP', '%s_%s.pop' % (self.state, new_run_code)),
-                 'National_defaults': os.path.join('data', 'growth', 'nation.grw'),
-                 'Harvested_acres': os.path.join(self.out_path_pop_alo, 'ALLOCATE', '%s_%s.alo' % (self.state, new_run_code)),
-                 'EMFAC_THC_exhaust': os.path.join('data', 'emsfac', 'exhthc.emf'),
-                 'EMFAC_CO_exhaust': os.path.join('data', 'emsfac', 'exhco.emf'),
-                 'EMFAC_NOX_exhaust': os.path.join('data', 'emsfac', 'exhnox.emf'),
-                 'EMFAC_PM_exhaust': os.path.join('data', 'emsfac', 'exhpm.emf'),
-                 'EMFAC_BSFC': os.path.join('data', 'emsfac', 'bsfc.emf'),
-                 'EMFAC_Crankcase': os.path.join('data', 'emsfac', 'crank.emf'),
-                 'EMFAC_Spillage': os.path.join('data', 'emsfac', 'spillage.emf'),
-                 'EMFAC_Diurnal': os.path.join('data', 'emsfac', 'evdiu.emf'),
-                 'EMFAC_Tank_Perm': os.path.join('data', 'emsfac', 'evtank.emf'),
-                 'EMFAC_Non_RM_Hose_Perm': os.path.join('data', 'emsfac', 'evhose.emf'),
-                 'EMFAC_RM_Fill_Neck_Perm': os.path.join('data', 'emsfac', 'evneck.emf'),
-                 'EMFAC_RM_Supply_Return': os.path.join('data', 'emsfac', 'evsupret.emf'),
-                 'EMFAC_RM_Vent_Perm': os.path.join('data', 'emsfac', 'evvent.emf'),
-                 'EMFAC_Hot_Soaks': os.path.join('data', 'emsfac', 'evhotsk.emf'),
-                 'EMFAC_RuningLoss': os.path.join('data', 'emsfac', 'evrunls.emf'),
-                 'DETERIORATE_THC_exhaust': os.path.join('data', 'detfac', 'exhthc.det'),
-                 'DETERIORATE_CO_exhaust': os.path.join('data', 'detfac', 'exhco.det'),
-                 'DETERIORATE_NOX_exhaust': os.path.join('data', 'detfac', 'exhnox.det'),
-                 'DETERIORATE_PM_exhaust': os.path.join('data', 'detfac', 'exhpm.det'),
-                 'DETERIORATE_Diurnal': os.path.join('data', 'detfac', 'evdiu.det'),
-                 'DETERIORATE_Tank_Perm': os.path.join('data', 'detfac', 'evtank.det'),
-                 'DETERIORATE_Non_RM_Hose_Perm': os.path.join('data', 'detfac', 'evhose.det'),
-                 'DETERIORATE_RM_Fill_Neck_Perm': os.path.join('data', 'detfac', 'evneck.det'),
-                 'DETERIORATE_RM_Supply_Return': os.path.join('data', 'detfac', 'evsupret.det'),
-                 'DETERIORATE_RM_Vent_Perm': os.path.join('data', 'detfac', 'evvent.det'),
-                 'DETERIORATE_Hot_Soaks': os.path.join('data', 'detfac', 'evhotsk.det'),
-                 'DETERIORATE_RuningLoss': os.path.join('data', 'detfac', 'evrunls.det'),
+                 'Population_File': os.path.join(self.out_path_pop_alo, 'POP', '%s_%s.pop' % (self.state, run_code)),
+                 'National_defaults': os.path.join(config.get('nonroad_path'), 'data', 'growth', 'nation.grw'),
+                 'Harvested_acres': os.path.join(self.out_path_pop_alo, 'ALLOCATE', '%s_%s.alo' % (self.state, run_code)),
+                 'EMFAC_THC_exhaust': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'exhthc.emf'),
+                 'EMFAC_CO_exhaust': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'exhco.emf'),
+                 'EMFAC_NOX_exhaust': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'exhnox.emf'),
+                 'EMFAC_PM_exhaust': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'exhpm.emf'),
+                 'EMFAC_BSFC': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'bsfc.emf'),
+                 'EMFAC_Crankcase': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'crank.emf'),
+                 'EMFAC_Spillage': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'spillage.emf'),
+                 'EMFAC_Diurnal': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'evdiu.emf'),
+                 'EMFAC_Tank_Perm': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'evtank.emf'),
+                 'EMFAC_Non_RM_Hose_Perm': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'evhose.emf'),
+                 'EMFAC_RM_Fill_Neck_Perm': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'evneck.emf'),
+                 'EMFAC_RM_Supply_Return': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'evsupret.emf'),
+                 'EMFAC_RM_Vent_Perm': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'evvent.emf'),
+                 'EMFAC_Hot_Soaks': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'evhotsk.emf'),
+                 'EMFAC_RuningLoss': os.path.join(config.get('nonroad_path'), 'data', 'emsfac', 'evrunls.emf'),
+                 'DETERIORATE_THC_exhaust': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'exhthc.det'),
+                 'DETERIORATE_CO_exhaust': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'exhco.det'),
+                 'DETERIORATE_NOX_exhaust': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'exhnox.det'),
+                 'DETERIORATE_PM_exhaust': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'exhpm.det'),
+                 'DETERIORATE_Diurnal': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'evdiu.det'),
+                 'DETERIORATE_Tank_Perm': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'evtank.det'),
+                 'DETERIORATE_Non_RM_Hose_Perm': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'evhose.det'),
+                 'DETERIORATE_RM_Fill_Neck_Perm': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'evneck.det'),
+                 'DETERIORATE_RM_Supply_Return': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'evsupret.det'),
+                 'DETERIORATE_RM_Vent_Perm': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'evvent.det'),
+                 'DETERIORATE_Hot_Soaks': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'evhotsk.det'),
+                 'DETERIORATE_RuningLoss': os.path.join(config.get('nonroad_path'), 'data', 'detfac', 'evrunls.det'),
                  'EXHAUST_BMY_OUT': '',
                  'EVAP_BMY_OUT': '',
-                 'SI_report_file_CSV': os.path.join('OUTPUTS', 'NRPOLLUT.csv'),
+                 'SI_report_file_CSV': os.path.join(self.path, 'MESSAGES', 'NRPOLLUT.csv'),
                  'DAILY_TEMPS_RVP': ''
                  }
 
-        f = os.path.join(self.path, '%s.opt' % (self.state, ))
+        f = os.path.join(self.path, 'OPT', run_code, '%s.opt' % (self.state,))
         with open(f, 'w') as self.opt_file:
 
             lines = """
