@@ -35,6 +35,10 @@ class MOVESBatch:
 
         self.crop = crop  # crop name
         self.model_run_title = model_run_title  # scenario name
+        self.path_moves = path_moves
+        self.save_path_importfiles = save_path_importfiles
+        self.save_path_runspecfiles = save_path_runspecfiles
+        self.setenv_file = os.path.join(self.path_moves, 'setenv.bat')
 
         # initialize kvals dictionary for string formatting
         kvals = dict()
@@ -43,7 +47,7 @@ class MOVESBatch:
         kvals['title'] = model_run_title  # scenario name
         kvals['timestamp'] = timestamp  # timestamp of run
         kvals['fips'] = fips  # FIPS code
-
+        # @TODO: change filepath so these don't write to the MOVES root folder (should go to the scenario or project folder)
         self.importbatch = os.path.join(path_moves, 'batch_import_FPEAM_{fips}_{yr}_{crop}_{title}{timestamp}.bat'.format(**kvals))  # path for batch import file
         self.importfilename = os.path.join(save_path_importfiles, '{fips}_import_{yr}_{crop}.mrs'.format(**kvals))  # path for XML import files
         self.runbatch = os.path.join(path_moves, 'batch_run_FPEAM_{fips}_{yr}_{crop}_{title}{timestamp}.bat'.format(**kvals))  # path for batch run file
@@ -58,7 +62,8 @@ class MOVESBatch:
         # append import files to batch import file
         with open(self.importbatch, 'a') as csvfile:
             batchwriter = csv.writer(csvfile)
-            batchwriter.writerow(['echo Running {fips}_import_{yr}_{crop}.mrs'.format(fips=self.fips, yr=self.yr, crop=self.crop)])
+            batchwriter.writerow([self.setenv_file])
+            batchwriter.writerow(['echo Running %s' % (os.path.join(self.save_path_importfiles, '{fips}_import_{yr}_{crop}.mrs'.format(fips=self.fips, yr=self.yr, crop=self.crop)))])  # @TODO: remove this echo and make a logger call
             batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i {importfile}'.format(importfile=self.importfilename)])
         return self.importbatch
         
@@ -69,6 +74,7 @@ class MOVESBatch:
         # append import files to batch run file
         with open(self.runbatch, 'a') as csvfile:
             batchwriter = csv.writer(csvfile)
-            batchwriter.writerow(['echo Running {fips}_runspec_{yr}_{crop}.mrs'.format(fips=self.fips, yr=self.yr, crop=self.crop)])
+            batchwriter.writerow([self.setenv_file])
+            batchwriter.writerow(['echo Running %s' % (os.path.join(self.save_path_runspecfiles, '{fips}_runspec_{yr}_{crop}.mrs'.format(fips=self.fips, yr=self.yr, crop=self.crop)))])  # @TODO: remove this echo and make a logger call
             batchwriter.writerow(['java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -r {runfile}'.format(runfile=self.runfilename)])
         return self.runbatch
