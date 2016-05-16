@@ -72,7 +72,7 @@ class Batch:
         :return:
         """
 
-        lines = '{nr_path} {batch_path}{run_code}{sep}{state}.opt\n'.format(nr_path=config.get('nonroad_path'),
+        lines = '{nr_path} {batch_path}{run_code}{sep}{state}.opt\n'.format(nr_path=os.path.join(config.get('nonroad_path'), config.get('nonroad_exe')),
                                                                             batch_path=self.path,
                                                                             run_code=run_code,
                                                                             sep=os.sep,
