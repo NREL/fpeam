@@ -254,10 +254,10 @@ class MOVESModule:
                                                save_path_importfiles=self.save_path_importfiles, save_path_runspecfiles=self.save_path_runspecfiles)
 
             # create MOVES batch import file
-            im_filename = batch_file.create_moves_batch_import()
+            im_filename = batch_file.importfilename
 
             # create MOVES batch run file
-            run_filename = batch_file.create_moves_batch_run()
+            run_filename = batch_file.runfilename
 
         return {'run_filename': run_filename,
                 'im_filename': im_filename,
@@ -343,6 +343,12 @@ class MOVESModule:
         logger.debug('Importing MOVES files')
 
         # execute batch file and log output
-        output = subprocess.Popen(filename, cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
+        command = 'cd {moves_path} & setenv.bat & ' \
+                  'java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i {import_file}' \
+                  ''.format(moves_path=self.path_moves, import_file=filename)
+        os.system(command)
 
-        logger.debug('MOVES output: %s' % output)
+        # @TODO: change to use subprocess so output can be logged; for some reason subprocess doesn't work with multiple batch files - it only executes setenv.bat but never gets to {import_moves}.bat
+        # output = subprocess.Popen(filename, cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
+        #
+        # logger.debug('MOVES output: %s' % output)

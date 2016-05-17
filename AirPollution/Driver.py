@@ -370,8 +370,19 @@ class Driver:
                 logger.info('Running MOVES for feedstock: %s, fips: %s' % (feed, fips))
                 logger.info('Batch file MOVES for importing data: %s' % (batch_run_dict[feed], ))
 
-                output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE).stdout.read()
-                logger.debug('Command line output: %s' % output)
+                command = 'cd {moves_folder} & setenv.bat & ' \
+                          'java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine -r {run_moves}' \
+                          ''.format(moves_folder=self.path_moves, run_moves=batch_run_dict[feed])
+                os.system(command)
+
+                # @TODO: change to use subprocess so output can be logged; for some reason subprocess doesn't work with multiple batch files - it only executes setenv.bat but never gets to {runspec_moves}.bat
+                # output = subprocess.Popen(batch_run_dict[feed], cwd=self.path_moves,
+                #                           stdout=subprocess.PIPE).stdout.read()
+                # logger.debug('Command line output: %s' % output)
+
+                # also tried the following, which allowed both setenv.bat and {runspec_moves}.bat but the runspec threw an error related to jdbc:
+                # output = subprocess.Popen(os.path.join(self.path_moves, 'setenv.bat') + '&' + batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE, shell=True).stdout.read()
+                # logger.debug('Command line output: %s' % output)
 
                 self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.yr[feed])
                 query_moves_metadata = """INSERT INTO {constants_schema}.moves_metadata(scen_id)
@@ -381,7 +392,7 @@ class Driver:
             else:
                 # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
-    
+
     def save_data(self, operation_dict, alloc):
         """
         Create and populate the schema with the emissions inventory.
