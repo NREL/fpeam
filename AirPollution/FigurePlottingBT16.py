@@ -35,8 +35,8 @@ class FigurePlottingBT16:
 
         self.pol_list = ['nox', 'nh3', 'pm25', 'pm10', 'co', 'sox', 'voc']  # @TODO: remove hardcoded values
 
-        self.feedstock_list = ['Corn Grain', 'Switchgrass', 'Corn Stover', 'Wheat Straw', 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
-        self.f_list = ['CG', 'SG', 'CS', 'WS', 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
+        self.feedstock_list = ['Corn Grain', 'Corn Stover', 'Wheat Straw', 'Switchgrass', 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
+        self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
         self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
