@@ -117,8 +117,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                    ;""".format(**self.kvals)
         state_list = self.db.output(query)
 
-        state_list = ['01']
-
         for state in state_list:
             self.kvals['state'] = state
 
@@ -228,7 +226,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                               (SELECT    SUM(table1.ratePerDistance * table2.avgSpeedFraction * {vmt} / {g_per_mt}) AS run_emissions_per_trip
                                FROM      {db_out}.rateperdistance table1
                                LEFT JOIN {constants_schema}.averageSpeed table2
-                                      ON table1.hourID        = table2.hourID         AND
+                                      ON (table1.hourID        = table2.hourID         AND
                                          table1.dayID         = table2.dayID          AND
                                          table1.roadTypeID    = table2.roadTypeID     AND
                                          table1.avgSpeedBinID = table2.avgSpeedBinID)
@@ -313,7 +311,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         Update transportation table with these values
         """
-        logger.debug('Calculating fugitive dust emissions for fips={fips}, feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
+        logger.info('Calculating fugitive dust emissions for fips={fips}, feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
 
         k_a = dict()
         k_a['PM10'] = 1.5
