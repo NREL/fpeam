@@ -36,7 +36,7 @@ import Transportation
 
 class Driver:
 
-    def __init__(self, model_run_title, run_codes, year_dict, db):
+    def __init__(self, model_run_title, run_codes, year_dict, db, moves_fips_list):
         """
         Save important variables for the running of the program.
 
@@ -138,6 +138,9 @@ class Driver:
 
         # years for crop budgets (energy crops have multiple years; conventional crops only single year)
         self.years_budget = config.get('crop_budget_dict')['years']
+
+        # set fips list for post-processing moves data
+        self.moves_fips_list = moves_fips_list
 
     def _check_title(self, title):
         """
@@ -507,19 +510,10 @@ class Driver:
 
                 # check if scenario requires moves to run on state-level
                 if self.moves_state_level is True:
-                    # if so, collect the state-level moves fips code that corresponds to the production fips code
-                    query = """SELECT fips
-                               FROM fpeam.moves_statelevel_fips_list_{year}
-                               WHERE state = '{state}'
-                               ;""".format(**kvals)
-                    output = self.db.output(query)
-
-                    # check to make sure output is not none
-                    if output is not None:
-                        # set moves fips
-                        moves_fips = output[0][0][0]
-                    else:
-                        moves_fips = output
+                    for m_fips in self.moves_fips_list[0]:
+                        if fips[0:2] in m_fips[0]:
+                            moves_fips = m_fips[0]
+                            break
                 else:
                     # if not run on state-level, then moves is run on county-level so production fips equals moves_fips
                     moves_fips = fips
