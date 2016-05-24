@@ -120,7 +120,7 @@ class FigurePlottingBT16:
         logger.info('Adding summed emissions and production columns')
         self.sum_emissions(kvals)
 
-        logger.info('Adding NEI data (summed OR, NR, NP)')
+        logger.info('Joining NEI and transportation data')
         self.add_nei_and_transport(kvals)
 
     def add_nei_and_transport(self, kvals):
