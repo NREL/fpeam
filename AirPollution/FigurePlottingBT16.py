@@ -120,10 +120,10 @@ class FigurePlottingBT16:
         logger.info('Adding summed emissions and production columns')
         self.sum_emissions(kvals)
 
-        logger.info('Joining NEI and transportation data')
-        self.add_nei_and_transport(kvals)
+        logger.info('Joining NEI, NAA, and transportation data')
+        self.add_nei_naa_and_transport(kvals)
 
-    def add_nei_and_transport(self, kvals):
+    def add_nei_naa_and_transport(self, kvals):
 
         kvals['new_table'] = 'total_emissions_join_prod_sum_emissions_nei_trans'
 
@@ -139,11 +139,16 @@ class FigurePlottingBT16:
         sql += "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
 
         sql += """
-                  SELECT te.*, nei_npnror.nei_nox_npnror, nei_sox_npnror, nei_pm10_npnror, nei_pm25_npnror,
-                         nei_voc_npnror, nei_nh3_npnror,nei_co_npnror, nei_voc__npnrorp, avg_total_cost,
-                         avg_dist, used_qnty
+                  SELECT te.*, nei_npnror.nei_nox_npnror,  nei_npnror.nei_sox_npnror,  nei_npnror.nei_pm10_npnror,
+                         nei_npnror.nei_pm25_npnror, nei_npnror.nei_voc_npnror,  nei_npnror.nei_nh3_npnror,
+                         nei_npnror.nei_co_npnror,  nei_npnrorp.nei_voc__npnrorp, trans.avg_total_cost,
+                         trans.avg_dist, trans.used_qnty, na.ozone_8hr_2008, na.co_1971, na.no2_1971, na.pm10_1987,
+                         na.pm25_1997_2006_2012, na.so2_1971_2010
                   FROM {scenario_name}.total_emissions_join_prod_sum_emissions te
-                  LEFT JOIN (SELECT LPAD(fips, 5, '0') AS fips_plus, SUM(nox) AS nei_nox_npnror, SUM(sox) AS nei_sox_npnror, SUM(pm10) AS nei_pm10_npnror, SUM(pm25) AS nei_pm25_npnror, SUM(voc) AS nei_voc_npnror, SUM(nh3) AS nei_nh3_npnror, SUM(co) AS nei_co_npnror
+                  LEFT JOIN (SELECT LPAD(fips, 5, '0') AS fips_plus, SUM(nox) AS nei_nox_npnror,
+                                    SUM(sox) AS nei_sox_npnror, SUM(pm10) AS nei_pm10_npnror,
+                                    SUM(pm25) AS nei_pm25_npnror, SUM(voc) AS nei_voc_npnror,
+                                    SUM(nh3) AS nei_nh3_npnror, SUM(co) AS nei_co_npnror
                              FROM nei.nei_2011
                              WHERE category != 'BVOC' AND category != 'P'
                              GROUP BY fips_plus) nei_npnror
@@ -157,6 +162,11 @@ class FigurePlottingBT16:
                              WHERE category != 'BVOC'
                              GROUP BY fips_plus) nei_npnrorp
                   ON nei_npnrorp.fips_plus = te.fips
+
+                  """.format(**kvals)
+        sql += """
+                  LEFT JOIN naa.naa_2012 na
+                  ON na.fips = te.fips
 
                   """.format(**kvals)
 
