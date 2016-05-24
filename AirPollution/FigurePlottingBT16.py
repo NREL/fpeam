@@ -143,20 +143,20 @@ class FigurePlottingBT16:
                          nei_voc_npnror, nei_nh3_npnror,nei_co_npnror, nei_voc__npnrorp, avg_total_cost,
                          avg_dist, used_qnty
                   FROM {scenario_name}.total_emissions_join_prod_sum_emissions te
-                  LEFT JOIN (SELECT fips, SUM(nox) AS nei_nox_npnror, SUM(sox) AS nei_sox_npnror, SUM(pm10) AS nei_pm10_npnror, SUM(pm25) AS nei_pm25_npnror, SUM(voc) AS nei_voc_npnror, SUM(nh3) AS nei_nh3_npnror, SUM(co) AS nei_co_npnror
+                  LEFT JOIN (SELECT LPAD(fips, 5, '0') AS fips_plus, SUM(nox) AS nei_nox_npnror, SUM(sox) AS nei_sox_npnror, SUM(pm10) AS nei_pm10_npnror, SUM(pm25) AS nei_pm25_npnror, SUM(voc) AS nei_voc_npnror, SUM(nh3) AS nei_nh3_npnror, SUM(co) AS nei_co_npnror
                              FROM nei.nei_2011
                              WHERE category != 'BVOC' AND category != 'P'
-                             GROUP BY fips) nei_npnror
-                  ON LPAD(nei_npnror.fips, 5, '0') = te.fips
+                             GROUP BY fips_plus) nei_npnror
+                  ON nei_npnror.fips_plus = te.fips
 
                   """.format(**kvals)
 
         sql += """
-                  LEFT JOIN (SELECT fips, SUM(voc) AS nei_voc__npnrorp
+                  LEFT JOIN (SELECT LPAD(fips, 5, '0') AS fips_plus, SUM(voc) AS nei_voc__npnrorp
                              FROM nei.nei_2011
                              WHERE category != 'BVOC'
-                             GROUP BY fips) nei_npnrorp
-                  ON LPAD(nei_npnrorp.fips, 5, '0') = te.fips
+                             GROUP BY fips_plus) nei_npnrorp
+                  ON nei_npnrorp.fips_plus = te.fips
 
                   """.format(**kvals)
 
