@@ -138,27 +138,43 @@ class FigurePlottingBT16:
         sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n".format(**kvals)
         sql += "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
 
-        sql += """SELECT * FROM {scenario_name}.total_emissions_join_prod_sum_emissions te
-                  LEFT JOIN (SELECT fips, SUM(nox) AS nei_nox_npnron, SUM(sox) AS nei_sox_npnron, SUM(pm10) AS nei_pm10_npnron, SUM(pm25) AS nei_pm25_npnron, SUM(voc) AS nei_voc_npnron, SUM(nh3) AS nei_nh3_npnron, SUM(co) AS nei_co_npnron
+        sql += """
+                  SELECT te.*, nei_npnror.nei_nox_npnror, nei_sox_npnror, nei_pm10_npnror, nei_pm25_npnror,
+                         nei_voc_npnror, nei_nh3_npnror,nei_co_npnror, nei_voc__npnrorp, avg_total_cost,
+                         avg_dist, used_qnty
+                  FROM {scenario_name}.total_emissions_join_prod_sum_emissions te
+                  LEFT JOIN (SELECT fips, SUM(nox) AS nei_nox_npnror, SUM(sox) AS nei_sox_npnror, SUM(pm10) AS nei_pm10_npnror, SUM(pm25) AS nei_pm25_npnror, SUM(voc) AS nei_voc_npnror, SUM(nh3) AS nei_nh3_npnror, SUM(co) AS nei_co_npnror
                              FROM nei.nei_2011
                              WHERE category != 'BVOC' AND category != 'P'
-                             GROUP BY fips) nei
-                  ON nei.fips = te.fips""".format(**kvals)
+                             GROUP BY fips) nei_npnror
+                  ON LPAD(nei_npnror.fips, 5, '0') = te.fips
 
-        sql += """LEFT JOIN (SELECT fips, SUM(voc) AS nei_voc__npnronp
+                  """.format(**kvals)
+
+        sql += """
+                  LEFT JOIN (SELECT fips, SUM(voc) AS nei_voc__npnrorp
                              FROM nei.nei_2011
                              WHERE category != 'BVOC'
-                             GROUP BY fips) nei
-                  ON nei.fips = te.fips""".format(**kvals)
+                             GROUP BY fips) nei_npnrorp
+                  ON LPAD(nei_npnrorp.fips, 5, '0') = te.fips
+
+                  """.format(**kvals)
+
+        sql += """LEFT JOIN (SELECT sply_fips, avg_total_cost, avg_dist, used_qnty, CASE """
 
         for feedstock in self.feed_id_dict:
             if self.feed_id_dict[feedstock] != 'None':
                 feed_type = feed_type_dict[feedstock]
+                kvals['feed_name'] = self.feed_id_dict[feedstock]
                 kvals['transport_table'] = table_dict[feed_type][kvals['yield']][logistics]
                 kvals['feed'] = feedstock.lower()
-                sql += """ LEFT JOIN (SELECT fips, avg_total_cost, avg_dist, used_qnty
-                                      FROM {production_schema}.{transport_table}_{year}) trans
-                           ON trans.fips = te.fips AND te.feedstock = '{feed}' AND source_category LIKE '%transport%'""".format(**kvals)
+                sql += """ WHEN feed_id = '{feed_name}' THEN '{feed}'
+                       """.format(**kvals)
+
+        sql += """END AS feedstock
+                  FROM {production_schema}.{transport_table}_{year}) trans
+                  ON trans.sply_fips = te.fips AND te.feedstock = trans.feedstock AND te.source_category LIKE '%transport%'
+                """.format(**kvals)
 
         self.db.execute_sql(sql=sql)
 
