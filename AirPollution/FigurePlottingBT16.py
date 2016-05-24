@@ -120,8 +120,8 @@ class FigurePlottingBT16:
         logger.info('Adding summed emissions and production columns')
         self.sum_emissions(kvals)
 
-        # logger.info('Adding NEI data (summed OR, NR, NP)')
-        # self.add_nei_and_transport(kvals)
+        logger.info('Adding NEI data (summed OR, NR, NP)')
+        self.add_nei_and_transport(kvals)
 
     def add_nei_and_transport(self, kvals):
 
@@ -139,9 +139,15 @@ class FigurePlottingBT16:
         sql += "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
 
         sql += """SELECT * FROM {scenario_name}.total_emissions_join_prod_sum_emissions te
-                  LEFT JOIN (SELECT fips, SUM(nox) AS nei_nox, SUM(sox) AS nei_sox, SUM(pm10) AS nei_pm10, SUM(pm25) AS nei_pm25, SUM(voc) AS nei_voc, SUM(nh3) AS nei_nh3, SUM(co) AS nei_co
+                  LEFT JOIN (SELECT fips, SUM(nox) AS nei_nox_npnron, SUM(sox) AS nei_sox_npnron, SUM(pm10) AS nei_pm10_npnron, SUM(pm25) AS nei_pm25_npnron, SUM(voc) AS nei_voc_npnron, SUM(nh3) AS nei_nh3_npnron, SUM(co) AS nei_co_npnron
                              FROM nei.nei_2011
                              WHERE category != 'BVOC' AND category != 'P'
+                             GROUP BY fips) nei
+                  ON nei.fips = te.fips""".format(**kvals)
+
+        sql += """LEFT JOIN (SELECT fips, SUM(voc) AS nei_voc__npnronp
+                             FROM nei.nei_2011
+                             WHERE category != 'BVOC'
                              GROUP BY fips) nei
                   ON nei.fips = te.fips""".format(**kvals)
 
@@ -150,7 +156,7 @@ class FigurePlottingBT16:
                 feed_type = feed_type_dict[feedstock]
                 kvals['transport_table'] = table_dict[feed_type][kvals['yield']][logistics]
                 kvals['feed'] = feedstock.lower()
-                sql += """ LEFT JOIN (SELECT fips, avg_total_cost, avg_dist
+                sql += """ LEFT JOIN (SELECT fips, avg_total_cost, avg_dist, used_qnty
                                       FROM {production_schema}.{transport_table}_{year}) trans
                            ON trans.fips = te.fips AND te.feedstock = '{feed}' AND source_category LIKE '%transport%'""".format(**kvals)
 
