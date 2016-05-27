@@ -362,9 +362,14 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             operation = 'Transport'
 
         # Forest Residue
-        elif run_code.startswith('FR'):
+        elif run_code.startswith('F'):
             # currently no equipment allocated to FR harvest, non-harvest, or on-farm transport
-            pass
+            if run_code.endswith('N'):
+                operation = 'Non-Harvest'
+                description = 'Non-Harvest'
+            elif run_code.endswith('H'):
+                operation = 'Harvest'
+                description = 'Harvest'
 
         # Corn Stover and Wheat Straw
         elif run_code.startswith('CS') or run_code.startswith('WS'):
