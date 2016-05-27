@@ -239,6 +239,7 @@ class Driver:
                     # if production is greater than zero, then append equipment information to population file
                     if prod_greater_than_zero is True:
                         fips = str(dat[0])
+                        bdgt = str(dat[5])
                         # The db table is ordered alphabetically.
                         # The search will look through a state. When the state changes in the table,
                         # then the loop will go to the else, closing the old files. and initializing new files.
@@ -246,9 +247,18 @@ class Driver:
                         # dat[1] is the state.
                         if dat[1] == state:
                             # indicator is harvested acres. Except for FR when it is produce.
-                            indicator = dat[2]
+                            if run_code.startswith('F'):
+                                indicator = dat[3]
+                            else:
+                                indicator = dat[2]
                             alo.write_indicator(fips=fips, indicator=indicator)
-                            pop.append_pop(fips=fips, dat=dat)
+
+                            # append data to population file
+                            # include budget information if running regionally or if running for forestry
+                            if regional_crop_budget is False and not run_code.startswith('F'):
+                                pop.append_pop(fips=fips, dat=dat)
+                            else:
+                                pop.append_pop(fips=fips, dat=dat, bdgt=bdgt)
                         # last time through a state, will close different files, and start new ones.
                         else:
                             # write *.opt file, close allocation file, close *.pop file
