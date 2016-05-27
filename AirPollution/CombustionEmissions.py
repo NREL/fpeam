@@ -115,7 +115,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                             hp = row[3]
                             description, operation = self._get_description(run_code, scc)
                             # check if it is a feedstock and operation that should be recorded.
-                            if feedstock == 'FR' or self.operation_dict[feedstock][operation[0]]:
+                            if feedstock.startswith('F') or self.operation_dict[feedstock][operation[0]]:
                                 # all emissions are recorder in metric tons.
                                 # dry ton * metric ton / dry ton = metric ton
                                 thc = float(row[5]) * convert_tonne
