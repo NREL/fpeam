@@ -35,8 +35,8 @@ class FigurePlottingBT16:
 
         self.pol_list = ['nox', 'nh3', 'pm25', 'pm10', 'co', 'sox', 'voc']  # @TODO: remove hardcoded values
 
-        self.feedstock_list = ['Corn Grain', 'Corn Stover', 'Wheat Straw', 'Switchgrass', 'Miscanthus', ]  # 'Forest Residue'] @TODO: remove hardcoded values
-        self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', ]  # 'FR'] # @TODO: remove hardcoded values
+        self.feedstock_list = ['Corn Grain', 'Corn Stover', 'Wheat Straw', 'Switchgrass', 'Miscanthus', 'Forest Residues', 'Whole Trees']  # @TODO: remove hardcoded values
+        self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', 'FR', 'FW'] # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
         self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
@@ -382,6 +382,8 @@ class FigurePlottingBT16:
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
             kvals['tillage'] = "'CT'"
+        elif kvals['feed'].startswith('f'):
+            kvals['tillage'] = "'NT'"
 
         query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                SELECT fips                                          AS fips,
@@ -423,6 +425,8 @@ class FigurePlottingBT16:
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
             kvals['tillage'] = "'CT'"
+        elif kvals['feed'].startswith('F'):
+            kvals['tillage'] = "'NT'"
 
         query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                SELECT  fips,
@@ -495,6 +499,8 @@ class FigurePlottingBT16:
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
             kvals['tillage'] = "'CT'"
+        elif kvals['feed'].startswith('F'):
+            kvals['tillage'] = "'NT'"
 
         query_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT   fips,
@@ -527,6 +533,8 @@ class FigurePlottingBT16:
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
             kvals['tillage'] = "'CT'"
+        elif kvals['feed'].startswith('F'):
+            kvals['tillage'] = "'NT'"
 
         query_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT   fips,
@@ -559,6 +567,8 @@ class FigurePlottingBT16:
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
             kvals['tillage'] = "'CT'"
+        elif kvals['feed'].startswith('F'):
+            kvals['tillage'] = "'NT'"
 
         query_loading = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                            SELECT   fips,
@@ -595,6 +605,8 @@ class FigurePlottingBT16:
             tillage_list = ['NT', ]
         elif kvals['feed'] == 'ms':
             tillage_list = ['CT', ]
+        elif kvals['feed'].startswith('F'):
+            kvals['tillage'] = "'NT'"
 
         run_logistics = self.feed_id_dict[feedstock.upper()]
         if run_logistics != 'None':
