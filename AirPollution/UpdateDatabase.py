@@ -94,19 +94,18 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                         fug_pm25    float);""".format(**self.kvals)
         self._execute_query(query)
 
-        # fertilizer tables for all crops except FR
-        if feedstock != 'FR':
-            query = """
-                            CREATE TABLE {scenario_name}.{feed}_nfert
-                            (
-                            FIPS    char(5)    ,
-                            tillage char(5)    ,
-                            budget_year char(2),
-                            NOx    float    ,
-                            NH3    float    ,
-                            SCC    char(10)    ,
-                            description    text)""".format(**self.kvals)
-            self._execute_query(query)
+        # fertilizer tables for all crops
+        query = """
+                        CREATE TABLE {scenario_name}.{feed}_nfert
+                        (
+                        FIPS    char(5)    ,
+                        tillage char(5)    ,
+                        budget_year char(2),
+                        NOx    float    ,
+                        NH3    float    ,
+                        SCC    char(10)    ,
+                        description    text)""".format(**self.kvals)
+        self._execute_query(query)
 
         # chemical tables for those crops that use herbicides (previously only CG and SG, now populating for all crops when using regional crop budget)
         query = """
