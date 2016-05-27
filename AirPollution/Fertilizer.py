@@ -30,6 +30,8 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         self.col_dict = {'cg': 'n_lbac',
                          'cs': 'n_lbdt',
                          'ws': 'n_lbdt',
+                         'fr': 'n_lbac',
+                         'fw': 'n_lbac',
                          'sg_yr1': 'n_lbac',
                          'sg_yr2to10': 'n_lbdt',
                          'ms_yr1': 'n_lbac',
@@ -93,6 +95,8 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                 till_dict = {'NT': 'notill'}
             elif feed == 'MS':
                 till_dict = {'CT': 'convtill'}
+            elif feed.startswith('F'):
+                till_dict = {'NT': 'notill'}
             else:
                 till_dict = {'CT': 'convtill',
                              'RT': 'reducedtill',
@@ -131,16 +135,16 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                                      SELECT  feed.fips,
                                              '{tillage}',
                                              '{yr}',
-                                             feed.{tillage_name}_harv_ac * nfert.n_app * {emissions_nox} AS NOX,
-                                             feed.{tillage_name}_harv_ac * nfert.n_app * {emissions_nh3} AS NH3,
+                                             sum(feed.{tillage_name}_harv_ac * ifnull(nfert.n_app, 0) * {emissions_nox}) AS NOX,
+                                             sum(feed.{tillage_name}_harv_ac * ifnull(nfert.n_app, 0) * {emissions_nh3}) AS NH3,
                                              ({scc}) AS SCC,
                                              '{description}' AS Description
                                      FROM {production_schema}.{feed}_data feed
-                                     LEFT JOIN (SELECT fips, sum({n_column}) as n_app
+                                     LEFT JOIN (SELECT fips, sum({n_column}) as n_app, bdgt
                                                 FROM {production_schema}.{feed}_equip_fips
                                                 WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
-                                                GROUP BY fips) nfert
-                                     ON nfert.fips = feed.fips
+                                                GROUP BY fips, bdgt) nfert
+                                     ON nfert.fips = feed.fips AND nfert.bdgt = feed.bdgt
                                      WHERE feed.{tillage_name}_prod > 0
                                      GROUP BY feed.fips;""".format(**self.kvals)
                     self._execute_query(fert_query)
