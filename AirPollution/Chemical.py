@@ -43,6 +43,8 @@ class Chemical(SaveDataHelper.SaveDataHelper):
             till_dict = {'NT': 'notill'}
         elif feed == 'MS':
             till_dict = {'CT': 'convtill'}
+        elif feed == 'FW':
+            till_dict = {'NT': 'notill'}
         else:
             till_dict = {'CT': 'convtill',
                          'RT': 'reducedtill',
@@ -63,14 +65,14 @@ class Chemical(SaveDataHelper.SaveDataHelper):
                                      '{tillage}',
                                      '{yr}',
                                      (2461850051) AS SCC,
-                                     (feed.{tillage_name}_harv_ac * (chem.pest_app * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
+                                     sum(feed.{tillage_name}_harv_ac * (ifnull(chem.pest_app, 0) * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
                                      'Pesticide Emissions' AS Description
                              FROM {production_schema}.{feed}_data feed
-                             LEFT JOIN (SELECT fips, sum(herb_lbac + insc_lbac) as pest_app
+                             LEFT JOIN (SELECT fips, sum(ifnull(herb_lbac, 0) + ifnull(insc_lbac, 0)) as pest_app, bdgt
                                         FROM {production_schema}.{feed}_equip_fips
                                         WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
-                                        GROUP BY fips) chem
-                             ON chem.fips = feed.fips
+                                        GROUP BY fips, bdgt) chem
+                             ON chem.fips = feed.fips AND chem.bdgt = feed.bdgt
                              WHERE feed.{tillage_name}_prod > 0
                              GROUP BY feed.fips;""".format(**self.kvals)
             self._execute_query(chem_query)
