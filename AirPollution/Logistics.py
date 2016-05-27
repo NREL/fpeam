@@ -133,23 +133,26 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                  'transport_table': self.transport_table_dict[self.feed_type_dict[feed]][yield_type][logistics],  # transport table
                  'run_code': run_code,  # run code
                  'feed': feed,  # feedstock id
+                 'feed_name': self.transport_feed_id_dict[feed],  # name of feedstock
                  'logistics': logistics,  # logistics type
                  'yield_type': yield_type,  # yield type
                  'a': 0.9071847,  # metric ton per short ton
                  'b': 1000.0,  # kg per metric ton
                  'VOC_ef_h': self.voc_wood_ef[logistics]['hammer_mill'],  # VOC emission factor for hammer mill
-                 'VOC_ef_d': self.voc_wood_ef[logistics]['grain_dryer']  # VOC emission factor for grain dryer
+                 'VOC_ef_d': self.voc_wood_ef[logistics]['grain_dryer'],  # VOC emission factor for grain dryer
+                 'scenario_name': self.kvals['scenario_name'],
+                 'production_schema': self.kvals['production_schema'],
+                 'year': config.get('year_dict')['all_crops']
                  }
 
         # generate string for query and append to queries
-        query = """UPDATE {scenario_name}.processing
+        query = """UPDATE {scenario_name}.processing process
+                LEFT JOIN {production_schema}.{transport_table}_{year} transport_data ON process.fips = transport_data.sply_fips
                 SET voc_wood = transport_data.used_qnty * {a} * ({VOC_ef_h} + {VOC_ef_d}) / {b}
-                FROM {production_schema}.{transport_table} transport_data
-                WHERE   {scenario_name}.{feed}_processing.fips = transport_data.sply_fips AND
-                        logistics_type = '{logistics}' AND
+                WHERE   logistics_type = '{logistics}' AND
                         yield_type = '{yield_type}'
-                        AND run_code = '{run_code}'
-                        AND feed = '{feed}';""".format(**kvals)
+                        AND feed = '{feed}'
+                        AND feed_id = '{feed_name}';""".format(**kvals)
 
         return self._execute_query(query)
 
@@ -163,7 +166,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                     # compute electricity
                     self.electricity(feed, logistics_type, self.yield_type)
 
-                    if feed == 'FR':
+                    if feed.startswith('F'):
                         self.voc_wood_drying(feed, logistics_type, self.yield_type)
 
         # @TODO: forest residue has not yet been validated (only agricultural crops have been run thus far)
