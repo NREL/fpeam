@@ -120,64 +120,55 @@ class ScenarioOptions:
         feed = feed.lower()
         self.kvals['feed_table'] = self.kvals['feed_tables'][feed]
 
-        # get agricultural data
-        if not run_code.startswith('FR'):
 
-            # get CG irrigation data
-            if run_code.startswith('CG_I'):
+        # get CG irrigation data
+        if run_code.startswith('CG_I'):
 
-                # dictionary for irrigation fuel types
-                fuel_types = {'D': 'diesel',
-                              'G': 'gasoline',
-                              'L': 'lpg',
-                              'C': 'natgas'}
+            # dictionary for irrigation fuel types
+            fuel_types = {'D': 'diesel',
+                          'G': 'gasoline',
+                          'L': 'lpg',
+                          'C': 'natgas'}
 
-                # set fuel type
-                self.kvals['fuel_type'] = fuel_types[run_code[-1]]
+            # set fuel type
+            self.kvals['fuel_type'] = fuel_types[run_code[-1]]
 
-                # create query for irriation data
-                query = '''SELECT ca.fips, ca.st, dat.total_harv_ac * irr.perc AS acres, dat.total_prod, irr.fuel, irr.hp, irr.perc, irr.hpa
-                           FROM      {constants_schema}.county_attributes ca
-                           LEFT JOIN {production_schema}.{feed_table} dat ON ca.fips = dat.fips
-                           LEFT JOIN (SELECT state, fuel, hp, percent AS perc, hrsperacre AS hpa
-                                      FROM {constants_schema}.cg_irrigated_states
-                                      WHERE cg_irrigated_states.fuel LIKE '{fuel_type}'
-                                     ) irr
-                               ON irr.state LIKE ca.st
-                           WHERE ca.st LIKE irr.state
-                           ORDER BY ca.fips ASC;
-                '''.format(**self.kvals)
+            # create query for irriation data
+            query = '''SELECT ca.fips, ca.st, dat.total_harv_ac * irr.perc AS acres, dat.total_prod, irr.fuel, irr.hp, irr.perc, irr.hpa
+                       FROM      {constants_schema}.county_attributes ca
+                       LEFT JOIN {production_schema}.{feed_table} dat ON ca.fips = dat.fips
+                       LEFT JOIN (SELECT state, fuel, hp, percent AS perc, hrsperacre AS hpa
+                                  FROM {constants_schema}.cg_irrigated_states
+                                  WHERE cg_irrigated_states.fuel LIKE '{fuel_type}'
+                                 ) irr
+                           ON irr.state LIKE ca.st
+                       WHERE ca.st LIKE irr.state
+                       ORDER BY ca.fips ASC;
+            '''.format(**self.kvals)
 
+        else:
+            # set value for tillage type
+            if run_code.startswith('SG'):
+                self.kvals['till_type'] = 'notill'
+            elif run_code.startswith('MS'):
+                self.kvals['till_type'] = 'convtill'
             else:
-                # set value for tillage type
-                if run_code.startswith('SG'):
-                    self.kvals['till_type'] = 'notill'
-                elif run_code.startswith('MS'):
-                    self.kvals['till_type'] = 'convtill'
-                else:
-                    self.kvals['till_type'] = till_dict[run_code[3]]
+                self.kvals['till_type'] = till_dict[run_code[3]]
 
-                # create query for production data
-                if not (run_code.startswith('SG') or run_code.startswith('MS')) or (self.query_sg is True or self.query_ms is True):
-                    query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield
-                               FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
-                               WHERE dat.fips = ca.fips  AND dat.{till_type}_prod > 0.0
-                               ORDER BY ca.fips ASC;'''.format(**self.kvals)
+            # create query for production data
+            if not (run_code.startswith('SG') or run_code.startswith('MS')) or (self.query_sg is True or self.query_ms is True):
+                query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield, dat.bdgt
+                           FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
+                           WHERE dat.fips = ca.fips  AND dat.{till_type}_prod > 0.0
+                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
-                if run_code.startswith('SG'):
-                    # we have 30 scenarios for SG to run, but only want one to query the database once
-                    self.query_sg = False
+            if run_code.startswith('SG'):
+                # we have 30 scenarios for SG to run, but only want one to query the database once
+                self.query_sg = False
 
-                if run_code.startswith('MS'):
-                    # we have 45 scenarios for MS to run, but only want one to query the database once
-                    self.query_ms = False
-
-        # now get forestry data
-        elif run_code.startswith('FR'):
-            query = '''SELECT ca.fips, ca.st, dat.fed_minus_55
-                       FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
-                       WHERE dat.fips = ca.fips
-                       ORDER BY ca.fips ASC;'''.format(**self.kvals)
+            if run_code.startswith('MS'):
+                # we have 45 scenarios for MS to run, but only want one to query the database once
+                self.query_ms = False
 
         return query
 
