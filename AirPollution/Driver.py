@@ -278,9 +278,18 @@ class Driver:
                             pop.initialize_pop(dat=dat)
 
                             # indicator is harvested acres. Except for FR when it is produce.
-                            indicator = dat[2]
+                            if run_code.startswith('F'):
+                                indicator = dat[3]
+                            else:
+                                indicator = dat[2]
                             alo.write_indicator(fips=fips, indicator=indicator)
-                            pop.append_pop(fips=fips, dat=dat)
+
+                            # append data to population file
+                            # include budget information if running regionally or if running for forestry
+                            if regional_crop_budget is False and not run_code.startswith('F'):
+                                pop.append_pop(fips=fips, dat=dat)
+                            else:
+                                pop.append_pop(fips=fips, dat=dat, bdgt=bdgt)
 
                 # close allocation files
                 Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
