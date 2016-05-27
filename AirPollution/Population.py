@@ -186,7 +186,7 @@ class RegionalEquipment(Population):
         # initialize kvals dictionary
         self.cont = cont
 
-    def append_pop(self, fips, dat):
+    def append_pop(self, fips, dat, bdgt):
         """
         Calculate the equipment populations for NONROAD using regional crop budgets
         Then write them to a population file
@@ -194,6 +194,7 @@ class RegionalEquipment(Population):
         :param fips: fips county code. (string)
         :param dat: Data from the db containing harvested acres and the yield from the residues. list(string)
             harv_ac = dat[2]: Harvested acres
+        :param bdgt: budget name corresponding to production data (string)
         """
         # set feedstock from run code
         feed = self.run_code[0:2]
@@ -202,6 +203,7 @@ class RegionalEquipment(Population):
         # set other values in kvals dictionary
         kvals['feed'] = feed.lower()  # feedstock
         kvals['fips'] = fips  # fips code
+        kvals['bdgt'] = bdgt # budget name
 
         # set tillage type
         if not (self.run_code.startswith('SG') or self.run_code.startswith('MS')):
@@ -225,16 +227,21 @@ class RegionalEquipment(Population):
         if self.run_code.startswith('SG') or self.run_code.startswith('MS'):
             kvals['budget_year'] = self.run_code[4]
             query = """
-                        SELECT equip_type, hp, activity_rate
+                        SELECT equip_type, hp, activity_rate, NULL
                         FROM {production_schema}.{feed}_equip_fips
                         WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%' AND bdgtyr = '{budget_year}' AND equip_type != 'NULL'
                     """.format(**kvals)
 
-        else:
-            query = """SELECT equip_type, hp, activity_rate
+        elif self.run_code.startswith('F'):
+            query = """ SELECT equip_type, hp, activity_rate_hrperac, activity_rate_hrperdt
                         FROM {production_schema}.{feed}_equip_fips
-                        WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%' AND equip_type != 'NULL'
+                        WHERE fips = {fips} AND tillage = '{tillage}' AND activity LIKE '{activity}%' AND equip_type != 'NULL' AND bdgt = '{bdgt}'
                     """.format(**kvals)
+        else:
+            query = """ SELECT equip_type, hp, activity_rate, NULL
+                FROM {production_schema}.{feed}_equip_fips
+                WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%' AND equip_type != 'NULL'
+            """.format(**kvals)
         # return data from query
         equip_list = self.db.output(query)
 
@@ -244,12 +251,21 @@ class RegionalEquipment(Population):
             # get harvested acreage from production data
             harv_ac = dat[2]
 
+            # get production from production data
+            prod = dat[3]
+
             # loop through equipment in equipment list
             for equip in equip_list:
                 # set equipment type, hp and activity rate using data returned from equipment budget query
                 equip_type = equip[0]
                 hp = equip[1]
-                activity_rate = equip[2]
+
+                if equip[3] is None and equip[2] is not None:
+                    hrsperac = True
+                    activity_rate = equip[2]
+                elif equip[2] is None and equip[3] is not None:
+                    hrsperdt = True
+                    activity_rate = equip[3]
 
                 # only evaluate non-road activity for equipment other than airplanes (aerial emissions are calculated during post-processing under CombustionEmissions.py)
                 if equip_type != 'aerial':
@@ -257,7 +273,10 @@ class RegionalEquipment(Population):
                     annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (NonRoad default value)
 
                     # compute population of equipment using activity rate, harvested acreage, and annual activity
-                    pop = round(activity_rate * harv_ac / annual_activity, 7)  # population in years of operation
+                    if hrsperac is True:
+                        pop = round(activity_rate * harv_ac / annual_activity, 7)  # population in years of operation
+                    elif hrsperdt is True:
+                        pop = round(activity_rate * prod / annual_activity, 7)  # population in years of operation
 
                     # get hp and useful life dictionaries for NONROAD data
                     hp_list = self.nonroad_equip_dict['power_range']
@@ -369,7 +388,7 @@ class ForestPop(Population):
     def __init__(self, cont, episode_year, run_code):
         Population.__init__(self, cont, episode_year, run_code)
 
-    def append_pop(self, fips, dat):
+    def append_pop(self, fips, dat, bdgt):
         pass
 
 
