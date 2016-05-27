@@ -260,6 +260,8 @@ class RegionalEquipment(Population):
                 equip_type = equip[0]
                 hp = equip[1]
 
+                hrsperac = False
+                hrsperdt = False
                 if equip[3] is None and equip[2] is not None:
                     hrsperac = True
                     activity_rate = equip[2]
@@ -286,7 +288,7 @@ class RegionalEquipment(Population):
                     for hp_range_type in hp_list:
                         # check if hp falls in range
                         hp_range = hp_list[hp_range_type]
-                        if float(hp_range[0]) <= float(hp) < float(hp_range[1]):
+                        if float(hp_range[0]) < float(hp) <= float(hp_range[1]):
                             # if so, set min and max hp and useful life for this hp range
                             hp_min = hp_range[0]
                             hp_max = hp_range[1]
