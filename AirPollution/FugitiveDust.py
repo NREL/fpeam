@@ -60,10 +60,9 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['pm_fr'] = self.convert_lbs_to_mt(0.0)  # currently there are no pm emissions from FR operations
 
         query = """UPDATE {scenario_name}.fr_raw fr
-                   SET    fug_pm10 = ({pm_fr} * dat.fed_minus_55),
-                          fug_pm25 = ({pm_fr} * dat.fed_minus_55 * {pm_ratio})
-                   FROM   {production_schema}.fr_data dat
-                   WHERE  dat.fips = fr.fips
+                   LEFT JOIN {production_schema}.fr_data dat ON dat.fips = fr.fips
+                   SET    fug_pm10 = ({pm_fr} * dat.total_prod),
+                          fug_pm25 = ({pm_fr} * dat.total_prod * {pm_ratio})
                    ;""".format(**kvals)
 
         self._execute_query(query)
