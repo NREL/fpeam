@@ -369,7 +369,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 description = 'Non-Harvest'
             elif run_code.endswith('H'):
                 operation = 'Harvest'
-                description = 'Harvest'
+                description = ' Harvest'
 
         # Corn Stover and Wheat Straw
         elif run_code.startswith('CS') or run_code.startswith('WS'):
