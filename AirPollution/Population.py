@@ -623,7 +623,7 @@ class CornGrainIrrigationPop(Population):
 
         Population.initialize_pop(self, dat)
 
-    def append_pop(self, fips, dat):
+    def append_pop(self, fips, dat, bdgt):
         """
 
         :param fips:
@@ -1038,7 +1038,7 @@ class LoadingEquipment(Population):
         self.kvals = dict()
         self.kvals['year'] = episode_year
 
-    def append_pop(self, fips, dat):
+    def append_pop(self, fips, dat, bdgt):
         """
         Calculate populations for each fips code.
 
