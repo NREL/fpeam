@@ -183,9 +183,9 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         pm_no_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
         pm_conv_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
 
-        pm_conv_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
-        pm_redu_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
-        pm_no_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
+        pm_conv_till_non_harv = self.convert_lbs_to_mt(0)  # mt / acre
+        pm_redu_till_non_harv = self.convert_lbs_to_mt(0)  # mt / acre
+        pm_no_till_non_harv = self.convert_lbs_to_mt(0)  # mt / acre
 
         # choose operation for reduced till
         if run_code.startswith('CS_R'):
@@ -242,8 +242,8 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         pm_redu_till_harv = self.convert_lbs_to_mt(5.8)  # mt / acre
         pm_no_till_harv = self.convert_lbs_to_mt(5.8)  # mt / acre
 
-        pm_redu_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
-        pm_no_till_non_harv = self.convert_lbs_to_mt(0.8)  # mt / acre
+        pm_redu_till_non_harv = self.convert_lbs_to_mt(0)  # mt / acre
+        pm_no_till_non_harv = self.convert_lbs_to_mt(0)  # mt / acre
 
         # choose operation for reduced till
         if run_code.startswith('WS_R'):
