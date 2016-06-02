@@ -513,7 +513,7 @@ class Driver:
             kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][self.scenario_yield][logistics_type] + '_%s' % (self.scenario_year, )
 
             # get list of fips codes from transportation table
-            query = """SELECT LPAD(sply_fips, 5, '0')
+            query = """SELECT DISTINCT LPAD(sply_fips, 5, '0')
                        FROM {production_schema}.{transport_table}
                        WHERE feed_id = '{feed_id}'
                        ORDER BY LPAD(sply_fips, 5, '0')

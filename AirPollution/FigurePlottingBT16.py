@@ -36,7 +36,7 @@ class FigurePlottingBT16:
         self.pol_list = ['nox', 'nh3', 'pm25', 'pm10', 'co', 'sox', 'voc']  # @TODO: remove hardcoded values
 
         self.feedstock_list = ['Corn Grain', 'Corn Stover', 'Wheat Straw', 'Switchgrass', 'Miscanthus', 'Forest Residues', 'Whole Trees']  # @TODO: remove hardcoded values
-        self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', 'FR', 'FW'] # @TODO: remove hardcoded values
+        self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
         self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
@@ -58,9 +58,9 @@ class FigurePlottingBT16:
                  }
 
         # create backup
-        self.db.backup_table(schema=kvals['scenario_name'], table=kvals['te_table'])
+        # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['te_table'])
 
-        query_drop_table = """DROP TABLE IF EXISTS {scenario_name}.{te_table};""".format(**kvals)
+        # query_drop_table = """DROP TABLE IF EXISTS {scenario_name}.{te_table};""".format(**kvals)
 
         query_create_table = """CREATE TABLE {scenario_name}.{te_table} (fips            char(5),
                                                                          year            char(4),
@@ -78,7 +78,7 @@ class FigurePlottingBT16:
                                                                          feedstock       char(2))
                                 ;""".format(**kvals)
 
-        self.db.execute_sql(query_drop_table)
+        # self.db.execute_sql(query_drop_table)
         self.db.execute_sql(query_create_table)
 
         for feedstock in self.f_list:
@@ -132,11 +132,11 @@ class FigurePlottingBT16:
         logistics = config.get('logistics_type')
 
         # back up table
-        self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
+        # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
 
         # drop old table and create new table
-        sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n".format(**kvals)
-        sql += "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
+        # sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n".format(**kvals)
+        sql = "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
 
         sql += """
                   SELECT te.*, nei_npnror.nei_nox_npnror,  nei_npnror.nei_sox_npnror,  nei_npnror.nei_pm10_npnror,
@@ -198,11 +198,11 @@ class FigurePlottingBT16:
             kvals['feed'] = feed.lower()
             if i == 0:
                     # back up table
-                    self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
+                    # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
 
                     # drop old table and create new table
-                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n"
-                    sql += "CREATE TABLE           {scenario_name}.{new_table} AS\n"
+                    # sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n"
+                    sql = "CREATE TABLE           {scenario_name}.{new_table} AS\n"
             else:
                 # insert data
                 sql = "INSERT INTO {scenario_name}.{new_table}\n"
@@ -252,45 +252,54 @@ class FigurePlottingBT16:
         :param kvals: dictionary for string formatting
         :return:
         """
-
-        till_dict = {'CT': 'convtill',
-                     'RT': 'reducedtill',
-                     'NT': 'notill'}
-
         kvals['table'] = 'total_emissions_join_prod'
 
         i = 0
-        for feed in self.f_list:
-            kvals['feed'] = feed.lower()
+        for feedstock in self.f_list:
+            feed = feedstock.lower()
+            kvals['feed'] = feed
+
+            if feed == 'sg':
+                till_dict = {'NT': 'notill'}
+            elif feed == 'ms':
+                till_dict = {'CT': 'convtill'}
+            elif feed.startswith('f'):
+                till_dict = {'NT': 'notill'}
+            else:
+                till_dict = {'CT': 'convtill',
+                             'RT': 'reducedtill',
+                             'NT': 'notill'}
+
             for till in till_dict:
                 kvals['till'] = till
                 kvals['tillage'] = till_dict[till]
-                logger.info('Joining production data for %s %s' % (feed, till))
+                logger.info('Joining production data for %s %s' % (feedstock, till))
                 if i == 0:
                     # back up table
-                    self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
+                    # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
 
                     # drop old table and create new table
-                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
-                    sql += "CREATE TABLE           {scenario_name}.{table} AS\n"
+                    # sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
+                    sql = "CREATE TABLE           {scenario_name}.{table} AS\n"
                 else:
                     # insert data
                     sql = "INSERT INTO {scenario_name}.{table}\n"
 
-                if feed == 'CG':
+                if feedstock == 'CG':
                     kvals['convert_bushel'] = 0.025
                 else:
                     kvals['convert_bushel'] = 1
 
                 # gather data
                 sql += "SELECT      tot.*,\n"
-                sql += "            cd.{tillage}_prod * {convert_bushel}    AS prod,\n"
-                sql += "            cd.{tillage}_harv_ac AS harv_ac\n"
+                sql += "            sum(cd.{tillage}_prod) * {convert_bushel}    AS prod,\n"
+                sql += "            sum(cd.{tillage}_harv_ac) AS harv_ac\n"
                 sql += "FROM        {scenario_name}.{te_table} tot\n"
                 sql += "LEFT JOIN   {production_schema}.{feed}_data cd\n"
                 sql += "       ON   cd.fips = tot.fips\n"
                 sql += "WHERE       tot.tillage   = '{till}' AND\n"
-                sql += "            tot.feedstock = '{feed}' \n"
+                sql += "            tot.feedstock = '{feed}' \n" \
+                       "GROUP BY    cd.fips \n"
                 sql += ";"
                 sql = sql.format(**kvals)
 
@@ -594,19 +603,19 @@ class FigurePlottingBT16:
         self.db.input(query_loading)
 
     def get_logistics(self, kvals):
-        system_list = ['A', 'C']
+        system_list = [config.get('logistics_type')]
         pol_list = ['sox', 'nox', 'pm10', 'pm25', 'voc', 'co', 'nh3']
         logistics = {'A': 'Advanced', 'C': 'Conventional'}
         feedstock = kvals['feed']
 
-        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms' and (not kvals['feed'].startswith('f')):
             tillage_list = ['NT', 'RT', 'CT']
         elif kvals['feed'] == 'sg':
             tillage_list = ['NT', ]
         elif kvals['feed'] == 'ms':
             tillage_list = ['CT', ]
-        elif kvals['feed'].startswith('F'):
-            kvals['tillage'] = "'NT'"
+        elif kvals['feed'].startswith('f'):
+            tillage_list = ['NT', ]
 
         run_logistics = self.feed_id_dict[feedstock.upper()]
         if run_logistics != 'None':
@@ -623,7 +632,6 @@ class FigurePlottingBT16:
                             kvals['pollutant'] = pollutant
                         kvals['pollutant_name'] = pollutant
                         kvals['transport_cat'] = 'Transport, %s' % (logistics[system],)
-                        kvals['preprocess_cat'] = 'Pre-processing, %s' % (logistics[system],)
 
                         logger.info('Inserting data {transport_cat}, pollutant: {pollutant}'.format(**kvals))
                         if i == 0:
@@ -642,7 +650,8 @@ class FigurePlottingBT16:
                                                '{transport_cat}',
                                                'OR' AS nei_category,
                                                '{feed}'
-                                        FROM   (SELECT trans.fips                                 AS fips,
+                                        FROM   (SELECT distinct trans.pollutantID,
+                                                       trans.fips AS fips,
                                                        trans.total_emissions / {reduction_factor} AS sox
                                                 FROM   {scenario_name}.transportation trans
                                                 WHERE  trans.feedstock      = '{feed}'
@@ -654,7 +663,8 @@ class FigurePlottingBT16:
                                         """.format(**kvals)
                         else:
                             if not pollutant.startswith('pm'):
-                                query += """LEFT JOIN (SELECT trans.total_emissions / {reduction_factor} AS {pollutant},
+                                query += """LEFT JOIN (SELECT distinct trans.pollutantID,
+                                                              trans.total_emissions / {reduction_factor} AS {pollutant},
                                                               trans.fips                                 AS fips
                                                        FROM   {scenario_name}.transportation trans
                                                        WHERE  trans.feedstock      = '{feed}'
@@ -667,22 +677,28 @@ class FigurePlottingBT16:
 
                                             """.format(**kvals)
                             elif pollutant.startswith('pm'):
-                                query += """LEFT JOIN (SELECT trans.total_emissions/{reduction_factor} AS '{pollutant}_trans', trans.fips as 'fips'
+                                query += """LEFT JOIN (SELECT distinct pollutantID,
+                                                              trans.total_emissions/{reduction_factor} AS '{pollutant}_trans',
+                                                              trans.fips as 'fips'
                                             FROM {scenario_name}.transportation  trans
                                             WHERE 		trans.feedstock  = '{feed}'
                                               AND       trans.pollutantID    = '{pollutant}'
                                               AND       trans.logistics_type = '{system}'
                                               AND       trans.yield_type = '{yield}'
-                                              AND       trans.yearID = '{year}') feed_{pollutant}
+                                              AND       trans.yearID = '{year}'
+                                            LIMIT 1) feed_{pollutant}
                                             ON feed_{pollutant}.fips = feed_sox.fips
 
-                                            LEFT JOIN (SELECT fd.total_fd_emissions/{reduction_factor} AS '{pollutant}_fug', fd.fips as 'fips'
+                                            LEFT JOIN (SELECT distinct pollutantID,
+                                                              fd.total_fd_emissions/{reduction_factor} AS '{pollutant}_fug',
+                                                              fd.fips as 'fips'
                                             FROM {scenario_name}.fugitive_dust fd
                                             WHERE 		fd.feedstock  = '{feed}'
                                               AND       fd.pollutantID    = 'pm25'
                                               AND       fd.logistics_type = '{system}'
                                               AND       fd.yield_type = 'bc'
-                                              AND       fd.yearID = '{year}') feed_{pollutant}fd
+                                              AND       fd.yearID = '{year}'
+                                            LIMIT 1) feed_{pollutant}fd
                                             ON feed_{pollutant}fd.fips = feed_sox.fips
                                         """.format(**kvals)
 
