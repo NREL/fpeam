@@ -183,7 +183,7 @@ class FigurePlottingBT16:
 
         sql += """END AS feedstock
                   FROM {production_schema}.{transport_table}_{year}) trans
-                  ON trans.sply_fips = te.fips AND te.feedstock = trans.feedstock AND te.source_category LIKE '%transport%'
+                  ON trans.sply_fips = te.fips AND te.feedstock = trans.feedstock AND (te.source_category LIKE '%transport%' OR te.source_category LIKE '%processing%')
                 """.format(**kvals)
 
         self.db.execute_sql(sql=sql)
@@ -607,6 +607,7 @@ class FigurePlottingBT16:
         pol_list = ['sox', 'nox', 'pm10', 'pm25', 'voc', 'co', 'nh3']
         logistics = {'A': 'Advanced', 'C': 'Conventional'}
         feedstock = kvals['feed']
+        categories = ['Transport', 'Pre-processing']
 
         if kvals['feed'] != 'sg' and kvals['feed'] != 'ms' and (not kvals['feed'].startswith('f')):
             tillage_list = ['NT', 'RT', 'CT']
@@ -623,84 +624,83 @@ class FigurePlottingBT16:
                 kvals['system'] = system
                 for tillage in tillage_list:
                     kvals['tillage'] = tillage
-                    query = str()
                     kvals['reduction_factor'] = len(tillage_list)
-                    for i, pollutant in enumerate(pol_list):
-                        if pollutant == 'sox':
-                            kvals['pollutant'] = 'so2'
-                        else:
-                            kvals['pollutant'] = pollutant
-                        kvals['pollutant_name'] = pollutant
-                        kvals['transport_cat'] = 'Transport, %s' % (logistics[system],)
+                    for cat in categories:
+                        kvals['cat'] = '%s, %s' % (cat, logistics[system],)
+                        query = str()
+                        for i, pollutant in enumerate(pol_list):
+                            if pollutant == 'sox':
+                                kvals['pollutant'] = 'so2'
+                            else:
+                                kvals['pollutant'] = pollutant
+                            kvals['pollutant_name'] = pollutant
 
-                        logger.info('Inserting data {transport_cat}, pollutant: {pollutant}'.format(**kvals))
-                        if i == 0:
-                            query += """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
-                                        SELECT feed_sox.fips,
-                                               '{year}',
-                                               '{yield}',
-                                               '{tillage}',
-                                               feed_nox.nox,
-                                               feed_nh3.nh3,
-                                               feed_voc.voc,
-                                               feed_pm10.pm10_trans + feed_pm10fd.pm10_fug AS pm10,
-                                               feed_pm25.pm25_trans + feed_pm25fd.pm25_fug AS pm25,
-                                               feed_sox.sox,
-                                               feed_co.co,
-                                               '{transport_cat}',
-                                               'OR' AS nei_category,
-                                               '{feed}'
-                                        FROM   (SELECT distinct trans.pollutantID,
-                                                       trans.fips AS fips,
-                                                       trans.total_emissions / {reduction_factor} AS sox
-                                                FROM   {scenario_name}.transportation trans
-                                                WHERE  trans.feedstock      = '{feed}'
-                                                  AND  trans.pollutantID    = '{pollutant}'
-                                                  AND  trans.logistics_type = '{system}'
-                                                  AND  trans.yield_type     = '{yield}'
-                                                  AND  trans.yearID         = '{year}'
-                                               ) feed_sox
-                                        """.format(**kvals)
-                        else:
-                            if not pollutant.startswith('pm'):
-                                query += """LEFT JOIN (SELECT distinct trans.pollutantID,
-                                                              trans.total_emissions / {reduction_factor} AS {pollutant},
-                                                              trans.fips                                 AS fips
-                                                       FROM   {scenario_name}.transportation trans
-                                                       WHERE  trans.feedstock      = '{feed}'
-                                                         AND  trans.pollutantID    = '{pollutant}'
-                                                         AND  trans.logistics_type = '{system}'
-                                                         AND  trans.yield_type     = '{yield}'
-                                                         AND  trans.yearID         = '{year}'
-                                                      ) feed_{pollutant}
-                                                   ON feed_{pollutant}.fips = feed_sox.fips
-
+                            logger.info('Inserting data {cat}, pollutant: {pollutant}'.format(**kvals))
+                            if i == 0:
+                                query += """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
+                                            SELECT feed_sox.fips,
+                                                   '{year}',
+                                                   '{yield}',
+                                                   '{tillage}',
+                                                   feed_nox.nox,
+                                                   feed_nh3.nh3,
+                                                   feed_voc.voc,
+                                                   feed_pm10.pm10_trans + feed_pm10fd.pm10_fug AS pm10,
+                                                   feed_pm25.pm25_trans + feed_pm25fd.pm25_fug AS pm25,
+                                                   feed_sox.sox,
+                                                   feed_co.co,
+                                                   '{cat}',
+                                                   'OR' AS nei_category,
+                                                   '{feed}'
+                                            FROM   (SELECT distinct trans.pollutantID,
+                                                           trans.fips AS fips,
+                                                           trans.total_emissions / {reduction_factor} AS sox
+                                                    FROM   {scenario_name}.transportation trans
+                                                    WHERE  trans.feedstock      = '{feed}'
+                                                      AND  trans.pollutantID    = '{pollutant}'
+                                                      AND  trans.logistics_type = '{system}'
+                                                      AND  trans.yield_type     = '{yield}'
+                                                      AND  trans.yearID         = '{year}'
+                                                   ) feed_sox
                                             """.format(**kvals)
-                            elif pollutant.startswith('pm'):
-                                query += """LEFT JOIN (SELECT distinct pollutantID,
-                                                              trans.total_emissions/{reduction_factor} AS '{pollutant}_trans',
-                                                              trans.fips as 'fips'
-                                            FROM {scenario_name}.transportation  trans
-                                            WHERE 		trans.feedstock  = '{feed}'
-                                              AND       trans.pollutantID    = '{pollutant}'
-                                              AND       trans.logistics_type = '{system}'
-                                              AND       trans.yield_type = '{yield}'
-                                              AND       trans.yearID = '{year}'
-                                            LIMIT 1) feed_{pollutant}
-                                            ON feed_{pollutant}.fips = feed_sox.fips
+                            else:
+                                if not pollutant.startswith('pm'):
+                                    query += """LEFT JOIN (SELECT distinct trans.pollutantID,
+                                                                  trans.total_emissions / {reduction_factor} AS {pollutant},
+                                                                  trans.fips                                 AS fips
+                                                           FROM   {scenario_name}.transportation trans
+                                                           WHERE  trans.feedstock      = '{feed}'
+                                                             AND  trans.pollutantID    = '{pollutant}'
+                                                             AND  trans.logistics_type = '{system}'
+                                                             AND  trans.yield_type     = '{yield}'
+                                                             AND  trans.yearID         = '{year}'
+                                                          ) feed_{pollutant}
+                                                       ON feed_{pollutant}.fips = feed_sox.fips
 
-                                            LEFT JOIN (SELECT distinct pollutantID,
-                                                              fd.total_fd_emissions/{reduction_factor} AS '{pollutant}_fug',
-                                                              fd.fips as 'fips'
-                                            FROM {scenario_name}.fugitive_dust fd
-                                            WHERE 		fd.feedstock  = '{feed}'
-                                              AND       fd.pollutantID    = 'pm25'
-                                              AND       fd.logistics_type = '{system}'
-                                              AND       fd.yield_type = 'bc'
-                                              AND       fd.yearID = '{year}'
-                                            LIMIT 1) feed_{pollutant}fd
-                                            ON feed_{pollutant}fd.fips = feed_sox.fips
-                                        """.format(**kvals)
+                                                """.format(**kvals)
+                                elif pollutant.startswith('pm'):
+                                    query += """LEFT JOIN (SELECT distinct pollutantID,
+                                                                  trans.total_emissions/{reduction_factor} AS '{pollutant}_trans',
+                                                                  trans.fips as 'fips'
+                                                FROM {scenario_name}.transportation  trans
+                                                WHERE 		trans.feedstock  = '{feed}'
+                                                  AND       trans.pollutantID    = '{pollutant}'
+                                                  AND       trans.logistics_type = '{system}'
+                                                  AND       trans.yield_type = '{yield}'
+                                                  AND       trans.yearID = '{year}') feed_{pollutant}
+                                                ON feed_{pollutant}.fips = feed_sox.fips
+
+                                                LEFT JOIN (SELECT distinct pollutantID,
+                                                                  fd.total_fd_emissions/{reduction_factor} AS '{pollutant}_fug',
+                                                                  fd.fips as 'fips'
+                                                FROM {scenario_name}.fugitive_dust fd
+                                                WHERE 		fd.feedstock  = '{feed}'
+                                                  AND       fd.pollutantID    = 'pm25'
+                                                  AND       fd.logistics_type = '{system}'
+                                                  AND       fd.yield_type = 'bc'
+                                                  AND       fd.yearID = '{year}') feed_{pollutant}fd
+                                                ON feed_{pollutant}fd.fips = feed_sox.fips
+                                            """.format(**kvals)
 
                     self.db.input(query)
 
@@ -890,6 +890,7 @@ class FigurePlottingBT16:
                                       WHERE     prod > 0.0
                                         AND     feedstock = '{feedstock}'
                                         AND     source_category not LIKE '%transport%'
+                                        AND     source_category not LIKE '%processing%'
                                       GROUP BY  fips
                                       ORDER BY  fips
                                       ;""".format(**kvals)
@@ -922,6 +923,7 @@ class FigurePlottingBT16:
                              WHERE     prod > 0.0
                                AND     feedstock = '{feedstock}'
                                AND     source_category not LIKE '%transport%'
+                               AND     source_category not LIKE '%processing%'
                              GROUP BY  fips
                              ORDER BY  fips
                              ;""".format(**kvals)
