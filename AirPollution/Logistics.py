@@ -169,5 +169,3 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                     if feed.startswith('F'):
                         self.voc_wood_drying(feed, logistics_type, self.yield_type)
 
-        # @TODO: forest residue has not yet been validated (only agricultural crops have been run thus far)
-        logger.warning('FR has not yet been validated. Need to revise once data sets are finalized.')
