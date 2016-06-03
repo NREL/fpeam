@@ -140,11 +140,11 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                                              ({scc}) AS SCC,
                                              '{description}' AS Description
                                      FROM {production_schema}.{feed}_data feed
-                                     LEFT JOIN (SELECT fips, sum({n_column}) as n_app, bdgt
+                                     LEFT JOIN (SELECT fips, sum({n_column}) as n_app, bdgt_id
                                                 FROM {production_schema}.{feed}_equip_fips
                                                 WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
-                                                GROUP BY fips, bdgt) nfert
-                                     ON nfert.fips = feed.fips AND nfert.bdgt = feed.bdgt
+                                                GROUP BY fips, bdgt_id) nfert
+                                     ON nfert.fips = feed.fips AND nfert.bdgt_id = feed.bdgt
                                      WHERE feed.{tillage_name}_prod > 0
                                      GROUP BY feed.fips;""".format(**self.kvals)
                     self._execute_query(fert_query)
