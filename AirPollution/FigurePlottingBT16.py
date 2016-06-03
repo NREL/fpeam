@@ -27,8 +27,8 @@ class FigurePlottingBT16:
         # init properties
         self.db = db
 
-        self.f_color = ['r', 'b', 'g', 'k', 'c']  # @TODO: remove hardcoded values
-        self.f_marker = ['o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
+        self.f_color = ['r', 'b', 'g', 'k', 'c', 'y', 'm']  # @TODO: remove hardcoded values
+        self.f_marker = ['o', 'o', 'o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
         self.row_list = [0, 0, 1, 1, 2, 2, 0]  # @TODO: remove hardcoded values
         self.col_list = [0, 1, 0, 1, 0, 1, 2]  # @TODO: remove hardcoded values
         self.pol_list_label = ['$NO_x$', '$NH_3$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', '$VOC$']  # @TODO: remove hardcoded values
@@ -39,7 +39,7 @@ class FigurePlottingBT16:
         self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
-        self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, ]  # 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
+        self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, 75.7, 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
 
         self.feed_id_dict = config.get('feed_id_dict')
 
@@ -81,41 +81,41 @@ class FigurePlottingBT16:
         # self.db.execute_sql(query_drop_table)
         self.db.execute_sql(query_create_table)
 
-        for feedstock in self.f_list:
-            kvals['feed'] = feedstock.lower()
-            kvals['years_rot'] = config.get('crop_budget_dict')['years'][feedstock]
-
-            logger.info('Inserting data for chemical emissions for feedstock: {feed}'.format(**kvals))
-            self.get_chem(kvals)
-
-            logger.info('Inserting data for fertilizer emissions for feedstock: {feed}'.format(**kvals))
-            self.get_fert(kvals)
-
-            if feedstock == 'CG':
-                logger.info('Inserting data for irrigation for feedstock: {feed}'.format(**kvals))
-                self.get_irrig(kvals)
-
-            if config['regional_crop_budget'] is True:
-                logger.info('Inserting data for loading for feedstock: {feed}'.format(**kvals))
-                self.get_loading(kvals)
-
-            logger.info('Inserting data for harvest fugitive dust: {feed}'.format(**kvals))
-            self.get_h_fd(kvals)
-
-            logger.info('Inserting data for non-harvest fugitive dust for feedstock: {feed}'.format(**kvals))
-            self.get_nh_fd(kvals)
-
-            logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
-            self.get_non_harvest(kvals)
-
-            logger.info('Inserting data for harvest emissions for feedstock: {feed}'.format(**kvals))
-            self.get_harvest(kvals)
-
-            logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
-            self.get_logistics(kvals)
-
-        logger.info('Joining total emissions with production data')
-        self.join_with_production_data(kvals)
+        # for feedstock in self.f_list:
+        #     kvals['feed'] = feedstock.lower()
+        #     kvals['years_rot'] = config.get('crop_budget_dict')['years'][feedstock]
+        #
+        #     logger.info('Inserting data for chemical emissions for feedstock: {feed}'.format(**kvals))
+        #     self.get_chem(kvals)
+        #
+        #     logger.info('Inserting data for fertilizer emissions for feedstock: {feed}'.format(**kvals))
+        #     self.get_fert(kvals)
+        #
+        #     if feedstock == 'CG':
+        #         logger.info('Inserting data for irrigation for feedstock: {feed}'.format(**kvals))
+        #         self.get_irrig(kvals)
+        #
+        #     if config['regional_crop_budget'] is True:
+        #         logger.info('Inserting data for loading for feedstock: {feed}'.format(**kvals))
+        #         self.get_loading(kvals)
+        #
+        #     logger.info('Inserting data for harvest fugitive dust: {feed}'.format(**kvals))
+        #     self.get_h_fd(kvals)
+        #
+        #     logger.info('Inserting data for non-harvest fugitive dust for feedstock: {feed}'.format(**kvals))
+        #     self.get_nh_fd(kvals)
+        #
+        #     logger.info('Inserting data for non-harvest emissions for feedstock: {feed}'.format(**kvals))
+        #     self.get_non_harvest(kvals)
+        #
+        #     logger.info('Inserting data for harvest emissions for feedstock: {feed}'.format(**kvals))
+        #     self.get_harvest(kvals)
+        #
+        #     logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
+        #     self.get_logistics(kvals)
+        #
+        # logger.info('Joining total emissions with production data')
+        # self.join_with_production_data(kvals)
 
         logger.info('Adding summed emissions and production columns')
         self.sum_emissions(kvals)
@@ -238,8 +238,11 @@ class FigurePlottingBT16:
                                     WHERE feedstock = '{feed}' AND source_category NOT LIKE '%transport%' AND source_category NOT LIKE '%process%'
                                     GROUP BY fips, feedstock, year, yield) sum
                         ON tot.fips = sum.fips AND tot.feedstock = sum.feedstock AND tot.year = sum.year AND tot.yield = sum.yield
-                        LEFT JOIN (SELECT fips, total_prod, total_harv_ac
-                                   FROM {production_schema}.{feed}_data) dat
+                        LEFT JOIN (SELECT fips,
+                                          sum(total_prod) * {convert_bushel}  AS total_prod,
+                                          sum(total_harv_ac) AS total_harv_ac
+                                   FROM {production_schema}.{feed}_data cd
+                                   GROUP BY    cd.fips) dat
                         ON tot.fips = dat.fips AND tot.feedstock = '{feed}'
                         WHERE tot.feedstock = '{feed}'
                         ;""".format(**kvals)
@@ -299,7 +302,7 @@ class FigurePlottingBT16:
                 sql += "       ON   cd.fips = tot.fips\n"
                 sql += "WHERE       tot.tillage   = '{till}' AND\n"
                 sql += "            tot.feedstock = '{feed}' \n" \
-                       "GROUP BY    cd.fips \n"
+                       "GROUP BY    cd.fips, source_category \n"
                 sql += ";"
                 sql = sql.format(**kvals)
 
@@ -385,7 +388,7 @@ class FigurePlottingBT16:
         :return:
         """
 
-        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms' and (not kvals['feed'].startswith('f')):
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
         elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
@@ -413,7 +416,7 @@ class FigurePlottingBT16:
                                WHERE description     LIKE '%Non-Harvest%'
                                  AND description NOT LIKE '%dust%'
                                  AND LEFT(RIGHT(run_code, 2), 1) != 'I'
-                               GROUP BY fips
+                               GROUP BY fips, tillage
                                ;""".format(**kvals)
 
         self.db.input(query_non_harvest)
@@ -455,7 +458,7 @@ class FigurePlottingBT16:
                               FROM     {scenario_name}.{feed}_raw
                               WHERE    description LIKE '%Non-Harvest%' AND
                                        description LIKE '%dust%'
-                              GROUP BY fips, {tillage}
+                              GROUP BY fips, tillage
                               ;""".format(**kvals)
 
         self.db.input(query_non_harvest)
@@ -530,7 +533,7 @@ class FigurePlottingBT16:
                            WHERE    description     LIKE '% Harvest%'
                              AND    description NOT LIKE '%dust%'
                              AND    LEFT(RIGHT(run_code, 2), 1) != 'I'
-                           GROUP BY fips, {tillage}
+                           GROUP BY fips, tillage
                            ;""".format(**kvals)
 
         self.db.input(query_harvest)
@@ -564,7 +567,7 @@ class FigurePlottingBT16:
                            WHERE    description LIKE '% Harvest%'
                              AND    description LIKE '%dust%'
                              AND    LEFT(RIGHT(run_code, 2), 1) != 'I'
-                           GROUP BY fips, {tillage}
+                           GROUP BY fips, tillage
                            ;""".format(**kvals)
 
         self.db.input(query_harvest)
@@ -597,7 +600,7 @@ class FigurePlottingBT16:
                            FROM     {scenario_name}.{feed}_raw
                            WHERE    description LIKE '%Loading%'
                              AND    LEFT(RIGHT(run_code, 2), 1) != 'I'
-                           GROUP BY fips, {tillage}
+                           GROUP BY fips, tillage
                            ;""".format(**kvals)
 
         self.db.input(query_loading)
@@ -778,11 +781,11 @@ class FigurePlottingBT16:
             formatter.set_powerlimits((-4, 3))
 
             # ax1.set_title(self.pol_list_label[p_num])
-            ax1.text(5.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
+            ax1.text(7.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
 
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
-            ax1.set_xlim(0.5, 5.5)
+            ax1.set_xlim(0.5, 7.5)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
@@ -837,10 +840,10 @@ class FigurePlottingBT16:
             for label in ax1.get_yticklabels()[::2]:
                 label.set_visible(False)
 
-            ax1.text(5.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
+            ax1.text(7.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
-            ax1.set_xlim(0.5, 5.5)
+            ax1.set_xlim(0.5, 7.5)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
@@ -983,6 +986,8 @@ class FigurePlottingBT16:
                     act_dict[activity] = list()
                     if output is not None:
                         act_dict[activity] = output[0]
+                    if feedstock == 'FR' and activity == 'Non-Harvest':
+                        act_dict[activity] = ((0, ), )
 
                 pol_dict[pollutant] = act_dict
             emissions_per_activity[feedstock] = pol_dict
@@ -1020,7 +1025,7 @@ class FigurePlottingBT16:
                     ax1.plot([f_num + 1] * 2, [max_val, min_val], color=self.f_color[f_num], marker=self.f_marker[f_num], markersize=7, linewidth=2, markeredgewidth=0.0)
 
                     # Set axis limits
-                    ax1.set_xlim([0, 6])
+                    ax1.set_xlim([0, 8])
 
                     ax1.set_xticklabels(([''] + self.f_list), rotation='vertical')
 
