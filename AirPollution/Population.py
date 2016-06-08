@@ -196,6 +196,8 @@ class RegionalEquipment(Population):
             harv_ac = dat[2]: Harvested acres
         :param bdgt: budget name corresponding to production data (string)
         """
+        # @TODO: as-written, expects dat to contain production data and queries database to get equipmment information
+        # @TODO: and then calculates poplulation; instead, this should be written to expect poplulation data
         # set feedstock from run code
         feed = self.run_code[0:2]
 

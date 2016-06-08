@@ -113,7 +113,7 @@ class ScenarioOptions:
         @attention: propbably do not need to be querying the state from county_attributes, maybe remove later.
         """
 
-        query = None
+        query = None  # must return, in order: county FIPS, state fips, harvested acreage by <tillage>, production by <tillage>, calculate population
 
         # create tillage dictionary
         till_dict = {'C': 'convtill', 'R': 'reducedtill', 'N': 'notill'}
@@ -147,6 +147,11 @@ class ScenarioOptions:
                        WHERE ca.st LIKE irr.state
                        ORDER BY ca.fips ASC;
             '''.format(**self.kvals)
+
+            # calculate population
+            # @TODO: add equipment data to DB
+            # @TODO: alter query to join equipment data and return calculated population
+
         else:
             # set value for tillage type
             if run_code.startswith('SG'):
@@ -166,12 +171,13 @@ class ScenarioOptions:
                 # @TODO: write query for regional crop budget data
                 raise NotImplementedError
             else:
+                raise NotImplementedError('Non-regional crop budgets are depcrecated')
                 # create query for production data
-                if not (run_code.startswith('SG') or run_code.startswith('MS')) or (self.query_sg is True or self.query_ms is True):
-                    query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield, dat.bdgt
-                               FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
-                               WHERE dat.fips = ca.fips  AND dat.{till_type}_prod > 0.0
-                               ORDER BY ca.fips ASC;'''.format(**self.kvals)
+                # if not (run_code.startswith('SG') or run_code.startswith('MS')) or (self.query_sg is True or self.query_ms is True):
+                #     query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield, dat.bdgt
+                #                FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
+                #                WHERE dat.fips = ca.fips  AND dat.{till_type}_prod > 0.0
+                #                ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
             if run_code.startswith('SG'):
                 # we have 30 scenarios for SG to run, but only want one to query the database once

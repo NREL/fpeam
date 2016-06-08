@@ -184,7 +184,7 @@ class Driver:
 
             logger.info('Processing NONROAD setup for run code: %s' % (run_code, ))
 
-            # get data from the database (scenario.data = [fips, state fips, production, harvested acreage, budget ID])
+            # get data from the database (scenario.data = [fips, state fips, production, harvested acreage, population])
             scenario.get_data(run_code=run_code, regional_crop_budget=regional_crop_budget)
 
             # create output directories that correspond to state and run code
@@ -234,12 +234,12 @@ class Driver:
                 # go through each row of the data table for this run code
                 for dat in scenario.data[0]:
                     # check to see if production is greater than zero
-                    prod_greater_than_zero = dat[2] > 0.0  # dat[2] is the production
+                    prod_greater_than_zero = dat[3] > 0.0  # dat[2] is the production
 
                     # if production is greater than zero, then append equipment information to population file
                     if prod_greater_than_zero is True:
                         fips = str(dat[0])
-                        bdgt = str(dat[5])
+                        # bdgt = str(dat[5])
                         # The db table is ordered alphabetically.
                         # The search will look through a state. When the state changes in the table,
                         # then the loop will go to the else, closing the old files. and initializing new files.
@@ -254,11 +254,7 @@ class Driver:
                             alo.write_indicator(fips=fips, indicator=indicator)
 
                             # append data to population file
-                            # include budget information if running regionally or if running for forestry
-                            if regional_crop_budget is False and not run_code.startswith('F'):
-                                pop.append_pop(fips=fips, dat=dat)
-                            else:
-                                pop.append_pop(fips=fips, dat=dat, bdgt=bdgt)
+                            pop.append_pop(fips=fips, dat=dat)
                         # last time through a state, will close different files, and start new ones.
                         else:
                             # write *.opt file, close allocation file, close *.pop file
@@ -285,11 +281,7 @@ class Driver:
                             alo.write_indicator(fips=fips, indicator=indicator)
 
                             # append data to population file
-                            # include budget information if running regionally or if running for forestry
-                            if regional_crop_budget is False and not run_code.startswith('F'):
-                                pop.append_pop(fips=fips, dat=dat)
-                            else:
-                                pop.append_pop(fips=fips, dat=dat, bdgt=bdgt)
+                            pop.append_pop(fips=fips, dat=dat)
 
                 # close allocation files
                 Opt.NROptionFile(self.cont, state, fips_prior, run_code, scenario_year)
