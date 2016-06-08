@@ -226,8 +226,7 @@ class RegionalEquipment(Population):
         # get equipment list from crop budget
         if self.run_code.startswith('SG') or self.run_code.startswith('MS'):
             kvals['budget_year'] = self.run_code[4]
-            query = """
-                        SELECT equip_type, hp, activity_rate, NULL
+            query = """ SELECT equip_type, hp, activity_rate, NULL
                         FROM {production_schema}.{feed}_equip_fips
                         WHERE fips = {fips} AND tillage = '{tillage}' AND oper_type LIKE '%{oper_type}' AND activity LIKE '{activity}%' AND bdgtyr = '{budget_year}' AND equip_type != 'NULL'
                     """.format(**kvals)
@@ -270,47 +269,49 @@ class RegionalEquipment(Population):
                     activity_rate = equip[3]
 
                 # only evaluate non-road activity for equipment other than airplanes (aerial emissions are calculated during post-processing under CombustionEmissions.py)
-                if equip_type != 'aerial':
-                    # get annual activity for equipment type
-                    annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (NonRoad default value)
+                if equip_type in ('aerial', ):
+                    continue
 
-                    # compute population of equipment using activity rate, harvested acreage, and annual activity
-                    if hrsperac is True:
-                        pop = round(activity_rate * harv_ac / annual_activity, 7)  # population in years of operation
-                    elif hrsperdt is True:
-                        pop = round(activity_rate * prod / annual_activity, 7)  # population in years of operation
+                # get annual activity for equipment type
+                annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (NonRoad default value)
 
-                    # get hp and useful life dictionaries for NONROAD data
-                    hp_list = self.nonroad_equip_dict['power_range']
-                    useful_life_dict = self.nonroad_equip_dict['useful_life']
+                # compute population of equipment using activity rate, harvested acreage, and annual activity
+                if hrsperac is True:
+                    pop = round(activity_rate * harv_ac / annual_activity, 7)  # population in years of operation
+                elif hrsperdt is True:
+                    pop = round(activity_rate * prod / annual_activity, 7)  # population in years of operation
 
-                    # loop through hp_ranges in hp dictionary
-                    for hp_range_type in hp_list:
-                        # check if hp falls in range
-                        hp_range = hp_list[hp_range_type]
-                        if float(hp_range[0]) < float(hp) <= float(hp_range[1]):
-                            # if so, set min and max hp and useful life for this hp range
-                            hp_min = hp_range[0]
-                            hp_max = hp_range[1]
-                            life = useful_life_dict[hp_range_type]
-                            break
+                # get hp and useful life dictionaries for NONROAD data
+                hp_list = self.nonroad_equip_dict['power_range']
+                useful_life_dict = self.nonroad_equip_dict['useful_life']
 
-                    # initialize population line values
-                    kvals = {'fips': fips,
-                             'subregion_code': '',
-                             'year': self.episode_year,
-                             'scc_code': self.nonroad_equip_dict['scc'][equip_type],
-                             'equip_desc': self.nonroad_equip_dict['name'][equip_type],
-                             'min_hp': hp_min,
-                             'max_hp': hp_max,
-                             'avg_hp': hp,
-                             'life': life,
-                             'flag': 'DEFAULT',
-                             'pop': pop,
-                             }
+                # loop through hp_ranges in hp dictionary
+                for hp_range_type in hp_list:
+                    # check if hp falls in range
+                    hp_range = hp_list[hp_range_type]
+                    if float(hp_range[0]) < float(hp) <= float(hp_range[1]):
+                        # if so, set min and max hp and useful life for this hp range
+                        hp_min = hp_range[0]
+                        hp_max = hp_range[1]
+                        life = useful_life_dict[hp_range_type]
+                        break
 
-                    line = self._create_pop_line(**kvals)
-                    self.pop_file.writelines(line)
+                # initialize population line values
+                kvals = {'fips': fips,
+                         'subregion_code': '',
+                         'year': self.episode_year,
+                         'scc_code': self.nonroad_equip_dict['scc'][equip_type],
+                         'equip_desc': self.nonroad_equip_dict['name'][equip_type],
+                         'min_hp': hp_min,
+                         'max_hp': hp_max,
+                         'avg_hp': hp,
+                         'life': life,
+                         'flag': 'DEFAULT',
+                         'pop': pop,
+                         }
+
+                line = self._create_pop_line(**kvals)
+                self.pop_file.writelines(line)
 
 
 class ResiduePop(Population):
