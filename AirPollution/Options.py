@@ -63,11 +63,12 @@ class ScenarioOptions:
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
-    def get_data(self, run_code):
+    def get_data(self, run_code, regional_crop_budget):
         """
         Grabs data from the database
 
         :param run_code: code to change the current scenario
+        :param regional_crop_budget: BOOLEAN process as regional data
         :return:
         """
 
@@ -75,7 +76,7 @@ class ScenarioOptions:
         self.run_code = run_code
 
         # query the data and collect it
-        query = self._get_query(run_code)
+        query = self._get_query(run_code, regional_crop_budget)
         if query is not None:
             self.data = self._get_prod_data(query)
 
@@ -101,11 +102,12 @@ class ScenarioOptions:
         """
         return self.db.output(query)
 
-    def _get_query(self, run_code):
+    def _get_query(self, run_code, regional_crop_budget):
         """
         query database for appropriate production data based on run_code
 
         :param run_code: current run code to know what data to query from the db
+        :param regional_crop_budget: BOOLEAN process as regional data
         :return: query to be executed
 
         @attention: propbably do not need to be querying the state from county_attributes, maybe remove later.
@@ -145,7 +147,6 @@ class ScenarioOptions:
                        WHERE ca.st LIKE irr.state
                        ORDER BY ca.fips ASC;
             '''.format(**self.kvals)
-
         else:
             # set value for tillage type
             if run_code.startswith('SG'):
@@ -155,12 +156,22 @@ class ScenarioOptions:
             else:
                 self.kvals['till_type'] = till_dict[run_code[3]]
 
-            # create query for production data
-            if not (run_code.startswith('SG') or run_code.startswith('MS')) or (self.query_sg is True or self.query_ms is True):
-                query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield, dat.bdgt
-                           FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
-                           WHERE dat.fips = ca.fips  AND dat.{till_type}_prod > 0.0
-                           ORDER BY ca.fips ASC;'''.format(**self.kvals)
+            if regional_crop_budget is True:
+                # NOTE: it is obviously horrific to return entirely different datasets from the same function, but
+                # equipment data for non-regional budgets was already hardcoded in Population and not in the database.
+                # For now, Population will handle calculating populations for non-regional budgets and this space will
+                # return populations already calculated for regional budgets.
+
+                # make sql for regional crop budget queries
+                # @TODO: write query for regional crop budget data
+                raise NotImplementedError
+            else:
+                # create query for production data
+                if not (run_code.startswith('SG') or run_code.startswith('MS')) or (self.query_sg is True or self.query_ms is True):
+                    query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield, dat.bdgt
+                               FROM {production_schema}.{feed_table} dat, {constants_schema}.county_attributes ca
+                               WHERE dat.fips = ca.fips  AND dat.{till_type}_prod > 0.0
+                               ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
             if run_code.startswith('SG'):
                 # we have 30 scenarios for SG to run, but only want one to query the database once
