@@ -1014,7 +1014,8 @@ class SwitchgrassPop(Population):
 class LoadingEquipment(Population):
     """
     Calculates loading equipment populations and add them to .pop file.
-    Includes loader and chipper for forest residues and tractor for other crops
+    Includes loading equipment for agricultural crops
+    Loader and chipper for forest residues is included in crop budget under harvest activities
     """
 
     def __init__(self, cont, episode_year, run_code):
