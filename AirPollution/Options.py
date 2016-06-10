@@ -149,10 +149,6 @@ class ScenarioOptions:
                        ORDER BY ca.fips ASC;
             '''.format(**self.kvals)
 
-            # calculate population
-            # @TODO: add equipment data to DB
-            # @TODO: alter query to join equipment data and return calculated population
-
         else:
             # set tillage type
             if not (self.run_code.startswith('SG') or self.run_code.startswith('MS')):
@@ -181,11 +177,6 @@ class ScenarioOptions:
                 self.kvals['budget_year'] = '1'
 
             if regional_crop_budget is True:
-                # NOTE: it is obviously horrific to return entirely different datasets from the same function, but
-                # equipment data for non-regional budgets was already hardcoded in Population and not in the database.
-                # For now, Population will handle calculating populations for non-regional budgets and this space will
-                # return populations already calculated for regional budgets.
-
                 # make sql for regional crop budget queries
                 query = '''SELECT fe.fips, ca.st, {till_type}_harv_ac, {till_type}_prod, equip_type, hp, SUM(IFNULL(activity_rate_hrperac*{till_type}_harv_ac, activity_rate_hrperdt*{till_type}_prod)) AS hrs_per_year
                            FROM {production_schema}.{feed}_equip_fips fe
