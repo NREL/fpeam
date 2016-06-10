@@ -188,7 +188,7 @@ class Driver:
 
             logger.info('Processing NONROAD setup for run code: %s' % (run_code, ))
 
-            # get data from the database (scenario.data = [fips, state fips, production, harvested acreage, population])
+            # get data from the database (scenario.data = [fips, state fips, production, harvested acreage, equipment type, horsepower, hours per year (for population)])
             scenario.get_data(run_code=run_code, regional_crop_budget=regional_crop_budget)
 
             # create output directories that correspond to state and run code
