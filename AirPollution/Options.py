@@ -113,13 +113,14 @@ class ScenarioOptions:
         @attention: propbably do not need to be querying the state from county_attributes, maybe remove later.
         """
 
-        query = None  # must return, in order: county FIPS, state fips, harvested acreage by <tillage>, production by <tillage>, calculate population
+        query = None  # must return, in order: county FIPS, state fips, harvested acreage by <tillage>, production by <tillage>, hours_per_year, hp, equipment_type
 
         # create tillage dictionary
         till_dict = {'C': 'convtill', 'R': 'reducedtill', 'N': 'notill'}
 
         feed = run_code[0:2]
         feed = feed.lower()
+        self.kvals['feed'] = feed
         self.kvals['feed_table'] = self.kvals['feed_tables'][feed]
 
 
@@ -148,28 +149,43 @@ class ScenarioOptions:
                        ORDER BY ca.fips ASC;
             '''.format(**self.kvals)
 
-            # calculate population
-            # @TODO: add equipment data to DB
-            # @TODO: alter query to join equipment data and return calculated population
-
         else:
-            # set value for tillage type
-            if run_code.startswith('SG'):
+            # set tillage type
+            if not (self.run_code.startswith('SG') or self.run_code.startswith('MS')):
+                if self.run_code[3] == 'R':
+                    self.kvals['tillage'] = 'CT'  # reduced tillage equipment is the same as conventional tillage for equipment budgets
+                    self.kvals['till_type'] = 'reducedtill'  # till type is for production data so this remains reduced till
+                else:
+                    self.kvals['tillage'] = '%sT' % (self.run_code[3])
+                    self.kvals['till_type'] = till_dict[run_code[3]]
+            elif self.run_code.startswith('SG'):
                 self.kvals['till_type'] = 'notill'
-            elif run_code.startswith('MS'):
+                self.kvals['tillage'] = 'NT'
+            elif self.run_code.startswith('MS'):
                 self.kvals['till_type'] = 'convtill'
+                self.kvals['tillage'] = 'CT'
+
+            # set operation type and activity type from run code
+            if self.run_code.startswith('SG') or self.run_code.startswith('MS'):
+                self.kvals['activity'] = self.run_code[3]
+                if len(self.run_code) > 5:
+                    self.kvals['budget_year'] = self.run_code[4:5]
+                else:
+                    self.kvals['budget_year'] = self.run_code[4]
             else:
-                self.kvals['till_type'] = till_dict[run_code[3]]
+                self.kvals['activity'] = self.run_code[4]
+                self.kvals['budget_year'] = '1'
 
             if regional_crop_budget is True:
-                # NOTE: it is obviously horrific to return entirely different datasets from the same function, but
-                # equipment data for non-regional budgets was already hardcoded in Population and not in the database.
-                # For now, Population will handle calculating populations for non-regional budgets and this space will
-                # return populations already calculated for regional budgets.
-
                 # make sql for regional crop budget queries
-                # @TODO: write query for regional crop budget data
-                raise NotImplementedError
+                query = '''SELECT fe.fips, ca.st, {till_type}_harv_ac, {till_type}_prod, equip_type, hp, SUM(IFNULL(activity_rate_hrperac*{till_type}_harv_ac, activity_rate_hrperdt*{till_type}_prod)) AS hrs_per_year
+                           FROM {production_schema}.{feed}_equip_fips fe
+                           LEFT JOIN {constants_schema}.county_attributes ca ON ca.fips = fe.fips
+                           LEFT JOIN {production_schema}.{feed_table} fd ON (fe.fips = fd.fips AND fe.bdgt_id = fd.bdgt)
+                           WHERE bdgtyr = '{budget_year}' AND tillage = '{tillage}' AND activity LIKE '{activity}%'  AND equip_type != 'NULL' AND {till_type}_prod > 0
+                           GROUP BY fips, activity, tillage, bdgtyr, equip_type, hp
+                        ;'''.format(**self.kvals)
+
             else:
                 raise NotImplementedError('Non-regional crop budgets are depcrecated')
                 # create query for production data
