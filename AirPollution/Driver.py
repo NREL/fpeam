@@ -56,13 +56,17 @@ class Driver:
         # get constants_schema
         self.constants_schema = config.get('constants_schema')
 
+        # folder path for MOVES data files
+        moves_datafiles_path = config.get('moves_datafiles_path')
+
         # file paths and year for MOVES
         self.path_moves = config.get('moves_path')
-        self.save_path_importfiles = os.path.join(config.get('moves_datafiles_path'), 'import_files')
-        self.save_path_runspecfiles = os.path.join(config.get('moves_datafiles_path'), 'run_specs')
-        self.save_path_outputs = os.path.join(config.get('moves_datafiles_path'), 'outputs')
-        self.save_path_countyinputs = os.path.join(config.get('moves_datafiles_path'), 'county_inputs')
-        self.save_path_nationalinputs = os.path.join(config.get('moves_datafiles_path'), 'national_inputs')
+        self.save_path_importfiles = os.path.join(moves_datafiles_path, 'import_files')
+        self.save_path_runspecfiles = os.path.join(moves_datafiles_path, 'run_specs')
+        self.save_path_outputs = os.path.join(moves_datafiles_path, 'outputs')
+        self.save_path_countyinputs = os.path.join(moves_datafiles_path, 'county_inputs')
+        self.save_path_nationalinputs = os.path.join(moves_datafiles_path, 'national_inputs')
+
         self.yr = year_dict
 
         # get feedstocks from the run_codes
@@ -101,7 +105,7 @@ class Driver:
         if moves_by_crop is True:
             self.moves_feedstock_list = self.feedstock_list
         else:
-            self.moves_feedstock_list = ['all_crops']
+            self.moves_feedstock_list = ['all_crops', ]
 
         # get list of logistics system(s) being modeled
         self.logistics_list = config.get('logistics_type')
