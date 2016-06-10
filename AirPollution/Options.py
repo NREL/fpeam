@@ -191,7 +191,7 @@ class ScenarioOptions:
                            FROM {production_schema}.{feed}_equip_fips fe
                            LEFT JOIN {constants_schema}.county_attributes ca ON ca.fips = fe.fips
                            LEFT JOIN {production_schema}.{feed_table} fd ON (fe.fips = fd.fips AND fe.bdgt_id = fd.bdgt)
-                           WHERE bdgtyr = '{budget_year}' AND tillage = '{tillage}' AND activity LIKE '{activity}%'  AND equip_type != 'NULL'
+                           WHERE bdgtyr = '{budget_year}' AND tillage = '{tillage}' AND activity LIKE '{activity}%'  AND equip_type != 'NULL' AND {till_type}_prod > 0
                            GROUP BY fips, activity, tillage, bdgtyr, machinery, hp
                         ;'''.format(**self.kvals)
 
