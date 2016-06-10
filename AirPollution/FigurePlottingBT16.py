@@ -431,7 +431,7 @@ class FigurePlottingBT16:
 
         kvals['source_category'] = 'Non-Harvest - fug dust'
 
-        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms' and (not kvals['feed'].startswith('f')):
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
         elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
@@ -505,7 +505,7 @@ class FigurePlottingBT16:
                 self.db.input(query_non_harvest)
 
     def get_harvest(self, kvals):
-        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms' and (not kvals['feed'].startswith('f')):
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
         elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
@@ -539,7 +539,7 @@ class FigurePlottingBT16:
         self.db.input(query_harvest)
 
     def get_h_fd(self, kvals):
-        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms' and (not kvals['feed'].startswith('f')):
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
         elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
@@ -573,7 +573,7 @@ class FigurePlottingBT16:
         self.db.input(query_harvest)
 
     def get_loading(self, kvals):
-        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms':
+        if kvals['feed'] != 'sg' and kvals['feed'] != 'ms' and (not kvals['feed'].startswith('f')):
             kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
         elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
