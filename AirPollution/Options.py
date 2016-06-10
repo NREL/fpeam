@@ -157,8 +157,8 @@ class ScenarioOptions:
             # set tillage type
             if not (self.run_code.startswith('SG') or self.run_code.startswith('MS')):
                 if self.run_code[3] == 'R':
-                    self.kvals['tillage'] = 'CT'  # reduced tillage equipment is the same as conventional tillage
-                    self.kvals['till_type'] = 'reducedtill'
+                    self.kvals['tillage'] = 'CT'  # reduced tillage equipment is the same as conventional tillage for equipment budgets
+                    self.kvals['till_type'] = 'reducedtill'  # till type is for production data so this remains reduced till
                 else:
                     self.kvals['tillage'] = '%sT' % (self.run_code[3])
                     self.kvals['till_type'] = till_dict[run_code[3]]
