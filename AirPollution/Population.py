@@ -208,47 +208,48 @@ class RegionalEquipment(Population):
         hp = dat[5]  # equipment horsepower
         hrs_per_year = dat[6]  # hours per year (activity information computed in Options.py)
 
-        # get annual activity for equipment type
-        annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (default value for annual hours of operation for NONROAD equipment)
-
         # only evaluate non-road activity for equipment other than airplanes (aerial emissions are calculated during post-processing under CombustionEmissions.py)
-        if equip_type in ('aerial', ):
+        if equip_type not in ('aerial', ):
             pass  # aerial equipment is not included in NONROAD - emissions are calculated in post-processing using emission factors from CARB
 
-        # compute population of equipment using activity rate, harvested acreage, and annual activity
-        pop = round(hrs_per_year / annual_activity, 7)  # population in years of operation
+            # get annual activity for equipment type
+            annual_activity = float(self.nonroad_equip_dict['annual_hrs_operation'][equip_type])  # hr / year (default value for annual hours of operation for NONROAD equipment)
 
-        # get hp and useful life dictionaries for NONROAD data
-        hp_list = self.nonroad_equip_dict['power_range']
-        useful_life_dict = self.nonroad_equip_dict['useful_life']
 
-        # loop through hp_ranges in hp dictionary
-        for hp_range_type in hp_list:
-            # check if hp falls in range
-            hp_range = hp_list[hp_range_type]
-            if float(hp_range[0]) < float(hp) <= float(hp_range[1]):
-                # if so, set min and max hp and useful life for this hp range
-                hp_min = hp_range[0]
-                hp_max = hp_range[1]
-                life = useful_life_dict[hp_range_type]
-                break
+            # compute population of equipment using activity rate, harvested acreage, and annual activity
+            pop = round(hrs_per_year / annual_activity, 7)  # population in years of operation
 
-        # initialize population line values
-        kvals = {'fips': fips,
-                 'subregion_code': '',
-                 'year': self.episode_year,
-                 'scc_code': self.nonroad_equip_dict['scc'][equip_type],
-                 'equip_desc': self.nonroad_equip_dict['name'][equip_type],
-                 'min_hp': hp_min,
-                 'max_hp': hp_max,
-                 'avg_hp': hp,
-                 'life': life,
-                 'flag': 'DEFAULT',
-                 'pop': pop,
-                 }
+            # get hp and useful life dictionaries for NONROAD data
+            hp_list = self.nonroad_equip_dict['power_range']
+            useful_life_dict = self.nonroad_equip_dict['useful_life']
 
-        line = self._create_pop_line(**kvals)
-        self.pop_file.writelines(line)
+            # loop through hp_ranges in hp dictionary
+            for hp_range_type in hp_list:
+                # check if hp falls in range
+                hp_range = hp_list[hp_range_type]
+                if float(hp_range[0]) < float(hp) <= float(hp_range[1]):
+                    # if so, set min and max hp and useful life for this hp range
+                    hp_min = hp_range[0]
+                    hp_max = hp_range[1]
+                    life = useful_life_dict[hp_range_type]
+                    break
+
+            # initialize population line values
+            kvals = {'fips': fips,
+                     'subregion_code': '',
+                     'year': self.episode_year,
+                     'scc_code': self.nonroad_equip_dict['scc'][equip_type],
+                     'equip_desc': self.nonroad_equip_dict['name'][equip_type],
+                     'min_hp': hp_min,
+                     'max_hp': hp_max,
+                     'avg_hp': hp,
+                     'life': life,
+                     'flag': 'DEFAULT',
+                     'pop': pop,
+                     }
+
+            line = self._create_pop_line(**kvals)
+            self.pop_file.writelines(line)
 
 
 class ResiduePop(Population):
