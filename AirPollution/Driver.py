@@ -116,7 +116,7 @@ class Driver:
                       'moves_database': config.get('moves_database'),
                       'moves_output_db': config.get('moves_output_db'),
                       'nei_data_by_county': config.get('nei_data_by_county'),
-                      'feed_tables': config.get('feed_tables'),
+                      'feed_tables': config.get('feed_tables'),  # @TODO: these names can probably be hardcoded
                       'chem_tables': config.get('chem_tables'),
                       'scenario_name': model_run_title}
 
@@ -334,7 +334,7 @@ class Driver:
 
         batch_run_dict = dict()
         for i, feed in enumerate(self.moves_feedstock_list):
-            logger.info('Processing MOVES setup for feedstock: %s, fips: %s' % (feed, fips, ))
+            logger.info('Processing MOVES setup for feedstock: %s, fips: %s' % (feed, fips))
             
             # initialize MOVESModule
             moves_mod = MOVESModule.MOVESModule(crop=feed, fips=fips, yr_list=self.yr, path_moves=self.path_moves,
@@ -422,7 +422,7 @@ class Driver:
 
         logger.info('Saving results to database')
 
-        # update database object
+        # init update database object (creates tables)
         update = UpdateDatabase.UpdateDatabase(cont=self.cont)
 
         # create tables for all feedstocks

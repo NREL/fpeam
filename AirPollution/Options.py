@@ -34,9 +34,9 @@ class ScenarioOptions:
         # directory option file is saved to. Uses run title.
         self.path = cont.get('path')  # non-dev directory
 
-        # break flag used to ensure switchgrass and miscanthus database queries only happens once. (all other feedstocks need multiple pulls from the database).
-        self.query_sg = True
-        self.query_ms = True
+        # # break flag used to ensure switchgrass and miscanthus database queries only happens once. (all other feedstocks need multiple pulls from the database).
+        # self.query_sg = True
+        # self.query_ms = True
 
         self.document_file = 'Options'
         self._create_dir()
@@ -118,11 +118,8 @@ class ScenarioOptions:
         # create tillage dictionary
         till_dict = {'C': 'convtill', 'R': 'reducedtill', 'N': 'notill'}
 
-        feed = run_code[0:2]
-        feed = feed.lower()
-        self.kvals['feed'] = feed
-        self.kvals['feed_table'] = self.kvals['feed_tables'][feed]
-
+        self.kvals['feed'] = run_code[0:2].lower()
+        self.kvals['feed_table'] = self.kvals['feed_tables'][self.kvals['feed']]
 
         # get CG irrigation data
         if run_code.startswith('CG_I'):
@@ -185,7 +182,6 @@ class ScenarioOptions:
                            WHERE bdgtyr = '{budget_year}' AND tillage = '{tillage}' AND activity LIKE '{activity}%'  AND equip_type != 'NULL' AND {till_type}_prod > 0
                            GROUP BY fips, activity, tillage, bdgtyr, equip_type, hp
                         ;'''.format(**self.kvals)
-
             else:
                 raise NotImplementedError('Non-regional crop budgets are depcrecated')
                 # create query for production data
@@ -195,13 +191,13 @@ class ScenarioOptions:
                 #                WHERE dat.fips = ca.fips  AND dat.{till_type}_prod > 0.0
                 #                ORDER BY ca.fips ASC;'''.format(**self.kvals)
 
-            if run_code.startswith('SG'):
-                # we have 30 scenarios for SG to run, but only want one to query the database once
-                self.query_sg = False
-
-            if run_code.startswith('MS'):
-                # we have 45 scenarios for MS to run, but only want one to query the database once
-                self.query_ms = False
+                # if run_code.startswith('SG'):
+                #     # we have 30 scenarios for SG to run, but only want one to query the database once
+                #     self.query_sg = False
+                #
+                # if run_code.startswith('MS'):
+                #     # we have 45 scenarios for MS to run, but only want one to query the database once
+                #     self.query_ms = False
 
         return query
 

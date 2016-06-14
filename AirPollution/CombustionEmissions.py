@@ -88,12 +88,12 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             logger.info('Populating NONROAD combustion emissions table for %s' % (run_code, ))
             # path to results
             path = os.path.join(self.base_path, 'OUT', run_code)
-            listing = os.listdir(path)
+            listing = os.listdir(path)  # @TODO: grabbing all files in the directory is probably not a good idea, should be more specific
 
             feedstock = run_code[0:2] 
 
             # write data to static files for debugging purposes
-            f = open(os.path.join(self.base_path, 'OUT', run_code + '.csv'), 'wb')
+            f = open(os.path.join(self.base_path, 'OUT', '%s.csv' % (run_code, )), 'wb')
             writer = csv.writer(f)
             writer.writerow(('FIPS', 'scc', 'hp', 'fuel_cons_gal/yr', 'thc_exh', 'voc_exh', 'co_exh', 'nox_exh',
                              'co2_exh', 'so2_exh', 'pm10_exh', 'pm25_exh', 'nh3_exh', 'Description'))
@@ -217,7 +217,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 self.kvals[pollutant] *= alloc[feed] 
 
         writer.writerow((self.kvals['row'], self.kvals['scc'], self.kvals['hp'], self.kvals['fuel_cons'], self.kvals['thc'], self.kvals['voc'], self.kvals['co'], self.kvals['nox'],
-                         self.kvals['co2'], self.kvals['so2'], self.kvals['pm10'], self.kvals['pm25'], self.kvals['nh3'], self.kvals['run_code'],))
+                         self.kvals['co2'], self.kvals['so2'], self.kvals['pm10'], self.kvals['pm25'], self.kvals['nh3'], self.kvals['run_code']))
 
         q = """INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, voc, co, nox, co2, sox, pm10, pm25, fuel_consumption, nh3, description, run_code)
                VALUES ( {row},

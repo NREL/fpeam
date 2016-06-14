@@ -27,11 +27,12 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
         self.descrip_dict = config['descrip_dict']  # dictionary of fertilizer descriptions
         self.n_fert_app = config['n_fert_app']  # amount of nitrogen fertilizer applied for national crop budget
         self.cont = cont
-        self.col_dict = {'cg': 'n_lbac',
+        self.col_dict = {'cg': 'n_lbac',  # @TODO: move to config
                          'cs': 'n_lbdt',
                          'ws': 'n_lbdt',
                          'fr': 'n_lbac',
                          'fw': 'n_lbac',
+                         'ss': 'n_lbac',
                          'sg_yr1': 'n_lbac',
                          'sg_yr2to10': 'n_lbdt',
                          'ms_yr1': 'n_lbac',
@@ -97,6 +98,9 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                 till_dict = {'CT': 'convtill'}
             elif feed.startswith('F'):
                 till_dict = {'NT': 'notill'}
+            elif feed.startswith('S'):
+                till_dict = {'NT': 'notill',
+                             'RT': 'reducedtill'}
             else:
                 till_dict = {'CT': 'convtill',
                              'RT': 'reducedtill',
@@ -155,7 +159,6 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
 
         :param feed: feedstock
         :return:
-
         """
 
         query = None

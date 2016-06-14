@@ -37,7 +37,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         self.kvals = cont.get('kvals')
 
         # get dictionary for production column names
-        self.column_dict = config.get('prod_column_dict')
+        # self.column_dict = config.get('prod_column_dict')
 
         # dictionary for VOC emission factor from wood drying
         self.voc_wood_ef = config.get('voc_wood_ef')

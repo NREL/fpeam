@@ -25,7 +25,7 @@ class SaveDataHelper:
         try:
             self.qr.document_query(_file=self.document_file, query=query)
         except:
-            logger.error('Failed to document SQL query')
+            # logger.error('Failed to document SQL query')
             logger.debug('Failed to document (filename: %s) SQL query: %s' % (self.document_file, query, ))
             pass
 
@@ -33,6 +33,6 @@ class SaveDataHelper:
             self.db.input(query=query)
             return True
         except:
-            logger.error('Failed to execute SQL query')
+            # logger.error('Failed to execute SQL query')
             logger.error('Failed to execute SQL query: %s' % (query, ))
             return False
