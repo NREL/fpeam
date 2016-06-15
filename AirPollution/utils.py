@@ -56,7 +56,7 @@ if valid_config is not True:
     sys.exit('Check configuration file(s) for errors')
 
 
-def initialize_logger(output_dir=os.getcwd(), level=None):
+def initialize_logger(output_dir=os.getcwd(), level=None, file_log_level='DEBUG'):
     """
     Returns ready-to-use logger object.
 
@@ -99,7 +99,7 @@ def initialize_logger(output_dir=os.getcwd(), level=None):
 
     log_file = os.path.join(config_root, '{f}_{u}_{d}.log'.format(**_))
     handler = logging.FileHandler(os.path.join(output_dir, log_file), 'w', encoding=None, delay='true')
-    handler.setLevel(log_levels[level])
+    handler.setLevel(log_levels[file_log_level])
 
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -117,40 +117,46 @@ def get_fips(scenario_year, state_level_moves, db):
     :return: [<FIPS>]
     """
     kvals = {'production_schema': config['production_schema'],
-             'year': scenario_year}
+             'year': scenario_year,
+             'yield': config.get('yield')}
 
     if state_level_moves is True:
         query = """ DROP TABLE IF EXISTS {production_schema}.prod;
                     CREATE TABLE {production_schema}.prod
-                    AS (SELECT total_prod as 'prod', LEFT(fips,2) as state, fips, 'ms' as 'crop'
-                    FROM {production_schema}.ms_data_bc_{year}
-                    WHERE  total_prod > 0);
+                    AS (SELECT total_prod as 'prod', LEFT(fips, 2) as state, fips, 'ms' as 'crop'
+                    FROM {production_schema}.ms_data_{yield}_{year}
+                    WHERE  total_prod > 0)
 
-                    INSERT INTO {production_schema}.prod (prod, state, fips, crop)
-                    SELECT total_prod as 'prod', LEFT(fips,2) as state, fips, 'sg'
-                    FROM {production_schema}.sg_data_bc_{year}
-                    WHERE  total_prod > 0;
+                    UNION
+                    SELECT total_prod as 'prod', LEFT(fips, 2) as state, fips, 'sg'
+                    FROM {production_schema}.sg_data_{yield}_{year}
+                    WHERE  total_prod > 0
 
-                    INSERT INTO {production_schema}.prod (prod, state, fips, crop)
+                    UNION
                     SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips,  'cg'
-                    FROM {production_schema}.herb_bc_{year}
-                    WHERE (crop = 'Corn') AND prod > 0;
+                    FROM {production_schema}.herb_{yield}_{year}
+                    WHERE (crop = 'Corn') AND prod > 0
 
-                    INSERT INTO {production_schema}.prod (prod, state, fips, crop)
+                    UNION
                     SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'cs'
-                    FROM {production_schema}.herb_bc_{year}
-                    WHERE (crop = 'Corn stover') AND prod > 0;
+                    FROM {production_schema}.herb_{yield}_{year}
+                    WHERE (crop = 'Corn stover') AND prod > 0
 
-                    INSERT INTO {production_schema}.prod (prod, state, fips, crop)
+                    UNION
                     SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'ws'
-                    FROM {production_schema}.herb_bc_{year}
-                    WHERE (crop = 'Wheat straw') AND prod > 0;
+                    FROM {production_schema}.herb_{yield}_{year}
+                    WHERE (crop = 'Wheat straw') AND prod > 0
+
+                    UNION
+                    SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'ws'
+                    FROM {production_schema}.herb_{yield}_{year}
+                    WHERE (crop = 'Sorghum stubble') AND prod > 0;
 
                     DROP TABLE IF EXISTS {production_schema}.summed_prod;
                     CREATE TABLE {production_schema}.summed_prod
                     SELECT fips, state, sum(prod) as 'summed_prod'
                     FROM {production_schema}.prod
-                    GROUP BY fips;""".format(**kvals)
+                    GROUP BY fips, state;""".format(**kvals)
 
         query_get = """ SELECT sum.fips
                         FROM
@@ -167,7 +173,7 @@ def get_fips(scenario_year, state_level_moves, db):
 
     else:
         # @TODO: replace with actual list of FIPS codes for run (probably use database table)
-        fips_list = [(("01029",),)]
+        fips_list = [(("01029", ), ), ]
 
     return fips_list
 

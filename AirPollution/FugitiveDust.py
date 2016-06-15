@@ -45,8 +45,67 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
             self.__wheat_straw__(run_code)
         elif run_code.startswith('CS'):
             self.__corn_stover__(run_code)
+        elif run_code.startswith('SS'):
+            self.__sorghum_stubble__(run_code)
         elif run_code.startswith('SG'):
             pass
+
+    def __sorghum_stubble__(self, run_code):
+        """
+        Calculate sorghum stubble fugitive dust emissions.
+
+        :run_code:
+        :return:
+        """
+
+        # emission factors
+        pm_redu_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
+        pm_no_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
+        pm_conv_till_harv = self.convert_lbs_to_mt(1.7)  # mt / acre
+
+        pm_conv_till_non_harv = self.convert_lbs_to_mt(0)  # mt / acre
+        pm_redu_till_non_harv = self.convert_lbs_to_mt(0)  # mt / acre
+        pm_no_till_non_harv = self.convert_lbs_to_mt(0)  # mt / acre
+
+        # choose operation for reduced till
+        if run_code.startswith('SS_R'):
+            tillage = 'Reduced'
+            table_till = 'reducedtill'
+            if run_code.endswith('H'):
+                operation = 'Harvest'
+                ef = pm_redu_till_harv
+            elif run_code.endswith('N'):
+                operation = 'Non-Harvest'
+                ef = pm_redu_till_non_harv
+        # choose operation for no till
+        elif run_code.startswith('SS_N'):
+            tillage = 'No Till'
+            table_till = 'notill'
+            if run_code.endswith('H'):
+                operation = 'Harvest'
+                ef = pm_no_till_harv
+            elif run_code.endswith('N'):
+                operation = 'Non-Harvest'
+                ef = pm_no_till_non_harv
+
+        elif run_code.startswith('SS_C'):
+            tillage = 'Conventional Till'
+            table_till = 'convtill'
+            if run_code.endswith('H'):
+                operation = 'Harvest'
+                ef = pm_conv_till_harv
+            elif run_code.endswith('N'):
+                operation = 'Non-Harvest'
+                ef = pm_conv_till_non_harv
+
+        # execute query for transport emissions
+        # pm10 = dt/acre * acre =  dt
+        # pm2.5 = dt/acre * acre * constant = dt
+        if run_code.startswith('SS_T'):
+            self.transport_query(run_code, tillage)
+
+        # non-transport emissions query
+        self.pm_query(run_code=run_code, ef=ef, till=table_till, activity=operation, till_type=tillage)
 
     def __forest_res__(self):
         """
@@ -697,7 +756,7 @@ class MSFugitiveDust(SaveDataHelper.SaveDataHelper):
                        FROM   {production_schema}.{feed}_data cd
                        WHERE  cd.{till}_harv_ac > 0
                        ;""".format(**kvals)
-            print query
+            # print query
             self._execute_query(query)
 
         elif self.description == 'MS_T':

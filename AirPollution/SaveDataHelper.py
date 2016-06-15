@@ -22,12 +22,12 @@ class SaveDataHelper:
         uses isQuery to create a text file for the sql queries to be recorded. Only occurs during first query.
         @param query: sql insert query.
         """
-        try:
-            self.qr.document_query(_file=self.document_file, query=query)
-        except:
-            # logger.error('Failed to document SQL query')
-            logger.debug('Failed to document (filename: %s) SQL query: %s' % (self.document_file, query, ))
-            pass
+        # try:
+        #     self.qr.document_query(_file=self.document_file, query=query)
+        # except:
+        #     # logger.error('Failed to document SQL query')
+        #     logger.debug('Failed to document (filename: %s) SQL query: %s' % (self.document_file, query, ))
+        #     pass
 
         try:
             self.db.input(query=query)

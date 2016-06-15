@@ -21,15 +21,6 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         self.document_file = "UpdateDatabase"
         self.kvals = cont.get('kvals')
 
-    def create_tables(self, feedstock):
-        """
-        Create fugitive dust, transportation, processing, and raw data tables for <feedstock>.
-
-        :param feedstock: STRING feedstock type
-        """
-
-        self.kvals['feed'] = feedstock.lower()
-
         query = '''DROP   SCHEMA IF EXISTS {scenario_name};
                    CREATE SCHEMA           {scenario_name};'''.format(**self.kvals)
 
@@ -86,6 +77,15 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
 
         self._execute_query(query)
 
+    def create_tables(self, feedstock):
+        """
+        Create fugitive dust, transportation, processing, and raw data tables for <feedstock>.
+
+        :param feedstock: STRING feedstock type
+        """
+
+        self.kvals['feed'] = feedstock.lower()
+
         # raw data tables for fugitive dust and combustion emissions associated with NONROAD equipment
         query = """CREATE TABLE {scenario_name}.{feed}_raw
                     (FIPS             char(5),
@@ -102,7 +102,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                      PM25             float,
                      NH3              float,
                      Description      text,
-                     run_code         char(5),
+                     run_code         char(6),
                      fug_pm10         float,
                      fug_pm25         float
                     )

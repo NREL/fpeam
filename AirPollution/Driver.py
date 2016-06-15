@@ -710,8 +710,8 @@ class Driver:
                 if run_code.startswith('CG') and run_code.endswith('N'):
                     comb.airplane_emission(run_code=run_code)
 
-            # concatenate zeros for fips codes less than 5 characters in length
-            self.concat_zeros('cg_raw')
+                    # concatenate zeros for fips codes less than 5 characters in length
+                    # self.concat_zeros('cg_raw')
 
     def post_process_on_farm_fugitive_dust(self):
         """
