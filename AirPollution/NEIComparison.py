@@ -86,6 +86,9 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
         elif feedstock == 'FR':
             f = "Forest Residue"
             prod = "dat.fed_minus_55, 0"
+        elif feedstock == 'SS':
+            f = 'Sorghum Stubble'
+            prod = 'data.total_prod, dat.total_harv_ac'
 
         query = """INSERT INTO %s.summedemissions""" % (self.scenario_name, )
         # populate tables
@@ -195,7 +198,8 @@ class NEIComparison(SaveDataHelper.SaveDataHelper):
                     'CS': 'Corn Stover',
                     'WS': 'Wheat Straw',
                     'FR': 'Forest Residue',
-                    'cellulosic': 'celluslosic'
+                    'cellulosic': 'celluslosic',
+                    'SS': 'Sorghum Stubble'
                     }
 
         # feedstock abbreviation for queries

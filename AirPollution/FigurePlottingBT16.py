@@ -39,7 +39,7 @@ class FigurePlottingBT16:
         self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', 'FR', 'FW', 'SS']  # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
-        self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, 75.7, 75.7]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756)
+        self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, 75.7, 75.7, 89.6]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756); add reference
 
         self.feed_id_dict = config.get('feed_id_dict')
 
@@ -62,7 +62,8 @@ class FigurePlottingBT16:
 
         # query_drop_table = """DROP TABLE IF EXISTS {scenario_name}.{te_table};""".format(**kvals)
 
-        query_create_table = """CREATE TABLE {scenario_name}.{te_table} (fips            char(5),
+        query_create_table = """DROP   TABLE IF EXISTS {scenario_name}.{te_table};
+                                CREATE TABLE {scenario_name}.{te_table} (fips            char(5),
                                                                          year            char(4),
                                                                          yield           char(2),
                                                                          tillage         varchar(255),
@@ -136,7 +137,8 @@ class FigurePlottingBT16:
 
         # drop old table and create new table
         # sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n".format(**kvals)
-        sql = "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
+        sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};" \
+              "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
 
         sql += """
                   SELECT te.*, nei_npnror.nei_nox_npnror,  nei_npnror.nei_sox_npnror,  nei_npnror.nei_pm10_npnror,
@@ -201,8 +203,8 @@ class FigurePlottingBT16:
                     # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
 
                     # drop old table and create new table
-                    # sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n"
-                    sql = "CREATE TABLE           {scenario_name}.{new_table} AS\n"
+                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n"
+                    sql += "CREATE TABLE           {scenario_name}.{new_table} AS\n"
             else:
                 # insert data
                 sql = "INSERT INTO {scenario_name}.{new_table}\n"
@@ -282,8 +284,8 @@ class FigurePlottingBT16:
                     # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
 
                     # drop old table and create new table
-                    # sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
-                    sql = "CREATE TABLE           {scenario_name}.{table} AS\n"
+                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
+                    sql += "CREATE TABLE           {scenario_name}.{table} AS\n"
                 else:
                     # insert data
                     sql = "INSERT INTO {scenario_name}.{table}\n"
