@@ -756,7 +756,7 @@ class MSFugitiveDust(SaveDataHelper.SaveDataHelper):
                        FROM   {production_schema}.{feed}_data cd
                        WHERE  cd.{till}_harv_ac > 0
                        ;""".format(**kvals)
-            # print query
+
             self._execute_query(query)
 
         elif self.description == 'MS_T':
