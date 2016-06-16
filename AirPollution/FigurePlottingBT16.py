@@ -35,8 +35,8 @@ class FigurePlottingBT16:
 
         self.pol_list = ['nox', 'nh3', 'pm25', 'pm10', 'co', 'sox', 'voc']  # @TODO: remove hardcoded values
 
-        self.feedstock_list = ['Corn Grain', 'Corn Stover', 'Wheat Straw', 'Switchgrass', 'Miscanthus', 'Forest Residues', 'Whole Trees']  # @TODO: remove hardcoded values
-        self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', 'FR', 'FW', 'SS']  # @TODO: remove hardcoded values
+        self.feedstock_list = ['Corn Grain', 'Corn Stover', 'Sorghum stubble', 'Wheat Straw', 'Switchgrass', 'Miscanthus', 'Forest Residues', 'Whole Trees']  # @TODO: remove hardcoded values
+        self.f_list = ['CG', 'CS', 'SS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
         self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
 
         self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, 75.7, 75.7, 89.6]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756); add reference
@@ -783,11 +783,11 @@ class FigurePlottingBT16:
             formatter.set_powerlimits((-4, 3))
 
             # ax1.set_title(self.pol_list_label[p_num])
-            ax1.text(7.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
+            ax1.text(len(self.feedstock_list) + 0.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
 
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
-            ax1.set_xlim(0.5, 7.5)
+            ax1.set_xlim(0.5, len(self.feedstock_list) + 0.5)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
@@ -842,10 +842,10 @@ class FigurePlottingBT16:
             for label in ax1.get_yticklabels()[::2]:
                 label.set_visible(False)
 
-            ax1.text(7.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
+            ax1.text(len(self.feedstock_list) + 0.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
-            ax1.set_xlim(0.5, 7.5)
+            ax1.set_xlim(0.5, len(self.feedstock_list) + 0.5)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
@@ -875,7 +875,7 @@ class FigurePlottingBT16:
 
     def __plot_interval__(self, data_array, ax):
 
-        num_feed = 4
+        num_feed = len(self.feedstock_list)
         num_array = array([x for x in range(num_feed)]) + 1  # index starts at 1, not zero
 
         perc95list = list()
