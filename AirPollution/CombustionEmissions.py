@@ -10,13 +10,13 @@ from utils import logger, config
 
 class CombustionEmissions(SaveDataHelper.SaveDataHelper):
     """
-    Writes raw data for emisions to a .csv file that can be opened with excel.
+    Writes raw data for emissions to a .csv file that can be opened with excel.
     Then saves the data to the db with name <run_code>_raw.
     
     Transform the data from the default Nonroad output to a useful format. 
     Update database with emissions as well as copy emissions to static files
     for quick debugging and error checking.  
-    Combustion emisions associated with harvest and non-harvest methods that use non-road vehicles.
+    Combustion emissions associated with harvest and non-harvest methods that use non-road vehicles.
     """
 
     def __init__(self, cont, operation_dict, alloc, regional_crop_budget):
@@ -30,7 +30,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
 
         :param cont:
         :param operation_dict: dictionary containing 3 feedstocks that have harvest, non-harvest, and transport
-        :param alloc: Amount of non harvest emmisions to allocate to cg, cs, and ws. dict(string: int)
+        :param alloc: Amount of non harvest emissions to allocate to cg, cs, and ws. dict(string: int)
             {'CG': .9, 'CS': .1, 'WS': .1}
         :return:
         """
@@ -447,8 +447,6 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                 operation = 'On-farm Transport'
 
             description = tillage + ' - ' + operation    
-         
-
 
         return description, operation
 
