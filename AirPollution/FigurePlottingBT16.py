@@ -484,23 +484,25 @@ class FigurePlottingBT16:
                 kvals['tillage'] = tillage
                 query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                        SELECT fips,
-                                              '{year}'                                                   AS year,
-                                              '{yield}'                                                  AS yield,
-                                              '{tillage}'                                                AS tillage,
-                                              SUM(nox)                        / {years_rot} * {red_fact} AS nox,
-                                              SUM(nh3)                        / {years_rot} * {red_fact} AS nh3,
-                                              SUM(voc)                        / {years_rot} * {red_fact} AS voc,
-                                              SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} * {red_fact} AS pm10,
-                                              SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} * {red_fact} AS pm25,
-                                              SUM(sox)                        / {years_rot} * {red_fact} AS sox,
-                                              SUM(co)                         / {years_rot} * {red_fact} AS co,
-                                              'Irrigation'                                               AS source_category,
-                                              'NR'                                                       AS nei_category,
-                                              '{feed}'                                                   AS cg
-                                       FROM  {scenario_name}.{feed}_raw
+                                              '{year}'                                                                              AS year,
+                                              '{yield}'                                                                             AS yield,
+                                              '{tillage}'                                                                           AS tillage,
+                                              SUM(nox)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS nox,
+                                              SUM(nh3)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS nh3,
+                                              SUM(voc)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS voc,
+                                              SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS pm10,
+                                              SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS pm25,
+                                              SUM(sox)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS sox,
+                                              SUM(co)                         / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS co,
+                                              'Irrigation'                                                                          AS source_category,
+                                              'NR'                                                                                  AS nei_category,
+                                              '{feed}'                                                                              AS cg
+                                       FROM  {scenario_name}.{feed}_raw rd
+                                       LEFT JOIN {production_schema}.{feed}_data pd ON rd.fips = pd.fips
                                        WHERE description     LIKE '%Non-Harvest%'
                                          AND description NOT LIKE '%dust%'
                                          AND LEFT(RIGHT(run_code, 2), 1) = 'I'
+                                         AND {till_type}_harv_ac > 0
                                        GROUP BY fips
                                        ;""".format(**kvals)
 
