@@ -81,7 +81,7 @@ def initialize_logger(output_dir=os.getcwd(), level=None, file_log_level='DEBUG'
             level = 'INFO'
 
     logger = logging.getLogger('main')
-    logger.setLevel(log_levels[level])
+    # logger.setLevel(log_levels[level])
 
     # create console handler and set level
     handler = logging.StreamHandler()
