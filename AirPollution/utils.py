@@ -174,6 +174,7 @@ def get_fips(scenario_year, state_level_moves, db):
     else:
         # @TODO: replace with actual list of FIPS codes for run (probably use database table)
         fips_list = [(("01029", ), ), ]
+        raise NotImplementedError('Query for county-level MOVES fips codes not written')
 
     return fips_list
 
