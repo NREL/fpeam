@@ -81,7 +81,7 @@ def initialize_logger(output_dir=os.getcwd(), level=None, file_log_level='DEBUG'
             level = 'INFO'
 
     logger = logging.getLogger('main')
-    # logger.setLevel(log_levels[level])
+    logger.setLevel(log_levels[level])
 
     # create console handler and set level
     handler = logging.StreamHandler()
@@ -174,7 +174,7 @@ def get_fips(scenario_year, state_level_moves, db):
     else:
         # @TODO: replace with actual list of FIPS codes for run (probably use database table)
         fips_list = [(("01029", ), ), ]
-        raise NotImplementedError('Query for county-level MOVES fips codes not written')
+        logger.warning('Query for county-level MOVES fips codes not written - only running for single FIPS')
 
     return fips_list
 
