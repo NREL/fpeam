@@ -501,18 +501,13 @@ class Driver:
 
         # now loop through logistics systems to compute respective transportation emissions
         for logistics_type in self.logistics_list:
-            # set truck capacity
-            truck_capacity = config.get('truck_capacity')
-            kvals['truck_capacity'] = truck_capacity[feedstock][logistics_type]
 
             # set transport table
             kvals['transport_table'] = self.transport_table_dict[self.feed_type_dict[feedstock]][self.scenario_yield][logistics_type] + '_%s' % (self.scenario_year, )
 
-            # @TODO: Transportation class needs to be refactored to takein fewer parameters
-            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont, fips=fips,
-                                                           vmt=vmt_short_haul, pop=pop_short_haul,
-                                                           logistics_type=logistics_type, silt=silt,
-                                                           yield_type=self.scenario_yield, moves_fips=moves_fips)
+            transportation = Transportation.Transportation(feed=feedstock, cont=self.cont,
+                                                           logistics_type=logistics_type,
+                                                           yield_type=self.scenario_yield, )
             transportation.calculate_transport_emissions()
 
         # # # get list of fips codes from transportation table
