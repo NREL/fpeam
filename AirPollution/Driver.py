@@ -547,9 +547,10 @@ class Driver:
                         query = """DROP TABLE IF EXISTS {constants_schema}.averageSpeed;
                                    CREATE TABLE {constants_schema}.averageSpeed
                                    AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
-                                   FROM fips_{moves_fips}_{year}_{feedstock}_in.avgspeeddistribution table1
+                                   FROM {moves_database}.avgspeeddistribution table1
                                    LEFT JOIN {moves_database}.hourday table2
-                                   ON table1.hourDayID = table2.hourDayID)
+                                   ON table1.hourDayID = table2.hourDayID
+                                   WHERE sourceTypeID = '61')
                                    ;""".format(**kvals)
                         self.db.create(query)
 
