@@ -474,14 +474,17 @@ class FigurePlottingBT16:
         """
 
         if kvals['feed'] == 'cg':
-            # possible tillage types
-            tillages = ('CT', 'RT', 'NT')
+            # possible tillage types and their corresponding column names for production data
+            tillage_dict = {'CT': 'convtill',
+                            'RT': 'reducedtill',
+                            'NT': 'notill'}
 
             # set reduction factor
-            kvals['red_fact'] = 1.0 / len(tillages)
+            kvals['red_fact'] = 1.0 / len(tillage_dict)
 
-            for tillage in tillages:
+            for tillage in tillage_dict:
                 kvals['tillage'] = tillage
+                kvals['till_type'] = tillage_dict[tillage]
                 query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                        SELECT fips,
                                               '{year}'                                                                              AS year,
