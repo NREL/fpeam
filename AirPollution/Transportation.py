@@ -379,75 +379,92 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 self.kvals['dist'] = '%s' % (self.transport_column[self.kvals['logistics_type']]['dist'])
 
             # fugitive dust emissions from unpaved roads
-            query_u = """INSERT INTO {scenario_name}.fugitive_dust (fips, feedstock, yearID, pollutantID, logistics_type, yield_type, unpaved_fd_emissions)
-                         VALUES      ('{fips}',
+            query_fd = """INSERT INTO {scenario_name}.fugitive_dust (fips, feedstock, yearID, pollutantID, logistics_type, yield_type, unpaved_fd_emissions)
+                          SELECT      td.sply_fips AS fips,
                                       '{feed}',
                                       '{year}',
                                       '{pollutant_name}',
                                       '{logistics_type}',
                                       '{yield_type}',
-                                      (SELECT {c} * {k_a} * ({s} / 12) ^ {a} * ({W} / 3) ^ {b} * IFNULL(SUM(used_qnty / {capacity} * {dist}), 0)
-                                       FROM   {production_schema}.{transport_table}
-                                       WHERE  sply_fips = {fips} AND feed_id = '{transport_feed_id}'
-                                         AND  {dist}   <= 2
-                                       ) +
-                                      (SELECT {c} * {k_a} * ({s} / 12) ^ {a} * ({W} / 3) ^ {b} * IFNULL(sum(used_qnty / {capacity} * 2), 0)
-                                       FROM   {production_schema}.{transport_table}
-                                       WHERE  sply_fips = {fips}
-                                         AND feed_id    = '{transport_feed_id}'
-                                         AND {dist}     > 2
-                                     )
+                                      ({c} * {k_a} * ({uprsm_pct_silt} / 12) ^ {a} * ({W} / 3) ^ {b}) * (CASE WHEN {dist} <= 2
+                                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * {dist}), 0))
+                                                                                                         END
+                                                                                                         +
+                                                                                                         CASE WHEN {dist} > 2
+                                                                                                         THEN IFNULL(sum(used_qnty / {capacity} * 2), 0))
+                                                                                                         END) AS unpaved_fd_emissions,
+                                      {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist} <= 2
+                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
+                                                                                        END
+                                                                                        +
+                                                                                        CASE WHEN ({dist} > 2 AND {dist} <= 50)
+                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * ({dist} - 2)), 0)
+                                                                                        END
+                                                                                        +
+                                                                                        CASE WHEN {dist} > 50
+                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * (50)), 0)
+                                                                                        END) AS sec_paved_fd_emissions,
+                                      {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist}   <= 50
+                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
+                                                                                        END
+                                                                                        +
+                                                                                        CASE WHEN {dist} > 50
+                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * ({dist} - 50)), 0)
+                                                                                        END) AS pri_paved_fd_emissions
+                         FROM {production_schema}.{transport_table} td
+                         LEFT JOIN {constants_schema}.state_road_data sd ON LEFT(td.sply_fips, 2) = sd.st_fips
+                         WHERE feed_id = '{transport_feed_id}'
+                         GROUP BY td.sply_fips
                          );""".format(**self.kvals)
 
-            self.db.input(query_u)
+            self.db.input(query_fd)
 
-            # fugitive dust emissions from secondary and primary paved roads
-            query_sp = """UPDATE {scenario_name}.fugitive_dust
-                          SET    sec_paved_fd_emissions = (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * 0), 0)
-                                                           FROM   {production_schema}.{transport_table}
-                                                           WHERE  sply_fips = {fips}
-                                                             AND  feed_id   = '{transport_feed_id}'
-                                                             AND  {dist}   <= 2
-                                                          ) +
-                                                          (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * ({dist} - 2)), 0)
-                                                           FROM   {production_schema}.{transport_table}
-                                                           WHERE  sply_fips = {fips}
-                                                             AND feed_id    = '{transport_feed_id}'
-                                                             AND {dist}     > 2
-                                                             AND {dist}    <= 50
-                                                          ) +
-                                                          (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * (50)), 0)
-                                                           FROM   {production_schema}.{transport_table}
-                                                           WHERE  sply_fips = {fips}
-                                                             AND feed_id    = '{transport_feed_id}'
-                                                             AND {dist}     > 50
-                                                          ),
-                                 pri_paved_fd_emissions = (SELECT {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * 0), 0)
-                                                           FROM {production_schema}.{transport_table}
-                                                           WHERE sply_fips = {fips}
-                                                             AND feed_id   = '{transport_feed_id}'
-                                                             AND {dist}   <= 50
-                                                          ) +
-                                                          (SELECT {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * ({dist} - 50)), 0)
-                                                           FROM   {production_schema}.{transport_table}
-                                                           WHERE  sply_fips = {fips}
-                                                             AND  feed_id   = '{transport_feed_id}'
-                                                             AND  {dist}    > 50
-                                                          )
-                          WHERE  fips           = '{fips}'
-                            AND  feedstock      = '{feed}'
-                            AND  yearID         = '{year}'
-                            AND  pollutantID    = '{pollutant_name}'
-                            AND  logistics_type = '{logistics_type}'
-                            AND  yield_type     = '{yield_type}'
-                          ;""".format(**self.kvals)
-
-            self.db.input(query_sp)
+            # # fugitive dust emissions from secondary and primary paved roads
+            # query_sp = """UPDATE {scenario_name}.fugitive_dust
+            #               SET    sec_paved_fd_emissions = (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * 0), 0)
+            #                                                FROM   {production_schema}.{transport_table}
+            #                                                WHERE  sply_fips = {fips}
+            #                                                  AND  feed_id   = '{transport_feed_id}'
+            #                                                  AND  {dist}   <= 2
+            #                                               ) +
+            #                                               (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * ({dist} - 2)), 0)
+            #                                                FROM   {production_schema}.{transport_table}
+            #                                                WHERE  sply_fips = {fips}
+            #                                                  AND feed_id    = '{transport_feed_id}'
+            #                                                  AND {dist}     > 2
+            #                                                  AND {dist}    <= 50
+            #                                               ) +
+            #                                               (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * (50)), 0)
+            #                                                FROM   {production_schema}.{transport_table}
+            #                                                WHERE  sply_fips = {fips}
+            #                                                  AND feed_id    = '{transport_feed_id}'
+            #                                                  AND {dist}     > 50
+            #                                               ),
+            #                      pri_paved_fd_emissions = (SELECT {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * 0), 0)
+            #                                                FROM {production_schema}.{transport_table}
+            #                                                WHERE sply_fips = {fips}
+            #                                                  AND feed_id   = '{transport_feed_id}'
+            #                                                  AND {dist}   <= 50
+            #                                               ) +
+            #                                               (SELECT {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * ({dist} - 50)), 0)
+            #                                                FROM   {production_schema}.{transport_table}
+            #                                                WHERE  sply_fips = {fips}
+            #                                                  AND  feed_id   = '{transport_feed_id}'
+            #                                                  AND  {dist}    > 50
+            #                                               )
+            #               WHERE  fips           = '{fips}'
+            #                 AND  feedstock      = '{feed}'
+            #                 AND  yearID         = '{year}'
+            #                 AND  pollutantID    = '{pollutant_name}'
+            #                 AND  logistics_type = '{logistics_type}'
+            #                 AND  yield_type     = '{yield_type}'
+            #               ;""".format(**self.kvals)
+            #
+            # self.db.input(query_sp)
 
             query_sum = """UPDATE {scenario_name}.fugitive_dust
                            SET    total_fd_emissions = sec_paved_fd_emissions + unpaved_fd_emissions + pri_paved_fd_emissions
-                           WHERE  fips           = '{fips}'
-                             AND  feedstock      = '{feed}'
+                           WHERE  feedstock      = '{feed}'
                              AND  yearID         = '{year}'
                              AND  pollutantID    = '{pollutant_name}'
                              AND  logistics_type = '{logistics_type}'
