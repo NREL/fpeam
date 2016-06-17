@@ -107,7 +107,7 @@ def initialize_logger(output_dir=os.getcwd(), level=None, file_log_level='DEBUG'
     return logger
 
 
-def get_fips(scenario_year, state_level_moves, db):
+def get_fips(scenario_year, state_level_moves, db, crop):
     """
     Collect list of county FIPS codes.
     Create table to map MOVES fips to state
@@ -115,12 +115,20 @@ def get_fips(scenario_year, state_level_moves, db):
     :param scenario_year: year of scenario analysis
     :param state_level_moves: toggle for running MOVES on state-level (True) versus county-level (False)
     :param db: database object
+    :param crop: name of crop to be run for MOVES (currently only works for all_crops)
     :return: [<FIPS>]
     """
+
+    moves_timespan = config['moves_timespan']
+
     kvals = {'production_schema': config['production_schema'],
              'constants_schema': config['constants_schema'],
              'year': scenario_year,
-             'yield': config.get('yield')}
+             'yield': config.get('yield'),
+             'month': moves_timespan['mo'][0],
+             'day': moves_timespan['d'][0],
+             'crop': crop,
+             }
 
     if state_level_moves is True:
         query = """ DROP TABLE IF EXISTS {production_schema}.prod;
@@ -130,38 +138,40 @@ def get_fips(scenario_year, state_level_moves, db):
                     WHERE  total_prod > 0)
 
                     UNION
-                    SELECT total_prod as 'prod', LEFT(fips, 2) as state, fips, 'sg'
+                    (SELECT total_prod as 'prod', LEFT(fips, 2) as state, fips, 'sg'
                     FROM {production_schema}.sg_data_{yield}_{year}
-                    WHERE  total_prod > 0
+                    WHERE  total_prod > 0)
 
                     UNION
-                    SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips,  'cg'
+                    (SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips,  'cg'
                     FROM {production_schema}.herb_{yield}_{year}
-                    WHERE (crop = 'Corn') AND prod > 0
+                    WHERE (crop = 'Corn') AND prod > 0)
 
                     UNION
-                    SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'cs'
+                    (SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'cs'
                     FROM {production_schema}.herb_{yield}_{year}
-                    WHERE (crop = 'Corn stover') AND prod > 0
+                    WHERE (crop = 'Corn stover') AND prod > 0)
 
                     UNION
-                    SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'ws'
+                    (SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'ws'
                     FROM {production_schema}.herb_{yield}_{year}
-                    WHERE (crop = 'Wheat straw') AND prod > 0
+                    WHERE (crop = 'Wheat straw') AND prod > 0)
 
                     UNION
-                    SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'ws'
+                    (SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'ws'
                     FROM {production_schema}.herb_{yield}_{year}
-                    WHERE (crop = 'Sorghum stubble') AND prod > 0;
+                    WHERE (crop = 'Sorghum stubble') AND prod > 0);
 
                     DROP TABLE IF EXISTS {production_schema}.summed_prod;
                     CREATE TABLE {production_schema}.summed_prod
                     SELECT fips, state, sum(prod) as 'summed_prod'
                     FROM {production_schema}.prod
-                    GROUP BY fips, state;""".format(**kvals)
+                    GROUP BY fips, state;
+                    """.format(**kvals)
 
-        query_moves_fips = """CREATE TABLE {constants_schema}.moves_statelevel_fips_list_{year}
-                              SELECT sum.fips, state
+        query_moves_fips = """DROP TABLE IF EXISTS {constants_schema}.moves_statelevel_fips_list_{year};
+                              CREATE TABLE {constants_schema}.moves_statelevel_fips_list_{year}
+                              SELECT sum.fips, CONCAT(sum.fips, '_{crop}_{year}_{month}_{day}') AS MOVESScenarioID, sum.state
                               FROM (SELECT state, max(summed_prod) AS max_sum
                                     FROM {production_schema}.summed_prod
                                     GROUP BY state) summed_max
@@ -169,7 +179,12 @@ def get_fips(scenario_year, state_level_moves, db):
                                          FROM {production_schema}.prod
                                          WHERE prod > 0
                                          GROUP BY fips) sum
-                              ON summed_max.max_sum = sum.summed_prod;""".format(**kvals)
+                              ON summed_max.max_sum = sum.summed_prod;
+
+                              ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_MOVESScenarioID (MOVESScenarioID);
+                              ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_state (state);
+                              ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_fips (fips);
+                              ;""".format(**kvals)
 
         query_get = """SELECT fips
                        FROM {constants_schema}.moves_statelevel_fips_list_{year};""".format(**kvals)
