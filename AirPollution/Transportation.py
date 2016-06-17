@@ -46,11 +46,11 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.kvals = cont.get('kvals')
 
         # set other values in kvals dictionary
-        self.kvals['fips'] = fips  # fips
+        # self.kvals['fips'] = fips  # fips
         self.kvals['moves_fips'] = moves_fips  # fips code for moves run (if state-level, then different from fips)
         self.kvals['feed'] = feed.lower()  # feedstock name
         self.kvals['year'] = config['year_dict'][self.feed]  # year of scenario run
-        self.kvals['scenarioID'] = '{fips}_{feed}'.format(**self.kvals)  # MOVES scenario ID
+        # self.kvals['scenarioID'] = '{fips}_{feed}'.format(**self.kvals)  # MOVES scenario ID
         self.kvals['vmt'] = vmt  # vehicle miles travelled
         self.kvals['pop'] = pop  # population of vehicles (#)
         self.kvals['g_per_mt'] = 1e6  # number of grams in one metric ton
@@ -70,21 +70,21 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         feed_type_dict = config.get('feed_type_dict')  # dictionary of feedstock types
         self.kvals['transport_table'] = config.get('transport_table_dict')[feed_type_dict[feed]][yield_type][logistics_type] + '_%s' % (config['year_dict'][self.feed])
 
-        # get toggle for running moves by crop
-        moves_by_crop = config.get('moves_by_crop')
+        # # get toggle for running moves by crop
+        # moves_by_crop = config.get('moves_by_crop')
 
         # set moves database names
         self.kvals['db_out'] = "{moves_output_db}".format(moves_output_db=config.get('moves_output_db'))  # output database for MOVES run (output database same for all crops)
 
-        # set input database and scenario id depending on moves_by_crop
-        if moves_by_crop is False:
-            feed = 'all_crops'
+        # # set input database and scenario id depending on moves_by_crop
+        # if moves_by_crop is False:
+        #     feed = 'all_crops'
 
-        self.kvals['moves_scen_id'] = "{moves_fips}_{crop}_{year}_{month}_{day}".format(moves_fips=moves_fips,
-                                                                                        crop=feed,
-                                                                                        day=config.get('moves_timespan')['d'][0],
-                                                                                        month=config.get('moves_timespan')['mo'][0],
-                                                                                        year=self.kvals['year'])
+        # self.kvals['moves_scen_id'] = "{moves_fips}_{crop}_{year}_{month}_{day}".format(moves_fips=moves_fips,
+        #                                                                                 crop=feed,
+        #                                                                                 day=config.get('moves_timespan')['d'][0],
+        #                                                                                 month=config.get('moves_timespan')['mo'][0],
+        #                                                                                 year=self.kvals['year'])
 
         self.kvals['db_in'] = "fips_{moves_fips}_{year}_{feed}_in".format(moves_fips=moves_fips, feed=feed, year=self.kvals['year'])  # input database for MOVES run
 
@@ -97,66 +97,66 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         # open SQL connection and create cursor
         self.db = cont.get('db')
 
-    def process_moves_data_state(self):
-
-        """
-        Post-process MOVES outputs to compute total combustion emissions from off-farm transport
-
-        Call function to compute total running emissions per trip
-        Call function to compute total start emissions per trip
-        Call function to compute total resting evaporative emissions per trip (currently zero)
-
-        Update transportation table with total emissions
-
-        :return:
-        """
-        logger.info('Post-processing MOVES output for feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
-
-        query = """SELECT state
-                   FROM   {constants_schema}.moves_statelevel_fips_list_{year}
-                   ;""".format(**self.kvals)
-        state_list = self.db.output(query)
-
-        for state in state_list:
-            self.kvals['state'] = state
-
-            for key in self.pollutant_dict:
-                logger.info('Calculating running emissions for %s, state: %s' % (key, state))
-
-                # set pollutant name and ID
-                self.kvals['pollutant_name'] = key
-                self.kvals['pollutantID'] = self.pollutant_dict[key]
-
-                query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, number_trips, vmt_travelled_per_trip, run_emissions_per_trip )
-                           SELECT      '{pollutant_name}'                                                  AS pollutantID,
-                                       sply_fips                                                           AS fips,
-                                       '{feed}'                                                            AS feedstock,
-                                       yearID,                                                             AS yearID,
-                                       '{logistics_type}'                                                  AS logistics_type,
-                                       '{yield_type}'                                                      AS yield_type,
-                                       IFNULL(SUM(used_qnty / {capacity}), 0)                              AS number_trips,
-                                       {distance}                                                          AS vmt_travelled_per_trip,
-                                       SUM(avgSpeedFraction * ratePerDistance * ({distance}) / {g_per_mt}) AS run_emissions_per_trip
-                             FROM      {production_schema}.{transport_table} trans
-                             LEFT JOIN {constants_schema}.moves_statelevel_fips_list_{year} table3
-                                    ON LEFT(LPAD(trans.sply_fips, 5, '0'), 2) = table3.state
-                             LEFT JOIN moves_output_db.rateperdistance table1
-                                    ON table1.MOVESScenarioID = CONCAT(table3.fips, '_all_crops_{year}_{month}_{day}')
-                             LEFT JOIN fpeam.averageSpeed table2
-                                    ON (table1.hourID        = table2.hourID         AND
-                                        table1.dayID         = table2.dayID          AND
-                                        table1.roadTypeID    = table2.roadTypeID     AND
-                                        table1.avgSpeedBinID = table2.avgSpeedBinID
-                                       )
-                             WHERE     table1.pollutantID = {pollutantID}
-                               AND     table3.state = '{state}'
-                               AND     feed_id      = '{transport_feed_id}'
-                             GROUP BY  table1.yearID,
-                                       table1.pollutantID,
-                                       trans.sply_fips
-                           ;""".format(**self.kvals)
-
-                self.db.input(query)
+    # def process_moves_data_state(self):
+    #
+    #     """
+    #     Post-process MOVES outputs to compute total combustion emissions from off-farm transport
+    #
+    #     Call function to compute total running emissions per trip
+    #     Call function to compute total start emissions per trip
+    #     Call function to compute total resting evaporative emissions per trip (currently zero)
+    #
+    #     Update transportation table with total emissions
+    #
+    #     :return:
+    #     """
+    #     logger.info('Post-processing MOVES output for feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
+    #
+    #     query = """SELECT state
+    #                FROM   {constants_schema}.moves_statelevel_fips_list_{year}
+    #                ;""".format(**self.kvals)
+    #     state_list = self.db.output(query)
+    #
+    #     for state in state_list:
+    #         self.kvals['state'] = state
+    #
+    #         for key in self.pollutant_dict:
+    #             logger.info('Calculating running emissions for %s, state: %s' % (key, state))
+    #
+    #             # set pollutant name and ID
+    #             self.kvals['pollutant_name'] = key
+    #             self.kvals['pollutantID'] = self.pollutant_dict[key]
+    #
+    #             query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, number_trips, vmt_travelled_per_trip, run_emissions_per_trip )
+    #                        SELECT      '{pollutant_name}'                                                  AS pollutantID,
+    #                                    sply_fips                                                           AS fips,
+    #                                    '{feed}'                                                            AS feedstock,
+    #                                    yearID,                                                             AS yearID,
+    #                                    '{logistics_type}'                                                  AS logistics_type,
+    #                                    '{yield_type}'                                                      AS yield_type,
+    #                                    IFNULL(SUM(used_qnty / {capacity}), 0)                              AS number_trips,
+    #                                    {distance}                                                          AS vmt_travelled_per_trip,
+    #                                    SUM(avgSpeedFraction * ratePerDistance * ({distance}) / {g_per_mt}) AS run_emissions_per_trip
+    #                          FROM      {production_schema}.{transport_table} trans
+    #                          LEFT JOIN {constants_schema}.moves_statelevel_fips_list_{year} table3
+    #                                 ON LEFT(LPAD(trans.sply_fips, 5, '0'), 2) = table3.state
+    #                          LEFT JOIN moves_output_db.rateperdistance table1
+    #                                 ON table1.MOVESScenarioID = CONCAT(table3.fips, '_all_crops_{year}_{month}_{day}')
+    #                          LEFT JOIN fpeam.averageSpeed table2
+    #                                 ON (table1.hourID        = table2.hourID         AND
+    #                                     table1.dayID         = table2.dayID          AND
+    #                                     table1.roadTypeID    = table2.roadTypeID     AND
+    #                                     table1.avgSpeedBinID = table2.avgSpeedBinID
+    #                                    )
+    #                          WHERE     table1.pollutantID = {pollutantID}
+    #                            AND     table3.state = '{state}'
+    #                            AND     feed_id      = '{transport_feed_id}'
+    #                          GROUP BY  table1.yearID,
+    #                                    table1.pollutantID,
+    #                                    trans.sply_fips
+    #                        ;""".format(**self.kvals)
+    #
+    #             self.db.input(query)
 
     def process_moves_data(self):
         """
@@ -170,7 +170,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         :return:
         """
-        logger.info('Post-processing MOVES output for fips={fips}, feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
+        logger.info('Post-processing MOVES output for feed: {feed}, logistics: {logistics_type}, yield type: {yield_type}'.format(**self.kvals))
 
         self.calc_run_emission()
         self.calc_start_hotel_emissions()
@@ -193,7 +193,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                                                                                 )
                                                        END)
                    WHERE  feedstock      = '{feed}'
-                     AND  fips           = '{fips}'
+                     # AND  fips           = '{fips}'
                      AND  logistics_type = '{logistics_type}'
                      AND  yield_type     = '{yield_type}'
                    ;""".format(**self.kvals)
@@ -209,6 +209,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         :return:
         """
 
+        errors = dict()
         for key in self.pollutant_dict:
             logger.debug('Calculating running emissions for %s' % (key, ))
 
@@ -216,28 +217,50 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             self.kvals['pollutant_name'] = key
             self.kvals['pollutantID'] = self.pollutant_dict[key]
 
-            query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
-                       VALUES('{pollutant_name}',
-                              '{fips}',
-                              '{feed}',
-                              '{year}',
-                              '{logistics_type}',
-                              '{yield_type}',
-                              (SELECT    SUM(table1.ratePerDistance * table2.avgSpeedFraction * {vmt} / {g_per_mt}) AS run_emissions_per_trip
-                               FROM      {db_out}.rateperdistance table1
-                               LEFT JOIN {constants_schema}.averageSpeed table2
-                                      ON (table1.hourID        = table2.hourID         AND
-                                         table1.dayID         = table2.dayID          AND
-                                         table1.roadTypeID    = table2.roadTypeID     AND
-                                         table1.avgSpeedBinID = table2.avgSpeedBinID)
-                               WHERE     table1.pollutantID     = {pollutantID}
-                                 AND     table1.MOVESScenarioID = '{moves_scen_id}'
-                               GROUP BY  table1.yearID,
-                                         table1.pollutantID
-                               )
-                       );""".format(**self.kvals)
+            # query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
+            #            VALUES('{pollutant_name}',
+            #                   '{fips}',
+            #                   '{feed}',
+            #                   '{year}',
+            #                   '{logistics_type}',
+            #                   '{yield_type}',
+            #                   (SELECT    SUM(table1.ratePerDistance * table2.avgSpeedFraction * {vmt} / {g_per_mt}) AS run_emissions_per_trip
+            #                    FROM      {db_out}.rateperdistance table1
+            #                    LEFT JOIN {constants_schema}.averageSpeed table2
+            #                           ON (table1.hourID         = table2.hourID         AND
+            #                              table1.dayID           = table2.dayID          AND
+            #                              table1.roadTypeID      = table2.roadTypeID     AND
+            #                              table1.avgSpeedBinID   = table2.avgSpeedBinID)
+            #                    WHERE     table1.pollutantID     = {pollutantID}
+            #                      AND     table1.MOVESScenarioID = '{moves_scen_id}'
+            #                    GROUP BY  table1.yearID,
+            #                              table1.pollutantID
+            #                    )
+            #            );""".format(**self.kvals)
 
-            self.db.input(query)
+            # @TODO: query needs to be parameterized and optimized
+            # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
+            query = """SELECT distinct MOVESScenarioID,
+                                td.sply_fips,
+                                SUM(ast.avgSpeedFraction * rd.ratePerDistance * (td.avg_dist) / 1e6) as run_emissions
+                        FROM 	moves_output_db.rateperdistance rd
+                        LEFT JOIN fpeam.averageSpeed ast              ON ast.hourID = rd.hourID AND ast.dayID = rd.dayID AND ast.roadTypeID = rd.roadTypeID AND rd.avgSpeedBinID = ast.avgSpeedBinID
+                        LEFT JOIN bts16.transport_herb_bc_adv_2040 td ON (LEFT(td.sply_fips, 2) = LEFT(rd.MOVESScenarioID, 2))
+                        WHERE 	rv.MOVESScenarioID = (SELECT CONCAT(fips, '_all_crops_2040_10_5') FROM fpeam.moves_statelevel_fips_list_2040 WHERE state = LEFT(td.sply_fips, 2))
+                                AND rd.pollutantID = 1
+                                # AND LEFT(td.sply_fips, 2) in ('01', '13')  # this line should be removed if want to run for all states/fips
+                                AND td.feed_id = 'Corn stover'
+                                AND rd.yearID = '2040'
+                        GROUP BY td.sply_fips, MOVESScenarioID;
+                        """
+
+            try:
+                self.db.input(query)
+            except Exception, e:
+                errors[key] = e
+
+        [logger.error('Error calculating running emmisions for %s: %s' % (key, val)) for key, val in errors.iteritems()]
+
 
     def calc_start_hotel_emissions(self):
         """
@@ -253,20 +276,57 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             self.kvals['pollutant_name'] = key
             self.kvals['pollutantID'] = self.pollutant_dict[key]
 
-            query = """UPDATE {scenario_name}.transportation
-                       SET    start_hotel_emissions_per_trip = (SELECT   SUM(table1.ratePerVehicle / {g_per_mt}) AS start_hotel_emissions_per_trip
-                                                                FROM     {db_out}.ratepervehicle table1
-                                                                WHERE    pollutantID     = {pollutantID}
-                                                                  AND    MOVESScenarioID = '{moves_scen_id}'
-                                                                GROUP BY yearID, pollutantID
-                                                               )
-                          WHERE pollutantID    = '{pollutant_name}'
-                            AND fips           = '{fips}'
-                            AND feedstock      = '{feed}'
-                            AND yearID         = '{year}'
-                            AND logistics_type = '{logistics_type}'
-                            AND yield_type     = '{yield_type}'
-                       ;""".format(**self.kvals)
+            # @TODO: query needs to be parameterized and optimized
+            # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
+            query = """SELECT
+                        distinct
+                        rv.MOVESScenarioID,
+                        td.sply_fips,
+                        # 17.28 = truck capacity by feedstock
+                    SUM(rv.ratePerVehicle * td.used_qnty / 17.28 / 1e6) as hotel_emissions
+                    FROM
+                    moves_output_db.ratepervehicle
+                    rv
+                    LEFT
+                    JOIN
+                    bts16.transport_herb_bc_adv_2040
+                    td
+                    ON
+                    LEFT(td.sply_fips, 2) = LEFT(rv.MOVESScenarioID, 2)
+                    WHERE
+                    rv.MOVESScenarioID = (SELECT
+                    CONCAT(fips, '_all_crops_2040_10_5')
+                    FROM
+                    fpeam.moves_statelevel_fips_list_2040
+                    WHERE
+                    state = LEFT(td.sply_fips, 2))
+                    AND
+                    rv.pollutantID = 1
+
+                AND
+                td.feed_id = 'Corn stover'
+                AND
+                rv.yearID = '2040'
+
+
+            GROUP
+            BY
+            td.sply_fips, rv.MOVESScenarioID;"""
+
+            # query = """UPDATE {scenario_name}.transportation
+            #            SET    start_hotel_emissions_per_trip = (SELECT   SUM(table1.ratePerVehicle / {g_per_mt}) AS start_hotel_emissions_per_trip
+            #                                                     FROM     {db_out}.ratepervehicle table1
+            #                                                     WHERE    pollutantID     = {pollutantID}
+            #                                                       AND    MOVESScenarioID = '{moves_scen_id}'
+            #                                                     GROUP BY yearID, pollutantID
+            #                                                    )
+            #               WHERE pollutantID    = '{pollutant_name}'
+            #                 AND fips           = '{fips}'
+            #                 AND feedstock      = '{feed}'
+            #                 AND yearID         = '{year}'
+            #                 AND logistics_type = '{logistics_type}'
+            #                 AND yield_type     = '{yield_type}'
+            #            ;""".format(**self.kvals)
 
             self.db.input(query)
 
@@ -311,7 +371,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         Update transportation table with these values
         """
-        logger.info('Calculating fugitive dust emissions for fips={fips}, feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
+
+        logger.info('Calculating fugitive dust emissions for feed: {feed}, logistics: {logistics_type}, yield type: {yield_type}'.format(**self.kvals))
 
         k_a = dict()
         k_a['PM10'] = 1.5
@@ -351,13 +412,15 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                        WHERE  sply_fips = {fips} AND feed_id = '{transport_feed_id}'
                                          AND  {dist}   <= 2
                                        ) +
-                                      (SELECT {c} * 2 * {k_a} * ({s} / 12) ^ {a} * ({W} / 3) ^ {b} * IFNULL(sum(used_qnty / {capacity} * 2), 0)
+                                      (SELECT {c} * {k_a} * ({s} / 12) ^ {a} * ({W} / 3) ^ {b} * IFNULL(sum(used_qnty / {capacity} * 2), 0)
                                        FROM   {production_schema}.{transport_table}
                                        WHERE  sply_fips = {fips}
                                          AND feed_id    = '{transport_feed_id}'
                                          AND {dist}     > 2
                                      )
                          );""".format(**self.kvals)
+
+            self.db.input(query_u)
 
             # fugitive dust emissions from secondary and primary paved roads
             query_sp = """UPDATE {scenario_name}.fugitive_dust
@@ -400,7 +463,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                             AND  yield_type     = '{yield_type}'
                           ;""".format(**self.kvals)
 
-            self.db.input(query_u)
             self.db.input(query_sp)
 
             query_sum = """UPDATE {scenario_name}.fugitive_dust

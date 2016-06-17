@@ -26,6 +26,18 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
 
         self.db.create(query)
 
+        # generate average speed table for MOVES data analysis by joining tables for average speed and "dayhour"
+        query = """DROP TABLE IF EXISTS {constants_schema}.averageSpeed;
+                   CREATE TABLE {constants_schema}.averageSpeed
+                   AS (SELECT table1.roadTypeID, table1.avgSpeedBinID, table1.avgSpeedFraction, table2.hourID, table2.dayID, table1.hourDayID
+                   FROM {moves_database}.avgspeeddistribution table1
+                   LEFT JOIN {moves_database}.hourday table2
+                   ON table1.hourDayID = table2.hourDayID
+                   WHERE sourceTypeID = '61')
+                   ;""".format(**self.kvals)
+
+        self.db.create(query)
+
         # fugitive dust table for off-farm transport
         query = """CREATE TABLE {scenario_name}.fugitive_dust
                     (fips                   char(5),
