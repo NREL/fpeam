@@ -110,6 +110,7 @@ def initialize_logger(output_dir=os.getcwd(), level=None, file_log_level='DEBUG'
 def get_fips(scenario_year, state_level_moves, db):
     """
     Collect list of county FIPS codes.
+    Create table to map MOVES fips to state
 
     :param scenario_year: year of scenario analysis
     :param state_level_moves: toggle for running MOVES on state-level (True) versus county-level (False)
@@ -117,6 +118,7 @@ def get_fips(scenario_year, state_level_moves, db):
     :return: [<FIPS>]
     """
     kvals = {'production_schema': config['production_schema'],
+             'constants_schema': config['constants_schema'],
              'year': scenario_year,
              'yield': config.get('yield')}
 
@@ -158,17 +160,22 @@ def get_fips(scenario_year, state_level_moves, db):
                     FROM {production_schema}.prod
                     GROUP BY fips, state;""".format(**kvals)
 
-        query_get = """ SELECT sum.fips
-                        FROM
-                        (SELECT state, max(summed_prod) as max_sum
-                        FROM {production_schema}.summed_prod
-                        GROUP by state) summed_max
-                        LEFT JOIN (SELECT fips, state, sum(prod) as 'summed_prod'
-                        FROM {production_schema}.prod
-                        WHERE prod > 0
-                        GROUP BY fips) sum ON summed_max.max_sum = sum.summed_prod;""".format(**kvals)
+        query_moves_fips = """CREATE TABLE {constants_schema}.moves_statelevel_fips_list_{year}
+                              SELECT sum.fips, state
+                              FROM (SELECT state, max(summed_prod) AS max_sum
+                                    FROM {production_schema}.summed_prod
+                                    GROUP BY state) summed_max
+                              LEFT JOIN (SELECT fips, state, SUM(prod) AS 'summed_prod'
+                                         FROM {production_schema}.prod
+                                         WHERE prod > 0
+                                         GROUP BY fips) sum
+                              ON summed_max.max_sum = sum.summed_prod;""".format(**kvals)
+
+        query_get = """SELECT fips
+                       FROM {constants_schema}.moves_statelevel_fips_list_{year};""".format(**kvals)
 
         db.create(query)
+        db.create(query_moves_fips)
         fips_list = db.output(query_get)
 
     else:
