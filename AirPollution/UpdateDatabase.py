@@ -99,7 +99,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         self._execute_query(query)
 
         for col in ('fips', 'feed', 'run_code', 'yield_type', 'logistics_type'):
-            sql = 'CREATE INDEX ON {scenario_name}.processing ({col});'.format(col=col, **self.kvals)
+            sql = 'CREATE INDEX idx_processing_{col} ON {scenario_name}.processing ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
     def create_tables(self, feedstock):
