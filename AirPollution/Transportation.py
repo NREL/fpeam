@@ -178,7 +178,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         query = """UPDATE {scenario_name}.transportation
                    SET    total_emissions = (CASE WHEN run_emissions = 0 THEN 0
-                                                  WHEN vmt_travelled_per_trip > 0 THEN (run_emissions + start_hotel_emissions + rest_evap_emissions)
+                                                  WHEN run_emissions != 0 THEN (run_emissions + start_hotel_emissions + rest_evap_emissions)
                                              END)
                    WHERE  feedstock      = '{feed}'
                      AND  logistics_type = '{logistics_type}'
@@ -197,69 +197,78 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         """
 
         errors = dict()
-        for key in self.pollutant_dict:
-            logger.debug('Calculating running emissions for %s' % (key, ))
 
-            # set pollutant name and ID
-            self.kvals['pollutant_name'] = key
-            self.kvals['pollutantID'] = self.pollutant_dict[key]
+        query = """SELECT state
+                   FROM   {constants_schema}.moves_statelevel_fips_list_{year}
+                ;""".format(**self.kvals)
 
-            # query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
-            #            VALUES('{pollutant_name}',
-            #                   '{fips}',
-            #                   '{feed}',
-            #                   '{year}',
-            #                   '{logistics_type}',
-            #                   '{yield_type}',
-            #                   (SELECT    SUM(table1.ratePerDistance * table2.avgSpeedFraction * {vmt} / {g_per_mt}) AS run_emissions_per_trip
-            #                    FROM      {db_out}.rateperdistance table1
-            #                    LEFT JOIN {constants_schema}.averageSpeed table2
-            #                           ON (table1.hourID         = table2.hourID         AND
-            #                              table1.dayID           = table2.dayID          AND
-            #                              table1.roadTypeID      = table2.roadTypeID     AND
-            #                              table1.avgSpeedBinID   = table2.avgSpeedBinID)
-            #                    WHERE     table1.pollutantID     = {pollutantID}
-            #                      AND     table1.MOVESScenarioID = '{moves_scen_id}'
-            #                    GROUP BY  table1.yearID,
-            #                              table1.pollutantID
-            #                    )
-            #            );""".format(**self.kvals)
+        state_list = self.db.output(query)[0][0]
 
-            # @TODO: query needs to be parameterized and optimized
-            # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
-            query = """ INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions)
-                        VALUES( '{pollutant_name}',
-                                td.sply_fips AS fips,
-                                '{feed}',
-                                '{year}',
-                                '{logistics_type}',
-                                '{yield_type}',
-                                (SELECT SUM(ast.avgSpeedFraction * rd.ratePerDistance * ({vmt}) / {g_per_mt} * td.used_qnty / {capacity}) AS run_emissions
-                                 FROM 	  {db_out}.rateperdistance rd
-                                 LEFT JOIN {constants_schema}.averageSpeed ast
-                                        ON ast.hourID = rd.hourID                                AND
-                                           ast.dayID = rd.dayID                                  AND
-                                           ast.roadTypeID = rd.roadTypeID                        AND
-                                           rd.avgSpeedBinID = ast.avgSpeedBinID
-                                 LEFT JOIN {production_schema}.{transport_table} td              AND
-                                        ON (LEFT(td.sply_fips, 2) = LEFT(rd.MOVESScenarioID, 2))
-                                 WHERE 	   rv.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id}')
-                                                                 FROM {constants_schema}.moves_statelevel_fips_list_{year}
-                                                                 WHERE state = LEFT(td.sply_fips, 2))                      AND
-                                           rd.pollutantID = {pollutantID}                                                  AND
-                                         # LEFT(td.sply_fips, 2) in ('01', '13')                                           AND  # this line should be removed if want to run for all states/fips
-                                           td.feed_id = '{transport_feed_id}'                                              AND
-                                           rd.yearID = '{year}'                                                            AND
-                                           rv.MOVESScenarioID is DISTINCT
-                                 GROUP BY td.sply_fips, MOVESScenarioID);
-                    """.format(**self.kvals)
+        for state in state_list:
+            # set state
+            self.kvals['state'] = state#[0]
+            for key in self.pollutant_dict:
+                logger.info('Calculating running emissions for pollutant: %s, state:%s' % (key, state))
 
-            try:
-                self.db.input(query)
-            except Exception, e:
-                errors[key] = e
+                # set pollutant name and ID
+                self.kvals['pollutant_name'] = key
+                self.kvals['pollutantID'] = self.pollutant_dict[key]
 
-        [logger.error('Error calculating running emissions for %s: %s' % (key, val)) for key, val in errors.iteritems()]
+                # query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
+                #            VALUES('{pollutant_name}',
+                #                   '{fips}',
+                #                   '{feed}',
+                #                   '{year}',
+                #                   '{logistics_type}',
+                #                   '{yield_type}',
+                #                   (SELECT    SUM(table1.ratePerDistance * table2.avgSpeedFraction * {vmt} / {g_per_mt}) AS run_emissions_per_trip
+                #                    FROM      {db_out}.rateperdistance table1
+                #                    LEFT JOIN {constants_schema}.averageSpeed table2
+                #                           ON (table1.hourID         = table2.hourID         AND
+                #                              table1.dayID           = table2.dayID          AND
+                #                              table1.roadTypeID      = table2.roadTypeID     AND
+                #                              table1.avgSpeedBinID   = table2.avgSpeedBinID)
+                #                    WHERE     table1.pollutantID     = {pollutantID}
+                #                      AND     table1.MOVESScenarioID = '{moves_scen_id}'
+                #                    GROUP BY  table1.yearID,
+                #                              table1.pollutantID
+                #                    )
+                #            );""".format(**self.kvals)
+
+                # @TODO: query needs to be parameterized and optimized
+                # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
+                query = """ INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions)
+                            SELECT      '{pollutant_name}',
+                                        td.sply_fips AS fips,
+                                        '{feed}',
+                                        '{year}',
+                                        '{logistics_type}',
+                                        '{yield_type}',
+                                        SUM(ast.avgSpeedFraction * rd.ratePerDistance * ({vmt}) / {g_per_mt} * td.used_qnty / {capacity}) AS run_emissions
+                            FROM 	    {db_out}.rateperdistance rd
+                            LEFT JOIN   {constants_schema}.averageSpeed ast
+                                   ON   ast.hourID = rd.hourID                                AND
+                                        ast.dayID = rd.dayID                                  AND
+                                        ast.roadTypeID = rd.roadTypeID                        AND
+                                        rd.avgSpeedBinID = ast.avgSpeedBinID
+                            LEFT JOIN  {production_schema}.{transport_table} td
+                                   ON  (LEFT(td.sply_fips, 2) = LEFT(rd.MOVESScenarioID, 2))
+                            WHERE 	   rd.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id}')
+                                                             FROM {constants_schema}.moves_statelevel_fips_list_{year}
+                                                             WHERE state = LEFT(td.sply_fips, 2))                      AND
+                                       rd.pollutantID = {pollutantID}                                                  AND
+                                       LEFT(td.sply_fips, 2) in ('{state}')                                                 AND  # this line should be removed if want to run for all states/fips
+                                       td.feed_id = '{transport_feed_id}'                                              AND
+                                       rd.yearID = '{year}'
+                            GROUP BY td.sply_fips, MOVESScenarioID;
+                        """.format(**self.kvals)
+
+                try:
+                    self.db.input(query)
+                except Exception, e:
+                    errors[key] = e
+
+            [logger.error('Error calculating running emissions for %s: %s' % (key, val)) for key, val in errors.iteritems()]
 
     def calc_start_hotel_emissions(self):
         """
@@ -269,7 +278,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         """
 
         for key in self.pollutant_dict:
-            logger.debug('Calculating start emissions for %s' % (key, ))
+            logger.info('Calculating start emissions for %s' % (key, ))
 
             # set pollutant name and ID
             self.kvals['pollutant_name'] = key
@@ -278,19 +287,19 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             # @TODO: query needs to be parameterized and optimized
             # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
             query = """UPDATE {scenario_name}.transportation tr
-                       FROM (SELECT DISTINCT rv.MOVESScenarioID, td.sply_fips, SUM(rv.ratePerVehicle * td.used_qnty / {capacity} / {g_to_mt}) as hotel_emissions
-                             FROM    {db_out}.ratepervehicle rv
-                             LEFT JOIN {production_schema}.{transport_table} td
-                                    ON EFT(td.sply_fips, 2) = LEFT(rv.MOVESScenarioID, 2)
-                             WHERE rv.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id')
-                                                         FROM {constants_schema}.moves_statelevel_fips_list_{year}
-                                                         WHERE state = LEFT(td.sply_fips, 2))                        AND
-                                   rv.pollutantID = {pollutantID}                                                    AND
-                                   td.feed_id = '{transport_feed_id}'                                                AND
-                                   rv.yearID = '{year}'
-                             GROUP BY td.sply_fips, rv.MOVESScenarioID) he
-                       SET start_hotel_emissions = he.hotel_emissions
-                       WHERE he.sply_fips = tr.fips;"""
+                       SET start_hotel_emissions = (SELECT SUM(rv.ratePerVehicle * td.used_qnty / {capacity} / {g_per_mt}) as hotel_emissions
+                                                     FROM    {db_out}.ratepervehicle rv
+                                                     LEFT JOIN {production_schema}.{transport_table} td
+                                                            ON LEFT(td.sply_fips, 2) = LEFT(rv.MOVESScenarioID, 2)
+                                                     WHERE rv.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id}')
+                                                                                 FROM {constants_schema}.moves_statelevel_fips_list_{year}
+                                                                                 WHERE state = LEFT(td.sply_fips, 2))                        AND
+                                                           rv.pollutantID = {pollutantID}                                                    AND
+                                                           td.feed_id = '{transport_feed_id}'                                                AND
+                                                           rv.yearID = '{year}'                                                              AND
+                                                           sply_fips = tr.fips                                                               AND
+                                                           tr.pollutantID = '{pollutant_name}'
+                                                     GROUP BY td.sply_fips);""".format(**self.kvals)
 
             # query = """UPDATE {scenario_name}.transportation
             #            SET    start_hotel_emissions_per_trip = (SELECT   SUM(table1.ratePerVehicle / {g_per_mt}) AS start_hotel_emissions_per_trip
@@ -379,43 +388,50 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 self.kvals['dist'] = '%s' % (self.transport_column[self.kvals['logistics_type']]['dist'])
 
             # fugitive dust emissions from unpaved roads
-            query_fd = """INSERT INTO {scenario_name}.fugitive_dust (fips, feedstock, yearID, pollutantID, logistics_type, yield_type, unpaved_fd_emissions)
+            query_fd = """INSERT INTO {scenario_name}.fugitive_dust (fips, feedstock, yearID, pollutantID, logistics_type, yield_type, unpaved_fd_emissions, sec_paved_fd_emissions, pri_paved_fd_emissions)
                           SELECT      td.sply_fips AS fips,
                                       '{feed}',
                                       '{year}',
                                       '{pollutant_name}',
                                       '{logistics_type}',
                                       '{yield_type}',
-                                      ({c} * {k_a} * ({uprsm_pct_silt} / 12) ^ {a} * ({W} / 3) ^ {b}) * (CASE WHEN {dist} <= 2
-                                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * {dist}), 0))
+                                      ({c} * {k_a} * (uprsm_pct_silt / 12) ^ {a} * ({W} / 3) ^ {b}) * (CASE WHEN {dist} <= 2
+                                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * {dist}), 0)
+                                                                                                         ELSE 0
                                                                                                          END
                                                                                                          +
                                                                                                          CASE WHEN {dist} > 2
-                                                                                                         THEN IFNULL(sum(used_qnty / {capacity} * 2), 0))
+                                                                                                         THEN IFNULL(sum(used_qnty / {capacity} * 2), 0)
+                                                                                                         ELSE 0
                                                                                                          END) AS unpaved_fd_emissions,
                                       {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist} <= 2
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
+                                                                                        ELSE 0
                                                                                         END
                                                                                         +
                                                                                         CASE WHEN ({dist} > 2 AND {dist} <= 50)
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * ({dist} - 2)), 0)
+                                                                                        ELSE 0
                                                                                         END
                                                                                         +
                                                                                         CASE WHEN {dist} > 50
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * (50)), 0)
+                                                                                        ELSE 0
                                                                                         END) AS sec_paved_fd_emissions,
                                       {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist}   <= 50
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
+                                                                                        ELSE 0
                                                                                         END
                                                                                         +
                                                                                         CASE WHEN {dist} > 50
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * ({dist} - 50)), 0)
+                                                                                        ELSE 0
                                                                                         END) AS pri_paved_fd_emissions
                          FROM {production_schema}.{transport_table} td
                          LEFT JOIN {constants_schema}.state_road_data sd ON LEFT(td.sply_fips, 2) = sd.st_fips
                          WHERE feed_id = '{transport_feed_id}'
                          GROUP BY td.sply_fips
-                         );""".format(**self.kvals)
+                         ;""".format(**self.kvals)
 
             self.db.input(query_fd)
 

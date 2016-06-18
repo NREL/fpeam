@@ -101,8 +101,8 @@ class MOVESModule:
         fips = self.fips
 
         # define zoneID and countyID for querying MOVES database
-        zone_id = fips + '0'  # @TODO: is zoneID always FIPS + 0 or should this be a padded to some length?
-        county_id = fips
+        zone_id = str(int(fips)) + '0'  # @TODO: is zoneID always FIPS + 0 or should this be a padded to some length?
+        county_id = str(int(fips))
         kvals = dict()
         kvals['fips'] = fips
         kvals['crop'] = self.crop
