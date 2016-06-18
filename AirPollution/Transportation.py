@@ -297,9 +297,9 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                                            rv.pollutantID = {pollutantID}                                                    AND
                                                            td.feed_id = '{transport_feed_id}'                                                AND
                                                            rv.yearID = '{year}'                                                              AND
-                                                           sply_fips = tr.fips                                                               AND
-                                                           tr.pollutantID = '{pollutant_name}'
-                                                     GROUP BY td.sply_fips);""".format(**self.kvals)
+                                                           sply_fips = tr.fips
+                                                     GROUP BY td.sply_fips)
+                                                     WHERE tr.pollutantID = '{pollutant_name}';""".format(**self.kvals)
 
             # query = """UPDATE {scenario_name}.transportation
             #            SET    start_hotel_emissions_per_trip = (SELECT   SUM(table1.ratePerVehicle / {g_per_mt}) AS start_hotel_emissions_per_trip
