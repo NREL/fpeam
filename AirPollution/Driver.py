@@ -447,30 +447,30 @@ class Driver:
         logger.info('Saving results to database')
 
         # init update database object (creates tables)
-#        update = UpdateDatabase.UpdateDatabase(cont=self.cont)
+        update = UpdateDatabase.UpdateDatabase(cont=self.cont)
 
         # create tables for all feedstocks
-#        for feedstock in self.feedstock_list:
-#            update.create_tables(feedstock=feedstock)
+        for feedstock in self.feedstock_list:
+            update.create_tables(feedstock=feedstock)
 
         # post-process production data
         # get toggle for regional crop budget
         regional_crop_budget = config.get('regional_crop_budget')
 
         # post-process data to obtain emissions from on-farm operations (non-harvest; harvest; chemical and fertilizer)
-#        self.post_process_nonroad(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)  # NONROAD
-#        self.post_process_fert(regional_crop_budget=regional_crop_budget)  # fertilizer
-#        self.post_process_pest(regional_crop_budget=regional_crop_budget)  # pesticide
-#        self.post_process_aerial(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)  # aerial emissions from crop dusting
-#        self.post_process_on_farm_fugitive_dust()  # on-farm fugitive dust
+        self.post_process_nonroad(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)  # NONROAD
+        self.post_process_fert(regional_crop_budget=regional_crop_budget)  # fertilizer
+        self.post_process_pest(regional_crop_budget=regional_crop_budget)  # pesticide
+        self.post_process_aerial(operation_dict=operation_dict, alloc=alloc, regional_crop_budget=regional_crop_budget)  # aerial emissions from crop dusting
+        self.post_process_on_farm_fugitive_dust()  # on-farm fugitive dust
 
         # perform single pass allocation when national crop budget is selected and all feedstocks are modeled
-#        if regional_crop_budget is False:
-#            self.single_pass_alloc()
+        if regional_crop_budget is False:
+            self.single_pass_alloc()
 
         # post-process transportation/logistics
         # post-process data to obtain emissions from processing (processing, adv; processing, conv)
-#        self.post_process_logistics()  # logistics (pre-processing)
+        self.post_process_logistics()  # logistics (pre-processing)
 
         # post-process data to obtain emissions from off-farm transportation (transporation, adv; transportation, conv)
         kvals = self.kvals
