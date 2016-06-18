@@ -173,4 +173,3 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         for col in ('FIPS', 'tillage', 'SCC', 'budget_year', 'description'):
             sql = 'CREATE INDEX idx_{feed}_chem_{col} ON {scenario_name}.{feed}_chem ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
-
