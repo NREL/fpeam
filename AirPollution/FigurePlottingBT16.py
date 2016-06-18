@@ -141,7 +141,7 @@ class FigurePlottingBT16:
               "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
 
         sql += """
-                  SELECT te.*, nei_npnror.nei_nox_npnror,  nei_npnror.nei_sox_npnror,  nei_npnror.nei_pm10_npnror,
+                  SELECT na.fips AS fips, te.*,  nei_npnror.nei_nox_npnror,  nei_npnror.nei_sox_npnror,  nei_npnror.nei_pm10_npnror,
                          nei_npnror.nei_pm25_npnror, nei_npnror.nei_voc_npnror,  nei_npnror.nei_nh3_npnror,
                          nei_npnror.nei_co_npnror,  nei_npnrorp.nei_voc__npnrorp, trans.avg_total_cost,
                          trans.avg_dist, trans.used_qnty, na.ozone_8hr_2008, na.co_1971, na.no2_1971, na.pm10_1987,
@@ -167,7 +167,7 @@ class FigurePlottingBT16:
 
                   """.format(**kvals)
         sql += """
-                  LEFT JOIN naa.naa_2012 na
+                  RIGHT JOIN naa.naa_2012 na
                   ON na.fips = te.fips
 
                   """.format(**kvals)
@@ -474,33 +474,38 @@ class FigurePlottingBT16:
         """
 
         if kvals['feed'] == 'cg':
-            # possible tillage types
-            tillages = ('CT', 'RT', 'NT')
+            # possible tillage types and their corresponding column names for production data
+            tillage_dict = {'CT': 'convtill',
+                            'RT': 'reducedtill',
+                            'NT': 'notill'}
 
             # set reduction factor
-            kvals['red_fact'] = 1.0 / len(tillages)
+            kvals['red_fact'] = 1.0 / len(tillage_dict)
 
-            for tillage in tillages:
+            for tillage in tillage_dict:
                 kvals['tillage'] = tillage
+                kvals['till_type'] = tillage_dict[tillage]
                 query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                        SELECT fips,
-                                              '{year}'                                                   AS year,
-                                              '{yield}'                                                  AS yield,
-                                              '{tillage}'                                                AS tillage,
-                                              SUM(nox)                        / {years_rot} * {red_fact} AS nox,
-                                              SUM(nh3)                        / {years_rot} * {red_fact} AS nh3,
-                                              SUM(voc)                        / {years_rot} * {red_fact} AS voc,
-                                              SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} * {red_fact} AS pm10,
-                                              SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} * {red_fact} AS pm25,
-                                              SUM(sox)                        / {years_rot} * {red_fact} AS sox,
-                                              SUM(co)                         / {years_rot} * {red_fact} AS co,
-                                              'Irrigation'                                               AS source_category,
-                                              'NR'                                                       AS nei_category,
-                                              '{feed}'                                                   AS cg
-                                       FROM  {scenario_name}.{feed}_raw
+                                              '{year}'                                                                              AS year,
+                                              '{yield}'                                                                             AS yield,
+                                              '{tillage}'                                                                           AS tillage,
+                                              SUM(nox)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS nox,
+                                              SUM(nh3)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS nh3,
+                                              SUM(voc)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS voc,
+                                              SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS pm10,
+                                              SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS pm25,
+                                              SUM(sox)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS sox,
+                                              SUM(co)                         / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS co,
+                                              'Irrigation'                                                                          AS source_category,
+                                              'NR'                                                                                  AS nei_category,
+                                              '{feed}'                                                                              AS cg
+                                       FROM  {scenario_name}.{feed}_raw rd
+                                       LEFT JOIN {production_schema}.{feed}_data pd ON rd.fips = pd.fips
                                        WHERE description     LIKE '%Non-Harvest%'
                                          AND description NOT LIKE '%dust%'
                                          AND LEFT(RIGHT(run_code, 2), 1) = 'I'
+                                         AND {till_type}_harv_ac > 0
                                        GROUP BY fips
                                        ;""".format(**kvals)
 
