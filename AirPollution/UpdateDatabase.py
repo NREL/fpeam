@@ -39,7 +39,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         self.db.create(query)
 
         for col in ('roadTypeID', 'avgSpeedBinID', 'avgSpeedFraction', 'hourID', 'dayID', 'hourDayID'):
-            sql = 'CREATE INDEX ON {constants_schema}.averageSpeed ({col});'.format(col=col, **self.kvals)
+            sql = 'CREATE INDEX idx_averageSpeed_{col} ON {constants_schema}.averageSpeed ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
         # fugitive dust table for off-farm transport
@@ -60,7 +60,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         self._execute_query(query)
 
         for col in ('fips', 'feedstock', 'yearID', 'pollutantID', 'yield_type', 'logistics_type'):
-            sql = 'CREATE INDEX ON {scenario_name}.fugitive_dust ({col});'.format(col=col, **self.kvals)
+            sql = 'CREATE INDEX idx_fugitive_dust_{col} ON {scenario_name}.fugitive_dust ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
         # combustion emissions table for off-farm transportation
@@ -81,7 +81,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         self._execute_query(query)
 
         for col in ('fips', 'feedstock', 'yearID', 'pollutantID', 'yield_type', 'logistics_type'):
-            sql = 'CREATE INDEX ON {scenario_name}.transportation ({col});'.format(col=col, **self.kvals)
+            sql = 'CREATE INDEX idx_transportation_{col} ON {scenario_name}.transportation ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
         # feedstock processing table (contains VOC emission for wood drying for FR and electricity consumption for all crops)
@@ -136,7 +136,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         self._execute_query(query)
 
         for col in ('FIPS', 'SCC', 'HP', 'Description', 'run_code'):
-            sql = 'CREATE INDEX ON {scenario_name}.{feed}_raw ({col});'.format(col=col, **self.kvals)
+            sql = 'CREATE INDEX idx_{feed}_raw_{col} ON {scenario_name}.{feed}_raw ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
         # fertilizer tables for all crops
@@ -154,7 +154,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         self._execute_query(query)
 
         for col in ('FIPS', 'tillage', 'SCC', ',budget_year', 'description'):
-            sql = 'CREATE INDEX ON {scenario_name}.{feed}_nfert ({col});'.format(col=col, **self.kvals)
+            sql = 'CREATE INDEX idx_{feed}_nfert_{col} ON {scenario_name}.{feed}_nfert ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
         # chemical tables for those crops that use herbicides (previously only CG and SG, now populating for all crops when using regional crop budget)
@@ -171,6 +171,6 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
         self._execute_query(query)
 
         for col in ('FIPS', 'tillage', 'SCC', 'budget_year', 'description'):
-            sql = 'CREATE INDEX ON {scenario_name}.{feed}_chem ({col});'.format(col=col, **self.kvals)
+            sql = 'CREATE INDEX idx_{feed}_chem_{col} ON {scenario_name}.{feed}_chem ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
