@@ -135,7 +135,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
 
         self._execute_query(query)
 
-        for col in ('FIPS', 'SCC', 'HP', 'Description', 'run_code'):
+        for col in ('FIPS', 'SCC', 'HP', 'run_code'):
             sql = 'CREATE INDEX idx_{feed}_raw_{col} ON {scenario_name}.{feed}_raw ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
@@ -153,7 +153,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
 
         self._execute_query(query)
 
-        for col in ('FIPS', 'tillage', 'SCC', ',budget_year', 'description'):
+        for col in ('FIPS', 'tillage', 'SCC', ',budget_year'):
             sql = 'CREATE INDEX idx_{feed}_nfert_{col} ON {scenario_name}.{feed}_nfert ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
@@ -170,6 +170,6 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
 
         self._execute_query(query)
 
-        for col in ('FIPS', 'tillage', 'SCC', 'budget_year', 'description'):
+        for col in ('FIPS', 'tillage', 'SCC', 'budget_year',):
             sql = 'CREATE INDEX idx_{feed}_chem_{col} ON {scenario_name}.{feed}_chem ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
