@@ -202,11 +202,11 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                    FROM   {constants_schema}.moves_statelevel_fips_list_{year}
                 ;""".format(**self.kvals)
 
-        state_list = self.db.output(query)[0][0]
+        state_list = self.db.output(query)[0]
 
         for state in state_list:
             # set state
-            self.kvals['state'] = state#[0]
+            self.kvals['state'] = state[0]
             for key in self.pollutant_dict:
                 logger.info('Calculating running emissions for pollutant: %s, state:%s' % (key, state))
 
