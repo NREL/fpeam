@@ -86,7 +86,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         # set the name of the transportation distance column depending on the logistics type
         trans_col = self.transport_column[logistics_type]['dist']  # equals dist for conventional
         if len(self.transport_column[logistics_type]) == 2:
-            trans_col += '+ %s' % (self.transport_col[logistics_type]['dist_2'], )  # equals dist + dist_2 for advanced
+            trans_col += '+ %s' % (self.transport_column[logistics_type]['dist_2'], )  # equals dist + dist_2 for advanced
 
         # set transportation column in kvals
         self.kvals['vmt'] = trans_col
