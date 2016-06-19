@@ -402,35 +402,37 @@ class Driver:
                 # output = subprocess.Popen(os.path.join(self.path_moves, 'setenv.bat') + '&' + batch_run_dict[feed], cwd=self.path_moves, stdout=subprocess.PIPE, shell=True).stdout.read()
                 # logger.debug('Command line output: %s' % output)
 
-                for table in ('ratePerDistance', 'ratePerVehicle'):
-                    sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);' \
-                          'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 5);' \
-                          .format(t=table, **self.kvals)
-                    self.db.execute_sql(sql)
-
-                columns = ('MOVESScenarioID', 'MOVESRunID', 'yearID', 'monthID', 'dayID', 'hourID', 'linkID', 'pollutantID', 'processID', 'sourceTypeID',
-                           'regClassID', 'SCC', 'fuelTypeID', 'modelYearID', 'roadTypeID', 'avgSpeedBinID', 'temperature', 'relHumidity') + ('state', )
-
-                # create indicies on MOVES output tables  # @TODO: this needs to be made dynamic based on the MOVES run type
-                for column in columns + ('ratePerDistance', ):
-                    sql = 'CREATE INDEX idx_ratesperDistance_{c} ON {moves_output_db}.ratesperdistance ({c});'.format(c=column, **self.kvals)
-                    self.db.execute_sql(sql)
-
-                sql = 'CREATE INDEX idx_ratesperDistance_MOVESScenarioID_2 ON {moves_output_db}.ratesperdistance (MOVESScenarioID(2));'.format(**self.kvals)
-                self.db.execute_sql(sql)
-
-                for column in columns + ('ratePerVehicle', ):
-                    sql = 'CREATE INDEX idx_ratePerVehicle_{c} ON {moves_output_db}.ratesperdistance ({c});'.format(c=column, **self.kvals)
-                    self.db.execute_sql(sql)
-
-                sql = 'CREATE INDEX idx_ratePerVehicle_MOVESScenarioID_2 ON {moves_output_db}.ratesperdistance (MOVESScenarioID(2));'.format(**self.kvals)
-                self.db.execute_sql(sql)
-
-                self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.yr[feed])
+                self.kvals['moves_scen_id'] = "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=feed, day=
+                config.get('moves_timespan')['d'][0], month=config.get('moves_timespan')['mo'][0], year=self.yr[feed])
                 query_moves_metadata = """INSERT INTO {constants_schema}.moves_metadata(scen_id)
-                                          VALUES ('{moves_scen_id}')
-                                          ;""".format(**self.kvals)
+                                              VALUES ('{moves_scen_id}')
+                                              ;""".format(**self.kvals)
                 self.db.input(query_moves_metadata)
+
+                # for table in ('ratePerDistance', 'ratePerVehicle'):
+                #     sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);' \
+                #           'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 5);' \
+                #           .format(t=table, **self.kvals)
+                #     self.db.execute_sql(sql)
+                #
+                # columns = ('MOVESScenarioID', 'MOVESRunID', 'yearID', 'monthID', 'dayID', 'hourID', 'linkID', 'pollutantID', 'processID', 'sourceTypeID',
+                #            'regClassID', 'SCC', 'fuelTypeID', 'modelYearID', 'roadTypeID', 'avgSpeedBinID', 'temperature', 'relHumidity') + ('state', )
+                #
+                # # create indicies on MOVES output tables  # @TODO: this needs to be made dynamic based on the MOVES run type
+                # for column in columns + ('ratePerDistance', ):
+                #     sql = 'CREATE INDEX idx_ratesperDistance_{c} ON {moves_output_db}.ratesperdistance ({c});'.format(c=column, **self.kvals)
+                #     self.db.execute_sql(sql)
+                #
+                # sql = 'CREATE INDEX idx_ratesperDistance_MOVESScenarioID_2 ON {moves_output_db}.ratesperdistance (MOVESScenarioID(2));'.format(**self.kvals)
+                # self.db.execute_sql(sql)
+                #
+                # for column in columns + ('ratePerVehicle', ):
+                #     sql = 'CREATE INDEX idx_ratePerVehicle_{c} ON {moves_output_db}.ratesperdistance ({c});'.format(c=column, **self.kvals)
+                #     self.db.execute_sql(sql)
+                #
+                # sql = 'CREATE INDEX idx_ratePerVehicle_MOVESScenarioID_2 ON {moves_output_db}.ratesperdistance (MOVESScenarioID(2));'.format(**self.kvals)
+                # self.db.execute_sql(sql)
+
             else:
                 # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
