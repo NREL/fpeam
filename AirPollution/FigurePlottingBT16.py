@@ -115,6 +115,12 @@ class FigurePlottingBT16:
             logger.info('Inserting data for off-farm transportation and pre-processing for feedstock: {feed}'.format(**kvals))
             self.get_logistics(kvals)
 
+        # add indicies
+        columns = ('fips', 'year', 'yield', 'tillage', 'source_category', 'nei_category', 'feedstock')
+        for column in columns:
+            sql = """CREATE INDEX idx_{te_table}_{c} ON {scenario_name}.{te_table} ({c});""".format(c=column, **kvals)
+            self.db.execute_sql(sql)
+
         logger.info('Joining total emissions with production data')
         self.join_with_production_data(kvals)
 
@@ -122,7 +128,7 @@ class FigurePlottingBT16:
         self.sum_emissions(kvals)
 
         logger.info('Joining NEI, NAA, and transportation data')
-        self.add_nei_naa_and_transport(kvals)
+#        self.add_nei_naa_and_transport(kvals)
 
     def add_nei_naa_and_transport(self, kvals):
 
@@ -486,7 +492,7 @@ class FigurePlottingBT16:
                 kvals['tillage'] = tillage
                 kvals['till_type'] = tillage_dict[tillage]
                 query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
-                                       SELECT fips,
+                                       SELECT rd.fips,
                                               '{year}'                                                                              AS year,
                                               '{yield}'                                                                             AS yield,
                                               '{tillage}'                                                                           AS tillage,
@@ -506,7 +512,7 @@ class FigurePlottingBT16:
                                          AND description NOT LIKE '%dust%'
                                          AND LEFT(RIGHT(run_code, 2), 1) = 'I'
                                          AND {till_type}_harv_ac > 0
-                                       GROUP BY fips
+                                       GROUP BY rd.fips
                                        ;""".format(**kvals)
 
                 self.db.input(query_non_harvest)
