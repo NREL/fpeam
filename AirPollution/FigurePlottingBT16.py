@@ -819,7 +819,8 @@ class FigurePlottingBT16:
 
         fig.tight_layout()
 
-        #plt.show()
+        if config.as_bool('show_figures') is True:
+            plt.show()
 
         data = [emissions_per_gal]
 
@@ -878,7 +879,8 @@ class FigurePlottingBT16:
 
         fig.tight_layout()
 
-        #plt.show()
+        if config.as_bool('show_figures') is True:
+            plt.show()
 
         data = [emissions_per_dt, ]
 
@@ -1054,7 +1056,8 @@ class FigurePlottingBT16:
 
         fig.tight_layout()
 
-        #plt.show()
+        if config.as_bool('show_figures') is True:
+            plt.show()
 
 
 if __name__ == '__main__':

@@ -20,33 +20,65 @@ try:
 except IndexError:
     dfile = os.path.abspath('database.ini')
 
+# get scenario config
+sfile = os.path.abspath('scenario.ini')
+
+# get local config overrides
+lfile = os.path.abspath('local.ini')
+
 # set config specification file for validating
 cspec_file = os.path.abspath('configspec.ini')
 
-# load scenario config
+# bundle configs
+config_fpaths = (dfile, sfile, lfile)
+
+# load main config
 try:
     config = configobj.ConfigObj(cfile, configspec=cspec_file, file_error=True)
 except (configobj.ConfigObjError, IOError), e:
+    print('Config error: %s' % (e, ))
+    # if configobj fails to load the main config file, try a variation
     try:
         cfile = os.path.abspath(os.path.join('..', 'config.ini'))
         dfile = os.path.abspath(os.path.join('..', 'database.ini'))
         cspec_file = os.path.abspath(os.path.join('..', 'configspec.ini'))
+        sfile = os.path.abspath(os.path.join('..', 'scenario.ini'))
+        lfile = os.path.abspath(os.path.join('..', 'local.ini'))
+
         config = configobj.ConfigObj(cfile, configspec=cspec_file, file_error=True)
-    except:
-        #raise
+    except Exception, e:
         sys.exit(e)
 
-# load database config
-try:
-    d_config = configobj.ConfigObj(dfile, file_error=True)
-except (configobj.ConfigObjError, IOError), e:
-    sys.exit(e)
+# load secondary configs
+configs = []
+for config_fpath in config_fpaths:
+    try:
+        configs.append(configobj.ConfigObj(config_fpath, file_error=True))
+    except (configobj.ConfigObjError, IOError), e:
+        sys.exit('Error loading %s: %s' % (config_fpath, e))
+
+# # load database config
+# try:
+#     d_config = configobj.ConfigObj(dfile, file_error=True)
+# except (configobj.ConfigObjError, IOError), e:
+#     sys.exit(e)
+
+# try:
+#     s_config = configobj.ConfigObj(sfile, file_error=True)
+# except (configobj.ConfigObjError, IOError), e:
+#     sys.exit('e)
+
+# try:
+#     l_config = configobj.ConfigObj(lfile, file_error=True)
+# except (configobj.ConfigObjError, IOError), e:
+#     sys.exit('e)
 
 # merge configs
-try:
-    config.merge(d_config)
-except configobj.ConfigObjError, e:
-    sys.exit('Error combining config files {cfile} and {dfile}: {e}'.format(cfile=cfile, e=e, dfile=dfile))
+for con in configs:
+    try:
+        config.merge(con)
+    except configobj.ConfigObjError, e:
+        sys.exit('Error combining config file: {c}: {e}'.format(c=con, e=e))
 
 # init config validator
 validator = validate.Validator()
