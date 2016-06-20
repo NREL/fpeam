@@ -199,7 +199,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         errors = dict()
 
         query = """SELECT state
-                   FROM   {constants_schema}.moves_statelevel_fips_list_{year}
+                   FROM   {production_schema}.moves_statelevel_fips_list_{year}
                 ;""".format(**self.kvals)
 
         state_list = self.db.output(query)[0]
@@ -254,7 +254,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                             LEFT JOIN  {production_schema}.{transport_table} td
                                    ON  (LEFT(td.sply_fips, 2) = LEFT(rd.MOVESScenarioID, 2))
                             WHERE 	   rd.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id}')
-                                                             FROM {constants_schema}.moves_statelevel_fips_list_{year}
+                                                             FROM {production_schema}.moves_statelevel_fips_list_{year}
                                                              WHERE state = LEFT(td.sply_fips, 2))                      AND
                                        rd.pollutantID = {pollutantID}                                                  AND
                                        LEFT(td.sply_fips, 2) in ('{state}')                                                 AND  # this line should be removed if want to run for all states/fips
@@ -292,7 +292,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                                      LEFT JOIN {production_schema}.{transport_table} td
                                                             ON LEFT(td.sply_fips, 2) = LEFT(rv.MOVESScenarioID, 2)
                                                      WHERE rv.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id}')
-                                                                                 FROM {constants_schema}.moves_statelevel_fips_list_{year}
+                                                                                 FROM {production_schema}.moves_statelevel_fips_list_{year}
                                                                                  WHERE state = LEFT(td.sply_fips, 2))                        AND
                                                            rv.pollutantID = {pollutantID}                                                    AND
                                                            td.feed_id = '{transport_feed_id}'                                                AND
