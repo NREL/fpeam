@@ -226,8 +226,8 @@ def get_fips(scenario_year, state_level_moves, db, crop):
                     """.format(**kvals)
         db.create(query)
 
-        query_moves_fips = """DROP TABLE IF EXISTS {production_schema}.moves_statelevel_fips_list_{year};
-                              CREATE TABLE {production_schema}.moves_statelevel_fips_list_{year}
+        query_moves_fips = """DROP TABLE IF EXISTS {constants_schema}.moves_statelevel_fips_list_{year};
+                              CREATE TABLE {constants_schema}.moves_statelevel_fips_list_{year}
                               SELECT sum.fips, CONCAT(sum.fips, '_{crop}_{year}_{month}_{day}') AS MOVESScenarioID, sum.state
                               FROM (SELECT state, max(summed_prod) AS max_sum
                                     FROM {production_schema}.summed_prod
@@ -238,14 +238,14 @@ def get_fips(scenario_year, state_level_moves, db, crop):
                                          GROUP BY fips, state) sum
                               ON summed_max.max_sum = sum.summed_prod;
 
-                              ALTER TABLE {production_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_MOVESScenarioID (MOVESScenarioID);
-                              ALTER TABLE {production_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_state (state);
-                              ALTER TABLE {production_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_fips (fips);
+                              ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_MOVESScenarioID (MOVESScenarioID);
+                              ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_state (state);
+                              ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_fips (fips);
 
                               ;""".format(**kvals)
 
         query_get = """SELECT fips
-                       FROM {production_schema}.moves_statelevel_fips_list_{year};""".format(**kvals)
+                       FROM {constants_schema}.moves_statelevel_fips_list_{year};""".format(**kvals)
 
         db.create(query_moves_fips)
         fips_list = db.output(query_get)
