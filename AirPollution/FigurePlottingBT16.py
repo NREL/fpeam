@@ -60,10 +60,10 @@ class FigurePlottingBT16:
         # create backup
         # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['te_table'])
 
-        # query_drop_table = """DROP TABLE IF EXISTS {scenario_name}.{te_table};""".format(**kvals)
+        query_drop_table = """DROP TABLE IF EXISTS {scenario_name}.{te_table};""".format(**kvals)
+        self.db.execute_sql(query_drop_table)
 
-        query_create_table = """DROP   TABLE IF EXISTS {scenario_name}.{te_table};
-                                CREATE TABLE {scenario_name}.{te_table} (fips            char(5),
+        query_create_table = """CREATE TABLE {scenario_name}.{te_table} (fips            char(5),
                                                                          year            char(4),
                                                                          yield           char(2),
                                                                          tillage         varchar(255),
@@ -819,7 +819,7 @@ class FigurePlottingBT16:
 
         fig.tight_layout()
 
-        plt.show()
+        #plt.show()
 
         data = [emissions_per_gal]
 
@@ -878,9 +878,9 @@ class FigurePlottingBT16:
 
         fig.tight_layout()
 
-        plt.show()
+        #plt.show()
 
-        data = [emissions_per_dt]
+        data = [emissions_per_dt, ]
 
         return data
 
