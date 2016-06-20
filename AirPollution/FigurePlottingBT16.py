@@ -445,7 +445,7 @@ class FigurePlottingBT16:
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
             kvals['tillage'] = "'CT'"
-        elif kvals['feed'].startswith('F'):
+        elif kvals['feed'].startswith('f'):
             kvals['tillage'] = "'NT'"
 
         query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
@@ -524,7 +524,7 @@ class FigurePlottingBT16:
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
             kvals['tillage'] = "'CT'"
-        elif kvals['feed'].startswith('F'):
+        elif kvals['feed'].startswith('f'):
             kvals['tillage'] = "'NT'"
 
         query_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
@@ -558,7 +558,7 @@ class FigurePlottingBT16:
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
             kvals['tillage'] = "'CT'"
-        elif kvals['feed'].startswith('F'):
+        elif kvals['feed'].startswith('f'):
             kvals['tillage'] = "'NT'"
 
         query_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
@@ -592,7 +592,7 @@ class FigurePlottingBT16:
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
             kvals['tillage'] = "'CT'"
-        elif kvals['feed'].startswith('F'):
+        elif kvals['feed'].startswith('f'):
             kvals['tillage'] = "'NT'"
 
         query_loading = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
