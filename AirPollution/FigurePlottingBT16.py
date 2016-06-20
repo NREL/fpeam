@@ -27,10 +27,10 @@ class FigurePlottingBT16:
         # init properties
         self.db = db
 
-        self.f_color = ['r', 'b', 'g', 'k', 'c', 'y', 'm']  # @TODO: remove hardcoded values
-        self.f_marker = ['o', 'o', 'o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
-        self.row_list = [0, 0, 1, 1, 2, 2, 0]  # @TODO: remove hardcoded values
-        self.col_list = [0, 1, 0, 1, 0, 1, 2]  # @TODO: remove hardcoded values
+        self.f_color = ['r', 'b', 'g', 'k', 'c', 'y', 'm', 'coral']  # @TODO: remove hardcoded values
+        self.f_marker = ['o', 'o', 'o', 'o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
+        self.row_list = [0, 0, 1, 1, 2, 2, 0, 2]  # @TODO: remove hardcoded values
+        self.col_list = [0, 1, 0, 1, 0, 1, 2, 2]  # @TODO: remove hardcoded values
         self.pol_list_label = ['$NO_x$', '$NH_3$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', '$VOC$']  # @TODO: remove hardcoded values
 
         self.pol_list = ['nox', 'nh3', 'pm25', 'pm10', 'co', 'sox', 'voc']  # @TODO: remove hardcoded values
@@ -1054,7 +1054,7 @@ class FigurePlottingBT16:
 
         fig.tight_layout()
 
-        plt.show()
+        #plt.show()
 
 
 if __name__ == '__main__':
