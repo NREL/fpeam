@@ -128,7 +128,7 @@ class FigurePlottingBT16:
         self.sum_emissions(kvals)
 
         logger.info('Joining NEI, NAA, and transportation data')
-#        self.add_nei_naa_and_transport(kvals)
+        self.add_nei_naa_and_transport(kvals)
 
     def add_nei_naa_and_transport(self, kvals):
 
@@ -143,11 +143,11 @@ class FigurePlottingBT16:
 
         # drop old table and create new table
         # sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n".format(**kvals)
-        sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};" \
-              "CREATE TABLE           {scenario_name}.{new_table} AS\n".format(**kvals)
+        sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};".format(**kvals)
+        self.db.execute_sql(sql)
 
-        sql += """
-                  SELECT na.fips AS fips, te.*,  nei_npnror.nei_nox_npnror,  nei_npnror.nei_sox_npnror,  nei_npnror.nei_pm10_npnror,
+        sql =  """CREATE TABLE           {scenario_name}.{new_table} AS
+                  SELECT te.*,  nei_npnror.nei_nox_npnror,  nei_npnror.nei_sox_npnror,  nei_npnror.nei_pm10_npnror,
                          nei_npnror.nei_pm25_npnror, nei_npnror.nei_voc_npnror,  nei_npnror.nei_nh3_npnror,
                          nei_npnror.nei_co_npnror,  nei_npnrorp.nei_voc__npnrorp, trans.avg_total_cost,
                          trans.avg_dist, trans.used_qnty, na.ozone_8hr_2008, na.co_1971, na.no2_1971, na.pm10_1987,
@@ -173,7 +173,7 @@ class FigurePlottingBT16:
 
                   """.format(**kvals)
         sql += """
-                  RIGHT JOIN naa.naa_2012 na
+                  LEFT JOIN naa.naa_2012 na
                   ON na.fips = te.fips
 
                   """.format(**kvals)
