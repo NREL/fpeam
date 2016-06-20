@@ -24,13 +24,11 @@ except IndexError:
 sfile = os.path.abspath('scenario.ini')
 
 # get local config overrides
-lfile = os.path.abspath('local.ini')
+if os.path.exists('local.ini') is True:
+    lfile = os.path.abspath('local.ini')
 
 # set config specification file for validating
 cspec_file = os.path.abspath('configspec.ini')
-
-# bundle configs
-config_fpaths = (dfile, sfile, lfile)
 
 # load main config
 try:
@@ -41,13 +39,21 @@ except (configobj.ConfigObjError, IOError), e:
     try:
         cfile = os.path.abspath(os.path.join('..', 'config.ini'))
         dfile = os.path.abspath(os.path.join('..', 'database.ini'))
-        cspec_file = os.path.abspath(os.path.join('..', 'configspec.ini'))
         sfile = os.path.abspath(os.path.join('..', 'scenario.ini'))
-        lfile = os.path.abspath(os.path.join('..', 'local.ini'))
+        if os.path.exists(os.path.join('..', 'local.ini')) is True:
+            lfile = os.path.abspath(os.path.join('..', 'local.ini'))
+        cspec_file = os.path.abspath(os.path.join('..', 'configspec.ini'))
 
         config = configobj.ConfigObj(cfile, configspec=cspec_file, file_error=True)
     except Exception, e:
         sys.exit(e)
+
+# bundle configs
+config_fpaths = [dfile, sfile]
+try:
+    config_fpaths.append(lfile)
+except:
+    pass
 
 # load secondary configs
 configs = []
