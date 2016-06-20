@@ -153,7 +153,7 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
 
         self._execute_query(query)
 
-        for col in ('FIPS', 'tillage', 'SCC', ',budget_year'):
+        for col in ('FIPS', 'tillage', 'SCC', 'budget_year'):
             sql = 'CREATE INDEX idx_{feed}_nfert_{col} ON {scenario_name}.{feed}_nfert ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 

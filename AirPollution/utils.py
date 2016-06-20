@@ -14,7 +14,7 @@ try:
 except IndexError:
     cfile = os.path.abspath('config.ini')
 
-# get database configuration info from second command line argument if provided, otherwuse use default
+# get database configuration info from second command line argument if provided, otherwise use default
 try:
     dfile = os.path.abspath(sys.argv[2])
 except IndexError:
@@ -27,7 +27,14 @@ cspec_file = os.path.abspath('configspec.ini')
 try:
     config = configobj.ConfigObj(cfile, configspec=cspec_file, file_error=True)
 except (configobj.ConfigObjError, IOError), e:
-    sys.exit(e)
+    try:
+        cfile = os.path.abspath(os.path.join('..', 'config.ini'))
+        dfile = os.path.abspath(os.path.join('..', 'database.ini'))
+        cspec_file = os.path.abspath(os.path.join('..', 'configspec.ini'))
+        config = configobj.ConfigObj(cfile, configspec=cspec_file, file_error=True)
+    except:
+        #raise
+        sys.exit(e)
 
 # load database config
 try:
