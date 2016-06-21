@@ -93,9 +93,10 @@ class Logistics(SaveDataHelper.SaveDataHelper):
 
         # generate string for query
         query = """ INSERT INTO {scenario_name}.processing (fips, feed, electricity, logistics_type, yield_type)
-                    SELECT transport_data.sply_fips, '{feed}', transport_data.used_qnty * {electricity_per_dt}, '{logistics}', '{yield_type}'
+                    SELECT transport_data.sply_fips, '{feed}', SUM(transport_data.used_qnty * {electricity_per_dt}) AS electricity, '{logistics}', '{yield_type}'
                     FROM {production_schema}.{transport_table} transport_data
                     WHERE transport_data.used_qnty > 0.0 AND transport_data.feed_id = '{feed_id}'
+                    GROUP BY transport_data.sply_fips, feed_id
                    ;""".format(**self.kvals)
 
         # execute query
@@ -147,7 +148,10 @@ class Logistics(SaveDataHelper.SaveDataHelper):
 
         # generate string for query and append to queries
         query = """UPDATE {scenario_name}.processing process
-                LEFT JOIN {production_schema}.{transport_table}_{year} transport_data ON process.fips = transport_data.sply_fips
+                LEFT JOIN (SELECT sply_fips, SUM(used_qnty) AS used_qnty, feed_id
+                           FROM {production_schema}.{transport_table}_{year}
+                           GROUP BY sply_fips, feed_id) transport_data
+                ON process.fips = transport_data.sply_fips
                 SET voc_wood = transport_data.used_qnty * {a} * ({VOC_ef_h} + {VOC_ef_d}) / {b}
                 WHERE   logistics_type = '{logistics}' AND
                         yield_type = '{yield_type}'
