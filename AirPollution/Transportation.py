@@ -85,7 +85,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         # set the name of the transportation distance column depending on the logistics type
         trans_col = self.transport_column[logistics_type]['dist']  # equals dist for conventional
-        if len(self.transport_column[logistics_type]) == 2:
+        if logistics_type == 'A':
             trans_col += '+ %s' % (self.transport_column[logistics_type]['dist_2'], )  # equals dist + dist_2 for advanced
 
         # set transportation column in kvals
@@ -237,6 +237,25 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
                 # @TODO: query needs to be parameterized and optimized
                 # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
+                # @TODO: finish replacing values from kvals and remove old query
+
+                # """SELECT
+                #              c.feed_id
+                #              , c.sply_fips
+                #              , a.pollutantID
+                #              , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty  / {capacity} * ({vmt}) / {g_per_mt}
+                #    FROM      {moves_output_db}.rateperdistance          a
+                #    LEFT JOIN {constants_schema}.averagespeed            b ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
+                #    LEFT JOIN {production_schema}.{transport_table}      c ON (a.state = c.state)
+                #    WHERE a.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                #      AND c.feed_id = '{transport_feed_ID}'
+                #      AND a.pollutantID = '{pollutantID}'
+                #      AND a.state = '{state}'
+                #    GROUP BY
+                #        a.pollutantID
+                #      , c.sply_fips
+                # ;""".format(**self.kvals)
+
                 query = """ INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions)
                             SELECT      '{pollutant_name}',
                                         td.sply_fips AS fips,

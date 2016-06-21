@@ -409,6 +409,12 @@ class Driver:
                                               ;""".format(**self.kvals)
                 self.db.input(query_moves_metadata)
 
+                #  @TODO: separate and enable
+                # sql = """ALTER TABLE {moves_output_db}.rateperdistance ADD COLUMN MOVESScenarioID_no_fips CHAR(19);
+                #          UPDATE {moves_output_db.rateperdistance SET MOVESScenarioID_no_fips = RIGHT(MOVESScenarioID, 19);
+                #          ALTER TABLE moves_output_db.rateperdistance ADD INDEX(MOVESScenarioID_no_fips);
+                #          OPTIMIZE TABLE moves_output_db.rateperdistance;"""
+
                 # for table in ('ratePerDistance', 'ratePerVehicle'):
                 #     sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);' \
                 #           'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 5);' \
