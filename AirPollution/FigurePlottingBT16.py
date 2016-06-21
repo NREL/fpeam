@@ -134,6 +134,11 @@ class FigurePlottingBT16:
 
         kvals['new_table'] = 'total_emissions_join_prod_sum_emissions_nei_trans'
 
+        logistics_dict = {'A': 'adv',
+                          'C': 'conv'}
+
+        kvals['logistics'] = logistics_dict[config['logistics_type']]
+
         feed_type_dict = config.get('feed_type_dict')
         table_dict = config.get('transport_table_dict')
         logistics = config.get('logistics_type')
@@ -149,8 +154,11 @@ class FigurePlottingBT16:
         sql =  """CREATE TABLE           {scenario_name}.{new_table} AS
                   SELECT te.*,  nei_npnror.nei_nox_npnror,  nei_npnror.nei_sox_npnror,  nei_npnror.nei_pm10_npnror,
                          nei_npnror.nei_pm25_npnror, nei_npnror.nei_voc_npnror,  nei_npnror.nei_nh3_npnror,
-                         nei_npnror.nei_co_npnror,  nei_npnrorp.nei_voc__npnrorp, trans.avg_total_cost,
-                         trans.avg_dist, trans.used_qnty, na.ozone_8hr_2008, na.co_1971, na.no2_1971, na.pm10_1987,
+                         nei_npnror.nei_co_npnror,  nei_npnrorp.nei_voc__npnrorp,
+                         COALESCE(trans.avg_total_cost, trans2.avg_total_cost) AS avg_total_cost,
+                         COALESCE(trans.avg_dist, trans2.avg_dist) AS avg_dist,
+                         COALESCE(trans.used_qnty, trans2.used_qnty) AS used_qnty,
+                         na.ozone_8hr_2008, na.co_1971, na.no2_1971, na.pm10_1987,
                          na.pm25_1997_2006_2012, na.so2_1971_2010
                   FROM {scenario_name}.total_emissions_join_prod_sum_emissions te
                   LEFT JOIN (SELECT LPAD(fips, 5, '0') AS fips_plus, SUM(nox) AS nei_nox_npnror,
@@ -178,21 +186,25 @@ class FigurePlottingBT16:
 
                   """.format(**kvals)
 
-        sql += """LEFT JOIN (SELECT sply_fips, avg_total_cost, avg_dist, used_qnty, CASE """
-
-        for feedstock in self.feed_id_dict:
-            if self.feed_id_dict[feedstock] != 'None':
-                feed_type = feed_type_dict[feedstock]
-                kvals['feed_name'] = self.feed_id_dict[feedstock]
-                kvals['transport_table'] = table_dict[feed_type][kvals['yield']][logistics]
-                kvals['feed'] = feedstock.lower()
-                sql += """ WHEN feed_id = '{feed_name}' THEN '{feed}'
-                       """.format(**kvals)
-
-        sql += """END AS feedstock
-                  FROM {production_schema}.{transport_table}_{year}) trans
-                  ON trans.sply_fips = te.fips AND te.feedstock = trans.feedstock AND (te.source_category LIKE '%transport%' OR te.source_category LIKE '%processing%')
+        sql += """LEFT JOIN (SELECT sply_fips, sum(avg_total_cost)/count(avg_total_cost) AS avg_total_cost, sum(avg_dist)/count(avg_dist) AS avg_dist, sum(used_qnty) AS used_qnty,
+                                    CASE
+										WHEN feed_id = 'Corn stover' THEN 'cs'
+                                        WHEN feed_id = 'Switchgrass' THEN 'sg'
+										WHEN feed_id = 'Miscanthus' THEN 'ms'
+                                    END AS feedstock
+                                    FROM bts16.transport_herb_{yield}_{logistics}_{year}
+                                    GROUP BY sply_fips, feed_id) trans
+                             ON trans.sply_fips = te.fips AND te.feedstock = trans.feedstock AND (te.source_category LIKE '%transport%' OR te.source_category LIKE '%processing%')
                 """.format(**kvals)
+
+        sql += """LEFT JOIN (SELECT sply_fips, sum(avg_total_cost)/count(avg_total_cost) AS avg_total_cost, sum(avg_dist)/count(avg_dist) AS avg_dist, sum(used_qnty) AS used_qnty,
+		                            CASE
+									    WHEN feed_id = 'Residues' THEN 'fr'
+                                        WHEN feed_id = 'Whole tree' THEN 'fw'
+                                    END AS feedstock
+                            FROM bts16.transport_woody_{yield}_{logistics}_{year}
+                            GROUP BY sply_fips, feed_id) trans2
+                            ON trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock AND (te.source_category LIKE '%transport%' OR te.source_category LIKE '%processing%')""".format(**kvals)
 
         self.db.execute_sql(sql=sql)
 
