@@ -186,6 +186,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         Equal to sum(output.ratePerVehicle * pop) for all pollutant processes, days, hours, and road types
         Update transportation table with these values
         """
+        errors = dict()
 
         for key in self.pollutant_dict:
             logger.info('Calculating start emissions for %s' % (key, ))
@@ -229,7 +230,12 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             #                                          GROUP BY td.sply_fips, td.feed_id, rv.MOVESScenarioID, rv.pollutatnID, rv.yearID)
             #                                          WHERE tr.pollutantID = '{pollutant_name}';""".format(**self.kvals)
 
-            self.db.input(query)
+            try:
+                self.db.input(query)
+            except Exception, e:
+                errors[key] = e
+
+        [logger.error('Error calculating start/hotel emissions for %s: %s' % (key, val)) for key, val in errors.iteritems()]
 
     def calc_rest_evap_emissions(self):
         """
