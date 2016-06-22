@@ -151,7 +151,7 @@ class FigurePlottingBT16:
         sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};".format(**kvals)
         self.db.execute_sql(sql)
 
-        sql =  """CREATE TABLE           {scenario_name}.{new_table} AS
+        sql = """CREATE TABLE           {scenario_name}.{new_table} AS
                   SELECT te.*,  nei_npnror.nei_nox_npnror,  nei_npnror.nei_sox_npnror,  nei_npnror.nei_pm10_npnror,
                          nei_npnror.nei_pm25_npnror, nei_npnror.nei_voc_npnror,  nei_npnror.nei_nh3_npnror,
                          nei_npnror.nei_co_npnror,  nei_npnrorp.nei_voc__npnrorp,
@@ -188,9 +188,9 @@ class FigurePlottingBT16:
 
         sql += """LEFT JOIN (SELECT sply_fips, sum(avg_total_cost)/count(avg_total_cost) AS avg_total_cost, sum(avg_dist)/count(avg_dist) AS avg_dist, sum(used_qnty) AS used_qnty,
                                     CASE
-										WHEN feed_id = 'Corn stover' THEN 'cs'
+                                        WHEN feed_id = 'Corn stover' THEN 'cs'
                                         WHEN feed_id = 'Switchgrass' THEN 'sg'
-										WHEN feed_id = 'Miscanthus' THEN 'ms'
+                                        WHEN feed_id = 'Miscanthus' THEN 'ms'
                                     END AS feedstock
                                     FROM bts16.transport_herb_{yield}_{logistics}_{year}
                                     GROUP BY sply_fips, feed_id) trans
@@ -198,9 +198,9 @@ class FigurePlottingBT16:
                 """.format(**kvals)
 
         sql += """LEFT JOIN (SELECT sply_fips, sum(avg_total_cost)/count(avg_total_cost) AS avg_total_cost, sum(avg_dist)/count(avg_dist) AS avg_dist, sum(used_qnty) AS used_qnty,
-		                            CASE
-									    WHEN feed_id = 'Residues' THEN 'fr'
-                                        WHEN feed_id = 'Whole tree' THEN 'fw'
+                                    CASE
+                                    WHEN feed_id = 'Residues' THEN 'fr'
+                                    WHEN feed_id = 'Whole tree' THEN 'fw'
                                     END AS feedstock
                             FROM bts16.transport_woody_{yield}_{logistics}_{year}
                             GROUP BY sply_fips, feed_id) trans2
@@ -1029,7 +1029,7 @@ class FigurePlottingBT16:
                 for f_num, feedstock in enumerate(self.f_list):
                     emissions = emissions_per_activity[feedstock][pollutant][activity]
 
-                    mean_val = mean(emissions)
+                    # mean_val = mean(emissions)
                     med_val = median(emissions)
                     max_val = max(emissions)[0]
                     min_val = min(emissions)[0]

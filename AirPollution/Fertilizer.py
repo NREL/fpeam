@@ -32,7 +32,7 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                          'ws': 'n_lbdt',
                          'fr': 'n_lbac',
                          'fw': 'n_lbac',
-                         'ss': 'n_lbac',
+                         'ss': 'n_lbdt',
                          'sg_yr1': 'n_lbac',
                          'sg_yr2to10': 'n_lbdt',
                          'ms_yr1': 'n_lbac',
