@@ -139,7 +139,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year} ORDER BY state;""".format(**self.kvals)
         state_list = self.db.output(query)[0]
-        state_list = (('01', ), )
+        # for testing: state_list = (('01', ), ('19', ), )
+        
         for state in state_list:
             # set state
             self.kvals['state'] = state[0]
@@ -193,37 +194,41 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             self.kvals['pollutant_name'] = key
             self.kvals['pollutantID'] = self.pollutant_dict[key]
 
-            # @TODO: query needs to be parameterized and optimized
             # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
-            query = """UPDATE {scenario_name}.transportation tr
-                       SET start_hotel_emissions = (SELECT SUM(rv.ratePerVehicle * td.used_qnty / {capacity} / {g_per_mt}) as hotel_emissions
-                                                     FROM    {db_out}.ratepervehicle rv
-                                                     LEFT JOIN {production_schema}.{transport_table} td
-                                                            ON LEFT(td.sply_fips, 2) = LEFT(rv.MOVESScenarioID, 2)
-                                                     WHERE rv.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id}')
-                                                                                 FROM {constants_schema}.moves_statelevel_fips_list_{year}
-                                                                                 WHERE state = LEFT(td.sply_fips, 2))                        AND
-                                                           rv.pollutantID = {pollutantID}                                                    AND
-                                                           td.feed_id = '{transport_feed_id}'                                                AND
-                                                           rv.yearID = '{year}'                                                              AND
-                                                           sply_fips = tr.fips
-                                                     GROUP BY td.sply_fips, td.feed_id, rv.MOVESScenarioID, rv.pollutatnID, rv.yearID)
-                                                     WHERE tr.pollutantID = '{pollutant_name}';""".format(**self.kvals)
 
-            # query = """UPDATE {scenario_name}.transportation
-            #            SET    start_hotel_emissions_per_trip = (SELECT   SUM(table1.ratePerVehicle / {g_per_mt}) AS start_hotel_emissions_per_trip
-            #                                                     FROM     {db_out}.ratepervehicle table1
-            #                                                     WHERE    pollutantID     = {pollutantID}
-            #                                                       AND    MOVESScenarioID = '{moves_scen_id}'
-            #                                                     GROUP BY yearID, pollutantID
-            #                                                    )
-            #               WHERE pollutantID    = '{pollutant_name}'
-            #                 AND fips           = '{fips}'
-            #                 AND feedstock      = '{feed}'
-            #                 AND yearID         = '{year}'
-            #                 AND logistics_type = '{logistics_type}'
-            #                 AND yield_type     = '{yield_type}'
-            #            ;""".format(**self.kvals)
+            query = """UPDATE {scenario_name}.transportation a
+                       LEFT JOIN (SELECT state
+                                       , pollutantID
+                                       , SUM(COALESCE(ratePerVehicle, 0)) AS ratePerVehicle
+                                  FROM {moves_output_db}.ratepervehicle
+                                  WHERE pollutantID = '{pollutantID}'
+                                  GROUP BY state, pollutantID) b
+                              ON a.state = b.state
+                       LEFT JOIN(SELECT  sply_fips
+                                       , SUM(used_qnty) AS used_qnty
+                                 FROM {production_schema}.{transport_table}
+                                 WHERE feed_id = '{transport_feed_id}'
+                                 GROUP BY sply_fips) c
+                              ON a.fips = c.sply_fips
+                       SET start_hotel_emissions = (b.ratePerVehicle * c.used_qnty)
+                       WHERE a.pollutantID = '{pollutant_name}'
+                    ;""".format(**self.kvals)
+
+            # query = """UPDATE {scenario_name}.transportation tr
+            #            SET start_hotel_emissions = (SELECT SUM(rv.ratePerVehicle * td.used_qnty / {capacity} / {g_per_mt}) as hotel_emissions
+            #                                          FROM    {db_out}.ratepervehicle rv
+            #                                          LEFT JOIN {production_schema}.{transport_table} td
+            #                                                 ON LEFT(td.sply_fips, 2) = LEFT(rv.MOVESScenarioID, 2)
+            #                                          WHERE rv.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id}')
+            #                                                                      FROM {constants_schema}.moves_statelevel_fips_list_{year}
+            #                                                                      WHERE state = LEFT(td.sply_fips, 2))                        AND
+            #                                                rv.pollutantID = {pollutantID}                                                    AND
+            #                                                td.feed_id = '{transport_feed_id}'                                                AND
+            #                                                rv.yearID = '{year}'                                                              AND
+            #                                                sply_fips = tr.fips
+            #                                          GROUP BY td.sply_fips, td.feed_id, rv.MOVESScenarioID, rv.pollutatnID, rv.yearID)
+            #                                          WHERE tr.pollutantID = '{pollutant_name}';""".format(**self.kvals)
+
 
             self.db.input(query)
 
