@@ -137,7 +137,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         errors = dict()
 
-        query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year};""".format(**self.kvals)
+        query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year} ORDER BY state;""".format(**self.kvals)
         state_list = self.db.output(query)[0]
         state_list = (('01', ), )
         for state in state_list:
