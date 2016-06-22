@@ -505,19 +505,19 @@ class FigurePlottingBT16:
                 kvals['till_type'] = tillage_dict[tillage]
                 query_non_harvest = """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                        SELECT rd.fips,
-                                              '{year}'                                                                              AS year,
-                                              '{yield}'                                                                             AS yield,
-                                              '{tillage}'                                                                           AS tillage,
-                                              SUM(nox)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS nox,
-                                              SUM(nh3)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS nh3,
-                                              SUM(voc)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS voc,
-                                              SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS pm10,
-                                              SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS pm25,
-                                              SUM(sox)                        / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS sox,
-                                              SUM(co)                         / {years_rot} * {till_type}_harv_ac/total_harv_ac     AS co,
-                                              'Irrigation'                                                                          AS source_category,
-                                              'NR'                                                                                  AS nei_category,
-                                              '{feed}'                                                                              AS cg
+                                              '{year}'                                                                                AS year,
+                                              '{yield}'                                                                               AS yield,
+                                              '{tillage}'                                                                             AS tillage,
+                                              SUM(nox)                        / {years_rot} * {till_type}_harv_ac / total_harv_ac     AS nox,
+                                              SUM(nh3)                        / {years_rot} * {till_type}_harv_ac / total_harv_ac     AS nh3,
+                                              SUM(voc)                        / {years_rot} * {till_type}_harv_ac / total_harv_ac     AS voc,
+                                              SUM(pm10 + IFNULL(fug_pm10, 0)) / {years_rot} * {till_type}_harv_ac / total_harv_ac     AS pm10,
+                                              SUM(pm25 + IFNULL(fug_pm25, 0)) / {years_rot} * {till_type}_harv_ac / total_harv_ac     AS pm25,
+                                              SUM(sox)                        / {years_rot} * {till_type}_harv_ac / total_harv_ac     AS sox,
+                                              SUM(co)                         / {years_rot} * {till_type}_harv_ac / total_harv_ac     AS co,
+                                              'Irrigation'                                                                            AS source_category,
+                                              'NR'                                                                                    AS nei_category,
+                                              '{feed}'                                                                                AS cg
                                        FROM  {scenario_name}.{feed}_raw rd
                                        LEFT JOIN {production_schema}.{feed}_data pd ON rd.fips = pd.fips
                                        WHERE description     LIKE '%Non-Harvest%'
@@ -531,7 +531,7 @@ class FigurePlottingBT16:
 
     def get_harvest(self, kvals):
         if kvals['feed'] != 'sg' and kvals['feed'] != 'ms' and (not kvals['feed'].startswith('f')):
-            kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
+            kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2), 1), 'T')"
         elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
@@ -599,7 +599,7 @@ class FigurePlottingBT16:
 
     def get_loading(self, kvals):
         if kvals['feed'] != 'sg' and kvals['feed'] != 'ms' and (not kvals['feed'].startswith('f')):
-            kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2),1), 'T')"
+            kvals['tillage'] = "CONCAT(LEFT(RIGHT(run_code, 2), 1), 'T')"
         elif kvals['feed'] == 'sg':
             kvals['tillage'] = "'NT'"
         elif kvals['feed'] == 'ms':
@@ -631,7 +631,7 @@ class FigurePlottingBT16:
         self.db.input(query_loading)
 
     def get_logistics(self, kvals):
-        system_list = [config.get('logistics_type')]
+        system_list = [config.get('logistics_type'), ]
         pol_list = ['sox', 'nox', 'pm10', 'pm25', 'voc', 'co', 'nh3']
         logistics = {'A': 'Advanced', 'C': 'Conventional'}
         feedstock = kvals['feed']
@@ -648,7 +648,7 @@ class FigurePlottingBT16:
 
         run_logistics = self.feed_id_dict[feedstock.upper()]
         if run_logistics != 'None':
-            for system in system_list:
+            for system in system_list:  # logistics type
                 kvals['system'] = system
                 for tillage in tillage_list:
                     kvals['tillage'] = tillage
@@ -689,7 +689,7 @@ class FigurePlottingBT16:
                                                        '{cat}',
                                                        'OR' AS nei_category,
                                                        '{feed}'
-                                                FROM   (SELECT distinct trans.pollutantID,
+                                                FROM   (SELECT trans.pollutantID,
                                                                trans.fips AS fips,
                                                                trans.total_emissions / {reduction_factor} AS sox
                                                         FROM   {scenario_name}.transportation trans
@@ -698,7 +698,7 @@ class FigurePlottingBT16:
                                                 """.format(**kvals)
                                 else:
                                     if not pollutant.startswith('pm'):
-                                        query += """LEFT JOIN (SELECT distinct trans.pollutantID,
+                                        query += """LEFT JOIN (SELECT trans.pollutantID,
                                                                       trans.total_emissions / {reduction_factor} AS {pollutant},
                                                                       trans.fips                                 AS fips
                                                                FROM   {scenario_name}.transportation trans
@@ -708,14 +708,14 @@ class FigurePlottingBT16:
 
                                                     """.format(**kvals)
                                     elif pollutant.startswith('pm'):
-                                        query += """LEFT JOIN (SELECT distinct pollutantID,
+                                        query += """LEFT JOIN (SELECT pollutantID,
                                                                       trans.total_emissions/{reduction_factor} AS '{pollutant}_trans',
                                                                       trans.fips as 'fips'
                                                     FROM {scenario_name}.transportation  trans
                                                     WHERE 	{selection}) feed_{pollutant}
                                                     ON feed_{pollutant}.fips = feed_sox.fips
 
-                                                    LEFT JOIN (SELECT distinct pollutantID,
+                                                    LEFT JOIN (SELECT pollutantID,
                                                                       fd.total_fd_emissions/{reduction_factor} AS '{pollutant}_fug',
                                                                       fd.fips as 'fips'
                                                     FROM {scenario_name}.fugitive_dust fd
@@ -834,7 +834,7 @@ class FigurePlottingBT16:
         if config.as_bool('show_figures') is True:
             plt.show()
 
-        data = [emissions_per_gal]
+        data = [emissions_per_gal, ]
 
         return data
 

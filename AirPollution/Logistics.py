@@ -130,8 +130,7 @@ class Logistics(SaveDataHelper.SaveDataHelper):
         feed = run_code[0:2]
 
         # set dictionary values for string formatting
-        kvals = {
-                 'transport_table': self.transport_table_dict[self.feed_type_dict[feed]][yield_type][logistics],  # transport table
+        kvals = {'transport_table': self.transport_table_dict[self.feed_type_dict[feed]][yield_type][logistics],  # transport table
                  'run_code': run_code,  # run code
                  'feed': feed,  # feedstock id
                  'feed_name': self.transport_feed_id_dict[feed],  # name of feedstock
@@ -153,8 +152,8 @@ class Logistics(SaveDataHelper.SaveDataHelper):
                            GROUP BY sply_fips, feed_id) transport_data
                 ON process.fips = transport_data.sply_fips
                 SET voc_wood = transport_data.used_qnty * {a} * ({VOC_ef_h} + {VOC_ef_d}) / {b}
-                WHERE   logistics_type = '{logistics}' AND
-                        yield_type = '{yield_type}'
+                WHERE   logistics_type = '{logistics}'
+                        AND yield_type = '{yield_type}'
                         AND feed = '{feed}'
                         AND feed_id = '{feed_name}';""".format(**kvals)
 

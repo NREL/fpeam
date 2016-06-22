@@ -478,7 +478,7 @@ class Driver:
 
         # post-process transportation/logistics
         # post-process data to obtain emissions from processing (processing, adv; processing, conv)
-        self.post_process_logistics()  # logistics (pre-processing)
+        self.post_process_logistics()  # logistics (pre-processing, i.e., at depot)
 
         # post-process data to obtain emissions from off-farm transportation (transporation, adv; transportation, conv)
         kvals = self.kvals
@@ -654,13 +654,12 @@ class Driver:
         :return:
         """
 
-        fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
-
         for run_code in self.run_codes:
             if not (run_code.startswith('SG') or run_code.startswith('MS')):
                 if not run_code.endswith('L'):
+                    fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
                     fug_dust.set_emissions(run_code=run_code)
-                    logger.info("On-Farm Fugitive Dust Emissions complete for %s" % (run_code, ))
+                    # logger.info("On-Farm Fugitive Dust Emissions complete for %s" % (run_code, ))
             elif run_code.startswith('SG'):
                 if not run_code.endswith('L'):
                     sgfug_dust = FugitiveDust.SG_FugitiveDust(cont=self.cont, run_code=run_code)
