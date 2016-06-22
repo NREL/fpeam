@@ -73,7 +73,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         if moves_by_crop is False:
             feed = 'all_crops'
 
-        self.kvals['end_moves_scen_id'] = "_{crop}_{year}_{month}_{day}".format(crop=feed,
+        self.kvals['end_moves_scen_id'] = "{crop}_{year}_{month}_{day}".format(crop=feed,
                                                                                 day=config.get('moves_timespan')['d'][0],
                                                                                 month=config.get('moves_timespan')['mo'][0],
                                                                                 year=self.kvals['year'])
@@ -152,7 +152,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
                 # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
 
-                query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
+                query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions)
                    SELECT      a.pollutantID
                              , c.sply_fips
                              , '{feed}'
@@ -164,7 +164,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                    LEFT JOIN {constants_schema}.averagespeed            b ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
                    LEFT JOIN {production_schema}.{transport_table}      c ON (a.state = c.state)
                    WHERE     a.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
-                     AND     c.feed_id                 = '{transport_feed_ID}'
+                     AND     c.feed_id                 = '{transport_feed_id}'
                      AND     a.pollutantID             = '{pollutantID}'
                      AND     a.state                   = '{state}'
                    GROUP BY    a.pollutantID
