@@ -117,41 +117,28 @@ class Fertilizer(SaveDataHelper.SaveDataHelper):
                     self.kvals['tillage_select'] = tillage
 
                 if self.kvals['n_column'].endswith('dt'):
-                    fert_query = """INSERT INTO {scenario_name}.{feed}_nfert
-                                     SELECT  feed.fips,
-                                             '{tillage}',
-                                             '{yr}',
-                                             feed.{tillage_name}_prod * nfert.n_app * {emissions_nox} AS NOX,
-                                             feed.{tillage_name}_prod * nfert.n_app * {emissions_nh3} AS NH3,
-                                             ({scc}) AS SCC,
-                                             '{description}' AS Description
-                                     FROM {production_schema}.{feed}_data feed
-                                     LEFT JOIN (SELECT fips, sum({n_column}) as n_app
-                                                FROM {production_schema}.{feed}_equip_fips
-                                                WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
-                                                GROUP BY fips) nfert
-                                     ON nfert.fips = feed.fips
-                                     WHERE feed.{tillage_name}_prod > 0
-                                     GROUP BY feed.fips;""".format(**self.kvals)
-                    self._execute_query(fert_query)
+                    self.kvals['amt_col'] = 'prod'
                 elif self.kvals['n_column'].endswith('ac'):
-                    fert_query = """INSERT INTO {scenario_name}.{feed}_nfert
-                                     SELECT  feed.fips,
-                                             '{tillage}',
-                                             '{yr}',
-                                             sum(feed.{tillage_name}_harv_ac * ifnull(nfert.n_app, 0) * {emissions_nox}) AS NOX,
-                                             sum(feed.{tillage_name}_harv_ac * ifnull(nfert.n_app, 0) * {emissions_nh3}) AS NH3,
-                                             ({scc}) AS SCC,
-                                             '{description}' AS Description
-                                     FROM {production_schema}.{feed}_data feed
-                                     LEFT JOIN (SELECT fips, sum({n_column}) as n_app, bdgt_id
-                                                FROM {production_schema}.{feed}_equip_fips
-                                                WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
-                                                GROUP BY fips, bdgt_id) nfert
-                                     ON nfert.fips = feed.fips AND nfert.bdgt_id = feed.bdgt
-                                     WHERE feed.{tillage_name}_prod > 0
-                                     GROUP BY feed.fips;""".format(**self.kvals)
-                    self._execute_query(fert_query)
+                    self.kvals['amt_col'] = 'harv_ac'
+
+                fert_query = """INSERT INTO {scenario_name}.{feed}_nfert
+                                 SELECT  feed.fips,
+                                         '{tillage}',
+                                         '{yr}',
+                                         SUM(feed.{tillage_name}_{amt_col} * ifnull(nfert.n_app, 0) * {emissions_nox}) AS NOX,
+                                         SUM(feed.{tillage_name}_{amt_col} * ifnull(nfert.n_app, 0) * {emissions_nh3}) AS NH3,
+                                         ({scc}) AS SCC,
+                                         '{description}' AS Description
+                                 FROM {production_schema}.{feed}_data feed
+                                 LEFT JOIN (SELECT fips, sum({n_column}) as n_app, bdgt_id
+                                            FROM {production_schema}.{feed}_equip_fips
+                                            WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
+                                            GROUP BY fips, bdgt_id) nfert
+                                 ON nfert.fips = feed.fips AND nfert.bdgt_id = feed.bdgt
+                                 WHERE feed.{tillage_name}_prod > 0
+                                 GROUP BY feed.fips;""".format(**self.kvals)
+
+                self._execute_query(fert_query)
 
     def set_fertilizer(self, feed):
         """
