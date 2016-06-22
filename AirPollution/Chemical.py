@@ -65,10 +65,10 @@ class Chemical(SaveDataHelper.SaveDataHelper):
                                      '{tillage}',
                                      '{yr}',
                                      (2461850051) AS SCC,
-                                     sum(feed.{tillage_name}_harv_ac * (ifnull(chem.pest_app, 0) * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
+                                     SUM(feed.{tillage_name}_harv_ac * (IFNULL(chem.pest_app, 0) * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
                                      'Pesticide Emissions' AS Description
                              FROM {production_schema}.{feed}_data feed
-                             LEFT JOIN (SELECT fips, sum(ifnull(herb_lbac, 0) + ifnull(insc_lbac, 0)) as pest_app, bdgt_id
+                             LEFT JOIN (SELECT fips, SUM(IFNULL(herb_lbac, 0) + IFNULL(insc_lbac, 0)) AS pest_app, bdgt_id
                                         FROM {production_schema}.{feed}_equip_fips
                                         WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
                                         GROUP BY fips, bdgt_id) chem
