@@ -138,7 +138,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         errors = dict()
 
         query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year};""".format(**self.kvals)
-
         state_list = self.db.output(query)[0]
 
         for state in state_list:
@@ -153,7 +152,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
                 # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
 
-                """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
+                query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
                    SELECT      a.pollutantID
                              , c.sply_fips
                              , '{feed}'
