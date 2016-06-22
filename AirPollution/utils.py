@@ -63,22 +63,6 @@ for config_fpath in config_fpaths:
     except (configobj.ConfigObjError, IOError), e:
         sys.exit('Error loading %s: %s' % (config_fpath, e))
 
-# # load database config
-# try:
-#     d_config = configobj.ConfigObj(dfile, file_error=True)
-# except (configobj.ConfigObjError, IOError), e:
-#     sys.exit(e)
-
-# try:
-#     s_config = configobj.ConfigObj(sfile, file_error=True)
-# except (configobj.ConfigObjError, IOError), e:
-#     sys.exit('e)
-
-# try:
-#     l_config = configobj.ConfigObj(lfile, file_error=True)
-# except (configobj.ConfigObjError, IOError), e:
-#     sys.exit('e)
-
 # merge configs
 for con in configs:
     try:
@@ -86,9 +70,8 @@ for con in configs:
     except configobj.ConfigObjError, e:
         sys.exit('Error combining config file: {c}: {e}'.format(c=con, e=e))
 
-# init config validator
-validator = validate.Validator()
 # validate config against cspec_file
+validator = validate.Validator()
 valid_config = config.validate(validator)
 
 # if errors in config, log and exit
