@@ -139,7 +139,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year};""".format(**self.kvals)
         state_list = self.db.output(query)[0]
-
+        state_list = (('01', ), )
         for state in state_list:
             # set state
             self.kvals['state'] = state[0]
@@ -152,14 +152,15 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
                 # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
 
-                query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions)
-                   SELECT      a.pollutantID
+                query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions, state)
+                   SELECT    '{pollutant_name}'
                              , c.sply_fips
                              , '{feed}'
                              , '{year}'
                              , '{logistics_type}'
                              , '{yield_type}'
                              , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty / {capacity} * ({vmt}) / {g_per_mt}
+                             , LEFT(c.sply_fips, 2)
                    FROM      {moves_output_db}.rateperdistance          a
                    LEFT JOIN {constants_schema}.averagespeed            b ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
                    LEFT JOIN {production_schema}.{transport_table}      c ON (a.state = c.state)

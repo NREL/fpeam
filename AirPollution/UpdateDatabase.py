@@ -74,13 +74,14 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                      run_emissions                  float,
                      start_hotel_emissions          float,
                      rest_evap_emissions            float DEFAULT 0,
-                     total_emissions                float
+                     total_emissions                float,
+                     state                          char(2)
                     )
                    ;""".format(**self.kvals)
 
         self._execute_query(query)
 
-        for col in ('fips', 'feedstock', 'yearID', 'pollutantID', 'yield_type', 'logistics_type'):
+        for col in ('fips', 'feedstock', 'yearID', 'pollutantID', 'yield_type', 'logistics_type', 'state'):
             sql = 'CREATE INDEX idx_transportation_{col} ON {scenario_name}.transportation ({col});'.format(col=col, **self.kvals)
             self.db.execute_sql(sql)
 
