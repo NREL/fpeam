@@ -210,7 +210,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                  WHERE feed_id = '{transport_feed_id}'
                                  GROUP BY sply_fips) c
                               ON a.fips = c.sply_fips
-                       SET start_hotel_emissions = (b.ratePerVehicle * c.used_qnty)
+                       SET start_hotel_emissions = (b.ratePerVehicle * c.used_qnty / {capacity} / {g_per_mt})
                        WHERE a.pollutantID = '{pollutant_name}'
                     ;""".format(**self.kvals)
 
@@ -228,7 +228,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             #                                                sply_fips = tr.fips
             #                                          GROUP BY td.sply_fips, td.feed_id, rv.MOVESScenarioID, rv.pollutatnID, rv.yearID)
             #                                          WHERE tr.pollutantID = '{pollutant_name}';""".format(**self.kvals)
-
 
             self.db.input(query)
 
