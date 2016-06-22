@@ -639,7 +639,7 @@ class Driver:
 
         if regional_crop_budget is True:
             for run_code in self.run_codes:
-                # only run for harvest activities associated with CG
+                # only run for non-harvest activities associated with CG
                 if run_code.startswith('CG') and run_code.endswith('N'):
                     comb.airplane_emission(run_code=run_code)
 

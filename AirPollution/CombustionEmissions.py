@@ -274,6 +274,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
             for i, pollutant in enumerate(pol_list):
                 kvals['ef_ton_per_ac'] = self.ef_crop_dust_dict[pollutant]
                 kvals['pollutant'] = pollutant
+                # @TODO: query_airplane will need to be revised to allow for equipment budgets outside region 13
                 if i == 0:
                     query_airplane = """ INSERT INTO {scenario_name}.{feed}_raw (fips, scc, hp, thc, co2, fuel_consumption, nh3, {pollutant}, description, run_code)
                                          SELECT cd.fips, 0, 0, 0, 0, 0, 0, cd.{tillage}_planted_ac * {ef_ton_per_ac} * {conv_ton_to_mt}, '{till_type} - Non-Harvest, aerial', '{run_code}'
