@@ -84,9 +84,9 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.transport_column = config.get('transport_column')
 
         # set the name of the transportation distance column depending on the logistics type
-        trans_col = self.transport_column[logistics_type]['dist']  # equals dist for conventional
+        trans_col = 'c.%s' % (self.transport_column[logistics_type]['dist'], )  # equals dist for conventional
         if logistics_type == 'A':
-            trans_col += '+ %s' % (self.transport_column[logistics_type]['dist_2'], )  # equals dist + dist_2 for advanced
+            trans_col += '+ c.%s' % (self.transport_column[logistics_type]['dist_2'], )  # two columns for advanced
 
         # set transportation column in kvals
         self.kvals['vmt'] = trans_col
@@ -96,67 +96,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         # open SQL connection and create cursor
         self.db = cont.get('db')
-
-    # def process_moves_data_state(self):
-    #
-    #     """
-    #     Post-process MOVES outputs to compute total combustion emissions from off-farm transport
-    #
-    #     Call function to compute total running emissions per trip
-    #     Call function to compute total start emissions per trip
-    #     Call function to compute total resting evaporative emissions per trip (currently zero)
-    #
-    #     Update transportation table with total emissions
-    #
-    #     :return:
-    #     """
-    #     logger.info('Post-processing MOVES output for feed={feed}, logistics={logistics_type}, yield type = {yield_type}'.format(**self.kvals))
-    #
-    #     query = """SELECT state
-    #                FROM   {constants_schema}.moves_statelevel_fips_list_{year}
-    #                ;""".format(**self.kvals)
-    #     state_list = self.db.output(query)
-    #
-    #     for state in state_list:
-    #         self.kvals['state'] = state
-    #
-    #         for key in self.pollutant_dict:
-    #             logger.info('Calculating running emissions for %s, state: %s' % (key, state))
-    #
-    #             # set pollutant name and ID
-    #             self.kvals['pollutant_name'] = key
-    #             self.kvals['pollutantID'] = self.pollutant_dict[key]
-    #
-    #             query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, number_trips, vmt_travelled_per_trip, run_emissions_per_trip )
-    #                        SELECT      '{pollutant_name}'                                                  AS pollutantID,
-    #                                    sply_fips                                                           AS fips,
-    #                                    '{feed}'                                                            AS feedstock,
-    #                                    yearID,                                                             AS yearID,
-    #                                    '{logistics_type}'                                                  AS logistics_type,
-    #                                    '{yield_type}'                                                      AS yield_type,
-    #                                    IFNULL(SUM(used_qnty / {capacity}), 0)                              AS number_trips,
-    #                                    {distance}                                                          AS vmt_travelled_per_trip,
-    #                                    SUM(avgSpeedFraction * ratePerDistance * ({distance}) / {g_per_mt}) AS run_emissions_per_trip
-    #                          FROM      {production_schema}.{transport_table} trans
-    #                          LEFT JOIN {constants_schema}.moves_statelevel_fips_list_{year} table3
-    #                                 ON LEFT(LPAD(trans.sply_fips, 5, '0'), 2) = table3.state
-    #                          LEFT JOIN moves_output_db.rateperdistance table1
-    #                                 ON table1.MOVESScenarioID = CONCAT(table3.fips, '_all_crops_{year}_{month}_{day}')
-    #                          LEFT JOIN fpeam.averageSpeed table2
-    #                                 ON (table1.hourID        = table2.hourID         AND
-    #                                     table1.dayID         = table2.dayID          AND
-    #                                     table1.roadTypeID    = table2.roadTypeID     AND
-    #                                     table1.avgSpeedBinID = table2.avgSpeedBinID
-    #                                    )
-    #                          WHERE     table1.pollutantID = {pollutantID}
-    #                            AND     table3.state = '{state}'
-    #                            AND     feed_id      = '{transport_feed_id}'
-    #                          GROUP BY  table1.yearID,
-    #                                    table1.pollutantID,
-    #                                    trans.sply_fips
-    #                        ;""".format(**self.kvals)
-    #
-    #             self.db.input(query)
 
     def process_moves_data(self):
         """
@@ -177,7 +116,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.calc_rest_evap_emissions()
 
         query = """UPDATE {scenario_name}.transportation
-                   SET    total_emissions = (CASE WHEN run_emissions = 0 THEN 0
+                   SET    total_emissions = (CASE WHEN run_emissions  = 0 THEN 0
                                                   WHEN run_emissions != 0 THEN (run_emissions + start_hotel_emissions + rest_evap_emissions)
                                              END)
                    WHERE  feedstock      = '{feed}'
@@ -198,9 +137,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         errors = dict()
 
-        query = """SELECT state
-                   FROM   {constants_schema}.moves_statelevel_fips_list_{year}
-                ;""".format(**self.kvals)
+        query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year};""".format(**self.kvals)
 
         state_list = self.db.output(query)[0]
 
@@ -214,73 +151,26 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 self.kvals['pollutant_name'] = key
                 self.kvals['pollutantID'] = self.pollutant_dict[key]
 
-                # query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
-                #            VALUES('{pollutant_name}',
-                #                   '{fips}',
-                #                   '{feed}',
-                #                   '{year}',
-                #                   '{logistics_type}',
-                #                   '{yield_type}',
-                #                   (SELECT    SUM(table1.ratePerDistance * table2.avgSpeedFraction * {vmt} / {g_per_mt}) AS run_emissions_per_trip
-                #                    FROM      {db_out}.rateperdistance table1
-                #                    LEFT JOIN {constants_schema}.averageSpeed table2
-                #                           ON (table1.hourID         = table2.hourID         AND
-                #                              table1.dayID           = table2.dayID          AND
-                #                              table1.roadTypeID      = table2.roadTypeID     AND
-                #                              table1.avgSpeedBinID   = table2.avgSpeedBinID)
-                #                    WHERE     table1.pollutantID     = {pollutantID}
-                #                      AND     table1.MOVESScenarioID = '{moves_scen_id}'
-                #                    GROUP BY  table1.yearID,
-                #                              table1.pollutantID
-                #                    )
-                #            );""".format(**self.kvals)
-
-                # @TODO: query needs to be parameterized and optimized
                 # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
-                # @TODO: finish replacing values from kvals and remove old query
 
-                # """SELECT
-                #              c.feed_id
-                #              , c.sply_fips
-                #              , a.pollutantID
-                #              , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty  / {capacity} * ({vmt}) / {g_per_mt}
-                #    FROM      {moves_output_db}.rateperdistance          a
-                #    LEFT JOIN {constants_schema}.averagespeed            b ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
-                #    LEFT JOIN {production_schema}.{transport_table}      c ON (a.state = c.state)
-                #    WHERE a.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
-                #      AND c.feed_id = '{transport_feed_ID}'
-                #      AND a.pollutantID = '{pollutantID}'
-                #      AND a.state = '{state}'
-                #    GROUP BY
-                #        a.pollutantID
-                #      , c.sply_fips
-                # ;""".format(**self.kvals)
-
-                query = """ INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions)
-                            SELECT      '{pollutant_name}',
-                                        td.sply_fips AS fips,
-                                        '{feed}',
-                                        '{year}',
-                                        '{logistics_type}',
-                                        '{yield_type}',
-                                        SUM(ast.avgSpeedFraction * rd.ratePerDistance * ({vmt}) / {g_per_mt} * td.used_qnty / {capacity}) AS run_emissions
-                            FROM 	    {db_out}.rateperdistance rd
-                            LEFT JOIN   {constants_schema}.averageSpeed ast
-                                   ON   ast.hourID = rd.hourID                                AND
-                                        ast.dayID = rd.dayID                                  AND
-                                        ast.roadTypeID = rd.roadTypeID                        AND
-                                        rd.avgSpeedBinID = ast.avgSpeedBinID
-                            LEFT JOIN  {production_schema}.{transport_table} td
-                                   ON  (LEFT(td.sply_fips, 2) = LEFT(rd.MOVESScenarioID, 2))
-                            WHERE 	   rd.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id}')
-                                                             FROM {constants_schema}.moves_statelevel_fips_list_{year}
-                                                             WHERE state = LEFT(td.sply_fips, 2))                      AND
-                                       rd.pollutantID = {pollutantID}                                                  AND
-                                       LEFT(td.sply_fips, 2) in ('{state}')                                                 AND  # this line should be removed if want to run for all states/fips
-                                       td.feed_id = '{transport_feed_id}'                                              AND
-                                       rd.yearID = '{year}'
-                            GROUP BY td.sply_fips, td.feed_id, rd.MOVESScenarioID, rd.yearID, rd.pollutantID;
-                        """.format(**self.kvals)
+                """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
+                   SELECT      a.pollutantID
+                             , c.sply_fips
+                             , '{feed}'
+                             , '{year}'
+                             , '{logistics_type}'
+                             , '{yield_type}'
+                             , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty / {capacity} * ({vmt}) / {g_per_mt}
+                   FROM      {moves_output_db}.rateperdistance          a
+                   LEFT JOIN {constants_schema}.averagespeed            b ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
+                   LEFT JOIN {production_schema}.{transport_table}      c ON (a.state = c.state)
+                   WHERE     a.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                     AND     c.feed_id                 = '{transport_feed_ID}'
+                     AND     a.pollutantID             = '{pollutantID}'
+                     AND     a.state                   = '{state}'
+                   GROUP BY    a.pollutantID
+                             , c.sply_fips
+                ;""".format(**self.kvals)
 
                 try:
                     self.db.input(query)
