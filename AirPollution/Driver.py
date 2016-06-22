@@ -569,7 +569,7 @@ class Driver:
                     fert.regional_fert(feed=feedstock, yr=yr)
                     logger.info('Fertilizer emissions complete for feed: %s, year: %s' % (feedstock, yr, ))
             else:
-                logger.warning('National crop budget for fertilizer is deprecated')
+                logger.warning('National crop budget for fertilizer is deprecated and not calculated')
                 # fert.set_fertilizer(feed=feedstock)
                 # logger.info('Using national crop budget for fertilizer')
                 # logger.info('Fertilizer emissions complete for feed: %s' % (feedstock, ))
@@ -595,9 +595,10 @@ class Driver:
                     chem.regional_chem(feed=feedstock, yr=yr)
                     logger.info('Chemical emissions complete for feed: %s, year: %s' % (feedstock, yr, ))
             else:
-                chem.set_chemical(feed=feedstock)
-                logger.info('Using national crop budget for chemicals')
-                logger.info('Chemical emissions complete for feed: %s' % (feedstock, ))
+                logger.warning('National crop budget for fertilizer is deprecated and not calculated')
+                # chem.set_chemical(feed=feedstock)
+                # logger.info('Using national crop budget for chemicals')
+                # logger.info('Chemical emissions complete for feed: %s' % (feedstock, ))
 
             # concatenate zeros for fips codes less than 5 characters in length
             self.concat_zeros('%s_chem' % (feedstock.lower(), ))
