@@ -155,20 +155,20 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions_per_trip)
                    SELECT      a.pollutantID
                              , c.sply_fips
-                             , '{feed}'
+                             , '{feed}'
                              , '{year}'
                              , '{logistics_type}'
                              , '{yield_type}'
                              , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty / {capacity} * ({vmt}) / {g_per_mt}
-                   FROM      {moves_output_db}.rateperdistance          a
-                   LEFT JOIN {constants_schema}.averagespeed            b ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
-                   LEFT JOIN {production_schema}.{transport_table}      c ON (a.state = c.state)
+                   FROM      {moves_output_db}.rateperdistance          a
+                   LEFT JOIN {constants_schema}.averagespeed            b ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
+                   LEFT JOIN {production_schema}.{transport_table}      c ON (a.state = c.state)
                    WHERE     a.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
-                     AND     c.feed_id                 = '{transport_feed_ID}'
-                     AND     a.pollutantID             = '{pollutantID}'
+                     AND     c.feed_id                 = '{transport_feed_ID}'
+                     AND     a.pollutantID             = '{pollutantID}'
                      AND     a.state                   = '{state}'
                    GROUP BY    a.pollutantID
-                             , c.sply_fips
+                             , c.sply_fips
                 ;""".format(**self.kvals)
 
                 try:
