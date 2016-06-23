@@ -139,7 +139,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
         query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year} ORDER BY state;""".format(**self.kvals)
         state_list = self.db.output(query)[0]
-        # for testing: state_list = (('01', ), ('19', ), )
+        # for testing:
+        state_list = (('01', ), ('19', ), )
         
         for state in state_list:
             # set state
@@ -295,6 +296,14 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         self.kvals['sLP'] = 0.045
         self.kvals['W'] = 3.2
         pm_list = ['PM10', 'PM25']
+        
+        # set distance limits for unpaved versus paved
+        if self.kvals['feed'] != 'fr':
+            self.kvals['dist1'] = 2
+            self.kvals['dist2'] = 50
+        else:
+            self.kvals['dist1'] = 10
+            self.kvals['dist2'] = 50
 
         for pm in pm_list:
             # set k_a and k_b values for correct pm type
@@ -314,35 +323,35 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                       '{pollutant_name}',
                                       '{logistics_type}',
                                       '{yield_type}',
-                                      ({c} * {k_a} * (uprsm_pct_silt / 12) ^ {a} * ({W} / 3) ^ {b}) * (CASE WHEN {dist} <= 2
+                                      ({c} * {k_a} * (uprsm_pct_silt / 12) ^ {a} * ({W} / 3) ^ {b}) * (CASE WHEN {dist} <= {dist1}
                                                                                                          THEN IFNULL(SUM(used_qnty / {capacity} * {dist}), 0)
                                                                                                          ELSE 0
                                                                                                          END
                                                                                                          +
-                                                                                                         CASE WHEN {dist} > 2
+                                                                                                         CASE WHEN {dist} > {dist1}
                                                                                                          THEN IFNULL(sum(used_qnty / {capacity} * 2), 0)
                                                                                                          ELSE 0
                                                                                                          END) AS unpaved_fd_emissions,
-                                      {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist} <= 2
+                                      {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist} <= {dist1}
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
                                                                                         ELSE 0
                                                                                         END
                                                                                         +
-                                                                                        CASE WHEN ({dist} > 2 AND {dist} <= 50)
+                                                                                        CASE WHEN ({dist} > 2 AND {dist} <= {dist2})
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * ({dist} - 2)), 0)
                                                                                         ELSE 0
                                                                                         END
                                                                                         +
                                                                                         CASE WHEN {dist} > 50
-                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * (50)), 0)
+                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * ({dist2})), 0)
                                                                                         ELSE 0
                                                                                         END) AS sec_paved_fd_emissions,
-                                      {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist}   <= 50
+                                      {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist}   <= {dist2}
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
                                                                                         ELSE 0
                                                                                         END
                                                                                         +
-                                                                                        CASE WHEN {dist} > 50
+                                                                                        CASE WHEN {dist} > {dist2}
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * ({dist} - 50)), 0)
                                                                                         ELSE 0
                                                                                         END) AS pri_paved_fd_emissions
