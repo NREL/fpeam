@@ -670,14 +670,14 @@ class FigurePlottingBT16:
                                 kvals['selection'] = """trans.feedstock  = '{feed}'
                                     AND       trans.pollutantID    = '{pollutant}'
                                     AND       trans.logistics_type = '{system}'
-                                    AND       trans.yield_type = '{yield}'
-                                    AND       trans.yearID = '{year}'""".format(**kvals)
+                                    AND       trans.yield_type     = '{yield}'
+                                    AND       trans.yearID         = '{year}'""".format(**kvals)
                                 logger.info('Inserting data {cat}, pollutant: {pollutant}'.format(**kvals))
                                 if i == 0:
                                     query += """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                                 SELECT feed_sox.fips,
                                                        '{year}',
-                                                       '{yield}',
+ti                                                     '{yield}',
                                                        '{tillage}',
                                                        feed_nox.nox,
                                                        feed_nh3.nh3,
@@ -711,19 +711,20 @@ class FigurePlottingBT16:
                                         query += """LEFT JOIN (SELECT pollutantID,
                                                                       trans.total_emissions/{reduction_factor} AS '{pollutant}_trans',
                                                                       trans.fips as 'fips'
-                                                    FROM {scenario_name}.transportation  trans
-                                                    WHERE 	{selection}) feed_{pollutant}
-                                                    ON feed_{pollutant}.fips = feed_sox.fips
+                                                                    FROM {scenario_name}.transportation  trans
+                                                                    WHERE 	{selection}) feed_{pollutant}
+                                                                    ON feed_{pollutant}.fips = feed_sox.fips
 
-                                                    LEFT JOIN (SELECT pollutantID,
-                                                                      fd.total_fd_emissions/{reduction_factor} AS '{pollutant}_fug',
-                                                                      fd.fips as 'fips'
-                                                    FROM {scenario_name}.fugitive_dust fd
-                                                    WHERE 		fd.feedstock  = '{feed}'
-                                                      AND       fd.pollutantID    = '{pollutant}'
-                                                      AND       fd.logistics_type = '{system}'
-                                                      AND       fd.yield_type = '{yield}'
-                                                      AND       fd.yearID = '{year}') feed_{pollutant}fd
+                                                                    LEFT JOIN (SELECT pollutantID,
+                                                                                      fd.total_fd_emissions / {reduction_factor} AS '{pollutant}_fug',
+                                                                                      fd.fips as 'fips'
+                                                                    FROM {scenario_name}.fugitive_dust fd
+                                                                    WHERE 		fd.feedstock      = '{feed}'
+                                                                      AND       fd.pollutantID    = '{pollutant}'
+                                                                      AND       fd.logistics_type = '{system}'
+                                                                      AND       fd.yield_type     = '{yield}'
+                                                                      AND       fd.yearID         = '{year}'
+                                                                      ) feed_{pollutant}fd
                                                     ON feed_{pollutant}fd.fips = feed_sox.fips
                                                 """.format(**kvals)
                         elif cat == 'Pre-processing':
@@ -740,10 +741,10 @@ class FigurePlottingBT16:
                                        '{cat}',
                                        'P' AS nei_category,
                                        '{feed}'
-                                FROM   (SELECT proc.fips AS fips,
-                                               sum(proc.voc_wood) / {reduction_factor} AS voc
-                                        FROM   {scenario_name}.processing proc
-                                        WHERE  {selection}
+                                FROM   (SELECT   proc.fips AS fips,
+                                                 SUM(proc.voc_wood) / {reduction_factor} AS voc
+                                        FROM     {scenario_name}.processing proc
+                                        WHERE    {selection}
                                         GROUP BY proc.fips
                                        ) feed_voc
                                 """.format(**kvals)
@@ -933,14 +934,14 @@ class FigurePlottingBT16:
                  'te_table': 'total_emissions_join_prod'  # @TODO: this is manually defined several places; consolidate
                  }
 
-        query_emissions_per_prod = """SELECT    sum({pollutant} / (prod)) AS mt_{pollutant}_perdt
-                                      FROM      {scenario_name}.{te_table}
-                                      WHERE     prod > 0.0
-                                        AND     feedstock = '{feedstock}'
-                                        AND     source_category not LIKE '%transport%'
-                                        AND     source_category not LIKE '%processing%'
-                                      GROUP BY  fips
-                                      ORDER BY  fips
+        query_emissions_per_prod = """SELECT   SUM({pollutant} / (prod)) AS mt_{pollutant}_perdt
+                                      FROM     {scenario_name}.{te_table}
+                                      WHERE    prod                   > 0.0
+                                        AND    feedstock              = '{feedstock}'
+                                        AND    source_category NOT LIKE '%transport%'
+                                        AND    source_category NOT LIKE '%processing%'
+                                      GROUP BY fips
+                                      ORDER BY fips
                                       ;""".format(**kvals)
         output = self.db.output(query_emissions_per_prod)
 
@@ -966,14 +967,14 @@ class FigurePlottingBT16:
                  'te_table': 'total_emissions_join_prod'  # @TODO: defined multiple places
                  }
 
-        query_emissions = """SELECT    sum({pollutant}) AS {pollutant}
-                             FROM      {scenario_name}.{te_table}
-                             WHERE     prod > 0.0
-                               AND     feedstock = '{feedstock}'
-                               AND     source_category not LIKE '%transport%'
-                               AND     source_category not LIKE '%processing%'
-                             GROUP BY  fips
-                             ORDER BY  fips
+        query_emissions = """SELECT   SUM({pollutant}) AS {pollutant}
+                             FROM     {scenario_name}.{te_table}
+                             WHERE    prod > 0.0
+                               AND    feedstock = '{feedstock}'
+                               AND    source_category NOT LIKE '%transport%'
+                               AND    source_category NOT LIKE '%processing%'
+                             GROUP BY fips
+                             ORDER BY fips
                              ;""".format(**kvals)
 
         output = self.db.output(query_emissions)
@@ -1001,12 +1002,13 @@ class FigurePlottingBT16:
                 act_dict = dict()
                 for act_num, activity in enumerate(self.act_list):
                     kvals['cond'] = condition_list[activity]
-                    query = """ SELECT    sum({pollutant}/total_{pollutant})
-                                FROM      {scenario_name}.{te_table}
-                                WHERE     {cond} AND
-                                          feedstock          = '{feed}'  AND
-                                          total_{pollutant}      > 0 AND prod > 0
-                                GROUP BY  fips
+                    query = """ SELECT   SUM({pollutant} / total_{pollutant})
+                                FROM     {scenario_name}.{te_table}
+                                WHERE    {cond}
+                                  AND    feedstock         = '{feed}'
+                                  AND    total_{pollutant} > 0
+                                  AND    prod              > 0
+                                GROUP BY fips
                                 """.format(**kvals)
 
                     output = self.db.output(query)
