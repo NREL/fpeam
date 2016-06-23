@@ -283,16 +283,15 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         logger.info('Calculating fugitive dust emissions for feed: {feed}, logistics: {logistics_type}, yield type: {yield_type}'.format(**self.kvals))
 
         k_a = dict()
-        k_a['PM10'] = 1.5
-        k_a['PM25'] = 0.15
+        k_a['PM10'] = 1.5  # units of lb per vmt
+        k_a['PM25'] = 0.15  # units of lb per vmt
 
         k_b = dict()
-        k_b['PM10'] = 0.0022
-        k_b['PM25'] = 0.00054
+        k_b['PM10'] = 0.0022  # units of lb per vmt
+        k_b['PM25'] = 0.00054  # units of lb per vmt
         self.kvals['a'] = 0.9
         self.kvals['b'] = 0.45
-        self.kvals['c'] = 0.000453592  # @TODO: check to make sure c is used in the final fugitive dust equations (currently missing from chapter documentation)
-        self.kvals['sLS'] = 0.4
+        self.kvals['lb_to_mt'] = 0.000453592  # convert lb to metric ton        self.kvals['sLS'] = 0.4
         self.kvals['sLP'] = 0.045
         self.kvals['W'] = 3.2
         pm_list = ['PM10', 'PM25']
@@ -323,7 +322,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                       '{pollutant_name}',
                                       '{logistics_type}',
                                       '{yield_type}',
-                                      ({c} * {k_a} * (uprsm_pct_silt / 12) ^ {a} * ({W} / 3) ^ {b}) * (CASE WHEN {dist} <= {dist1}
+                                      ({lb_to_mt} * {k_a} * (uprsm_pct_silt / 12) ^ {a} * ({W} / 3) ^ {b}) * (CASE WHEN {dist} <= {dist1}
                                                                                                          THEN IFNULL(SUM(used_qnty / {capacity} * {dist}), 0)
                                                                                                          ELSE 0
                                                                                                          END
@@ -332,7 +331,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                                                                                          THEN IFNULL(sum(used_qnty / {capacity} * 2), 0)
                                                                                                          ELSE 0
                                                                                                          END) AS unpaved_fd_emissions,
-                                      {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist} <= {dist1}
+                                      {lb_to_mt} * {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 * (CASE WHEN {dist} <= {dist1}
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
                                                                                         ELSE 0
                                                                                         END
@@ -346,7 +345,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * ({dist2})), 0)
                                                                                         ELSE 0
                                                                                         END) AS sec_paved_fd_emissions,
-                                      {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * (CASE WHEN {dist}   <= {dist2}
+                                      {lb_to_mt} * k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 * (CASE WHEN {dist}   <= {dist2}
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
                                                                                         ELSE 0
                                                                                         END
