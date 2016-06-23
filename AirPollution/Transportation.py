@@ -291,14 +291,14 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         k_b['PM25'] = 0.00054
         self.kvals['a'] = 0.9
         self.kvals['b'] = 0.45
-        self.kvals['c'] = 0.000453592
+        self.kvals['c'] = 0.000453592  # @TODO: check to make sure c is used in the final fugitive dust equations (currently missing from chapter documentation)
         self.kvals['sLS'] = 0.4
         self.kvals['sLP'] = 0.045
         self.kvals['W'] = 3.2
         pm_list = ['PM10', 'PM25']
         
         # set distance limits for unpaved versus paved
-        if self.kvals['feed'] != 'fr':
+        if not self.kvals['feed'].startswith('f'):
             self.kvals['dist1'] = 2
             self.kvals['dist2'] = 50
         else:
