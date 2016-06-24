@@ -677,7 +677,7 @@ class FigurePlottingBT16:
                                     query += """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                                 SELECT feed_sox.fips,
                                                        '{year}',
-ti                                                     '{yield}',
+                                                       '{yield}',
                                                        '{tillage}',
                                                        feed_nox.nox,
                                                        feed_nh3.nh3,
