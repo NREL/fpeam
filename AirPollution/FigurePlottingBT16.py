@@ -1048,8 +1048,10 @@ class FigurePlottingBT16:
                     emissions = emissions_per_activity[feedstock][pollutant][activity]
 
                     if not emissions:
-                        logger.warning('No data found for %s, %s, %s' % (feedstock, pollutant, activity))
+                        logger.warning('No data found for %s, %s, %s' % (pollutant, activity, feedstock))
                         break
+                    else:
+                        logger.info('Plotting data for %s, %s, %s' % (pollutant, activity, feedstock))
 
                     # mean_val = mean(emissions)
                     med_val = median(emissions)
