@@ -166,7 +166,7 @@ class ScenarioOptions:
             if self.run_code.startswith('SG') or self.run_code.startswith('MS'):
                 self.kvals['activity'] = self.run_code[3]
                 if len(self.run_code) > 5:
-                    self.kvals['budget_year'] = self.run_code[4:5]
+                    self.kvals['budget_year'] = self.run_code[4:6]
                 else:
                     self.kvals['budget_year'] = self.run_code[4]
             else:
