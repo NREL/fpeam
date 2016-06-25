@@ -216,21 +216,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                        WHERE a.pollutantID = '{pollutant_name}'
                     ;""".format(**self.kvals)
 
-            # query = """UPDATE {scenario_name}.transportation tr
-            #            SET start_hotel_emissions = (SELECT SUM(rv.ratePerVehicle * td.used_qnty / {capacity} / {g_per_mt}) as hotel_emissions
-            #                                          FROM    {db_out}.ratepervehicle rv
-            #                                          LEFT JOIN {production_schema}.{transport_table} td
-            #                                                 ON LEFT(td.sply_fips, 2) = LEFT(rv.MOVESScenarioID, 2)
-            #                                          WHERE rv.MOVESScenarioID = (SELECT CONCAT(fips, '{end_moves_scen_id}')
-            #                                                                      FROM {constants_schema}.moves_statelevel_fips_list_{year}
-            #                                                                      WHERE state = LEFT(td.sply_fips, 2))                        AND
-            #                                                rv.pollutantID = {pollutantID}                                                    AND
-            #                                                td.feed_id = '{transport_feed_id}'                                                AND
-            #                                                rv.yearID = '{year}'                                                              AND
-            #                                                sply_fips = tr.fips
-            #                                          GROUP BY td.sply_fips, td.feed_id, rv.MOVESScenarioID, rv.pollutatnID, rv.yearID)
-            #                                          WHERE tr.pollutantID = '{pollutant_name}';""".format(**self.kvals)
-
             try:
                 self.db.input(query)
             except Exception, e:
@@ -291,7 +276,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         k_b['PM25'] = 0.00054  # units of lb per vmt
         self.kvals['a'] = 0.9
         self.kvals['b'] = 0.45
-        self.kvals['lb_to_mt'] = 0.000453592  # convert lb to metric ton        self.kvals['sLS'] = 0.4
+        self.kvals['lb_to_mt'] = 0.000453592  # convert lb to metric ton
+        self.kvals['sLS'] = 0.4
         self.kvals['sLP'] = 0.045
         self.kvals['W'] = 3.2
         pm_list = ['PM10', 'PM25']
@@ -345,7 +331,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * ({dist2})), 0)
                                                                                         ELSE 0
                                                                                         END) AS sec_paved_fd_emissions,
-                                      {lb_to_mt} * k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 * (CASE WHEN {dist}   <= {dist2}
+                                      {lb_to_mt} * {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 * (CASE WHEN {dist}   <= {dist2}
                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
                                                                                         ELSE 0
                                                                                         END
@@ -361,49 +347,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                          ;""".format(**self.kvals)
 
             self.db.input(query_fd)
-
-            # # fugitive dust emissions from secondary and primary paved roads
-            # query_sp = """UPDATE {scenario_name}.fugitive_dust
-            #               SET    sec_paved_fd_emissions = (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * 0), 0)
-            #                                                FROM   {production_schema}.{transport_table}
-            #                                                WHERE  sply_fips = {fips}
-            #                                                  AND  feed_id   = '{transport_feed_id}'
-            #                                                  AND  {dist}   <= 2
-            #                                               ) +
-            #                                               (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * ({dist} - 2)), 0)
-            #                                                FROM   {production_schema}.{transport_table}
-            #                                                WHERE  sply_fips = {fips}
-            #                                                  AND feed_id    = '{transport_feed_id}'
-            #                                                  AND {dist}     > 2
-            #                                                  AND {dist}    <= 50
-            #                                               ) +
-            #                                               (SELECT {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * (50)), 0)
-            #                                                FROM   {production_schema}.{transport_table}
-            #                                                WHERE  sply_fips = {fips}
-            #                                                  AND feed_id    = '{transport_feed_id}'
-            #                                                  AND {dist}     > 50
-            #                                               ),
-            #                      pri_paved_fd_emissions = (SELECT {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * 0), 0)
-            #                                                FROM {production_schema}.{transport_table}
-            #                                                WHERE sply_fips = {fips}
-            #                                                  AND feed_id   = '{transport_feed_id}'
-            #                                                  AND {dist}   <= 50
-            #                                               ) +
-            #                                               (SELECT {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 / {g_per_mt} * IFNULL(SUM(used_qnty / {capacity} * ({dist} - 50)), 0)
-            #                                                FROM   {production_schema}.{transport_table}
-            #                                                WHERE  sply_fips = {fips}
-            #                                                  AND  feed_id   = '{transport_feed_id}'
-            #                                                  AND  {dist}    > 50
-            #                                               )
-            #               WHERE  fips           = '{fips}'
-            #                 AND  feedstock      = '{feed}'
-            #                 AND  yearID         = '{year}'
-            #                 AND  pollutantID    = '{pollutant_name}'
-            #                 AND  logistics_type = '{logistics_type}'
-            #                 AND  yield_type     = '{yield_type}'
-            #               ;""".format(**self.kvals)
-            #
-            # self.db.input(query_sp)
 
             query_sum = """UPDATE {scenario_name}.fugitive_dust
                            SET    total_fd_emissions = sec_paved_fd_emissions + unpaved_fd_emissions + pri_paved_fd_emissions

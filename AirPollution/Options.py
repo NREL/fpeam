@@ -95,7 +95,7 @@ class ScenarioOptions:
 
     def _get_prod_data(self, query):
         """
-        Execute sql statment and return results
+        Execute sql statement and return results
 
         :param query: query to extract data
         :return: list of result rows
@@ -106,14 +106,12 @@ class ScenarioOptions:
         """
         query database for appropriate production data based on run_code
 
-        :param run_code: current run code to know what data to query from the db
+        :param run_code: STRING current run code to know what data to query from the db
         :param regional_crop_budget: BOOLEAN process as regional data
-        :return: query to be executed
-
-        @attention: propbably do not need to be querying the state from county_attributes, maybe remove later.
+        :return: STRING query to be executed
         """
 
-        query = None  # must return, in order: county FIPS, state fips, harvested acreage by <tillage>, production by <tillage>, hours_per_year, hp, equipment_type
+        query = None  # must return, in order: county FIPS, state fips, harvested acreage for <tillage>, production for <tillage>, hours_per_year, hp, equipment_type
 
         # create tillage dictionary
         till_dict = {'C': 'convtill', 'R': 'reducedtill', 'N': 'notill'}
@@ -133,13 +131,24 @@ class ScenarioOptions:
             # set fuel type
             self.kvals['fuel_type'] = fuel_types[run_code[-1]]
 
-            # create query for irriation data
-            query = '''SELECT ca.fips, ca.st, dat.total_harv_ac * irr.perc AS acres, dat.total_prod, irr.fuel, irr.hp, irr.perc, irr.hpa
+            # create query for irrigation data
+            query = '''SELECT      ca.fips
+                                 , ca.st
+                                 , dat.total_harv_ac * irr.perc AS acres
+                                 , dat.total_prod
+                                 , irr.fuel
+                                 , irr.hp
+                                 , irr.perc
+                                 , irr.hpa
                        FROM      {constants_schema}.county_attributes ca
-                       LEFT JOIN {production_schema}.{feed_table} dat ON ca.fips = dat.fips
-                       LEFT JOIN (SELECT state, fuel, hp, percent AS perc, hrsperacre AS hpa
-                                  FROM {constants_schema}.cg_irrigated_states
-                                  WHERE cg_irrigated_states.fuel LIKE '{fuel_type}'
+                       LEFT JOIN {production_schema}.{feed_table}     dat ON ca.fips = dat.fips
+                       LEFT JOIN (SELECT   state
+                                         , fuel
+                                         , hp
+                                         , percent    AS perc
+                                         , hrsperacre AS hpa
+                                  FROM   {constants_schema}.cg_irrigated_states
+                                  WHERE  cg_irrigated_states.fuel LIKE '{fuel_type}'
                                  ) irr
                            ON irr.state LIKE ca.st
                        WHERE ca.st LIKE irr.state
@@ -153,7 +162,7 @@ class ScenarioOptions:
                     self.kvals['tillage'] = 'CT'  # reduced tillage equipment is the same as conventional tillage for equipment budgets
                     self.kvals['till_type'] = 'reducedtill'  # till type is for production data so this remains reduced till
                 else:
-                    self.kvals['tillage'] = '%sT' % (self.run_code[3])
+                    self.kvals['tillage'] = '%sT' % (self.run_code[3], )
                     self.kvals['till_type'] = till_dict[run_code[3]]
             elif self.run_code.startswith('SG'):
                 self.kvals['till_type'] = 'notill'
@@ -162,6 +171,8 @@ class ScenarioOptions:
                 self.kvals['till_type'] = 'convtill'
                 self.kvals['tillage'] = 'CT'
 
+            # @TODO: rewrite run_code parsing; at least MS loading data is not parsed correctly
+            # @TODO: even if parsed well, source tables are not loaded with loading data because loading data is not included in agricultural crop budgets (and is subsumed as harvest in forestry)
             # set operation type and activity type from run code
             if self.run_code.startswith('SG') or self.run_code.startswith('MS'):
                 self.kvals['activity'] = self.run_code[3]
@@ -175,15 +186,26 @@ class ScenarioOptions:
 
             if regional_crop_budget is True:
                 # make sql for regional crop budget queries
-                query = '''SELECT fe.fips, ca.st, {till_type}_harv_ac, {till_type}_prod, equip_type, hp, SUM(IFNULL(activity_rate_hrperac*{till_type}_harv_ac, activity_rate_hrperdt*{till_type}_prod)) AS hrs_per_year
-                           FROM {production_schema}.{feed}_equip_fips fe
-                           LEFT JOIN {constants_schema}.county_attributes ca ON ca.fips = fe.fips
-                           LEFT JOIN {production_schema}.{feed_table} fd ON (fe.fips = fd.fips AND fe.bdgt_id = fd.bdgt)
-                           WHERE bdgtyr = '{budget_year}' AND tillage = '{tillage}' AND activity LIKE '{activity}%'  AND equip_type != 'NULL' AND {till_type}_prod > 0
-                           GROUP BY fips, activity, tillage, bdgtyr, equip_type, hp
+                query = '''
+                           SELECT   fe.fips
+                                  , ca.st
+                                  , fd.{till_type}_harv_ac
+                                  , fd.{till_type}_prod
+                                  , fe.equip_type
+                                  , fe.hp
+                                  , SUM(IFNULL(fe.activity_rate_hrperac * fd.{till_type}_harv_ac, fe.activity_rate_hrperdt * fd.{till_type}_prod)) AS hrs_per_year
+                           FROM      {production_schema}.{feed}_equip_fips fe
+                           LEFT JOIN {constants_schema}.county_attributes  ca ON  ca.fips = fe.fips
+                           LEFT JOIN {production_schema}.{feed_table}      fd ON (fe.fips = fd.fips AND fe.bdgt_id = fd.bdgt)
+                           WHERE fe.bdgtyr              = '{budget_year}'
+                             AND fe.tillage             = '{tillage}'
+                             AND fe.activity         LIKE '{activity}%'
+                             AND fe.equip_type         != 'NULL'
+                             AND fd.{till_type}_prod    > 0
+                           GROUP BY fe.fips, fe.activity, fe.tillage, fe.bdgtyr, fe.equip_type, fe.hp
                         ;'''.format(**self.kvals)
             else:
-                raise NotImplementedError('Non-regional crop budgets are depcrecated')
+                raise NotImplementedError('Non-regional crop budgets are deprecated')
                 # create query for production data
                 # if not (run_code.startswith('SG') or run_code.startswith('MS')) or (self.query_sg is True or self.query_ms is True):
                 #     query = '''SELECT ca.fips, ca.st, dat.{till_type}_harv_ac, dat.{till_type}_prod, dat.{till_type}_yield, dat.bdgt
