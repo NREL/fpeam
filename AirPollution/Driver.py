@@ -207,7 +207,7 @@ class Driver:
                     # new population object created for each run_code, where Pop is the abstract class and .<type> is the concrete class
                     if run_code.startswith('CG_I'):
                         pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                    elif run_code.endswith('L'):
+                    elif run_code[3] == 'L':
                         pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
                     elif run_code.startswith('SG'):
                         pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
@@ -224,8 +224,8 @@ class Driver:
                     if run_code.startswith('CG_I'):
                         pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
                     # get loading equipment if run code ends with L (except for forestry because loading equipment is included in the crop budget)
-                    elif run_code.endswith('L') and not run_code.startswith('F'):
-                        pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    # elif run_code[3] == 'L' and not run_code.startswith('F'):
+                    #     pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
                     # for all other run codes, use regional crop budgets
                     else:
                         pop = Pop.RegionalEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
@@ -656,16 +656,16 @@ class Driver:
 
         for run_code in self.run_codes:
             if not (run_code.startswith('SG') or run_code.startswith('MS')):
-                if not run_code.endswith('L'):
+                if not run_code[3] == 'L':
                     fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
                     fug_dust.set_emissions(run_code=run_code)
                     # logger.info("On-Farm Fugitive Dust Emissions complete for %s" % (run_code, ))
             elif run_code.startswith('SG'):
-                if not run_code.endswith('L'):
+                if not run_code[3] == 'L':
                     sgfug_dust = FugitiveDust.SG_FugitiveDust(cont=self.cont, run_code=run_code)
                     sgfug_dust.set_emissions()
             elif run_code.startswith('MS'):
-                if not run_code.endswith('L'):
+                if not run_code[3] == 'L':
                     msfug_dust = FugitiveDust.MSFugitiveDust(cont=self.cont, run_code=run_code)
                     msfug_dust.set_emissions()
 
