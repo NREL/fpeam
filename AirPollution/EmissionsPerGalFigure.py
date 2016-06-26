@@ -17,7 +17,7 @@ class EmissionsPerGallon():
     Saved as Figures/PerGalEtOH_'+pollutant+'.png
     Each graph has the total amount of air pollutants for each feedstock.
     X-axis: feedstock
-    Y-axis: pollutant emmisions per gallon.
+    Y-axis: pollutant emissions per gallon.
     """
 
     def __init__(self, cont):
@@ -86,21 +86,21 @@ class EmissionsPerGallon():
         data = []
         for fNum, feedstock in enumerate(feedstock_list):
             # query_table = summedemissions
-            # emmisions = (pollutant mt) / ( (feed stock dt) * (gallons / feed stock lb) )
-            # emmisions = (pollutant mt / gallons)
+            # emissions = (pollutant mt) / ( (feed stock dt) * (gallons / feed stock lb) )
+            # emissions = (pollutant mt / gallons)
             # SELECT (%s) / (prod * %s * 1e-6) FROM %s.%s WHERE prod > 0.0 AND feedstock ilike '%s';
             # % (pollutant, etoh_vals[fNum], self.db.schema, query_table, feedstock)
             # 
-            # emmissions per acre = (pollutant lbs) / (total acres)
-            # emmissions = pollutant / harv_ac
+            # emissions per acre = (pollutant lbs) / (total acres)
+            # emissions = pollutant / harv_ac
             # SELECT (%s) / (harv_ac) FROM %s.%s WHERE harv_ac > 0.0 AND feedstock ilike '%s';
             # % (pollutant,  self.db.schema, query_table, feedstock)
             
             query = """
                     SELECT (%s) / (prod * %s * 1e-6) FROM %s.%s WHERE prod > 0.0 AND feedstock LIKE '%s';
                     """ % (pollutant, etoh_vals[fNum], self.db.schema, query_table, feedstock)
-            emmisions = self.db.output(query)
-            data.append(emmisions)
+            emissions = self.db.output(query)
+            data.append(emissions)
 
         self.__write_data__(data, feedstock_list, pollutant)
 

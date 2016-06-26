@@ -76,8 +76,8 @@ class EmissionPerProdFigure(object):
         data = []
         for fNum, feedstock in enumerate(feedstock_list):
 
-            # emmissions per production = (pollutant dt) / (total feedstock harvested dt)
-            # emmissions = pollutant / prod
+            # emissions per production = (pollutant dt) / (total feedstock harvested dt)
+            # emissions = pollutant / prod
             # @TODO: Should harv_ac > 0.0 be here? Should this be in the Options class to eliminate the problem in the first place.
 
             feed_abr = f_list[fNum]
@@ -95,8 +95,8 @@ class EmissionPerProdFigure(object):
                     ) fug ON fug.fips = s.fips
                 WHERE s.feedstock LIKE '%""" + feedstock + """%' AND s.prod > 0.0 AND fug.description IS NOT NULL
                     """
-            emmisions = self.db.output(query, )
-            data.append(emmisions)
+            emissions = self.db.output(query, )
+            data.append(emissions)
 
         return data
 

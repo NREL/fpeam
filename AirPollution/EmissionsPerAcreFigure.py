@@ -19,7 +19,7 @@ class EmissionsPerAcreFigure():
     Saved as Figures/EmissionsPerAcre_'+pollutant+'.png
     Each graph has the total amount of air pollutants for each feedstock.
     X-axis: feedstock
-    Y-axis: pollutant emmisions per acre.
+    Y-axis: pollutant emissions per acre.
     """
 
     def __init__(self, cont):
@@ -86,15 +86,15 @@ class EmissionsPerAcreFigure():
         data = []
         for fNum, feedstock in enumerate(feedstock_list):
 
-            # emmissions per acre = (pollutant mt) / (total acres)
-            # emmissions = pollutant / harv_ac
+            # emissions per acre = (pollutant mt) / (total acres)
+            # emissions = pollutant / harv_ac
             # @TODO: Should harv_ac > 0.0 be here? Should this be in the Options class to eliminate the problem in the first place?
 
             query = """
                     SELECT (%s) / (harv_ac) FROM %s.%s WHERE harv_ac > 0.0 AND feedstock LIKE '%s';
                     """ % (pollutant, self.db.schema, query_table, feedstock)
-            emmisions = self.db.output(query)
-            data.append(emmisions)
+            emissions = self.db.output(query)
+            data.append(emissions)
 
         return data
 

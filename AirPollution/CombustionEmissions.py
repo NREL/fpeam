@@ -140,7 +140,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                                 voc = thc * self.voc_conversion
                                 nh3 = fuel_cons * self.lhv * self.nh3_ef / 1e6  # gal * mmBTU/gal * gnh3/mmBTU = g nh3
 
-                                # allocate non harvest emmisions from cg to cs and ws.
+                                # allocate non harvest emissions from cg to cs and ws.
                                 if operation and operation[0] == 'N' and feedstock == 'CG' and self.regional_crop_budget is False:
                                     # add to cs.
                                     if self.operation_dict['CS'][operation[0]] and self.alloc['CS'] != 0:

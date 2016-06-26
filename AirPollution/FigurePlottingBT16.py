@@ -236,7 +236,9 @@ class FigurePlottingBT16:
 
                     # drop old table and create new table
                     sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n"
-                    sql += "CREATE TABLE           {scenario_name}.{new_table} AS\n"
+                    self.db.execute_sql(sql)
+
+                    sql = "CREATE TABLE           {scenario_name}.{new_table} AS\n"
             else:
                 # insert data
                 sql = "INSERT INTO {scenario_name}.{new_table}\n"
@@ -316,8 +318,9 @@ class FigurePlottingBT16:
                     # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['table'])
 
                     # drop old table and create new table
-                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n"
-                    sql += "CREATE TABLE           {scenario_name}.{table} AS\n"
+                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{table};\n".format(**kvals)
+                    self.db.execute_sql(sql)
+                    sql = "CREATE TABLE           {scenario_name}.{table} AS\n"
                 else:
                     # insert data
                     sql = "INSERT INTO {scenario_name}.{table}\n"
@@ -686,12 +689,12 @@ class FigurePlottingBT16:
                                     AND       trans.logistics_type = '{system}'
                                     AND       trans.yield_type     = '{yield}'
                                     AND       trans.yearID         = '{year}'""".format(**kvals)
-                                logger.info('Inserting data {cat}, pollutant: {pollutant}'.format(**kvals))
+                                logger.info('Inserting data for {cat}, {tillage}, {pollutant}'.format(**kvals))
                                 if i == 0:
                                     query += """INSERT INTO {scenario_name}.{te_table} (fips, year, yield, tillage, nox, nh3, voc, pm10, pm25, sox, co, source_category, nei_category, feedstock)
                                                 SELECT feed_sox.fips,
                                                        '{year}',
-                                                       '{yield}'
+                                                       '{yield}',
                                                        '{tillage}',
                                                        feed_nox.nox,
                                                        feed_nh3.nh3,

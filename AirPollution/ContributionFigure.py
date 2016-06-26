@@ -3,7 +3,7 @@ Creates a figure that represents the percentage of emmission contributions
 for each pollutnant.
 Makes figure. Saved to Figures/Contribution_Figure.png.
 X-axis: Feedsotcks.
-Y-axis: Amount of air pollutant emmisions. 0-1, for percentage.
+Y-axis: Amount of air pollutant emissions. 0-1, for percentage.
 Columns: All the different air emmission pollutants .
 Rows: Type of operation. (harvest, non-harvest, transport, fertilizers, pesticides.)
 """

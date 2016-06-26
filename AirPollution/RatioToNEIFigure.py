@@ -3,7 +3,7 @@ Determines the number of counties with unhealthy amounts of air pollutants.
 Has lines on the graph indicating what percentage of air pollutants would be bad.
 Saved as Figures/RatioToNEI_'+query_table+'.png.
 X-axis: Air pollutants.
-Y-axis: Ratio of feed stock emmisions to the NEI collected emmision invetory.
+Y-axis: Ratio of feed stock emissions to the NEI collected emmision invetory.
 """
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas

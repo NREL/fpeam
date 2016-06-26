@@ -65,10 +65,10 @@ class Chemical(SaveDataHelper.SaveDataHelper):
                                      '{tillage}',
                                      '{yr}',
                                      (2461850051) AS SCC,
-                                     SUM(feed.{tillage_name}_harv_ac * (IFNULL(chem.pest_app, 0) * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
+                                     sum(feed.{tillage_name}_harv_ac * (ifnull(chem.pest_app, 0) * 0.9 * 0.835) * 0.907018474 / 2000.0) AS VOC,
                                      'Pesticide Emissions' AS Description
                              FROM {production_schema}.{feed}_data feed
-                             LEFT JOIN (SELECT fips, SUM(IFNULL(herb_lbac, 0) + IFNULL(insc_lbac, 0)) AS pest_app, bdgt_id
+                             LEFT JOIN (SELECT fips, sum(ifnull(herb_lbac, 0) + ifnull(insc_lbac, 0)) as pest_app, bdgt_id
                                         FROM {production_schema}.{feed}_equip_fips
                                         WHERE tillage = '{tillage_select}' AND bdgtyr = '{yr}'
                                         GROUP BY fips, bdgt_id) chem
@@ -79,7 +79,7 @@ class Chemical(SaveDataHelper.SaveDataHelper):
 
     def set_chemical(self, feed):
         """
-        Find the feedstock and add emmissions if it is switch grass or corn grain.
+        Find the feedstock and add emissions if it is switch grass or corn grain.
 
         :param feed: Feedstock
         :return:
@@ -98,8 +98,8 @@ class Chemical(SaveDataHelper.SaveDataHelper):
 
     def __corn_grain__(self):
         """
-        emmisions = harvested acres * lbs/acre * Evaporation rate * VOC content (lbs VOC / lb active ingridient) * conversion from lbs to mt.
-        emmisions = total VOC emmisions (lbs VOC).
+        emissions = harvested acres * lbs/acre * Evaporation rate * VOC content (lbs VOC / lb active ingridient) * conversion from lbs to mt.
+        emissions = total VOC emissions (lbs VOC).
         total_harv_ac = total harvested acres. (acres)
         pest.EF = lbs VOC/acre.
         .9 =  evaporation rate. (lbs active/lbs VOC)
@@ -134,8 +134,8 @@ class Chemical(SaveDataHelper.SaveDataHelper):
         """
         Recieves several different fertilizers: Quinclorac, Attrazine, 2 and 4-D-Amine
         Multiply by .1 b/c it is switch grass on a ten year cycle.
-        emmisions = .1 * harvested acres * lbs/acre * Evaporation rate * VOC content (lbs VOC / lb active ingridient) * conversion lbs to mt  VOC
-        emmisions (mt VOC)
+        emissions = .1 * harvested acres * lbs/acre * Evaporation rate * VOC content (lbs VOC / lb active ingridient) * conversion lbs to mt  VOC
+        emissions (mt VOC)
 
         :return: SQL
         """
