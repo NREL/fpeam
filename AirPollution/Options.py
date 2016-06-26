@@ -294,13 +294,13 @@ class NROptionFile:
         run_code = self.run_code
 
         # run_code SG_*10, not working correctly.
-        if run_code.endswith('0'):
-            # remove the last character.
-            run_code = run_code[:-1]
-            # change the number from 1 to 9
-            split = list(run_code)
-            split[-1] = '9'
-            run_code = "".join(split)
+        # if run_code.endswith('0'):
+        #     # remove the last character.
+        #     run_code = run_code[:-1]
+        #     # change the number from 1 to 9
+        #     split = list(run_code)
+        #     split[-1] = '9'
+        #     run_code = "".join(split)
 
         self._add_opt(fips, run_code)
 
