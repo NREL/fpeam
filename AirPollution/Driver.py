@@ -224,8 +224,8 @@ class Driver:
                     if run_code.startswith('CG_I'):
                         pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
                     # get loading equipment if run code ends with L (except for forestry because loading equipment is included in the crop budget)
-                    elif run_code.endswith('L') and not run_code.startswith('F'):
-                        pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    #elif run_code.endswith('L') and not run_code.startswith('F'):
+                    #    pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
                     # for all other run codes, use regional crop budgets
                     else:
                         pop = Pop.RegionalEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
