@@ -745,59 +745,59 @@ class Driver:
         # Ratio to NEI
         RatioToNEIFigure.RatioToNEIFig(cont=self.cont)
 
-        def transfer_total_emissions(self, src_host, src_db, src_user, src_pass, src_table,
-                                     fpath, dst_host, dst_db, dst_user, dst_pass, dst_table,
-                                     mysql_binary, mysqldump_binary):
+    def transfer_total_emissions(self, src_host, src_db, src_user, src_pass, src_table,
+                                 fpath, dst_host, dst_db, dst_user, dst_pass, dst_table,
+                                 mysql_binary, mysqldump_binary):
 
-            """
-            Transfer total emissions table <src_db>.<src_table> on <src_host> to <dst_db>.<dst_table>.
-            :param src_host:
-            :param src_db:
-            :param src_user:
-            :param src_pass:
-            :param src_table:
-            :param fpath:
-            :param dst_host:
-            :param dst_db:
-            :param dst_user:
-            :param dst_pass:
-            :param dst_table:
-            :param mysql_binary:
-            :param mysqldump_binary:
-            :return: True if successful; False if not.
-            """
+        """
+        Transfer total emissions table <src_db>.<src_table> on <src_host> to <dst_db>.<dst_table>.
+        :param src_host:
+        :param src_db:
+        :param src_user:
+        :param src_pass:
+        :param src_table:
+        :param fpath:
+        :param dst_host:
+        :param dst_db:
+        :param dst_user:
+        :param dst_pass:
+        :param dst_table:
+        :param mysql_binary:
+        :param mysqldump_binary:
+        :return: True if successful; False if not.
+        """
 
-            kvals = {'b': mysqldump_binary,
-                     'h': src_host,
-                     'u': src_user,
-                     'p': src_pass,
-                     's': src_db,
-                     't': src_table,
-                     'f': fpath}
+        kvals = {'b': mysqldump_binary,
+                 'h': src_host,
+                 'u': src_user,
+                 'p': src_pass,
+                 's': src_db,
+                 't': src_table,
+                 'f': fpath}
 
-            export_command = '{b} -h {h} -u {u} -p{p} --no-create-info {s} {t} > {f}'.format(**kvals)
-            logger.debug(export_command)
+        export_command = '{b} -h {h} -u {u} -p{p} --no-create-info {s} {t} > {f}'.format(**kvals)
+        logger.debug(export_command)
 
-            try:
-                os.system(export_command)
-            except Exception, e:
-                logger.error('Total emissions export failed: %s' % (e,))
-                return False
+        try:
+            os.system(export_command)
+        except Exception, e:
+            logger.error('Total emissions export failed: %s' % (e,))
+            return False
 
-            kvals['b'] = mysql_binary
-            kvals['h'] = dst_host
-            kvals['s'] = dst_db
+        kvals['b'] = mysql_binary
+        kvals['h'] = dst_host
+        kvals['s'] = dst_db
 
-            import_command = '{b} -h {h} -u {u} -p{p} -D {s} < {f}'.format(**kvals)
-            logger.debug(import_command)
+        import_command = '{b} -h {h} -u {u} -p{p} -D {s} < {f}'.format(**kvals)
+        logger.debug(import_command)
 
-            try:
-                os.system(import_command)
-            except Exception, e:
-                logger.error('Total emissions import failed: %s' % (e,))
-                return False
+        try:
+            os.system(import_command)
+        except Exception, e:
+            logger.error('Total emissions import failed: %s' % (e,))
+            return False
 
-            return True
+        return True
 
 
 if __name__ == '__main__':
