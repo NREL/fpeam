@@ -297,6 +297,8 @@ class Driver:
 
                 # finish batch file for this run code
                 self.batch.finish(run_code=run_code)
+            else:
+                logger.warning('No data found for run_code: %s' % (run_code, ))
 
         # close scenariobatchfile
         self.batch.scenario_batch_file.close()
