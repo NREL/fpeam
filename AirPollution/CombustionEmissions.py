@@ -110,10 +110,12 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                         # row[4] is the vehicle population.
                         if float(row[4]) > 0.0:
 
-                            # _get_description updates the voc_conversion, nh3_ef and lhv for each fuel type
                             scc = row[2]
                             hp = row[3]
-                            description, operation = self._get_description(run_code, scc)
+
+                            # _get_description updates the voc_conversion, nh3_ef and lhv for each fuel type
+                            description, operation = self._get_description(run_code)
+
                             # check if it is a feedstock and operation that should be recorded.
                             if feedstock.startswith('F') or self.operation_dict[feedstock][operation[0]]:
                                 # all emissions are recorder in metric tons.
@@ -156,7 +158,7 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                                     self._record(feed=feedstock, row=row[0], scc=scc, hp=hp, fuel_cons=fuel_cons, thc=thc, voc=voc, co=co, nox=nox, co2=co2, so2=so2, pm10=pm10,
                                                  pm25=pm25, nh3=nh3, description=description, run_code=run_code, writer=writer, queries=queries, alloc=None)
 
-                                # change constants back to normal, b/c they can be changes in _get_description()
+                                # change constants back to normal, b/c they can be changed in _get_description()
                                 self.lhv = 128450.0 / 1e6
                                 self.nh3_ef = 0.68
                                 self.voc_conversion = 1.053
@@ -293,163 +295,147 @@ class CombustionEmissions(SaveDataHelper.SaveDataHelper):
                                      """.format(**kvals)
                 self.db.input(query_airplane)
 
-    def _get_description(self, run_code, scc):
+    def _parse_run_code(self, run_code):
+        """
+        Parse run_code to determine feedstock, tillage type, activity type, and year and fuel if applicable
+        :param run_code: STRING
+        :return: DICTIONARY {run_code: STRING, feedstock: STRING, tillage: STRING, year: STRING, activity: STRING, fuel: STRING}
+        """
+
+        feed = run_code[0:2]
+
+        # fuel is only relevant for irrigation run_codes (which currently only occur for CG)
+        # year is only relevant for crops with rotation, currently MS and SG
+        fuel = None
+        year = None
+
+        # the default pattern for run_codes is: FF_TA where FF = feedstock, T = tillage type, and A = activity type
+        activity = run_code[4]
+        tillage = run_code[3]
+
+        # CG (and currently only CG) may have irrigation, in which case 'I' replaces tillage type and activity becomes a fuel type
+        # therefore, the pattern becomes: FF_AFu where FF = feedstock, A = activity type, and Fu = fuel and a big FU to future developers
+        if feed == 'CG' and run_code[3] == 'I':
+            activity = 'I'
+            tillage = None
+            fuel = run_code[4]
+
+        # MS and SG are managed over several years and without tillage. Therefore, the pattern becomes: FF_AY where
+        # FF = feedstock, A = activity, and Y = rotation year, which may be 1 or 2 digits
+        if feed in ('MS', 'SG'):
+            activity = run_code[3]
+            tillage = None
+            year = run_code[4:]
+
+        # init kvals for string formatting
+        kvals = {'run_code': run_code,
+                 'feedstock': feed,
+                 'tillage': tillage,
+                 'year': year,
+                 'activity': activity,
+                 'fuel': fuel}
+
+        logger.debug('{run_code:6}: crop: {feedstock:4} year: {year:4} tillage: {tillage:4} activity: {activity:4} fuel: {fuel:4}'.format(**kvals))
+
+        return kvals
+
+    def _set_factors(self, fuel):
+        """
+        Set lhv, nh3_ef, voc_conversion, and pm10topm25 factors based on fuel type.
+
+        :param fuel: STRING one of D, L, C, G
+        :return:
+        """
+
+        if fuel == 'D':
+            self.lhv = 128450.0 / 1e6
+            self.nh3_ef = 0.68
+            self.voc_conversion = 1.053
+            self.pm10topm25 = 0.97
+        elif fuel == 'L':
+            self.lhv = 84950.0 / 1e6
+            self.nh3_ef = 0.0  # data not available
+            self.voc_conversion = 0.995
+            self.pm10topm25 = 1.0
+        elif fuel == 'C':
+            # 983 btu/ft3 at 1atm and 32F, standard temperature and pressure.
+            self.lhv = 20268.0 / 1e6
+            self.nh3_ef = 0.0  # data not available
+            self.voc_conversion = 0.004
+            self.pm10topm25 = 1.0
+        elif fuel == 'G':
+            self.lhv = 116090.0 / 1e6
+            self.nh3_ef = 1.01
+            self.voc_conversion = 0.933
+            self.pm10topm25 = 0.92
+
+    def _get_description(self, run_code):
         """
 
         :param run_code: run code for NONROAD run
         :param scc: source category code for equipment
-        :return:
+        :return: (STRING, STRING) description, activity
         """
 
-        # in case operation does not get defined.
-        operation = ''
-        description = ''
-        tillage = ''
+        # set defaults
+        activity = None
+        description = None
 
-        # Loading
-        if run_code[3] == 'L' and not run_code.startswith('CG_I'):
-            if run_code.startswith('SG') or run_code.startswith('MS'):
-                if len(run_code) == 4:
-                    description = "Year %s - Loading" % (run_code[4])  # year 1-9
-                else:
-                    description = "Year %s - Loading" % (run_code[4:6])  # year 10
-                operation = 'Loading'
-            else:
-                description = 'Loading'
-                operation = 'Loading'
+        # define lookups
+        activity_lk = {'N': 'Non-Harvest',
+                       'H': 'Harvest',
+                       'I': 'Irrigation',
+                       'L': 'Loading',
+                       'T': 'On-farm Transport'}
 
-        # Switchgrass
-        elif run_code.startswith('SG_H'):
-            if len(run_code) == 4:
-                description = "Year %s - Harvest" % (run_code[4])  # year 1-9
-            else:
-                description = "Year %s - Harvest" % (run_code[4:6])  # year 10
-            operation = 'Harvest'
+        tillage_lk = {'R': 'Reduced Till',
+                      'N': 'No Till',
+                      'C': 'Conventional Till'}
 
-        elif run_code.startswith('SG_N'):
-            if len(run_code) == 4:
-                description = "Year %s - Non-Harvest" % (run_code[4])  # year 1-9
-            else:
-                description = "Year %s - Non-Harvest" % (run_code[4:6])  # year 10
-            operation = 'Non-Harvest'
+        fuel_lk = {'D': 'Diesel Irrigation',
+                   'L': 'LPG Irrigation',
+                   'C': 'CNG Irrigation',
+                   'G': 'Gasoline Irrigation'}
 
-        elif run_code.startswith('SG_T'):
-            if len(run_code) == 4:
-                description = "Year %s - On-farm Transport" % (run_code[4])  # year 1-9
-            else:
-                description = "Year %s - On-farm Transport" % (run_code[4:6])  # year 10
-            operation = 'Transport'
+        # parse run code
+        run_code_values = self._parse_run_code(run_code)
 
-        # Miscanthus
-        elif run_code.startswith('MS_H'):
-            if len(run_code) == 4:
-                description = "Year %s - Harvest" % (run_code[4])  # year 1-9
-            else:
-                description = "Year %s - Harvest" % (run_code[4:6])  # year 10
-            operation = 'Harvest'
+        # split parsing for ease of use
+        year = run_code_values['year']
+        feedstock = run_code_values['feedstock']
+        tillage = run_code_values['tillage']
+        activity = run_code_values['activity']
+        fuel = run_code_values['fuel']  # set to None already if activity != 'I'
+        irrigation = fuel_lk[fuel] if fuel is not None else None
 
-        elif run_code.startswith('MS_N'):
-            if len(run_code) == 4:
-                description = "Year %s - Non-Harvest" % (run_code[4])  # year 1-9
-            else:
-                description = "Year %s - Non-Harvest" % (run_code[4:6])  # year 10
-            operation = 'Non-Harvest'
+        # set activity to non-harvest for irrigation
+        if activity == 'I':
+            activity = 'N'
 
-        elif run_code.startswith('MS_T'):
-            if len(run_code) == 4:
-                description = "Year %s - On-farm Transport" % (run_code[4])  # year 1-9
-            else:
-                description = "Year %s - On-farm Transport" % (run_code[4:6])  # year 10
-            operation = 'Transport'
+        # expand activity
+        activity = activity_lk[activity]
 
-        # Forest Residue
-        elif run_code.startswith('F'):
-            # currently no equipment allocated to FR harvest, non-harvest, or on-farm transport
-            if run_code.endswith('N'):
-                operation = 'Non-Harvest'
-                description = 'Non-Harvest'
-            elif run_code.endswith('H'):
-                operation = 'Harvest'
-                description = ' Harvest'
+        # init kvals for string formatting, swapping for descriptive values if necessary
+        kvals = {'activity': activity,
+                 'tillage': tillage_lk[tillage] if tillage is not None else None,
+                 'irrigation': irrigation,
+                 'year': year}
 
-        # Corn Stover and Wheat Straw and sorghum stubble
-        elif run_code.startswith('CS') or run_code.startswith('WS') or run_code.startswith('SS'):
+        if year is not None:  # MS and SG are caught here
+            description = 'Year {year} - {activity}'
+        if feedstock in ('FR', 'FW'):
+            description = '{activity} - {activity}'  # I don't know why it's done this way
+        if feedstock in ('CS', 'WS', 'SS', 'CG'):
+            description = '{tillage} - {activity}'
+        if irrigation is not None:
+            description = '{irrigation} - {activity}'
 
-            # get tillage
-            if run_code[3] == 'R':
-                tillage = 'Reduced Till'
-            elif run_code[3] == 'N':
-                tillage = 'No Till'
-            elif run_code[3] == 'C':
-                tillage = 'Conventional Till'
+        description = description.format(**kvals)
 
-            # get activity type
-            if run_code[4] == 'H':
-                operation = 'Harvest'
-            elif run_code[4] == 'N':
-                operation = 'Non-Harvest'
-            elif run_code[4] == 'T':
-                operation = 'On-farm Transport'
-            
-            description = tillage + ' - ' + operation
-            
-        # Corn Grain
-        elif run_code.startswith('CG'):
-            
-            # get tillage
-            if run_code.startswith('CG_R'):
-                tillage = 'Reduced Till'
-                
-            elif run_code.startswith('CG_N'):
-                tillage = 'No Till'
-                
-            elif run_code.startswith('CG_C'):
-                tillage = 'Conventional Till'
-        
-            # special case for irrigation
-            elif run_code.startswith('CG_I'):
-        
-                if run_code.endswith('D'):
-                    tillage = 'Diesel Irrigation'
-                    self.lhv = 128450.0 / 1e6  
-                    self.nh3_ef = 0.68  
-                    self.voc_conversion = 1.053
-                    self.pm10topm25 = 0.97 
-                                 
-                elif run_code.endswith('L'):
-                    tillage = 'LPG Irrigation'
-                    self.lhv = 84950.0 / 1e6
-                    self.nh3_ef = 0.0  # data not available
-                    self.voc_conversion = 0.995
-                    self.pm10topm25 = 1.0
-                               
-                elif run_code.endswith('C'):
-                    tillage = 'CNG Irrigation'
-                    # 983 btu/ft3 at 1atm and 32F, standard temperature and pressure.
-                    self.lhv = 20268.0 / 1e6
-                    self.nh3_ef = 0.0  # data not available
-                    self.voc_conversion = 0.004
-                    self.pm10topm25 = 1.0
-                                        
-                elif run_code.endswith('G'):
-                    tillage = 'Gasoline Irrigation'
-                    self.lhv = 116090.0 / 1e6
-                    self.nh3_ef = 1.01        
-                    self.voc_conversion = 0.933         
-                    self.pm10topm25 = 0.92
-            
-            # get operation (harvest or non-harvest)                                                    
-            if run_code.endswith('N') or run_code.startswith('CG_I'):
-                operation = 'Non-Harvest'
-                
-            elif run_code.endswith('H'):
-                operation = 'Harvest'
-            elif run_code.endswith('T'):
-                operation = 'On-farm Transport'
+        # set emission factors and conversion rates
+        self._set_factors(fuel=fuel)  # this is here because that's where it originally was and requires parsing the run_code to collect the fuel type; it obviously should be somewhere else. May god be with you if you try to move it.
 
-            description = tillage + ' - ' + operation    
-
-        return description, operation
+        return description, activity
 
 if __name__ == '__main__':
     raise NotImplementedError
