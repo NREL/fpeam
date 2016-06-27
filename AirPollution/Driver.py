@@ -431,7 +431,7 @@ class Driver:
             self.db.execute_sql(sql)
             logger.debug('Adding state fips column to {t}'.format(t=table))
             sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);' \
-                  'UPDATE {moveefs_output_db}.{t} SET state = LEFT(MOVESScenarioID, 2);' \
+                  'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 2);' \
                 .format(t=table, **self.kvals)
             self.db.execute_sql(sql)
 
