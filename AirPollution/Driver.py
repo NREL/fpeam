@@ -445,10 +445,7 @@ class Driver:
                 sql = 'CREATE INDEX idx_{t}_{c} ON {moves_output_db}.{t} ({c});'.format(c=column, t=table, **self.kvals)
                 self.db.execute_sql(sql)
 
-            sql = 'CREATE INDEX idx_{t}_MOVESScenarioID_2 ON {moves_output_db}.{t} (MOVESScenarioID(2));'.format(t=table, **self.kvals)
-            self.db.execute_sql(sql)
-
-            logger.warning('Optimizing {moves_output_db}.{t}; this may take a few minutes'.format(t=table, **self.kvals))
+            logger.debug('Optimizing {moves_output_db}.{t}'.format(t=table, **self.kvals))
             sql = 'OPTIMIZE TABLE {moves_output_db}.{t};'.format(t=table, **self.kvals)
             self.db.execute_sql(sql)
 
