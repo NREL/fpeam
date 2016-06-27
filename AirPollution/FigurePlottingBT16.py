@@ -281,7 +281,7 @@ class FigurePlottingBT16:
                                     FROM {scenario_name}.{table}
                                     WHERE feedstock = '{feed}' AND source_category NOT LIKE '%transport%' AND source_category NOT LIKE '%process%'
                                     GROUP BY fips, feedstock, year, yield, tillage) sum
-                        ON tot.fips = SUM.fips AND tot.feedstock = sum.feedstock AND tot.year = sum.year AND tot.yield = sum.yield AND tot.tillage AND sum.tillage
+                        ON tot.fips = SUM.fips AND tot.feedstock = sum.feedstock AND tot.year = sum.year AND tot.yield = sum.yield AND tot.tillage = sum.tillage
                         LEFT JOIN  (SELECT fips,
                                            feedstock,
                                            year,
@@ -373,6 +373,7 @@ class FigurePlottingBT16:
                 i += 1
 
             # update total emissions for transport to allocate using actual production values rather than reduction factor (1/3)
+            # @TODO: transport emissions need to be weighted correctly when inserted into total emissions table (under get_logistics)
             for pollutant in self.pol_list:
                 kvals['pollutant'] = pollutant
                 sql = """UPDATE {scenario_name}.{table} a
