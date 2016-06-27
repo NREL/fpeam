@@ -417,37 +417,40 @@ class Driver:
                 # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
 
-        if config.as_bool('post_process_index_moves_outputdb') is True:
-            logger.info('Adding columns and indices to {moves_output_db}'.format(**self.kvals))
-            for table in ('ratePerDistance', 'ratePerVehicle'):
-                logger.debug('Adding short scenario ID to {t}'.format(t=table))
-                sql = """ALTER TABLE {moves_output_db}.{t} ADD COLUMN MOVESScenarioID_no_fips CHAR(19);
-                     UPDATE {moves_output_db}.{t} SET MOVESScenarioID_no_fips = RIGHT(MOVESScenarioID, 19);
-                     """.format(t=table, **self.kvals)
+    def post_process_moves_output_db(self):
+        """
+        Add columns and indicies to improve post processing performance.
+
+        :return:
+        """
+        for table in ('ratePerDistance', 'ratePerVehicle'):
+            logger.debug('Adding short scenario ID to {t}'.format(t=table))
+            sql = """ALTER TABLE {moves_output_db}.{t} ADD COLUMN MOVESScenarioID_no_fips CHAR(19);
+                         UPDATE {moves_output_db}.{t} SET MOVESScenarioID_no_fips = RIGHT(MOVESScenarioID, 19);
+                         """.format(t=table, **self.kvals)
+            self.db.execute_sql(sql)
+            logger.debug('Adding state fips column to {t}'.format(t=table))
+            sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);' \
+                  'UPDATE {moveefs_output_db}.{t} SET state = LEFT(MOVESScenarioID, 2);' \
+                .format(t=table, **self.kvals)
+            self.db.execute_sql(sql)
+
+            columns = ('MOVESScenarioID', 'MOVESRunID', 'yearID', 'monthID', 'dayID', 'hourID', 'linkID',
+                       'pollutantID', 'processID', 'sourceTypeID', 'regClassID', 'SCC', 'fuelTypeID',
+                       'modelYearID', 'roadTypeID', 'avgSpeedBinID', 'temperature', 'relHumidity', 'state',
+                       'MOVESScenarioID_no_fips', table)
+
+            for column in columns:
+                logger.debug('Adding index on {t}.{c}'.format(c=column, t=table))
+                sql = 'CREATE INDEX idx_{t}_{c} ON {moves_output_db}.{t} ({c});'.format(c=column, t=table, **self.kvals)
                 self.db.execute_sql(sql)
 
-                logger.debug('Adding state fips column to {t}'.format(t=table))
-                sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);' \
-                      'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 2);' \
-                    .format(t=table, **self.kvals)
-                self.db.execute_sql(sql)
+            sql = 'CREATE INDEX idx_{t}_MOVESScenarioID_2 ON {moves_output_db}.{t} (MOVESScenarioID(2));'.format(t=table, **self.kvals)
+            self.db.execute_sql(sql)
 
-                columns = ('MOVESScenarioID', 'MOVESRunID', 'yearID', 'monthID', 'dayID', 'hourID', 'linkID',
-                           'pollutantID', 'processID', 'sourceTypeID', 'regClassID', 'SCC', 'fuelTypeID',
-                           'modelYearID', 'roadTypeID', 'avgSpeedBinID', 'temperature', 'relHumidity', 'state',
-                           'MOVESScenarioID_no_fips', table)
-
-                for column in columns:
-                    logger.debug('Adding index on {t}.{c}'.format(c=column, t=table))
-                    sql = 'CREATE INDEX idx_{t}_{c} ON {moves_output_db}.{t} ({c});'.format(c=column, t=table, **self.kvals)
-                    self.db.execute_sql(sql)
-
-                sql = 'CREATE INDEX idx_{t}_MOVESScenarioID_2 ON {moves_output_db}.{t} (MOVESScenarioID(2));'.format(t=table, **self.kvals)
-                self.db.execute_sql(sql)
-
-                logger.warning('Optimizing {moves_output_db}.{t}; this may take a few minutes'.format(t=table, **self.kvals))
-                sql = 'OPTIMIZE TABLE {moves_output_db}.{t};'.format(t=table, **self.kvals)
-                self.db.execute_sql(sql)
+            logger.warning('Optimizing {moves_output_db}.{t}; this may take a few minutes'.format(t=table, **self.kvals))
+            sql = 'OPTIMIZE TABLE {moves_output_db}.{t};'.format(t=table, **self.kvals)
+            self.db.execute_sql(sql)
 
     def save_data(self, operation_dict, alloc):
         """
