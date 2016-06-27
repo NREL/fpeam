@@ -195,8 +195,11 @@ class Driver:
             scenario.create_output_dir(run_code=run_code)
 
             # get the year for the scenario
-            scenario_year = self.yr[run_code[0:2]]            
-            
+            scenario_year = self.yr[run_code[0:2]]
+
+            # initiate batch file so that even run_codes with no data create legitimate .bat files
+            self.batch.initialize(run_code)
+
             # get the first state and fips code in the list of data for the run code
             if scenario.data is not None:
                 state = scenario.data[0][0][1]
@@ -230,10 +233,9 @@ class Driver:
                     else:
                         pop = Pop.RegionalEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
 
-                # initialize allocation, population, and batch files
+                # initialize allocation, population
                 alo.initialize_alo_file(state=state, run_code=run_code, episode_year=scenario_year)
                 pop.initialize_pop(dat=scenario.data[0][0])
-                self.batch.initialize(run_code)
 
                 # go through each row of the data table for this run code
                 for dat in scenario.data[0]:
@@ -311,6 +313,7 @@ class Driver:
         Used to control the flow of the NONROAD program within the application.
         """
 
+        # @TODO: this needs a check to make sure setup_nonroad found data; if no data found, the .bat created is empty
         self.batch.run(qprocess)
 
     def setup_moves(self, fips):
@@ -410,40 +413,41 @@ class Driver:
                                               VALUES ('{moves_scen_id}')
                                               ;""".format(**self.kvals)
                 self.db.input(query_moves_metadata)
-
-                #  @TODO: separate and enable
-                # sql = """ALTER TABLE {moves_output_db}.rateperdistance ADD COLUMN MOVESScenarioID_no_fips CHAR(19);
-                #          UPDATE {moves_output_db.rateperdistance SET MOVESScenarioID_no_fips = RIGHT(MOVESScenarioID, 19);
-                #          ALTER TABLE moves_output_db.rateperdistance ADD INDEX(MOVESScenarioID_no_fips);
-                #          OPTIMIZE TABLE moves_output_db.rateperdistance;"""
-
-                # for table in ('ratePerDistance', 'ratePerVehicle'):
-                #     sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);' \
-                #           'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 5);' \
-                #           .format(t=table, **self.kvals)
-                #     self.db.execute_sql(sql)
-                #
-                # columns = ('MOVESScenarioID', 'MOVESRunID', 'yearID', 'monthID', 'dayID', 'hourID', 'linkID', 'pollutantID', 'processID', 'sourceTypeID',
-                #            'regClassID', 'SCC', 'fuelTypeID', 'modelYearID', 'roadTypeID', 'avgSpeedBinID', 'temperature', 'relHumidity') + ('state', )
-                #
-                # # create indicies on MOVES output tables  # @TODO: this needs to be made dynamic based on the MOVES run type
-                # for column in columns + ('ratePerDistance', ):
-                #     sql = 'CREATE INDEX idx_ratesperDistance_{c} ON {moves_output_db}.ratesperdistance ({c});'.format(c=column, **self.kvals)
-                #     self.db.execute_sql(sql)
-                #
-                # sql = 'CREATE INDEX idx_ratesperDistance_MOVESScenarioID_2 ON {moves_output_db}.ratesperdistance (MOVESScenarioID(2));'.format(**self.kvals)
-                # self.db.execute_sql(sql)
-                #
-                # for column in columns + ('ratePerVehicle', ):
-                #     sql = 'CREATE INDEX idx_ratePerVehicle_{c} ON {moves_output_db}.ratesperdistance ({c});'.format(c=column, **self.kvals)
-                #     self.db.execute_sql(sql)
-                #
-                # sql = 'CREATE INDEX idx_ratePerVehicle_MOVESScenarioID_2 ON {moves_output_db}.ratesperdistance (MOVESScenarioID(2));'.format(**self.kvals)
-                # self.db.execute_sql(sql)
-
             else:
                 # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
+
+        if config.as_bool('post_process_index_moves_outputdb') is True:
+            logger.info('Adding columns and indices to {moves_output_db}'.format(**self.kvals))
+            for table in ('ratePerDistance', 'ratePerVehicle'):
+                logger.debug('Adding short scenario ID to {t}'.format(t=table))
+                sql = """ALTER TABLE {moves_output_db}.{t} ADD COLUMN MOVESScenarioID_no_fips CHAR(19);
+                     UPDATE {moves_output_db}.{t} SET MOVESScenarioID_no_fips = RIGHT(MOVESScenarioID, 19);
+                     """.format(t=table, **self.kvals)
+                self.db.execute_sql(sql)
+
+                logger.debug('Adding state fips column to {t}'.format(t=table))
+                sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);' \
+                      'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 2);' \
+                    .format(t=table, **self.kvals)
+                self.db.execute_sql(sql)
+
+                columns = ('MOVESScenarioID', 'MOVESRunID', 'yearID', 'monthID', 'dayID', 'hourID', 'linkID',
+                           'pollutantID', 'processID', 'sourceTypeID', 'regClassID', 'SCC', 'fuelTypeID',
+                           'modelYearID', 'roadTypeID', 'avgSpeedBinID', 'temperature', 'relHumidity', 'state',
+                           'MOVESScenarioID_no_fips', table)
+
+                for column in columns:
+                    logger.debug('Adding index on {t}.{c}'.format(c=column, t=table))
+                    sql = 'CREATE INDEX idx_{t}_{c} ON {moves_output_db}.{t} ({c});'.format(c=column, t=table, **self.kvals)
+                    self.db.execute_sql(sql)
+
+                sql = 'CREATE INDEX idx_{t}_MOVESScenarioID_2 ON {moves_output_db}.{t} (MOVESScenarioID(2));'.format(t=table, **self.kvals)
+                self.db.execute_sql(sql)
+
+                logger.warning('Optimizing {moves_output_db}.{t}; this may take a few minutes'.format(t=table, **self.kvals))
+                sql = 'OPTIMIZE TABLE {moves_output_db}.{t};'.format(t=table, **self.kvals)
+                self.db.execute_sql(sql)
 
     def save_data(self, operation_dict, alloc):
         """
@@ -591,13 +595,13 @@ class Driver:
 
         for feedstock in self.feedstock_list:
             if regional_crop_budget is True:
-                logger.info('Using regional crop budget for chemicals')
+                # logger.debug('Using regional crop budget for chemicals')
                 year_range = self.years_budget[feedstock]
                 for yr in range(1, year_range + 1):
                     chem.regional_chem(feed=feedstock, yr=yr)
                     logger.info('Chemical emissions complete for feed: %s, year: %s' % (feedstock, yr, ))
             else:
-                logger.warning('National crop budget for fertilizer is deprecated and not calculated')
+                logger.warning('National crop budget for fertilizer is deprecated and will not be calculated')
                 # chem.set_chemical(feed=feedstock)
                 # logger.info('Using national crop budget for chemicals')
                 # logger.info('Chemical emissions complete for feed: %s' % (feedstock, ))
@@ -656,9 +660,10 @@ class Driver:
         :return:
         """
 
+        # @TODO: this probably needs to be re-rewritten to handle loading and sorghum
         for run_code in self.run_codes:
             if not (run_code.startswith('SG') or run_code.startswith('MS')):
-                if not run_code[3] == 'L':
+                if not run_code[4] == 'L':
                     fug_dust = FugitiveDust.FugitiveDust(cont=self.cont)
                     fug_dust.set_emissions(run_code=run_code)
                     # logger.info("On-Farm Fugitive Dust Emissions complete for %s" % (run_code, ))

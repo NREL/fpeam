@@ -53,7 +53,7 @@ class Batch:
         :param run_code: run code of interest
         """
 
-        self.scenario_batch_file.write('\n')  # this is janky, but the whole app is janky so I'm not sure where the best place for this is
+        self.scenario_batch_file.write('\n')
 
         f = '%s%s.bat' % (self.path, run_code)
         self.batch_file = open(f, 'w')

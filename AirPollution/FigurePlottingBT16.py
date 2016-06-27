@@ -235,7 +235,7 @@ class FigurePlottingBT16:
                     # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
 
                     # drop old table and create new table
-                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n"
+                    sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n".format(**kvals)
                     self.db.execute_sql(sql)
 
                     sql = "CREATE TABLE           {scenario_name}.{new_table} AS\n"

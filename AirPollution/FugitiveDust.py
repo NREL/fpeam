@@ -151,7 +151,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         pm_lpg_irrigation = self.convert_lbs_to_mt(0.0)  # mt / acre
         pm_cng_irrigation = self.convert_lbs_to_mt(0.0)  # mt / acre
 
-        model_transport = False
+        # model_transport = False
 
         # choose operation for conventional till
         if run_code.startswith('CG_C'):
@@ -165,9 +165,9 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
             elif run_code.endswith('H'):
                 operation = 'Harvest'
                 ef = pm_conv_till_harv
-                model_transport = True
+                # model_transport = True
 
-                # choose operation for reduced till
+        # choose operation for reduced till
         elif run_code.startswith('CG_R'):
             tillage = 'Reduced'
             table_till = 'reducedtill'
@@ -179,9 +179,9 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
             elif run_code.endswith('H'):
                 operation = 'Harvest'
                 ef = pm_redu_till_harv
-                model_transport = True
+                # model_transport = True
 
-                # choose operation for no till                
+        # choose operation for no till
         elif run_code.startswith('CG_N'):
             tillage = 'No Till'
             table_till = 'notill'
@@ -193,9 +193,9 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
             elif run_code.endswith('H'):
                 operation = 'Harvest'
                 ef = pm_no_till_harv
-                model_transport = True
+                # model_transport = True
 
-                # choose operation for irrigation
+        # choose operation for irrigation
         elif run_code.startswith('CG_I'):
             tillage = 'Irrigation'
             table_till = 'total'
@@ -231,7 +231,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         """
         Corn stover fugitive dust emissions.
 
-        Corn stover fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
+        Corn stover fugitive dust emissions = 1.7 lbs/acre (assuming harvest activities are the same as for corn grain as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
 
         :param run_code:
         :return:
@@ -291,7 +291,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         """
         Calculate wheat straw fugitive dust emissions.
 
-        Wheat straw fugitive dust emissions = 5.8 lbs/acre (assuming harvest activies are the same as for wheat as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
+        Wheat straw fugitive dust emissions = 5.8 lbs/acre (assuming harvest activities are the same as for wheat as reported by CARB in 2003 http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf)
 
         :param run_code:
         :return:
@@ -485,10 +485,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      1.2,  # year 9
                                      1.2  # year 10
                                     ]
-            if len(run_code) == 4:
-                self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4])  # year 1-9
-            else:
-                self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4:6])  # year 10
+            self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4:], )
 
         elif run_code.startswith('SG_H'):
             # Switchgrass fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003
@@ -522,10 +519,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
                                      0.8,  # year 9
                                      0.8  # year 10
                                     ]
-            if len(run_code) == 4:
-                self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4])  # year 1-9
-            else:
-                self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4:6])  # year 10
+            self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4:], )
 
     def set_emissions(self):
         # initialize kvals dictionary for string formatting
@@ -539,9 +533,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['till'] = 'notill'
         kvals['run_code'] = self.run_code
 
-        year = int(self.run_code[-1])
-        if year == 0:
-            year = 10
+        year = int(self.run_code[4:])
         ef = self.emission_factors[year - 1]
 
         # return non-transport emissions query
@@ -619,7 +611,7 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
 
             self._execute_query(query)
 
-        logger.info('Calculating fugitive dust emissions for %s, year %s' % (self.description, year, ))
+        logger.info('Calculating fugitive dust emissions for %s, year %s' % (self.description, year))
 
     def convert_lbs_to_mt(self, ef):
         """
@@ -667,10 +659,7 @@ class MSFugitiveDust(SaveDataHelper.SaveDataHelper):
                                      1.2,  # year 14
                                      1.2  # year 15
                                      ]
-            if len(run_code) == 4:
-                self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4])  # year 1-9
-            else:
-                self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4:6])  # year > 10
+            self.description = "Year %s - On-farm Transport, Fugitive dust" % (run_code[4:], )
 
         elif run_code.startswith('MS_H'):
             # Switchgrass fugitive dust emissions = 1.7 lbs/acre (assuming harvest activies are the same as for corn grain as reported by CARB in 2003
@@ -691,10 +680,7 @@ class MSFugitiveDust(SaveDataHelper.SaveDataHelper):
                                      1.7,  # year 14
                                      1.7  # year 15
                                      ]
-            if len(run_code) == 4:
-                self.description = "Year %s - Harvest, Fugitive dust" % (run_code[4])  # year 1-9
-            else:
-                self.description = "Year %s - Harvest, Fugitive dust" % (run_code[4:6])  # year > 10
+            self.description = "Year %s - Harvest, Fugitive dust" % (run_code[4:], )
 
         elif run_code.startswith('MS_N'):
             # lbs/acre
@@ -715,10 +701,7 @@ class MSFugitiveDust(SaveDataHelper.SaveDataHelper):
                                      0.8,  # year 15
                                     ]
 
-            if len(run_code) == 4:
-                self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4])  # year 1-9
-            else:
-                self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4:6])  # year > 10
+            self.description = "Year %s - Non-Harvest, Fugitive dust" % (run_code[4:])
 
     def set_emissions(self):
         # initialize kvals dictionary for string formatting
@@ -732,9 +715,7 @@ class MSFugitiveDust(SaveDataHelper.SaveDataHelper):
         kvals['till'] = 'convtill'
         kvals['run_code'] = self.run_code
 
-        year = int(self.run_code[-1])
-        if len(self.run_code) > 4:
-            year = int(self.run_code[4:6])
+        year = int(self.run_code[4:])
         ef = self.emission_factors[year - 1]
 
         # return non-transport emissions query
@@ -781,7 +762,6 @@ class MSFugitiveDust(SaveDataHelper.SaveDataHelper):
             kvals['b10'] = 0.45
             kvals['D'] = config.get('onfarm_default_distance')  # default value for distance traveled (in vehicle miles traveled)
 
-            # @TODO: clean up FIPS app-wide (i.e., make them all numbers or all 0-padded strings in code and database
             query = """UPDATE {scenario_name}.{feed}_raw raw
                        LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
                        LEFT JOIN {constants_schema}.{silt_table} tfd

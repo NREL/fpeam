@@ -140,20 +140,19 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year} ORDER BY state;""".format(**self.kvals)
         state_list = self.db.output(query)[0]
         # for testing:
-        state_list = (('01', ), ('19', ), )
+        # state_list = (('01', ), ('19', ), )
         
         for state in state_list:
             # set state
-            self.kvals['state'] = state[0]
+            state = state[0]
+            self.kvals['state'] = state
             for key in self.pollutant_dict:
-                logger.info('Calculating running emissions for pollutant: %s, state:%s' % (key, state))
+                logger.info('Calculating running emissions for pollutant: %s, state: %s' % (key, state))
 
                 # set pollutant name and ID
                 self.kvals['pollutant_name'] = key
                 self.kvals['pollutantID'] = self.pollutant_dict[key]
-
-                # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
-
+                # @TODO: this query is volatile now that it depends on a.MOVESScenarioID_no_fips, which must be created _after_ running MOVES
                 query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions, state)
                    SELECT    '{pollutant_name}'
                              , c.sply_fips
