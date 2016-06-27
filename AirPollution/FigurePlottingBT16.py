@@ -287,7 +287,7 @@ class FigurePlottingBT16:
                                            year,
                                            yield,
                                            source_category,
-                                           tillage, 
+                                           tillage,
                                            SUM(nox) AS total_nox_with_transport,
                                            SUM(nh3) AS total_nh3_with_transport,
                                            SUM(voc) AS total_voc_with_transport,
@@ -371,6 +371,24 @@ class FigurePlottingBT16:
                 self.db.execute_sql(sql=sql)
 
                 i += 1
+
+            # update total emissions for transport to allocate using actual production values rather than reduction factor (1/3)
+            for pollutant in self.pol_list:
+                kvals['pollutant'] = pollutant
+                sql = """UPDATE {scenario_name}.{table} a
+                             LEFT JOIN (SELECT fips, feedstock, year, yield, source_category, sum({pollutant}) AS sum_{pollutant}, sum(prod) AS total_prod
+                                        FROM {scenario_name}.{table}
+                                        WHERE source_category LIKE '%transport%'
+                                        GROUP BY fips, feedstock, year, yield, source_category) b
+                             ON (a.fips = b.fips AND
+                                a.feedstock = b.feedstock AND
+                                a.year = b.year AND
+                                a.yield = b.yield AND
+                                a.source_category = b.source_category)
+                             SET a.{pollutant} = b.sum_{pollutant} * a.prod / b.total_prod
+                             WHERE a.source_category LIKE '%transport%'""".format(**kvals)
+
+                self.db.execute_sql(sql=sql)
 
     def get_chem(self, kvals):
         """
