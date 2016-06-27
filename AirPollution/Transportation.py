@@ -212,7 +212,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                  GROUP BY sply_fips) c
                               ON a.fips = c.sply_fips
                        SET start_hotel_emissions = (b.ratePerVehicle * c.used_qnty / {capacity} / {g_per_mt})
-                       WHERE a.pollutantID = '{pollutant_name}'
+                       WHERE a.pollutantID = '{pollutant_name}' AND feedstock = '{feed}'
                     ;""".format(**self.kvals)
 
             try:
