@@ -435,9 +435,9 @@ class Driver:
                 .format(t=table, **self.kvals)
             self.db.execute_sql(sql)
 
-            columns = ('MOVESScenarioID', 'MOVESRunID', 'yearID', 'monthID', 'dayID', 'hourID', 'linkID',
-                       'pollutantID', 'processID', 'sourceTypeID', 'regClassID', 'SCC', 'fuelTypeID',
-                       'modelYearID', 'roadTypeID', 'avgSpeedBinID', 'temperature', 'relHumidity', 'state',
+            columns = ('MOVESScenarioID', 'MOVESRunID', 'yearID', 'monthID', 'dayID', 'hourID',
+                       'pollutantID', 'processID', 'sourceTypeID', 
+                       'roadTypeID', 'avgSpeedBinID', 'state',
                        'MOVESScenarioID_no_fips', table)
 
             for column in columns:
