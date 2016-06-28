@@ -257,12 +257,20 @@ class FigurePlottingBT16:
                              sum.total_sox,
                              sum.total_co,
                              dat.total_prod * {convert_bushel} AS total_prod,
-                             dat.total_harv_ac
+                             dat.total_harv_ac,
+                             sum.total_nox + sum_trans.total_nox_with_transport AS total_nox_trans,
+                             sum.total_nh3 + sum_trans.total_nh3_with_transport AS total_nh3_trans,
+                             sum.total_voc + sum_trans.total_voc_with_transport AS total_voc_trans,
+                             sum.total_pm10 + sum_trans.total_pm10_with_transport AS total_pm10_trans,
+                             sum.total_pm25 + sum_trans.total_pm25_with_transport AS total_pm25_trans,
+                             sum.total_sox + sum_trans.total_sox_with_transport AS total_sox_trans,
+                             sum.total_co + sum_trans.total_co_with_transport AS total_co_trans
                         FROM {scenario_name}.{table} tot
                         LEFT JOIN  (SELECT fips,
                                            feedstock,
                                            year,
                                            yield,
+                                           tillage,
                                            SUM(nox) AS total_nox,
                                            SUM(nh3) AS total_nh3,
                                            SUM(voc) AS total_voc,
@@ -272,8 +280,25 @@ class FigurePlottingBT16:
                                            SUM(co) AS total_co
                                     FROM {scenario_name}.{table}
                                     WHERE feedstock = '{feed}' AND source_category NOT LIKE '%transport%' AND source_category NOT LIKE '%process%'
-                                    GROUP BY fips, feedstock, year, yield) sum
-                        ON tot.fips = SUM.fips AND tot.feedstock = sum.feedstock AND tot.year = sum.year AND tot.yield = sum.yield
+                                    GROUP BY fips, feedstock, year, yield, tillage) sum
+                        ON tot.fips = SUM.fips AND tot.feedstock = sum.feedstock AND tot.year = sum.year AND tot.yield = sum.yield AND tot.tillage = sum.tillage
+                        LEFT JOIN  (SELECT fips,
+                                           feedstock,
+                                           year,
+                                           yield,
+                                           source_category,
+                                           tillage,
+                                           SUM(nox) AS total_nox_with_transport,
+                                           SUM(nh3) AS total_nh3_with_transport,
+                                           SUM(voc) AS total_voc_with_transport,
+                                           SUM(pm10) AS total_pm10_with_transport,
+                                           SUM(pm25) AS total_pm25_with_transport,
+                                           SUM(sox) AS total_sox_with_transport,
+                                           SUM(co) AS total_co_with_transport
+                                    FROM {scenario_name}.{table}
+                                    WHERE feedstock = '{feed}' AND (source_category LIKE '%transport%' OR source_category LIKE '%process%')
+                                    GROUP BY fips, feedstock, year, yield, tillage) sum_trans
+                        ON tot.fips = sum_trans.fips AND tot.feedstock = sum_trans.feedstock AND tot.year = sum_trans.year AND tot.yield = sum_trans.yield AND tot.tillage = sum_trans.tillage
                         LEFT JOIN (SELECT fips,
                                           SUM(total_prod) * {convert_bushel}  AS total_prod,
                                           SUM(total_harv_ac) AS total_harv_ac
@@ -346,6 +371,25 @@ class FigurePlottingBT16:
                 self.db.execute_sql(sql=sql)
 
                 i += 1
+
+            # update total emissions for transport to allocate using actual production values rather than reduction factor (1/3)
+            # @TODO: transport emissions need to be weighted correctly when inserted into total emissions table (under get_logistics)
+            for pollutant in self.pol_list:
+                kvals['pollutant'] = pollutant
+                sql = """UPDATE {scenario_name}.{table} a
+                             LEFT JOIN (SELECT fips, feedstock, year, yield, source_category, sum({pollutant}) AS sum_{pollutant}, sum(prod) AS total_prod
+                                        FROM {scenario_name}.{table}
+                                        WHERE source_category LIKE '%transport%'
+                                        GROUP BY fips, feedstock, year, yield, source_category) b
+                             ON (a.fips = b.fips AND
+                                a.feedstock = b.feedstock AND
+                                a.year = b.year AND
+                                a.yield = b.yield AND
+                                a.source_category = b.source_category)
+                             SET a.{pollutant} = b.sum_{pollutant} * a.prod / b.total_prod
+                             WHERE a.source_category LIKE '%transport%'""".format(**kvals)
+
+                self.db.execute_sql(sql=sql)
 
     def get_chem(self, kvals):
         """
