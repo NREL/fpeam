@@ -270,8 +270,7 @@ class FigurePlottingBT16:
                                  , feed_id_short                               AS feedstock
                             FROM {scenario_name}.transport_woody_{yield}_{logistics}_{year}
                             GROUP BY sply_fips, feed_id)                           trans2 ON (trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock)
-              ;"""
-            # .format(**kvals)
+              ;""".format(**kvals)
         # self.db.execute_sql(sql)
 
         # # join nei data
@@ -339,6 +338,7 @@ class FigurePlottingBT16:
 
         for col in ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock', 'nox', 'nh3', 'voc', 'pm10', 'pm25', 'sox', 'co', 'nei_category', 'prod', 'harv_ac', 'total_nox', 'total_nh3', 'total_voc', 'total_pm10', 'total_pm25', 'total_sox', 'total_co', 'total_prod', 'total_harv_ac', 'total_nox_trans', 'total_nh3_trans'):
             sql = 'CREATE INDEX idx_{new_table}_{col} ON {scenario_name}.{new_table} ({col});'.format(col=col, **kvals)
+            self.db.execute_sql(sql=sql)
 
     def sum_emissions(self, kvals):
 
