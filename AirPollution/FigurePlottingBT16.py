@@ -67,7 +67,7 @@ class FigurePlottingBT16:
         query_create_table = """CREATE TABLE {scenario_name}.{te_table} (fips            char(5),
                                                                          year            char(4),
                                                                          yield           char(2),
-                                                                         tillage         varchar(255),
+                                                                         tillage         char(255),
                                                                          nox             float,
                                                                          nh3             float,
                                                                          voc             float,
@@ -75,7 +75,7 @@ class FigurePlottingBT16:
                                                                          pm25            float,
                                                                          sox             float,
                                                                          co              float,
-                                                                         source_category varchar(255),
+                                                                         source_category char(255),
                                                                          nei_category    char(2),
                                                                          feedstock       char(2))
                                 ;""".format(**kvals)
@@ -117,7 +117,7 @@ class FigurePlottingBT16:
             self.get_logistics(kvals)
 
         # add indicies
-        columns = ('fips', 'year', 'yield', 'tillage', 'source_category', 'nei_category', 'feedstock')
+        columns = ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock')
         for column in columns:
             sql = """CREATE INDEX idx_{te_table}_{c} ON {scenario_name}.{te_table} ({c});""".format(c=column, **kvals)
             self.db.execute_sql(sql)
@@ -140,17 +140,13 @@ class FigurePlottingBT16:
 
         kvals['logistics'] = logistics_dict[config['logistics_type']]
 
-        feed_type_dict = config.get('feed_type_dict')
-        table_dict = config.get('transport_table_dict')
-        logistics = config.get('logistics_type')
+        # feed_type_dict = config.get('feed_type_dict')
+        # table_dict = config.get('transport_table_dict')
+        # logistics = config.get('logistics_type')
 
         # back up table
         # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
 
-        # drop old table and create new table
-        # sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};\n".format(**kvals)
-        sql = "DROP   TABLE IF EXISTS {scenario_name}.{new_table};".format(**kvals)
-        self.db.execute_sql(sql)
 
         # # create full join of NAA and total emissions
         # sql = "CREATE VIEW {scenario_name}.te_fulljoin_naa AS " \
@@ -170,19 +166,18 @@ class FigurePlottingBT16:
         self.db.execute_sql(sql)
 
         sql = """CREATE TABLE {scenario_name}.scenario_combo AS
-                 SELECT *
-                 FROM (SELECT a.fips, b.source_category, c.yield, d.year, e.tillage, f.feedstock
-                 FROM (SELECT COALESCE(ca.fips, na.fips) AS fips
-                       FROM {constants_schema}.county_attributes ca
-                       LEFT JOIN naa.naa_2012 na ON ca.fips = na.fips
-                       UNION (SELECT COALESCE(ca.fips, na.fips) AS fips
-                       FROM {constants_schema}.county_attributes ca
-                       RIGHT JOIN naa.naa_2012 na ON ca.fips = na.fips)) a
+                 SELECT ca.fips
+                      , b.source_category
+                      , c.yield
+                      , d.year
+                      , e.tillage
+                      , f.feedstock
+                 FROM   {constants_schema}.county_attributes ca
                  CROSS JOIN (SELECT DISTINCT source_category FROM {scenario_name}.total_emissions_join_prod_sum_emissions) b
                  CROSS JOIN (SELECT DISTINCT yield           FROM {scenario_name}.total_emissions_join_prod_sum_emissions) c
                  CROSS JOIN (SELECT DISTINCT year            FROM {scenario_name}.total_emissions_join_prod_sum_emissions) d
                  CROSS JOIN (SELECT DISTINCT tillage         FROM {scenario_name}.total_emissions_join_prod_sum_emissions) e
-                 CROSS JOIN (SELECT DISTINCT feedstock       FROM {scenario_name}.total_emissions_join_prod_sum_emissions) f) g
+                 CROSS JOIN (SELECT DISTINCT feedstock       FROM {scenario_name}.total_emissions_join_prod_sum_emissions) f
               """.format(**kvals)
         self.db.execute_sql(sql)
 
@@ -190,94 +185,160 @@ class FigurePlottingBT16:
             sql = 'ALTER TABLE {scenario_name}.scenario_combo ADD INDEX idx_scenario_combo_{col} ({col});'.format(col=col, **kvals)
             self.db.execute_sql(sql)
 
+        # # drop and then create view of total emissions joined with naa
+        # sql = """DROP VIEW IF EXISTS {scenario_name}.te_fulljoin_naa;""".format(**kvals)
+        # self.db.execute_sql(sql)
+
         # drop and then create view of total emissions joined with naa
-        sql = """DROP VIEW {scenario_name}.te_fulljoin_naa;""".format(**kvals)
+        sql = """DROP TABLE IF EXISTS {scenario_name}.{new_table};""".format(**kvals)
         self.db.execute_sql(sql)
 
-        sql = """CREATE VIEW {scenario_name}.te_fulljoin_naa AS
+        # sql = """CREATE VIEW {scenario_name}.te_fulljoin_naa AS
+        sql = """CREATE TABLE           {scenario_name}.{new_table} AS
                  SELECT sc.fips
                       , sc.year
                       , sc.yield
                       , sc.tillage
                       , sc.source_category
                       , sc.feedstock
-                      , nox, nh3, voc, pm10, pm25, sox, co, nei_category, prod, harv_ac, total_nox, total_nh3, total_voc, total_pm10, total_pm25, total_sox, total_co, total_prod, total_harv_ac, total_nox_trans, total_nh3_trans, total_voc_trans, total_pm10_trans, total_pm25_trans, total_sox_trans, total_co_trans
+
+                      , te.nox, te.nh3, te.voc, te.pm10, te.pm25, te.sox, te.co, te.nei_category, te.prod, te.harv_ac,
+                        te.total_nox, te.total_nh3, te.total_voc, te.total_pm10, te.total_pm25, te.total_sox,
+                        te.total_co, te.total_prod, te.total_harv_ac, te.total_nox_trans, te.total_nh3_trans,
+                        te.total_voc_trans, te.total_pm10_trans, te.total_pm25_trans, te.total_sox_trans, te.total_co_trans
+
                       , na.ozone_8hr_2008
                       , na.co_1971
                       , na.no2_1971
                       , na.pm10_1987
                       , na.pm25_1997_2006_2012
                       , na.so2_1971_2010
-                 FROM {scenario_name}.scenario_combo sc
-                 LEFT JOIN naa.naa_2012 na
-                        ON (na.fips = sc.fips)
-                 LEFT JOIN {scenario_name}.total_emissions_join_prod_sum_emissions te
-                        ON (te.fips = sc.fips AND te.source_category = sc.source_category AND te.yield = sc.yield AND te.year = sc.year AND te.tillage = sc.tillage AND te.feedstock = sc.feedstock)
-              """.format(**kvals)
-        self.db.execute_sql(sql)
 
-        # join nei data
-        sql = """CREATE TABLE           {scenario_name}.{new_table} AS
-                  SELECT   te.*
-                         , nei_npnror.nei_nox_npnror
-                         , nei_npnror.nei_sox_npnror
-                         , nei_npnror.nei_pm10_npnror
-                         , nei_npnror.nei_pm25_npnror
-                         , nei_npnror.nei_voc_npnror
-                         , nei_npnror.nei_nh3_npnror
-                         , nei_npnror.nei_co_npnror
-                         , nei_npnrorp.nei_voc__npnrorp
-                         , COALESCE(trans.avg_total_cost, trans2.avg_total_cost) AS avg_total_cost
-                         , COALESCE(trans.avg_dist, trans2.avg_dist)             AS avg_dist
-                         , COALESCE(trans.used_qnty, trans2.used_qnty)           AS used_qnty
-                  FROM {scenario_name}.te_fulljoin_naa te
-                  LEFT JOIN (SELECT   LPAD(fips, 5, '0') AS fips_plus
-                                    , SUM(nox)           AS nei_nox_npnror
-                                    , SUM(sox)           AS nei_sox_npnror
-                                    , SUM(pm10)          AS nei_pm10_npnror
-                                    , SUM(pm25)          AS nei_pm25_npnror
-                                    , SUM(voc)           AS nei_voc_npnror
-                                    , SUM(nh3)           AS nei_nh3_npnror
-                                    , SUM(co)            AS nei_co_npnror
-                             FROM nei.nei_2011
-                             WHERE category != 'BVOC' AND category != 'P'
-                             GROUP BY fips_plus) nei_npnror
-                  ON nei_npnror.fips_plus = te.fips
+                      , nei_npnror.nei_nox_npnror
+                      , nei_npnror.nei_sox_npnror
+                      , nei_npnror.nei_pm10_npnror
+                      , nei_npnror.nei_pm25_npnror
+                      , nei_npnror.nei_voc_npnror
+                      , nei_npnror.nei_nh3_npnror
+                      , nei_npnror.nei_co_npnror
+                      , nei_npnrorp.nei_voc__npnrorp
 
-                  """.format(**kvals)
+                      , COALESCE(trans.avg_total_cost, trans2.avg_total_cost) AS avg_total_cost
+                      , COALESCE(trans.avg_dist, trans2.avg_dist)             AS avg_dist
+                      , COALESCE(trans.used_qnty, trans2.used_qnty)           AS used_qnty
 
-        sql += """
-                  LEFT JOIN (SELECT LPAD(fips, 5, '0') AS fips_plus, SUM(voc) AS nei_voc__npnrorp
-                             FROM nei.nei_2011
-                             WHERE category != 'BVOC'
-                             GROUP BY fips_plus) nei_npnrorp
-                  ON nei_npnrorp.fips_plus = te.fips
+                 FROM      {scenario_name}.scenario_combo                          sc
+                 LEFT JOIN naa.naa_2012                                            na ON (    na.fips            = sc.fips)
+                 LEFT JOIN {scenario_name}.total_emissions_join_prod_sum_emissions te ON (    te.fips            = sc.fips
+                                                                                          AND te.source_category = sc.source_category
+                                                                                          AND te.yield           = sc.yield
+                                                                                          AND te.year            = sc.year
+                                                                                          AND te.tillage         = sc.tillage
+                                                                                          AND te.feedstock       = sc.feedstock
+                                                                                         )
 
-                  """.format(**kvals)
+                 LEFT JOIN (SELECT fips      AS fips_plus
+                                 , SUM(nox)  AS nei_nox_npnror
+                                 , SUM(sox)  AS nei_sox_npnror
+                                 , SUM(pm10) AS nei_pm10_npnror
+                                 , SUM(pm25) AS nei_pm25_npnror
+                                 , SUM(voc)  AS nei_voc_npnror
+                                 , SUM(nh3)  AS nei_nh3_npnror
+                                 , SUM(co)   AS nei_co_npnror
+                            FROM nei.nei_2011
+                            WHERE category != 'BVOC' AND category != 'P'
+                            GROUP BY fips)                                         nei_npnror ON nei_npnror.fips_plus = te.fips
 
-        sql += """LEFT JOIN (SELECT sply_fips, SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost, SUM(avg_dist)/count(avg_dist) AS avg_dist, SUM(used_qnty) AS used_qnty,
-                                    CASE
-                                        WHEN feed_id = 'Corn stover' THEN 'cs'
-                                        WHEN feed_id = 'Switchgrass' THEN 'sg'
-                                        WHEN feed_id = 'Miscanthus'  THEN 'ms'
-                                    END AS feedstock
-                                    FROM bts16.transport_herb_{yield}_{logistics}_{year}
-                                    GROUP BY sply_fips, feed_id) trans
-                             ON trans.sply_fips = te.fips AND te.feedstock = trans.feedstock
-                             
-                """.format(**kvals)
+                 LEFT JOIN (SELECT fips
+                                 , SUM(voc) AS nei_voc__npnrorp
+                            FROM nei.nei_2011
+                            WHERE category != 'BVOC'
+                            GROUP BY fips_plus)                                    nei_npnrorp ON nei_npnrorp.fips_plus = te.fips
 
-        sql += """LEFT JOIN (SELECT sply_fips, SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost, SUM(avg_dist) / count(avg_dist) AS avg_dist, SUM(used_qnty) AS used_qnty,
-                                    CASE
-                                        WHEN feed_id = 'Residues'   THEN 'fr'
-                                        WHEN feed_id = 'Whole tree' THEN 'fw'
-                                    END AS feedstock
-                            FROM bts16.transport_woody_{yield}_{logistics}_{year}
-                            GROUP BY sply_fips, feed_id) trans2
-                            ON trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock
-                """.format(**kvals)
+                 LEFT JOIN (SELECT sply_fips
+                                 , SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost
+                                 , SUM(avg_dist)/count(avg_dist)               AS avg_dist
+                                 , SUM(used_qnty)                              AS used_qnty
+                                 , feed_id_short                               AS feedstock
+                            FROM {scenario_name}.transport_herb_{yield}_{logistics}_{year}
+                            GROUP BY sply_fips, feed_id)                           trans ON (trans.sply_fips = te.fips AND te.feedstock = trans.feedstock)
+
+                 LEFT JOIN (SELECT sply_fips
+                                 , SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost
+                                 , SUM(avg_dist)       / COUNT(avg_dist)       AS avg_dist
+                                 , SUM(used_qnty)                              AS used_qnty
+                                 , feed_id_short                               AS feedstock
+                            FROM {scenario_name}.transport_woody_{yield}_{logistics}_{year}
+                            GROUP BY sply_fips, feed_id)                           trans2 ON (trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock)
+              ;"""
+            # .format(**kvals)
+        # self.db.execute_sql(sql)
+
+        # # join nei data
+        # sql = """CREATE TABLE           {scenario_name}.{new_table} AS
+        #           SELECT   te.*
+        #                  , nei_npnror.nei_nox_npnror
+        #                  , nei_npnror.nei_sox_npnror
+        #                  , nei_npnror.nei_pm10_npnror
+        #                  , nei_npnror.nei_pm25_npnror
+        #                  , nei_npnror.nei_voc_npnror
+        #                  , nei_npnror.nei_nh3_npnror
+        #                  , nei_npnror.nei_co_npnror
+        #                  , nei_npnrorp.nei_voc__npnrorp
+        #                  , COALESCE(trans.avg_total_cost, trans2.avg_total_cost) AS avg_total_cost
+        #                  , COALESCE(trans.avg_dist, trans2.avg_dist)             AS avg_dist
+        #                  , COALESCE(trans.used_qnty, trans2.used_qnty)           AS used_qnty
+        #           FROM {scenario_name}.te_fulljoin_naa te
+        #           LEFT JOIN (SELECT   fips      AS fips_plus
+        #                             , SUM(nox)  AS nei_nox_npnror
+        #                             , SUM(sox)  AS nei_sox_npnror
+        #                             , SUM(pm10) AS nei_pm10_npnror
+        #                             , SUM(pm25) AS nei_pm25_npnror
+        #                             , SUM(voc)  AS nei_voc_npnror
+        #                             , SUM(nh3)  AS nei_nh3_npnror
+        #                             , SUM(co)   AS nei_co_npnror
+        #                      FROM nei.nei_2011
+        #                      WHERE category != 'BVOC' AND category != 'P'
+        #                      GROUP BY fips) nei_npnror
+        #           ON nei_npnror.fips_plus = te.fips
+        #
+        #           """.format(**kvals)
+
+        # sql += """
+        #           LEFT JOIN (SELECT LPAD(fips, 5, '0') AS fips_plus, SUM(voc) AS nei_voc__npnrorp
+        #                      FROM nei.nei_2011
+        #                      WHERE category != 'BVOC'
+        #                      GROUP BY fips_plus) nei_npnrorp
+        #           ON nei_npnrorp.fips_plus = te.fips
+        #
+        #           """.format(**kvals)
+
+        # sql += """LEFT JOIN (SELECT sply_fips, SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost, SUM(avg_dist)/count(avg_dist) AS avg_dist, SUM(used_qnty) AS used_qnty,
+        #                             CASE
+        #                                 WHEN feed_id = 'Corn stover' THEN 'cs'
+        #                                 WHEN feed_id = 'Switchgrass' THEN 'sg'
+        #                                 WHEN feed_id = 'Miscanthus'  THEN 'ms'
+        #                             END AS feedstock
+        #                             FROM bts16.transport_herb_{yield}_{logistics}_{year}
+        #                             GROUP BY sply_fips, feed_id) trans
+        #                      ON trans.sply_fips = te.fips AND te.feedstock = trans.feedstock
+        #
+        #         """.format(**kvals)
+
+        # sql += """LEFT JOIN (SELECT sply_fips, SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost, SUM(avg_dist) / count(avg_dist) AS avg_dist, SUM(used_qnty) AS used_qnty,
+        #                             CASE
+        #                                 WHEN feed_id = 'Residues'   THEN 'fr'
+        #                                 WHEN feed_id = 'Whole tree' THEN 'fw'
+        #                             END AS feedstock
+        #                     FROM bts16.transport_woody_{yield}_{logistics}_{year}
+        #                     GROUP BY sply_fips, feed_id) trans2
+        #                     ON trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock
+        #         """.format(**kvals)
 
         self.db.execute_sql(sql=sql)
+
+        for col in ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock', 'nox', 'nh3', 'voc', 'pm10', 'pm25', 'sox', 'co', 'nei_category', 'prod', 'harv_ac', 'total_nox', 'total_nh3', 'total_voc', 'total_pm10', 'total_pm25', 'total_sox', 'total_co', 'total_prod', 'total_harv_ac', 'total_nox_trans', 'total_nh3_trans'):
+            sql = 'CREATE INDEX idx_{new_table}_{col} ON {scenario_name}.{new_table} ({col});'.format(col=col, **kvals)
 
     def sum_emissions(self, kvals):
 
@@ -315,27 +376,27 @@ class FigurePlottingBT16:
                              sum.total_co,
                              dat.total_prod * {convert_bushel} AS total_prod,
                              dat.total_harv_ac,
-                             sum.total_nox + sum_trans.total_nox_with_transport AS total_nox_trans,
-                             sum.total_nh3 + sum_trans.total_nh3_with_transport AS total_nh3_trans,
-                             sum.total_voc + sum_trans.total_voc_with_transport AS total_voc_trans,
+                             sum.total_nox  + sum_trans.total_nox_with_transport  AS total_nox_trans,
+                             sum.total_nh3  + sum_trans.total_nh3_with_transport  AS total_nh3_trans,
+                             sum.total_voc  + sum_trans.total_voc_with_transport  AS total_voc_trans,
                              sum.total_pm10 + sum_trans.total_pm10_with_transport AS total_pm10_trans,
                              sum.total_pm25 + sum_trans.total_pm25_with_transport AS total_pm25_trans,
-                             sum.total_sox + sum_trans.total_sox_with_transport AS total_sox_trans,
-                             sum.total_co + sum_trans.total_co_with_transport AS total_co_trans
+                             sum.total_sox  + sum_trans.total_sox_with_transport  AS total_sox_trans,
+                             sum.total_co   + sum_trans.total_co_with_transport   AS total_co_trans
                         FROM {scenario_name}.{table} tot
                         LEFT JOIN  (SELECT fips,
                                            feedstock,
                                            year,
                                            yield,
                                            tillage,
-                                           SUM(nox) AS total_nox,
-                                           SUM(nh3) AS total_nh3,
-                                           SUM(voc) AS total_voc,
+                                           SUM(nox)  AS total_nox,
+                                           SUM(nh3)  AS total_nh3,
+                                           SUM(voc)  AS total_voc,
                                            SUM(pm10) AS total_pm10,
                                            SUM(pm25) AS total_pm25,
-                                           SUM(sox) AS total_sox,
-                                           SUM(co) AS total_co
-                                    FROM {scenario_name}.{table}
+                                           SUM(sox)  AS total_sox,
+                                           SUM(co)   AS total_co
+                                    FROM  {scenario_name}.{table}
                                     WHERE feedstock = '{feed}' AND source_category NOT LIKE '%transport%' AND source_category NOT LIKE '%process%'
                                     GROUP BY fips, feedstock, year, yield, tillage) sum
                         ON tot.fips = SUM.fips AND tot.feedstock = sum.feedstock AND tot.year = sum.year AND tot.yield = sum.yield AND tot.tillage = sum.tillage
@@ -345,20 +406,20 @@ class FigurePlottingBT16:
                                            yield,
                                            source_category,
                                            tillage,
-                                           SUM(nox) AS total_nox_with_transport,
-                                           SUM(nh3) AS total_nh3_with_transport,
-                                           SUM(voc) AS total_voc_with_transport,
+                                           SUM(nox)  AS total_nox_with_transport,
+                                           SUM(nh3)  AS total_nh3_with_transport,
+                                           SUM(voc)  AS total_voc_with_transport,
                                            SUM(pm10) AS total_pm10_with_transport,
                                            SUM(pm25) AS total_pm25_with_transport,
-                                           SUM(sox) AS total_sox_with_transport,
-                                           SUM(co) AS total_co_with_transport
-                                    FROM {scenario_name}.{table}
+                                           SUM(sox)  AS total_sox_with_transport,
+                                           SUM(co)   AS total_co_with_transport
+                                    FROM  {scenario_name}.{table}
                                     WHERE feedstock = '{feed}' AND (source_category LIKE '%transport%' OR source_category LIKE '%process%')
                                     GROUP BY fips, feedstock, year, yield, tillage) sum_trans
                         ON tot.fips = sum_trans.fips AND tot.feedstock = sum_trans.feedstock AND tot.year = sum_trans.year AND tot.yield = sum_trans.yield AND tot.tillage = sum_trans.tillage
                         LEFT JOIN (SELECT fips,
                                           SUM(total_prod) * {convert_bushel}  AS total_prod,
-                                          SUM(total_harv_ac) AS total_harv_ac
+                                          SUM(total_harv_ac)                  AS total_harv_ac
                                    FROM {production_schema}.{feed}_data cd
                                    GROUP BY    cd.fips) dat
                         ON tot.fips = dat.fips AND tot.feedstock = '{feed}'
@@ -367,6 +428,10 @@ class FigurePlottingBT16:
             sql = sql.format(**kvals)
             self.db.execute_sql(sql=sql)
 
+            for col in ('fips', 'source_category', 'yield', 'year', 'tillage', 'feedstock'):
+                sql = "CREATE INDEX idx_{new_table}_{col} ON {scenario_name}.{new_table} ({col});".format(col=col, **kvals)
+                self.db.execute_sql(sql)
+
     def join_with_production_data(self, kvals):
         """
 
@@ -374,6 +439,7 @@ class FigurePlottingBT16:
         :return:
         """
         kvals['table'] = 'total_emissions_join_prod'
+        kvals['te_table'] = 'total_emissions'
 
         i = 0
         for feedstock in self.f_list:
@@ -414,8 +480,8 @@ class FigurePlottingBT16:
 
                 # gather data
                 sql += "SELECT      tot.*,\n"
-                sql += "            sum(cd.{tillage}_prod) * {convert_bushel}    AS prod,\n"
-                sql += "            sum(cd.{tillage}_harv_ac) AS harv_ac\n"
+                sql += "            SUM(cd.{tillage}_prod) * {convert_bushel}    AS prod,\n"
+                sql += "            SUM(cd.{tillage}_harv_ac) AS harv_ac\n"
                 sql += "FROM        {scenario_name}.{te_table} tot\n"
                 sql += "LEFT JOIN   {production_schema}.{feed}_data cd\n"
                 sql += "       ON   cd.fips = tot.fips\n"
@@ -447,6 +513,10 @@ class FigurePlottingBT16:
                              WHERE a.source_category LIKE '%transport%'""".format(**kvals)
 
                 self.db.execute_sql(sql=sql)
+
+        for col in ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock'):
+            sql = "CREATE INDEX idx_{table}_{col} ON {scenario_name}.{table} ({col});".format(col=col, **kvals)
+            self.db.execute_sql(sql)
 
     def get_chem(self, kvals):
         """
