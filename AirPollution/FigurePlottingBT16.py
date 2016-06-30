@@ -166,10 +166,10 @@ class FigurePlottingBT16:
         # self.db.execute_sql(sql)
 
         # drop and then create table with combinations of year, yield, feedstock, tillage and fips for scenario
-        sql = """DROP TABLE bc2017c.scenario_combo;""".format(**kvals)
+        sql = """DROP TABLE {scenario_name}.scenario_combo;""".format(**kvals)
         self.db.execute_sql(sql)
 
-        sql = """CREATE TABLE bc2017c.scenario_combo AS
+        sql = """CREATE TABLE {scenario_name}.scenario_combo AS
                  SELECT *
                  FROM (SELECT a.fips, b.source_category, c.yield, d.year, e.tillage, f.feedstock
                  FROM (SELECT COALESCE(ca.fips, na.fips) AS fips
@@ -179,12 +179,16 @@ class FigurePlottingBT16:
                        FROM {constants_schema}.county_attributes ca
                        RIGHT JOIN naa.naa_2012 na ON ca.fips = na.fips)) a
                  CROSS JOIN (SELECT DISTINCT source_category FROM {scenario_name}.total_emissions_join_prod_sum_emissions) b
-                 CROSS JOIN (SELECT DISTINCT yield FROM {scenario_name}.total_emissions_join_prod_sum_emissions) c
-                 CROSS JOIN (SELECT DISTINCT year FROM {scenario_name}.total_emissions_join_prod_sum_emissions) d
-                 CROSS JOIN (SELECT DISTINCT tillage FROM {scenario_name}.total_emissions_join_prod_sum_emissions) e
-                 CROSS JOIN (SELECT DISTINCT feedstock FROM {scenario_name}.total_emissions_join_prod_sum_emissions) f) g
+                 CROSS JOIN (SELECT DISTINCT yield           FROM {scenario_name}.total_emissions_join_prod_sum_emissions) c
+                 CROSS JOIN (SELECT DISTINCT year            FROM {scenario_name}.total_emissions_join_prod_sum_emissions) d
+                 CROSS JOIN (SELECT DISTINCT tillage         FROM {scenario_name}.total_emissions_join_prod_sum_emissions) e
+                 CROSS JOIN (SELECT DISTINCT feedstock       FROM {scenario_name}.total_emissions_join_prod_sum_emissions) f) g
               """.format(**kvals)
         self.db.execute_sql(sql)
+
+        for col in ('fips', 'source_category', 'yield', 'year', 'tillage', 'feedstock'):
+            sql = 'ALTER TABLE {scenario_name}.scenario_combo ADD INDEX idx_scenario_combo_{col} ({col});'.format(col=col, **kvals)
+            self.db.execute_sql(sql)
 
         # drop and then create view of total emissions joined with naa
         sql = """DROP VIEW {scenario_name}.te_fulljoin_naa;""".format(**kvals)
