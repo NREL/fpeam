@@ -259,17 +259,17 @@ class FigurePlottingBT16:
                                  , SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost
                                  , SUM(avg_dist)/count(avg_dist)               AS avg_dist
                                  , SUM(used_qnty)                              AS used_qnty
-                                 , feed_abbr                                   AS feedstock
+                                 , feed_id_abbr                                   AS feedstock
                             FROM {production_schema}.transport_herb_{yield}_{logistics}_{year}
-                            GROUP BY sply_fips, feed_id)                           trans ON (trans.sply_fips = te.fips AND te.feedstock = trans.feedstock)
+                            GROUP BY sply_fips, feedstock)                           trans ON (trans.sply_fips = te.fips AND te.feedstock = trans.feedstock)
 
                  LEFT JOIN (SELECT sply_fips
                                  , SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost
                                  , SUM(avg_dist)       / COUNT(avg_dist)       AS avg_dist
                                  , SUM(used_qnty)                              AS used_qnty
-                                 , feed_abbr                                  AS feedstock
+                                 , feed_id_abbr                                  AS feedstock
                             FROM {production_schema}.transport_woody_{yield}_{logistics}_{year}
-                            GROUP BY sply_fips, feed_id)                           trans2 ON (trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock)
+                            GROUP BY sply_fips, feedstock)                           trans2 ON (trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock)
               ;""".format(**kvals)
 
         self.db.execute_sql(sql=sql)
