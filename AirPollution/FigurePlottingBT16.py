@@ -237,7 +237,7 @@ class FigurePlottingBT16:
                                                                                           AND te.feedstock       = sc.feedstock
                                                                                          )
 
-                 LEFT JOIN (SELECT fips      AS fips_plus
+                 LEFT JOIN (SELECT fips      AS fips
                                  , SUM(nox)  AS nei_nox_npnror
                                  , SUM(sox)  AS nei_sox_npnror
                                  , SUM(pm10) AS nei_pm10_npnror
@@ -247,19 +247,19 @@ class FigurePlottingBT16:
                                  , SUM(co)   AS nei_co_npnror
                             FROM nei.nei_2011
                             WHERE category != 'BVOC' AND category != 'P'
-                            GROUP BY fips)                                         nei_npnror ON nei_npnror.fips_plus = te.fips
+                            GROUP BY fips)                                         nei_npnror ON nei_npnror.fips = te.fips
 
                  LEFT JOIN (SELECT fips
                                  , SUM(voc) AS nei_voc__npnrorp
                             FROM nei.nei_2011
                             WHERE category != 'BVOC'
-                            GROUP BY fips_plus)                                    nei_npnrorp ON nei_npnrorp.fips_plus = te.fips
+                            GROUP BY fips_plus)                                    nei_npnrorp ON nei_npnrorp.fips = te.fips
 
                  LEFT JOIN (SELECT sply_fips
                                  , SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost
                                  , SUM(avg_dist)/count(avg_dist)               AS avg_dist
                                  , SUM(used_qnty)                              AS used_qnty
-                                 , feed_id_short                               AS feedstock
+                                 , feed_abbr                                   AS feedstock
                             FROM {production_schema}.transport_herb_{yield}_{logistics}_{year}
                             GROUP BY sply_fips, feed_id)                           trans ON (trans.sply_fips = te.fips AND te.feedstock = trans.feedstock)
 
@@ -267,7 +267,7 @@ class FigurePlottingBT16:
                                  , SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost
                                  , SUM(avg_dist)       / COUNT(avg_dist)       AS avg_dist
                                  , SUM(used_qnty)                              AS used_qnty
-                                 , feed_id_short                               AS feedstock
+                                 , feed_abbr                                  AS feedstock
                             FROM {production_schema}.transport_woody_{yield}_{logistics}_{year}
                             GROUP BY sply_fips, feed_id)                           trans2 ON (trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock)
               ;""".format(**kvals)
