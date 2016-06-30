@@ -253,7 +253,7 @@ class FigurePlottingBT16:
                                  , SUM(voc) AS nei_voc__npnrorp
                             FROM nei.nei_2011
                             WHERE category != 'BVOC'
-                            GROUP BY fips_plus)                                    nei_npnrorp ON nei_npnrorp.fips = te.fips
+                            GROUP BY fips)                                    nei_npnrorp ON nei_npnrorp.fips = te.fips
 
                  LEFT JOIN (SELECT sply_fips
                                  , SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost
