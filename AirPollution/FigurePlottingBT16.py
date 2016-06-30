@@ -260,7 +260,7 @@ class FigurePlottingBT16:
                                  , SUM(avg_dist)/count(avg_dist)               AS avg_dist
                                  , SUM(used_qnty)                              AS used_qnty
                                  , feed_id_short                               AS feedstock
-                            FROM {scenario_name}.transport_herb_{yield}_{logistics}_{year}
+                            FROM {production_schema}.transport_herb_{yield}_{logistics}_{year}
                             GROUP BY sply_fips, feed_id)                           trans ON (trans.sply_fips = te.fips AND te.feedstock = trans.feedstock)
 
                  LEFT JOIN (SELECT sply_fips
@@ -268,7 +268,7 @@ class FigurePlottingBT16:
                                  , SUM(avg_dist)       / COUNT(avg_dist)       AS avg_dist
                                  , SUM(used_qnty)                              AS used_qnty
                                  , feed_id_short                               AS feedstock
-                            FROM {scenario_name}.transport_woody_{yield}_{logistics}_{year}
+                            FROM {production_schema}.transport_woody_{yield}_{logistics}_{year}
                             GROUP BY sply_fips, feed_id)                           trans2 ON (trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock)
               ;""".format(**kvals)
         # self.db.execute_sql(sql)
