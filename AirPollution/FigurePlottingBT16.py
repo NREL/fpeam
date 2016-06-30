@@ -271,68 +271,6 @@ class FigurePlottingBT16:
                             FROM {production_schema}.transport_woody_{yield}_{logistics}_{year}
                             GROUP BY sply_fips, feed_id)                           trans2 ON (trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock)
               ;""".format(**kvals)
-        # self.db.execute_sql(sql)
-
-        # # join nei data
-        # sql = """CREATE TABLE           {scenario_name}.{new_table} AS
-        #           SELECT   te.*
-        #                  , nei_npnror.nei_nox_npnror
-        #                  , nei_npnror.nei_sox_npnror
-        #                  , nei_npnror.nei_pm10_npnror
-        #                  , nei_npnror.nei_pm25_npnror
-        #                  , nei_npnror.nei_voc_npnror
-        #                  , nei_npnror.nei_nh3_npnror
-        #                  , nei_npnror.nei_co_npnror
-        #                  , nei_npnrorp.nei_voc__npnrorp
-        #                  , COALESCE(trans.avg_total_cost, trans2.avg_total_cost) AS avg_total_cost
-        #                  , COALESCE(trans.avg_dist, trans2.avg_dist)             AS avg_dist
-        #                  , COALESCE(trans.used_qnty, trans2.used_qnty)           AS used_qnty
-        #           FROM {scenario_name}.te_fulljoin_naa te
-        #           LEFT JOIN (SELECT   fips      AS fips_plus
-        #                             , SUM(nox)  AS nei_nox_npnror
-        #                             , SUM(sox)  AS nei_sox_npnror
-        #                             , SUM(pm10) AS nei_pm10_npnror
-        #                             , SUM(pm25) AS nei_pm25_npnror
-        #                             , SUM(voc)  AS nei_voc_npnror
-        #                             , SUM(nh3)  AS nei_nh3_npnror
-        #                             , SUM(co)   AS nei_co_npnror
-        #                      FROM nei.nei_2011
-        #                      WHERE category != 'BVOC' AND category != 'P'
-        #                      GROUP BY fips) nei_npnror
-        #           ON nei_npnror.fips_plus = te.fips
-        #
-        #           """.format(**kvals)
-
-        # sql += """
-        #           LEFT JOIN (SELECT LPAD(fips, 5, '0') AS fips_plus, SUM(voc) AS nei_voc__npnrorp
-        #                      FROM nei.nei_2011
-        #                      WHERE category != 'BVOC'
-        #                      GROUP BY fips_plus) nei_npnrorp
-        #           ON nei_npnrorp.fips_plus = te.fips
-        #
-        #           """.format(**kvals)
-
-        # sql += """LEFT JOIN (SELECT sply_fips, SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost, SUM(avg_dist)/count(avg_dist) AS avg_dist, SUM(used_qnty) AS used_qnty,
-        #                             CASE
-        #                                 WHEN feed_id = 'Corn stover' THEN 'cs'
-        #                                 WHEN feed_id = 'Switchgrass' THEN 'sg'
-        #                                 WHEN feed_id = 'Miscanthus'  THEN 'ms'
-        #                             END AS feedstock
-        #                             FROM bts16.transport_herb_{yield}_{logistics}_{year}
-        #                             GROUP BY sply_fips, feed_id) trans
-        #                      ON trans.sply_fips = te.fips AND te.feedstock = trans.feedstock
-        #
-        #         """.format(**kvals)
-
-        # sql += """LEFT JOIN (SELECT sply_fips, SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost, SUM(avg_dist) / count(avg_dist) AS avg_dist, SUM(used_qnty) AS used_qnty,
-        #                             CASE
-        #                                 WHEN feed_id = 'Residues'   THEN 'fr'
-        #                                 WHEN feed_id = 'Whole tree' THEN 'fw'
-        #                             END AS feedstock
-        #                     FROM bts16.transport_woody_{yield}_{logistics}_{year}
-        #                     GROUP BY sply_fips, feed_id) trans2
-        #                     ON trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock
-        #         """.format(**kvals)
 
         self.db.execute_sql(sql=sql)
 
