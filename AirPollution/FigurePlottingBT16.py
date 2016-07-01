@@ -140,27 +140,6 @@ class FigurePlottingBT16:
 
         kvals['logistics'] = logistics_dict[config['logistics_type']]
 
-        # feed_type_dict = config.get('feed_type_dict')
-        # table_dict = config.get('transport_table_dict')
-        # logistics = config.get('logistics_type')
-
-        # back up table
-        # self.db.backup_table(schema=kvals['scenario_name'], table=kvals['new_table'])
-
-
-        # # create full join of NAA and total emissions
-        # sql = "CREATE VIEW {scenario_name}.te_fulljoin_naa AS " \
-        #       "SELECT * " \
-        #       "FROM {scenario_name}.total_emissions_join_prod_sum_emissions te " \
-        #       "LEFT JOIN naa.naa_2012 na " \
-        #       "ON na.fips = te.fips " \
-        #       "UNION " \
-        #       "(SELECT * " \
-        #       "FROM {scenario_name}.total_emissions_join_prod_sum_emissions te " \
-        #       "RIGHT JOIN naa.naa_2012 na " \
-        #       "ON na.fips = te.fips)".format(**kvals)
-        # self.db.execute_sql(sql)
-
         # drop and then create table with combinations of year, yield, feedstock, tillage and fips for scenario
         sql = """DROP TABLE IF EXISTS {scenario_name}.scenario_combo;""".format(**kvals)
         self.db.execute_sql(sql)
@@ -257,9 +236,9 @@ class FigurePlottingBT16:
 
                  LEFT JOIN (SELECT sply_fips
                                  , SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost
-                                 , SUM(avg_dist)/count(avg_dist)               AS avg_dist
+                                 , SUM(avg_dist) / COUNT(avg_dist)             AS avg_dist
                                  , SUM(used_qnty)                              AS used_qnty
-                                 , feed_id_abbr                                   AS feedstock
+                                 , feed_id_abbr                                AS feedstock
                             FROM {production_schema}.transport_herb_{yield}_{logistics}_{year}
                             GROUP BY sply_fips, feedstock)                           trans ON (trans.sply_fips = te.fips AND te.feedstock = trans.feedstock)
 
@@ -267,7 +246,7 @@ class FigurePlottingBT16:
                                  , SUM(avg_total_cost) / COUNT(avg_total_cost) AS avg_total_cost
                                  , SUM(avg_dist)       / COUNT(avg_dist)       AS avg_dist
                                  , SUM(used_qnty)                              AS used_qnty
-                                 , feed_id_abbr                                  AS feedstock
+                                 , feed_id_abbr                                AS feedstock
                             FROM {production_schema}.transport_woody_{yield}_{logistics}_{year}
                             GROUP BY sply_fips, feedstock)                           trans2 ON (trans2.sply_fips = te.fips AND te.feedstock = trans2.feedstock)
               ;""".format(**kvals)
@@ -336,8 +315,8 @@ class FigurePlottingBT16:
                                            SUM(co)   AS total_co
                                     FROM  {scenario_name}.{table}
                                     WHERE feedstock = '{feed}' AND source_category NOT LIKE '%transport%' AND source_category NOT LIKE '%process%'
-                                    GROUP BY fips, feedstock, year, yield, tillage) sum
-                        ON tot.fips = SUM.fips AND tot.feedstock = sum.feedstock AND tot.year = sum.year AND tot.yield = sum.yield AND tot.tillage = sum.tillage
+                                    GROUP BY fips, feedstock, year, yield) sum
+                        ON tot.fips = SUM.fips AND tot.feedstock = sum.feedstock AND tot.year = sum.year AND tot.yield = sum.yield
                         LEFT JOIN  (SELECT fips,
                                            feedstock,
                                            year,
@@ -353,8 +332,8 @@ class FigurePlottingBT16:
                                            SUM(co)   AS total_co_with_transport
                                     FROM  {scenario_name}.{table}
                                     WHERE feedstock = '{feed}' AND (source_category LIKE '%transport%' OR source_category LIKE '%process%')
-                                    GROUP BY fips, feedstock, year, yield, tillage) sum_trans
-                        ON tot.fips = sum_trans.fips AND tot.feedstock = sum_trans.feedstock AND tot.year = sum_trans.year AND tot.yield = sum_trans.yield AND tot.tillage = sum_trans.tillage
+                                    GROUP BY fips, feedstock, year, yield) sum_trans
+                        ON tot.fips = sum_trans.fips AND tot.feedstock = sum_trans.feedstock AND tot.year = sum_trans.year AND tot.yield = sum_trans.yield
                         LEFT JOIN (SELECT fips,
                                           SUM(total_prod) * {convert_bushel}  AS total_prod,
                                           SUM(total_harv_ac)                  AS total_harv_ac
