@@ -345,9 +345,9 @@ class FigurePlottingBT16:
             sql = sql.format(**kvals)
             self.db.execute_sql(sql=sql)
 
-        for col in ('fips', 'source_category', 'yield', 'year', 'tillage', 'feedstock'):
-            sql = "CREATE INDEX idx_{new_table}_{col} ON {scenario_name}.{new_table} ({col});".format(col=col, **kvals)
-            self.db.execute_sql(sql)
+        # for col in ('fips', 'source_category', 'yield', 'year', 'tillage', 'feedstock'):
+        #     sql = "CREATE INDEX idx_{col} ON {scenario_name}.{new_table} ({col});".format(col=col, **kvals)
+        #     self.db.execute_sql(sql)
 
     def join_with_production_data(self, kvals):
         """
