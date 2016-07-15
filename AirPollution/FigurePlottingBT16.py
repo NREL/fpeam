@@ -29,19 +29,21 @@ class FigurePlottingBT16:
 
         self.f_color = ['r', 'b', 'g', 'k', 'c', 'y', 'm', 'coral']  # @TODO: remove hardcoded values
         self.f_marker = ['o', 'o', 'o', 'o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
-        self.row_list = [0, 0, 1, 1, 2, 2, 0, 2]  # @TODO: remove hardcoded values
-        self.col_list = [0, 1, 0, 1, 0, 1, 2, 2]  # @TODO: remove hardcoded values
-        self.pol_list_label = ['$NO_x$', '$NH_3$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', '$VOC$']  # @TODO: remove hardcoded values
+        self.row_list = [0, 0, 0, 1, 1, 2, 2, ]  # @TODO: remove hardcoded values
+        self.col_list = [2, 0, 1, 0, 1, 0, 1, ]  # @TODO: remove hardcoded values
+        self.pol_list_label = ['$VOC$', '$NH_3$', '$NO_x$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', ]  # @TODO: remove hardcoded values
 
-        self.pol_list = ['nox', 'nh3', 'pm25', 'pm10', 'co', 'sox', 'voc']  # @TODO: remove hardcoded values
+        self.pol_list = ['voc', 'nh3', 'nox', 'pm25', 'pm10', 'co', 'sox']  # @TODO: remove hardcoded values
 
         self.feedstock_list = ['Corn Grain', 'Corn Stover', 'Sorghum stubble', 'Wheat Straw', 'Switchgrass', 'Miscanthus', 'Forest Residues', 'Whole Trees']  # @TODO: remove hardcoded values
         self.f_list = ['CG', 'CS', 'SS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
-        self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
+        self.f_labels = ['CG', 'CS', 'SS', 'Strw', 'SG', 'MS', 'FR', 'FW']
+        self.act_list = ['Chemical', 'Non-Harvest', 'Harvest']  # @TODO: remove hardcoded values
 
         self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, 75.7, 75.7, 89.6]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756); add reference
 
         self.feed_id_dict = config.get('feed_id_dict')
+        self.mt_to_lb = 2204.62
 
     def compile_results(self):
         """
@@ -958,8 +960,8 @@ class FigurePlottingBT16:
             for f_num, feedstock in enumerate(self.f_list):
                 emissions_per_dt = emissions_per_dt_dict[feedstock][pollutant]
 
-                g_per_dt = list(x[0] * 1e3 for x in emissions_per_dt)
-                plotvals.append(g_per_dt)
+                lb_per_dt = list(x[0] * self.mt_to_lb for x in emissions_per_dt)
+                plotvals.append(lb_per_dt)
 
             row = self.row_list[p_num]
             col = self.col_list[p_num]
@@ -983,7 +985,7 @@ class FigurePlottingBT16:
             plt.setp(bp['medians'], color='black')
 
             self.__plot_interval__(plotvals, ax1)
-            ax1.set_xticklabels(self.f_list, rotation='horizontal')
+            ax1.set_xticklabels(self.f_labels, rotation='vertical')
 
         # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
         plt.setp([axarr[0, 0].get_xticklabels()], visible=False)
