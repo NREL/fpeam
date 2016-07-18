@@ -989,12 +989,15 @@ class FigurePlottingBT16:
 
             ax1.text(len(self.f_list) + 0.3, 8e1, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
-            bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
+            bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000, patch_artist=True)
             ax1.set_xlim(0.5, len(self.f_list) + 0.5)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
             plt.setp(bp['medians'], color='black')
+
+            for box1 in bp['boxes']:
+                box1.set(facecolor='#F0F0F0')
 
             self.__plot_interval__(plotvals, ax1)
             ax1.set_xticklabels(self.f_labels, rotation='vertical')
@@ -1006,9 +1009,9 @@ class FigurePlottingBT16:
         plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
-        axarr[0, 0].set_ylabel('Emissions \n (lb/dt)', color='black', fontsize=13)
-        axarr[1, 0].set_ylabel('Emissions \n (lb/dt)', color='black', fontsize=13)
-        axarr[2, 0].set_ylabel('Emissions \n (lb/dt)', color='black', fontsize=13)
+        axarr[0, 0].set_ylabel('Emissions (lb/dt)', color='black', fontsize=13)
+        axarr[1, 0].set_ylabel('Emissions (lb/dt)', color='black', fontsize=13)
+        axarr[2, 0].set_ylabel('Emissions (lb/dt)', color='black', fontsize=13)
 
         fig.tight_layout()
 
