@@ -1018,26 +1018,25 @@ class FigurePlottingBT16:
         # add legend
         # select axis
         ax1 = axarr[1, 2]
-        # collect sample data
-        emissions_per_dt = emissions_per_dt_dict['CS']['voc']
-        lb_per_dt = list(x[0] * self.mt_to_lb for x in emissions_per_dt)
+        # create normal distribution for boxplot legend
+        N = 500
+        norm = np.random.normal(10, 1, 500)
 
         # set axis properties
-        ax1.set_yscale('log')
         axarr[1, 2].set_xlim([-1, 3])
-        axarr[1, 2].set_ylim([1e-3, 0.6e1])
+        axarr[1, 2].set_ylim([6.5, 13.5])
 
         # generate boxplot with two empty spaces to the left
-        bp = ax1.boxplot([[0, ], [0, ], lb_per_dt, ], notch=0, sym='', vert=1, whis=1000, patch_artist=True)
+        bp = ax1.boxplot([[0, ], [0, ], norm, ], notch=0, sym='', vert=1, whis=1000, patch_artist=True)
 
         # add labels to create boxplot legend
-        ax1.text(2.5, 5e-3, 'minimum', fontsize=11, ha='right', va='top', )
-        ax1.text(2.5, 2e-2, '5th percentile', fontsize=11, ha='right', va='top', )
-        ax1.text(2.5, 6e-2, '25th percentile', fontsize=11, ha='right', va='top', )
-        ax1.text(2.5, 1.3e-1, 'median', fontsize=11, ha='right', va='top', )
-        ax1.text(2.5, 2.6e-1, '75th percentile', fontsize=11, ha='right', va='top', )
-        ax1.text(2.5, 7.4e-1, '95th percentile', fontsize=11, ha='right', va='top', )
-        ax1.text(2.5, 0.3e1, 'maximum', fontsize=11, ha='right', va='top', )
+        ax1.text(2.5, min(norm), 'minimum', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, scoreatpercentile(norm, 5), '5th percentile', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, scoreatpercentile(norm, 25), '25th percentile', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, median(norm), 'median', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, scoreatpercentile(norm, 75), '75th percentile', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, scoreatpercentile(norm, 95), '95th percentile', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, max(norm), 'maximum', fontsize=11, ha='right', va='center', )
 
         # change line properties for boxplots
         plt.setp(bp['boxes'], color='black')
@@ -1049,8 +1048,8 @@ class FigurePlottingBT16:
             box1.set(facecolor='#bebebe')  # another color option: '#F0F0F0'
 
         # add 95 and 5 percent intervals
-        perc95 = scoreatpercentile(lb_per_dt, 95)
-        perc5 = scoreatpercentile(lb_per_dt, 5)
+        perc95 = scoreatpercentile(norm, 95)
+        perc5 = scoreatpercentile(norm, 5)
         ax1.plot(3, perc95, '_', markersize=25, color='k')
         ax1.plot(3, perc5, '_', markersize=25, color='k')
 
