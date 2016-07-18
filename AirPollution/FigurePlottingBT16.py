@@ -1110,14 +1110,14 @@ class FigurePlottingBT16:
         if self.f_list[f_num] == 'SS' and self.aggregate_cs_ss is True:
             kvals['feedstock'] = 'none'
         elif self.f_list[f_num] == 'CS' and self.aggregate_cs_ss is True:
-            kvals['feedstock'] = "'cs' OR 'ss'"
+            kvals['feedstock'] = "(feedstock = 'cs' OR feedstock = 'ss')"
         else:
-            kvals['feedstock'] = "'" + self.f_list[f_num] + "'"
+            kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num])
 
         query_emissions_per_prod = """SELECT   SUM({pollutant} / (prod)) AS mt_{pollutant}_perdt
                                       FROM     {scenario_name}.{te_table}
                                       WHERE    prod                   > 0.0
-                                        AND    feedstock              = {feedstock}
+                                        AND    {feedstock}
                                         AND    source_category NOT LIKE '%transport%'
                                         AND    source_category NOT LIKE '%processing%'
                                       GROUP BY fips
