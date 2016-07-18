@@ -1066,7 +1066,7 @@ class FigurePlottingBT16:
             plt.show()
 
         # save figure
-        fig.savefig(os.path.join(self.path, 'Figures', 'emissions_seven_pollutants_lb_per_dt'), format='png')
+        fig.savefig(os.path.join(self.path, 'Figures', 'emissions_seven_pollutants_lb_per_dt.png'), format='png')
 
         # return data
         data = [emissions_per_dt, ]
