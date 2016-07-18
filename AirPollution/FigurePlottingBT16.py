@@ -55,8 +55,6 @@ class FigurePlottingBT16:
         self.feed_id_dict = config.get('feed_id_dict')
         self.mt_to_lb = 2204.62
 
-
-
     def compile_results(self):
         """
 
@@ -997,21 +995,57 @@ class FigurePlottingBT16:
             plt.setp(bp['medians'], color='black')
 
             for box1 in bp['boxes']:
-                box1.set(facecolor='#F0F0F0')
+                box1.set(facecolor='#bebebe')
 
             self.__plot_interval__(plotvals, ax1)
             ax1.set_xticklabels(self.f_labels, rotation='vertical')
 
         # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
-        plt.setp([axarr[0, 0].get_xticklabels()], visible=False)
-        plt.setp([axarr[0, 1].get_xticklabels()], visible=False)
-        plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
+        # plt.setp([axarr[0, 0].get_xticklabels()], visible=False)
+        # plt.setp([axarr[0, 1].get_xticklabels()], visible=False)
+        # plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
         axarr[0, 0].set_ylabel('Emissions (lb/dt)', color='black', fontsize=13)
         axarr[1, 0].set_ylabel('Emissions (lb/dt)', color='black', fontsize=13)
         axarr[2, 0].set_ylabel('Emissions (lb/dt)', color='black', fontsize=13)
+
+        # Add legend
+        ax1 = axarr[1, 2]
+        emissions_per_dt = emissions_per_dt_dict['CS']['voc']
+        lb_per_dt = list(x[0] * self.mt_to_lb for x in emissions_per_dt)
+
+        ax1.set_yscale('log')
+        # ax1.set_ylim(bottom=1e-3, top=0.6e1)
+        # ax1.set_xlim(left=-1, right=2.5)
+        axarr[1, 2].set_xlim([-1, 3])
+        axarr[1, 2].set_ylim([1e-3, 0.6e1])
+        bp = ax1.boxplot([[0, ], [0, ], lb_per_dt, ], notch=0, sym='', vert=1, whis=1000, patch_artist=True)
+        ax1.text(2.5, 5e-3, 'minimum', fontsize=11, ha='right', va='top', )
+        ax1.text(2.5, 2e-2, '5th percentile', fontsize=11, ha='right', va='top', )
+        ax1.text(2.5, 6e-2, '25th percentile', fontsize=11, ha='right', va='top', )
+        ax1.text(2.5, 1.3e-1, 'median', fontsize=11, ha='right', va='top', )
+        ax1.text(2.5, 2.6e-1, '75th percentile', fontsize=11, ha='right', va='top', )
+        ax1.text(2.5, 7.4e-1, '95th percentile', fontsize=11, ha='right', va='top', )
+        ax1.text(2.5, 0.3e1, 'maximum', fontsize=11, ha='right', va='top', )
+        plt.setp(bp['boxes'], color='black')
+        plt.setp(bp['whiskers'], color='black', linestyle='-')
+        plt.setp(bp['medians'], color='black')
+
+        for box1 in bp['boxes']:
+            box1.set(facecolor='#bebebe')#'#F0F0F0')
+
+        # get 95 % interval
+        perc95 = scoreatpercentile(lb_per_dt, 95)
+
+        # get 5% interval
+        perc5 = scoreatpercentile(lb_per_dt, 5)
+
+        ax1.plot(3, perc95, '_', markersize=25, color='k')
+        ax1.plot(3, perc5, '_', markersize=25, color='k')
+        ax1.axis('off')
+        plt.axis('off')
 
         fig.tight_layout()
 
