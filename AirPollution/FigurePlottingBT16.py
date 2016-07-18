@@ -979,15 +979,15 @@ class FigurePlottingBT16:
             col = self.col_list[p_num]
             ax1 = axarr[row, col]
             ax1.set_yscale('log')
-            ax1.set_ylim(bottom=1e-6, top=1e3)
+            ax1.set_ylim(bottom=7.5e-6, top=2e2)
             formatter = ticker.ScalarFormatter(useMathText=True)
             formatter.set_scientific(True)
-            formatter.set_powerlimits((-6, 3))
+            formatter.set_powerlimits((-5, 2))
 
-            for label in ax1.get_yticklabels()[::2]:
-                label.set_visible(False)
+            # for label in ax1.get_yticklabels()[::2]:
+            #     label.set_visible(False)
 
-            ax1.text(len(self.f_list) + 0.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
+            ax1.text(len(self.f_list) + 0.3, 8e1, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
             ax1.set_xlim(0.5, len(self.f_list) + 0.5)
@@ -1006,9 +1006,9 @@ class FigurePlottingBT16:
         plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
-        axarr[0, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
-        axarr[1, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
-        axarr[2, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
+        axarr[0, 0].set_ylabel('Emissions \n (lb/dt)', color='black', fontsize=13)
+        axarr[1, 0].set_ylabel('Emissions \n (lb/dt)', color='black', fontsize=13)
+        axarr[2, 0].set_ylabel('Emissions \n (lb/dt)', color='black', fontsize=13)
 
         fig.tight_layout()
 
