@@ -14,6 +14,7 @@ from scipy.stats import scoreatpercentile
 from model.Database import Database
 from utils import config, logger
 from matplotlib import ticker
+import os
 
 
 class FigurePlottingBT16:
@@ -54,6 +55,9 @@ class FigurePlottingBT16:
 
         self.feed_id_dict = config.get('feed_id_dict')
         self.mt_to_lb = 2204.62
+
+        # set path for figures
+        self.path = os.path.join(config.get('project_path'), config.get('title'))
 
     def compile_results(self):
         """
@@ -988,7 +992,7 @@ class FigurePlottingBT16:
             ax1.text(len(self.f_list) + 0.3, 8e1, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000, patch_artist=True)
-            ax1.set_xlim(0.5, len(self.f_list) + 0.5)
+            ax1.set_xlim(0.25, len(self.f_list) + 0.75)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
@@ -1051,6 +1055,9 @@ class FigurePlottingBT16:
 
         if config.as_bool('show_figures') is True:
             plt.show()
+
+        # save figure
+        fig.savefig(os.path.join(self.path, 'Figures', 'emissions_seven_pollutants_lb_per_dt'), format='png')
 
         data = [emissions_per_dt, ]
 
