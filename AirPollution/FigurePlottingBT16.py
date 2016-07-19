@@ -46,15 +46,16 @@ class FigurePlottingBT16:
         if self.aggregate_cs_ss is False:
             self.f_list = ['CG', 'CS', 'SS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
             self.f_labels = ['CG', 'CS', 'SS', 'Strw', 'SG', 'MS', 'FR', 'FB']
+            self.act_list = ['Chemical', 'Harvest', 'Non-Harvest', ]  # @TODO: remove hardcoded values
         else:
             self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
             self.f_labels = ['CG', 'Stvr', 'Strw', 'SG', 'MS', 'FR', 'FB']
+            self.act_list = ['Chemical', 'Harvest', 'Non-Harvest', ]  # @TODO: remove hardcoded values
 
         if self.data_type == 'delivered':
             self.f_list = ['CS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
             self.f_labels = ['Stvr', 'SG', 'MS', 'FR', 'FB']
-
-        self.act_list = ['Chemical', 'Non-Harvest', 'Harvest']  # @TODO: remove hardcoded values
+            self.act_list = ['Pre-processing', 'Chemical', 'Harvest', 'Non-Harvest', 'Off-site Transport', ]  # @TODO: remove hardcoded values
 
         self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, 75.7, 75.7, 89.6]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756); add reference
 
@@ -1198,11 +1199,13 @@ class FigurePlottingBT16:
 
     def contribution_figure(self, filename):
         kvals = {'scenario_name': config.get('title'),
-                 'te_table': 'total_emissions_join_prod_sum_emissions'}
+                 'te_table': 'total_emissions_join_prod_sum_emissions_nei_trans'}
 
         condition_list = {'Non-Harvest': """(source_category = \'Irrigation\' OR source_category = \'Non-Harvest\' OR source_category = \'Non-Harvest - fug dust\')""",
                           'Harvest': """(source_category = \'Harvest\' OR source_category = \'Harvest - fug dust\' OR source_category = \'Loading\')""",
-                          'Chemical': """(source_category = \'Chemical\' OR source_category = \'Fertilizer\')"""}
+                          'Chemical': """(source_category = \'Chemical\' OR source_category = \'Fertilizer\')""",
+                          'Pre-processing': """(source_category LIKE \'%processing%\')""",
+                          'Off-site Transport': """(source_category LIKE \'%transport%\')""", }
         emissions_per_activity = dict()
         for f_num, feedstock in enumerate(self.f_list):
             pol_dict = dict()
@@ -1214,12 +1217,29 @@ class FigurePlottingBT16:
                 for act_num, activity in enumerate(self.act_list):
                     kvals['cond'] = condition_list[activity]
 
-                    query = """ SELECT   SUM({pollutant} / total_{pollutant})
+                    if self.f_list[f_num] == 'SS' and self.aggregate_cs_ss is True:
+                        kvals['feedstock'] = 'none'
+                    elif self.f_list[f_num] == 'CS' and self.aggregate_cs_ss is True:
+                        kvals['feedstock'] = "(feedstock = 'cs' OR feedstock = 'ss')"
+                    else:
+                        kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num].lower())
+
+                    if self.data_type == 'produced':
+                        kvals['source_filter'] = """AND source_category NOT LIKE '%transport%'
+                                                    AND source_category NOT LIKE '%processing%'"""
+                        kvals['tot_emissions'] = """total_{pollutant}""".format(**kvals)
+                    elif self.data_type == 'delivered':
+                        kvals['source_filter'] = "AND used_qnty > 0"
+                        kvals['tot_emissions'] = """total_{pollutant}_trans""".format(**kvals)
+
+                    query = """ SELECT   SUM({pollutant} / {tot_emissions})
                                 FROM     {scenario_name}.{te_table}
                                 WHERE    {cond}
-                                  AND    feedstock         = '{feed}'
+                                  AND    {feedstock}
                                   AND    total_{pollutant} > 0
                                   AND    prod              > 0
+                                  AND    {pollutant} IS NOT NULL
+                                {source_filter}
                                 GROUP BY fips
                                 """.format(**kvals)
 
@@ -1227,13 +1247,13 @@ class FigurePlottingBT16:
                     act_dict[activity] = list()
                     if output is not None:
                         act_dict[activity] = output[0]
-                    if feedstock == 'FR' and activity == 'Non-Harvest':
+                    if (feedstock == 'FR' and activity == 'Non-Harvest') or (not feedstock.startswith('F') and activity == 'Pre-processing'):
                         act_dict[activity] = ((0, ), )
 
                 pol_dict[pollutant] = act_dict
             emissions_per_activity[feedstock] = pol_dict
 
-        fig, axarr = plt.subplots(3, 7, figsize=(12, 5.5))
+        fig, axarr = plt.subplots(len(self.act_list), 7, figsize=(12, 5.5/3*len(self.act_list)))
 
         matplotlib.rcParams.update({'font.size': 13})
 
@@ -1265,15 +1285,15 @@ class FigurePlottingBT16:
                     if row == 0:
                         axarr[col, row].set_ylabel(activity)
 
-                    # ax1.plot([f_num + 1], mean_val, color=self.f_color[f_num], marker='_', markersize=20)
-                    ax1.plot([f_num + 1], med_val, color=self.f_color[f_num], marker='_', markersize=12, markeredgewidth=2)
+                    if max_val > 0:
+                        # ax1.plot([f_num + 1], mean_val, color=self.f_color[f_num], marker='_', markersize=20)
+                        ax1.plot([f_num + 1], med_val, color=self.f_color[f_num], marker='_', markersize=12, markeredgewidth=2)
 
-                    # Plot the max/min values
-                    ax1.plot([f_num + 1] * 2, [max_val, min_val], color=self.f_color[f_num], marker=self.f_marker[f_num], markersize=7, linewidth=2, markeredgewidth=0.0)
+                        # Plot the max/min values
+                        ax1.plot([f_num + 1] * 2, [max_val, min_val], color=self.f_color[f_num], marker=self.f_marker[f_num], markersize=7, linewidth=2, markeredgewidth=0.0)
 
                     # Set axis limits
-                    ax1.set_xlim([0, 8])
-
+                    ax1.set_xlim(0.25, len(self.f_list) + 0.75)
                     ax1.set_xticklabels(([''] + self.f_labels), rotation='vertical')
 
         # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
@@ -1291,6 +1311,8 @@ class FigurePlottingBT16:
         if config.as_bool('show_figures') is True:
             plt.show()
 
+        # save figure
+        fig.savefig(os.path.join(self.path, 'Figures', filename), format='png')
 
 if __name__ == '__main__':
     # get scenario title
