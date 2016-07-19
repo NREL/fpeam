@@ -18,7 +18,7 @@ import os
 
 
 class FigurePlottingBT16:
-    def __init__(self, db):
+    def __init__(self, db, data_type):
         """
 
         :param db: model.Database instance
@@ -27,6 +27,7 @@ class FigurePlottingBT16:
 
         # init properties
         self.db = db
+        self.data_type = data_type
 
         self.f_color = ['r', 'b', 'g', 'k', 'c', 'y', 'm', 'coral']  # @TODO: remove hardcoded values
         self.f_marker = ['o', 'o', 'o', 'o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
@@ -44,10 +45,14 @@ class FigurePlottingBT16:
 
         if self.aggregate_cs_ss is False:
             self.f_list = ['CG', 'CS', 'SS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
-            self.f_labels = ['CG', 'CS', 'SS', 'Strw', 'SG', 'MS', 'FR', 'FW']
+            self.f_labels = ['CG', 'CS', 'SS', 'Strw', 'SG', 'MS', 'FR', 'FB']
         else:
             self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
-            self.f_labels = ['CG', 'Stvr', 'Strw', 'SG', 'MS', 'FR', 'FW']
+            self.f_labels = ['CG', 'Stvr', 'Strw', 'SG', 'MS', 'FR', 'FB']
+
+        if self.data_type == 'delivered':
+            self.f_list = ['CS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
+            self.f_labels = ['Stvr', 'SG', 'MS', 'FR', 'FB']
 
         self.act_list = ['Chemical', 'Non-Harvest', 'Harvest']  # @TODO: remove hardcoded values
 
@@ -873,9 +878,9 @@ class FigurePlottingBT16:
 
                         self.db.input(query)
 
-    def get_data(self, data_type):
+    def get_data(self):
         """
-        :param data_type: type of data used (produced only or delivered (i.e., produced and supplied))
+
         :return: {'emissions_per_dt': <float>,
                   'total_emissions': <float>}
         """
@@ -888,8 +893,8 @@ class FigurePlottingBT16:
             pol_dict_tot = dict()
             for p_num, pollutant in enumerate(self.pol_list):
                 logger.info('Collecting data for pollutant: %s, feedstock: %s' % (pollutant, feedstock,))
-                pol_dict_dt[pollutant] = self.collect_data_per_prod(p_num=p_num, f_num=f_num, data_type=data_type)
-                pol_dict_tot[pollutant] = self.collect_data_total_emissions(p_num=p_num, f_num=f_num, data_type=data_type)
+                pol_dict_dt[pollutant] = self.collect_data_per_prod(p_num=p_num, f_num=f_num)
+                pol_dict_tot[pollutant] = self.collect_data_total_emissions(p_num=p_num, f_num=f_num)
 
             emissions_per_dt[feedstock] = pol_dict_dt
             total_emissions[feedstock] = pol_dict_tot
@@ -1100,19 +1105,17 @@ class FigurePlottingBT16:
         ax.plot(num_array, perc95, '_', markersize=15, color='k')
         ax.plot(num_array, perc5, '_', markersize=15, color='k')
 
-    def collect_data_per_prod(self, p_num, f_num, data_type):
+    def collect_data_per_prod(self, p_num, f_num):
         """
         Collect data for one pollutant/feedstock combination
         Return the total emissions
 
         :param f_num: feedstock number
         :param p_num: pollutant number
-        :param data_type: type of data used (produced only or delivered (i.e., produced and supplied))
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
-        kvals = {'feedstock': self.f_list[f_num].lower(),
-                 'pollutant': self.pol_list[p_num],
+        kvals = {'pollutant': self.pol_list[p_num],
                  'scenario_name': config.get('title'),
                  'te_table': 'total_emissions_join_prod'  # @TODO: this is manually defined several places; consolidate
                  }
@@ -1122,12 +1125,12 @@ class FigurePlottingBT16:
         elif self.f_list[f_num] == 'CS' and self.aggregate_cs_ss is True:
             kvals['feedstock'] = "(feedstock = 'cs' OR feedstock = 'ss')"
         else:
-            kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num])
+            kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num].lower())
 
-        if data_type == 'produced':
+        if self.data_type == 'produced':
             kvals['source_filter'] = """AND source_category NOT LIKE '%transport%'
                                         AND    source_category NOT LIKE '%processing%'"""
-        elif data_type == 'delivered':
+        elif self.data_type == 'delivered':
             kvals['source_filter'] = ""
 
         query_emissions_per_prod = """SELECT   SUM({pollutant} / (prod)) AS mt_{pollutant}_perdt
@@ -1146,7 +1149,7 @@ class FigurePlottingBT16:
 
         return emissions_per_production
 
-    def collect_data_total_emissions(self, p_num, f_num, data_type):
+    def collect_data_total_emissions(self, p_num, f_num):
         """
         Collect data for one pollutant/feedstock combination
         Return the total emissions
@@ -1163,12 +1166,24 @@ class FigurePlottingBT16:
                  'te_table': 'total_emissions_join_prod'  # @TODO: defined multiple places
                  }
 
+        if self.f_list[f_num] == 'SS' and self.aggregate_cs_ss is True:
+            kvals['feedstock'] = 'none'
+        elif self.f_list[f_num] == 'CS' and self.aggregate_cs_ss is True:
+            kvals['feedstock'] = "(feedstock = 'cs' OR feedstock = 'ss')"
+        else:
+            kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num].lower())
+
+        if self.data_type == 'produced':
+            kvals['source_filter'] = """AND source_category NOT LIKE '%transport%'
+                                        AND    source_category NOT LIKE '%processing%'"""
+        elif self.data_type == 'delivered':
+            kvals['source_filter'] = ""
+
         query_emissions = """SELECT   SUM({pollutant}) AS {pollutant}
                              FROM     {scenario_name}.{te_table}
                              WHERE    prod > 0.0
-                               AND    feedstock = '{feedstock}'
-                               AND    source_category NOT LIKE '%transport%'
-                               AND    source_category NOT LIKE '%processing%'
+                               AND    {feedstock}
+                             {source_filter}
                              GROUP BY fips
                              ORDER BY fips
                              ;""".format(**kvals)
