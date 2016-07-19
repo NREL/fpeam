@@ -873,9 +873,9 @@ class FigurePlottingBT16:
 
                         self.db.input(query)
 
-    def get_data(self):
+    def get_data(self, data_type):
         """
-
+        :param data_type: type of data used (produced only or delivered (i.e., produced and supplied))
         :return: {'emissions_per_dt': <float>,
                   'total_emissions': <float>}
         """
@@ -888,8 +888,8 @@ class FigurePlottingBT16:
             pol_dict_tot = dict()
             for p_num, pollutant in enumerate(self.pol_list):
                 logger.info('Collecting data for pollutant: %s, feedstock: %s' % (pollutant, feedstock,))
-                pol_dict_dt[pollutant] = self.collect_data_per_prod(p_num=p_num, f_num=f_num)
-                pol_dict_tot[pollutant] = self.collect_data_total_emissions(p_num=p_num, f_num=f_num)
+                pol_dict_dt[pollutant] = self.collect_data_per_prod(p_num=p_num, f_num=f_num, data_type=data_type)
+                pol_dict_tot[pollutant] = self.collect_data_total_emissions(p_num=p_num, f_num=f_num, data_type=data_type)
 
             emissions_per_dt[feedstock] = pol_dict_dt
             total_emissions[feedstock] = pol_dict_tot
@@ -899,10 +899,11 @@ class FigurePlottingBT16:
 
         return results
 
-    def plot_emissions_per_gal(self, emissions_per_dt_dict):
+    def plot_emissions_per_gal(self, emissions_per_dt_dict, filename):
         """
 
-        :param emissions_per_dt_dict:
+        :param filename: filename for saving figure
+        :param emissions_per_dt_dict: dictionary of emissions per dt by feedstock and pollutant
         :return:
         """
 
@@ -957,11 +958,20 @@ class FigurePlottingBT16:
         if config.as_bool('show_figures') is True:
             plt.show()
 
+        # save figure
+        fig.savefig(os.path.join(self.path, 'Figures', filename), format='png')
+
         data = [emissions_per_gal, ]
 
         return data
 
-    def plot_emissions_per_dt(self, emissions_per_dt_dict):
+    def plot_emissions_per_dt(self, emissions_per_dt_dict, filename):
+        """
+
+        :param filename: filename for saving figure
+        :param emissions_per_dt_dict: dictionary of emissions per dt by feedstock and pollutant
+        :return:
+        """
 
         logger.info('Plotting emissions per dt')
 
@@ -1065,7 +1075,7 @@ class FigurePlottingBT16:
             plt.show()
 
         # save figure
-        fig.savefig(os.path.join(self.path, 'Figures', 'emissions_seven_pollutants_lb_per_dt.png'), format='png')
+        fig.savefig(os.path.join(self.path, 'Figures', filename), format='png')
 
         # return data
         data = [emissions_per_dt, ]
@@ -1090,13 +1100,14 @@ class FigurePlottingBT16:
         ax.plot(num_array, perc95, '_', markersize=15, color='k')
         ax.plot(num_array, perc5, '_', markersize=15, color='k')
 
-    def collect_data_per_prod(self, p_num, f_num):
+    def collect_data_per_prod(self, p_num, f_num, data_type):
         """
         Collect data for one pollutant/feedstock combination
         Return the total emissions
 
         :param f_num: feedstock number
         :param p_num: pollutant number
+        :param data_type: type of data used (produced only or delivered (i.e., produced and supplied))
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
@@ -1113,12 +1124,17 @@ class FigurePlottingBT16:
         else:
             kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num])
 
+        if data_type == 'produced':
+            kvals['source_filter'] = """AND source_category NOT LIKE '%transport%'
+                                        AND    source_category NOT LIKE '%processing%'"""
+        elif data_type == 'delivered':
+            kvals['source_filter'] = ""
+
         query_emissions_per_prod = """SELECT   SUM({pollutant} / (prod)) AS mt_{pollutant}_perdt
                                       FROM     {scenario_name}.{te_table}
                                       WHERE    prod                   > 0.0
                                         AND    {feedstock}
-                                        AND    source_category NOT LIKE '%transport%'
-                                        AND    source_category NOT LIKE '%processing%'
+                                      {source_filter}
                                       GROUP BY fips
                                       ORDER BY fips
                                       ;""".format(**kvals)
@@ -1130,13 +1146,14 @@ class FigurePlottingBT16:
 
         return emissions_per_production
 
-    def collect_data_total_emissions(self, p_num, f_num):
+    def collect_data_total_emissions(self, p_num, f_num, data_type):
         """
         Collect data for one pollutant/feedstock combination
         Return the total emissions
 
         :param f_num: feedstock number
         :param p_num: pollutant number
+        :param data_type: type of data used (produced only or delivered (i.e., produced and supplied))
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
@@ -1164,7 +1181,7 @@ class FigurePlottingBT16:
 
         return emissions
 
-    def contribution_figure(self):
+    def contribution_figure(self, filename):
         kvals = {'scenario_name': config.get('title'),
                  'te_table': 'total_emissions_join_prod_sum_emissions'}
 
