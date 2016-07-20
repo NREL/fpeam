@@ -74,6 +74,9 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                      run_emissions                  float,
                      start_hotel_emissions          float,
                      rest_evap_emissions            float DEFAULT 0,
+                     avg_rate_per_distance          float,
+                     trips                          float,
+                     vmt                            float,
                      total_emissions                float,
                      state                          char(2)
                     )
