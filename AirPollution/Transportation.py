@@ -153,14 +153,17 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 self.kvals['pollutant_name'] = key
                 self.kvals['pollutantID'] = self.pollutant_dict[key]
                 # @TODO: this query is volatile now that it depends on a.MOVESScenarioID_no_fips, which must be created _after_ running MOVES
-                query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, run_emissions, state)
+                query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, avg_rate_per_distance, trips, vmt, run_emissions, state)
                    SELECT    '{pollutant_name}'
                              , c.sply_fips
                              , '{feed}'
                              , '{year}'
                              , '{logistics_type}'
                              , '{yield_type}'
-                             , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty / {capacity} * ({vmt}) / {g_per_mt}
+                             , SUM(a.ratePerDistance * b.avgSpeedFraction) avg_rate_per_distance
+                             , c.used_qnty / {capacity} AS trips
+                             , ({vmt}) AS vmt
+                             , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty / {capacity} * ({vmt}) / {g_per_mt} AS run_emissions
                              , LEFT(c.sply_fips, 2)
                    FROM      {moves_output_db}.rateperdistance          a
                    LEFT JOIN {constants_schema}.averagespeed            b ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
