@@ -65,6 +65,12 @@ class FigurePlottingBT16:
         # set path for figures
         self.path = os.path.join(config.get('project_path'), config.get('title'))
 
+        # kvals for figures
+        self.kvals_figures = {'db_name': config.get('results_db'),
+                              'te_table': config.get('results_table'),
+                              'year': config.get('year_dict')['all_crops'],
+                              'yield': config.get('yield'), }
+
     def compile_results(self):
         """
 
@@ -1116,10 +1122,8 @@ class FigurePlottingBT16:
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
-        kvals = {'pollutant': self.pol_list[p_num],
-                 'scenario_name': config.get('title'),
-                 'te_table': 'total_emissions_join_prod'  # @TODO: this is manually defined several places; consolidate
-                 }
+        kvals = self.kvals_figures
+        kvals['pollutant'] = self.pol_list[p_num]
 
         if self.f_list[f_num] == 'SS' and self.aggregate_cs_ss is True:
             kvals['feedstock'] = 'none'
@@ -1135,9 +1139,11 @@ class FigurePlottingBT16:
             kvals['source_filter'] = ""
 
         query_emissions_per_prod = """SELECT   SUM({pollutant} / (prod)) AS mt_{pollutant}_perdt
-                                      FROM     {scenario_name}.{te_table}
+                                      FROM     {db_name}.{te_table}
                                       WHERE    prod                   > 0.0
                                         AND    {feedstock}
+                                        AND    year = {year}
+                                        AND    yield = {yield}
                                       {source_filter}
                                       GROUP BY fips
                                       ORDER BY fips
@@ -1161,11 +1167,8 @@ class FigurePlottingBT16:
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
-        kvals = {'feedstock': self.f_list[f_num].lower(),
-                 'pollutant': self.pol_list[p_num],
-                 'scenario_name': config.get('title'),
-                 'te_table': 'total_emissions_join_prod'  # @TODO: defined multiple places
-                 }
+        kvals = self.kvals_figures
+        kvals['pollutant'] = self.pol_list[p_num]
 
         if self.f_list[f_num] == 'SS' and self.aggregate_cs_ss is True:
             kvals['feedstock'] = 'none'
@@ -1181,9 +1184,11 @@ class FigurePlottingBT16:
             kvals['source_filter'] = ""
 
         query_emissions = """SELECT   SUM({pollutant}) AS {pollutant}
-                             FROM     {scenario_name}.{te_table}
+                             FROM     {db_name}.{te_table}
                              WHERE    prod > 0.0
                                AND    {feedstock}
+                               AND    year = {year}
+                               AND    yield = {yield}
                              {source_filter}
                              GROUP BY fips
                              ORDER BY fips
@@ -1198,8 +1203,7 @@ class FigurePlottingBT16:
         return emissions
 
     def contribution_figure(self, filename):
-        kvals = {'scenario_name': config.get('title'),
-                 'te_table': 'total_emissions_join_prod_sum_emissions_nei_trans'}
+        kvals = self.kvals_figures
 
         condition_list = {'Non-Harvest': """(source_category = \'Irrigation\' OR source_category = \'Non-Harvest\' OR source_category = \'Non-Harvest - fug dust\')""",
                           'Harvest': """(source_category = \'Harvest\' OR source_category = \'Harvest - fug dust\' OR source_category = \'Loading\')""",
@@ -1233,12 +1237,14 @@ class FigurePlottingBT16:
                         kvals['tot_emissions'] = """total_{pollutant}_trans""".format(**kvals)
 
                     query = """ SELECT   SUM({pollutant} / {tot_emissions})
-                                FROM     {scenario_name}.{te_table}
+                                FROM     {db_name}.{te_table}
                                 WHERE    {cond}
                                   AND    {feedstock}
                                   AND    total_{pollutant} > 0
                                   AND    prod              > 0
                                   AND    {pollutant} IS NOT NULL
+                                  AND    year = {year}
+                                  AND    yield = {yield}
                                 {source_filter}
                                 GROUP BY fips
                                 """.format(**kvals)
