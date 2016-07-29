@@ -1142,8 +1142,8 @@ class FigurePlottingBT16:
                                       FROM     {db_name}.{te_table}
                                       WHERE    prod                   > 0.0
                                         AND    {feedstock}
-                                        AND    year = {year}
-                                        AND    yield = {yield}
+                                        AND    year = '{year}'
+                                        AND    yield = '{yield}'
                                       {source_filter}
                                       GROUP BY fips
                                       ORDER BY fips
@@ -1187,8 +1187,8 @@ class FigurePlottingBT16:
                              FROM     {db_name}.{te_table}
                              WHERE    prod > 0.0
                                AND    {feedstock}
-                               AND    year = {year}
-                               AND    yield = {yield}
+                               AND    year = '{year}'
+                               AND    yield = '{yield}'
                              {source_filter}
                              GROUP BY fips
                              ORDER BY fips
@@ -1243,8 +1243,8 @@ class FigurePlottingBT16:
                                   AND    total_{pollutant} > 0
                                   AND    prod              > 0
                                   AND    {pollutant} IS NOT NULL
-                                  AND    year = {year}
-                                  AND    yield = {yield}
+                                  AND    year = '{year}'
+                                  AND    yield = '{yield}'
                                 {source_filter}
                                 GROUP BY fips
                                 """.format(**kvals)
