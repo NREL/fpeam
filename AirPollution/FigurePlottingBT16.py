@@ -996,6 +996,9 @@ class FigurePlottingBT16:
             for f_num, feedstock in enumerate(self.f_list):
                 emissions_per_dt = emissions_per_dt_dict[feedstock][pollutant]
 
+                if emissions_per_dt is None:
+                    emissions_per_dt = [(0, ), ]
+
                 lb_per_dt = list(x[0] * self.mt_to_lb for x in emissions_per_dt)
                 plotvals.append(lb_per_dt)
 
@@ -1133,15 +1136,16 @@ class FigurePlottingBT16:
             kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num].lower())
 
         if self.data_type == 'produced':
-            kvals['source_filter'] = """AND source_category NOT LIKE '%transport%'
+            kvals['source_filter'] = """AND    prod > 0
+                                        AND    source_category NOT LIKE '%transport%'
                                         AND    source_category NOT LIKE '%processing%'"""
         elif self.data_type == 'delivered':
-            kvals['source_filter'] = ""
+            kvals['source_filter'] = """AND used_qnty > 0
+                                        AND avg_total_cost < 100"""
 
         query_emissions_per_prod = """SELECT   SUM({pollutant} / (prod)) AS mt_{pollutant}_perdt
                                       FROM     {db_name}.{te_table}
-                                      WHERE    prod                   > 0.0
-                                        AND    {feedstock}
+                                      WHERE    {feedstock}
                                         AND    year = '{year}'
                                         AND    yield = '{yield}'
                                       {source_filter}
