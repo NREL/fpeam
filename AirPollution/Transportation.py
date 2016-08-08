@@ -196,6 +196,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             self.kvals['pollutantID'] = self.pollutant_dict[key]
 
             # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
+            # @TODO: fix join for rate per vehicle emissions to select max MOVESRunID
 
             query = """UPDATE {scenario_name}.transportation a
                        LEFT JOIN (SELECT state
@@ -203,7 +204,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                        , SUM(COALESCE(ratePerVehicle, 0)) AS ratePerVehicle
                                   FROM {moves_output_db}.ratepervehicle
                                   WHERE pollutantID = '{pollutantID}'
-                                  GROUP BY state, pollutantID) b
+                                    AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                                  GROUP BY state, pollutantID, MOVESRunID) b
                               ON a.state = b.state
                        LEFT JOIN(SELECT  sply_fips
                                        , SUM(used_qnty) AS used_qnty
