@@ -153,7 +153,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 self.kvals['pollutant_name'] = key
                 self.kvals['pollutantID'] = self.pollutant_dict[key]
                 # @TODO: this query is volatile now that it depends on a.MOVESScenarioID_no_fips, which must be created _after_ running MOVES
-                query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, avg_rate_per_distance, trips, vmt, run_emissions, state)
+                query = """
+                           INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, avg_rate_per_distance, trips, vmt, run_emissions, state)
                            SELECT    '{pollutant_name}'
                                      , c.sply_fips
                                      , '{feed}'
@@ -189,7 +190,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                              AND     a.pollutantID             = '{pollutantID}'
                              AND     a.state                   = '{state}'
                            GROUP BY  a.MOVESScenarioID, a.MOVESRunID, a.pollutantID, a.state, a.fips, c.sply_fips, a.MOVESScenarioID_no_fips
-                           ORDER BY  c.sply_fips, a.MOVESScenarioID, a.MOVESRunID,  a.pollutantID;
+                           ORDER BY  c.sply_fips, a.MOVESScenarioID, a.MOVESRunID,  a.pollutantID
                         ;""".format(**self.kvals)
 
                 try:
