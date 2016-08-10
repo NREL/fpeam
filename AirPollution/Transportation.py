@@ -140,7 +140,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year} ORDER BY state;""".format(**self.kvals)
         state_list = self.db.output(query)[0]
         # for testing:
-        # state_list = (('01', ), ('19', ), )
+        # state_list = (('01', ), ) # ('19', ), )
         
         for state in state_list:
             # set state
@@ -199,15 +199,30 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             self.kvals['pollutantID'] = self.pollutant_dict[key]
 
             # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
+            # @TODO: fix join for rate per vehicle emissions to select max MOVESRunID
 
             query = """UPDATE {scenario_name}.transportation a
-                       LEFT JOIN (SELECT state
+                       LEFT JOIN (SELECT MOVESScenarioID
+                                       , state
+                                       , MOVESRunID
                                        , pollutantID
                                        , SUM(COALESCE(ratePerVehicle, 0)) AS ratePerVehicle
                                   FROM {moves_output_db}.ratepervehicle
                                   WHERE pollutantID = '{pollutantID}'
-                                  GROUP BY state, pollutantID) b
+                                    AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                                  GROUP BY MOVESScenarioID, state, MOVESRunID, pollutantID) b
                               ON a.state = b.state
+                            JOIN (SELECT mx.state
+                                       , mx.pollutantID
+                                       , mx.MOVESScenarioID
+                                       , MAX(mx.MOVESRunID) as max_id
+                                  FROM {moves_output_db}.ratepervehicle mx
+                                  JOIN {constants_schema}.moves_statelevel_fips_list_{year} f
+                                    ON mx.MOVESScenarioID = f.MOVESScenarioID
+                                 WHERE pollutantID = '{pollutantID}'
+                                   AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                                 GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID) m
+                              ON m.max_id = b.MOVESRunID AND m.state = b.state AND m.pollutantID = b.pollutantID
                        LEFT JOIN(SELECT  sply_fips
                                        , SUM(used_qnty) AS used_qnty
                                  FROM {production_schema}.{transport_table}
