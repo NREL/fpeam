@@ -13,7 +13,7 @@ ADD_INDICES = config.as_bool('add_indices')
 # add state column (supercedes joins on LEFT(MOVESScenarioID, 2)
 ADD_STATE_COLUMN = config.as_bool('add_state_column')
 # add FIPS column (supercedes joins on LEFT(MOVESScenarioID, 5)
-ADD_FIPS_COLUMN = config.as_bool('add_fips_columns')
+ADD_FIPS_COLUMN = config.as_bool('add_fips_column')
 # optimize table
 OPTIMIZE_TABLE = config.as_bool('optimize_table')
 
