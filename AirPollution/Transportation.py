@@ -207,8 +207,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                   FROM {moves_output_db}.ratepervehicle
                                   WHERE pollutantID = '{pollutantID}'
                                     AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
-                                  GROUP BY MOVESScenarioID, state, MOVESRunID, pollutantID
-                                  ORDER BY state, MOVESRunID) b
+                                  GROUP BY MOVESScenarioID, state, MOVESRunID, pollutantID) b
                               ON a.state = b.state
                             JOIN (SELECT mx.state
                                        , mx.pollutantID
@@ -219,8 +218,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                     ON mx.MOVESScenarioID = f.MOVESScenarioID
                                  WHERE pollutantID = '{pollutantID}'
                                    AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
-                                 GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID
-                                 ORDER BY mx.state) m
+                                 GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID) m
                               ON m.max_id = b.MOVESRunID AND m.state = b.state AND m.pollutantID = b.pollutantID
                        LEFT JOIN(SELECT  sply_fips
                                        , SUM(used_qnty) AS used_qnty
