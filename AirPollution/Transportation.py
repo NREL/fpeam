@@ -154,27 +154,43 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 self.kvals['pollutantID'] = self.pollutant_dict[key]
                 # @TODO: this query is volatile now that it depends on a.MOVESScenarioID_no_fips, which must be created _after_ running MOVES
                 query = """INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, avg_rate_per_distance, trips, vmt, run_emissions, state)
-                   SELECT    '{pollutant_name}'
-                             , c.sply_fips
-                             , '{feed}'
-                             , '{year}'
-                             , '{logistics_type}'
-                             , '{yield_type}'
-                             , SUM(a.ratePerDistance * b.avgSpeedFraction) avg_rate_per_distance
-                             , c.used_qnty / {capacity} AS trips
-                             , ({vmt}) AS vmt
-                             , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty / {capacity} * ({vmt}) / {g_per_mt} AS run_emissions
-                             , LEFT(c.sply_fips, 2)
-                   FROM      {moves_output_db}.rateperdistance          a
-                   LEFT JOIN {constants_schema}.averagespeed            b ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
-                   LEFT JOIN {production_schema}.{transport_table}      c ON (a.state = c.state)
-                   WHERE     a.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
-                     AND     c.feed_id                 = '{transport_feed_id}'
-                     AND     a.pollutantID             = '{pollutantID}'
-                     AND     a.state                   = '{state}'
-                   GROUP BY    a.pollutantID
-                             , c.sply_fips
-                ;""".format(**self.kvals)
+                           SELECT    '{pollutant_name}'
+                                     , c.sply_fips
+                                     , '{feed}'
+                                     , '{year}'
+                                     , '{logistics_type}'
+                                     , '{yield_type}'
+                                     , SUM(a.ratePerDistance * b.avgSpeedFraction) avg_rate_per_distance
+                                     , c.used_qnty / {capacity} AS trips
+                                     , ({vmt}) AS vmt
+                                     , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty / {capacity} * ({vmt}) / {g_per_mt} AS run_emissions
+                                     , LEFT(c.sply_fips, 2)
+                           FROM      {moves_output_db}.rateperdistance                          a
+                           LEFT JOIN {constants_schema}.averagespeed                            b
+                                  ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
+                                JOIN (SELECT mx.state
+                                           , mx.pollutantID
+                                           , mx.MOVESScenarioID
+                                           , MAX(mx.MOVESRunID) as max_id
+                                      FROM {moves_output_db}.ratepervehicle                     mx
+                                      JOIN {constants_schema}.moves_statelevel_fips_list_{year} f
+                                      ON mx.MOVESScenarioID = f.MOVESScenarioID
+                                      WHERE pollutantID = '{pollutantID'
+                                        AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                                      GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID
+                                      ORDER BY mx.state) 						                m
+                                  ON (m.max_id = a.MOVESRunID AND m.state = a.state AND m.pollutantID = a.pollutantID)
+                           LEFT JOIN (SELECT *
+                                      FROM {production_schema}.{transport_table}
+                                      WHERE feed_id_abbr = '{feed}'
+                                        AND state = '{state}')                                  c
+                                  ON (a.state = c.state)
+                           WHERE     a.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                             AND     a.pollutantID             = '{pollutantID}'
+                             AND     a.state                   = '{state}'
+                           GROUP BY    a.pollutantID
+                                     , c.sply_fips
+                        ;""".format(**self.kvals)
 
                 try:
                     self.db.input(query)
