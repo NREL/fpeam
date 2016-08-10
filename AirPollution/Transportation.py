@@ -140,7 +140,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         query = """SELECT state FROM {constants_schema}.moves_statelevel_fips_list_{year} ORDER BY state;""".format(**self.kvals)
         state_list = self.db.output(query)[0]
         # for testing:
-        state_list = (('01', ), ) # ('19', ), )
+        # state_list = (('01', ), ) # ('19', ), )
         
         for state in state_list:
             # set state
