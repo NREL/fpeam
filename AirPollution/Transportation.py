@@ -152,7 +152,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 # set pollutant name and ID
                 self.kvals['pollutant_name'] = key
                 self.kvals['pollutantID'] = self.pollutant_dict[key]
-                # @TODO: this query is volatile now that it depends on a.MOVESScenarioID_no_fips, which must be created _after_ running MOVES
+
                 query = """
                            INSERT INTO {scenario_name}.transportation (pollutantID, fips, feedstock, yearID, logistics_type, yield_type, avg_rate_per_distance, trips, vmt, run_emissions, state)
                            SELECT    '{pollutant_name}'
@@ -178,8 +178,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                       ON mx.MOVESScenarioID = f.MOVESScenarioID
                                       WHERE pollutantID = '{pollutantID}'
                                         AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
-                                      GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID
-                                      ORDER BY mx.state) 						                m
+                                      GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID     m
                                   ON (m.max_id = a.MOVESRunID AND m.state = a.state AND m.pollutantID = a.pollutantID)
                            LEFT JOIN (SELECT *
                                       FROM {production_schema}.{transport_table}
@@ -190,7 +189,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                              AND     a.pollutantID             = '{pollutantID}'
                              AND     a.state                   = '{state}'
                            GROUP BY  a.MOVESScenarioID, a.MOVESRunID, a.pollutantID, a.state, a.fips, c.sply_fips, a.MOVESScenarioID_no_fips
-                           ORDER BY  c.sply_fips, a.MOVESScenarioID, a.MOVESRunID,  a.pollutantID
                         ;""".format(**self.kvals)
 
                 try:
@@ -198,6 +196,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                 except Exception, e:
                     errors[key] = e
 
+            # report errors
             [logger.error('Error calculating running emissions for %s: %s' % (key, val)) for key, val in errors.iteritems()]
 
     def calc_start_hotel_emissions(self):
