@@ -178,7 +178,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                       ON mx.MOVESScenarioID = f.MOVESScenarioID
                                       WHERE pollutantID = '{pollutantID}'
                                         AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
-                                      GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID     m
+                                      GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID)     m
                                   ON (m.max_id = a.MOVESRunID AND m.state = a.state AND m.pollutantID = a.pollutantID)
                            LEFT JOIN (SELECT *
                                       FROM {production_schema}.{transport_table}
