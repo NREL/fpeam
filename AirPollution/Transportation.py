@@ -175,7 +175,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                       FROM {moves_output_db}.ratepervehicle                     mx
                                       JOIN {constants_schema}.moves_statelevel_fips_list_{year} f
                                       ON mx.MOVESScenarioID = f.MOVESScenarioID
-                                      WHERE pollutantID = '{pollutantID'
+                                      WHERE pollutantID = '{pollutantID}'
                                         AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
                                       GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID
                                       ORDER BY mx.state) 						                m
@@ -188,8 +188,8 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                            WHERE     a.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
                              AND     a.pollutantID             = '{pollutantID}'
                              AND     a.state                   = '{state}'
-                           GROUP BY    a.pollutantID
-                                     , c.sply_fips
+                           GROUP BY  a.MOVESScenarioID, a.MOVESRunID, a.pollutantID, a.state, a.fips, c.sply_fips, a.MOVESScenarioID_no_fips
+                           ORDER BY  c.sply_fips, a.MOVESScenarioID, a.MOVESRunID,  a.pollutantID;
                         ;""".format(**self.kvals)
 
                 try:
