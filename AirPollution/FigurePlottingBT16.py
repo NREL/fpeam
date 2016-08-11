@@ -253,9 +253,9 @@ class FigurePlottingBT16:
 
         self.db.execute_sql(sql=sql)
 
-        # for col in ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock', 'nox', 'nh3', 'voc', 'pm10', 'pm25', 'sox', 'co', 'nei_category', 'prod', 'harv_ac', 'total_nox', 'total_nh3', 'total_voc', 'total_pm10', 'total_pm25', 'total_sox', 'total_co', 'total_prod', 'total_harv_ac', 'total_nox_trans', 'total_nh3_trans'):
-        #     sql = 'CREATE INDEX idx_{col} ON {scenario_name}.{new_table} ({col});'.format(col=col, **kvals)
-        #     self.db.execute_sql(sql=sql)
+        for col in ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock', 'nox', 'nh3', 'voc', 'pm10', 'pm25', 'sox', 'co', 'nei_category', 'prod', 'harv_ac', 'total_nox', 'total_nh3', 'total_voc', 'total_pm10', 'total_pm25', 'total_sox', 'total_co', 'total_prod', 'total_harv_ac', 'total_nox_trans', 'total_nh3_trans'):
+            sql = 'CREATE INDEX idx_{col} ON {scenario_name}.{new_table} ({col});'.format(col=col, **kvals)
+            self.db.execute_sql(sql=sql)
 
     def sum_emissions(self, kvals):
 
