@@ -413,6 +413,29 @@ class Driver:
                                               VALUES ('{moves_scen_id}')
                                               ;""".format(**self.kvals)
                 self.db.input(query_moves_metadata)
+
+                # set values for extra columns in MOVES output tables (i.e., fips, state, and MOVESScenarioID_no_fips)
+                table_list = ['rateperdistance',
+                              'rateperstart',
+                              'ratepervehicle',
+                              'startspervehicle']
+
+                for table in table_list:
+                    self.kvals['table'] = table
+                    query_set_extra_columns = """UPDATE  moves_output_db.{table}
+                                                 SET fips = LEFT(MOVESScenarioID, 5)
+                                                 WHERE fips is NULL;
+
+                                                 UPDATE moves_output_db.{table}
+                                                 SET state = LEFT(MOVESScenarioID, 2)
+                                                 WHERE state is NULL ;
+
+                                                 UPDATE moves_output_db.{table}
+                                                 SET movesscenarioID_no_fips = RIGHT(MOVESScenarioID, 19)
+                                                 WHERE movesscenarioID_no_fips is NULL;
+                                               ;""".format(**self.kvals)
+                    self.db.input(query_set_extra_columns)
+
             else:
                 # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
