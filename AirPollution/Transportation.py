@@ -146,6 +146,9 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             # set state
             state = state[0]
             self.kvals['state'] = state
+
+            # for testing:
+            # self.pollutant_dict = {'NOX': '3', }
             for key in self.pollutant_dict:
                 logger.info('Calculating running emissions for pollutant: %s, state: %s' % (key, state))
 
@@ -161,7 +164,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                      , '{year}'
                                      , '{logistics_type}'
                                      , '{yield_type}'
-                                     , SUM(a.ratePerDistance * b.avgSpeedFraction) avg_rate_per_distance
+                                     , SUM(a.ratePerDistance * b.avgSpeedFraction) AS avg_rate_per_distance
                                      , c.used_qnty / {capacity} AS trips
                                      , ({vmt}) AS vmt
                                      , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty / {capacity} * ({vmt}) / {g_per_mt} AS run_emissions
@@ -170,17 +173,17 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                            LEFT JOIN {constants_schema}.averagespeed                            b
                                   ON (a.roadTypeID = b.roadTypeID AND a.avgSpeedBinID = b.avgSpeedBinID AND a.hourID = b.hourID AND a.dayID = b.dayID)
                                 JOIN (SELECT mx.state
-                                           , mx.pollutantID
                                            , mx.MOVESScenarioID
                                            , MAX(mx.MOVESRunID) as max_id
-                                      FROM {moves_output_db}.ratepervehicle                     mx
+                                      FROM {moves_output_db}.rateperdistance                    mx
                                       JOIN {constants_schema}.moves_statelevel_fips_list_{year} f
                                       ON mx.MOVESScenarioID = f.MOVESScenarioID
-                                      WHERE pollutantID = '{pollutantID}'
-                                        AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                                      WHERE mx.pollutantID = '{pollutantID}'
+                                        AND mx.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                                        AND mx.state = '{state}'
                                       GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID)     m
-                                  ON (m.max_id = a.MOVESRunID AND m.state = a.state AND m.pollutantID = a.pollutantID)
-                           LEFT JOIN (SELECT *
+                                  ON (m.max_id = a.MOVESRunID AND m.state = a.state)
+                                JOIN (SELECT *
                                       FROM {production_schema}.{transport_table}
                                       WHERE feed_id_abbr = '{feed}'
                                         AND state = '{state}')                                  c
@@ -193,6 +196,9 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
                 try:
                     self.db.input(query)
+                    # for testing:
+                    # print(self.db.output("""SELECT * FROM bc2017cc.transportation
+                    # WHERE fips IS NULL AND feedstock = 'cs'"""))
                 except Exception, e:
                     errors[key] = e
 
@@ -229,21 +235,21 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                   GROUP BY MOVESScenarioID, state, MOVESRunID, pollutantID) b
                               ON a.state = b.state
                             JOIN (SELECT mx.state
-                                       , mx.pollutantID
                                        , mx.MOVESScenarioID
                                        , MAX(mx.MOVESRunID) as max_id
                                   FROM {moves_output_db}.ratepervehicle mx
                                   JOIN {constants_schema}.moves_statelevel_fips_list_{year} f
                                     ON mx.MOVESScenarioID = f.MOVESScenarioID
-                                 WHERE pollutantID = '{pollutantID}'
-                                   AND MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                                 WHERE mx.pollutantID = '{pollutantID}'
+                                   AND mx.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
+                                   AND mx.state = '{state}'
                                  GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID) m
-                              ON m.max_id = b.MOVESRunID AND m.state = b.state AND m.pollutantID = b.pollutantID
-                       LEFT JOIN(SELECT  sply_fips
-                                       , SUM(used_qnty) AS used_qnty
-                                 FROM {production_schema}.{transport_table}
-                                 WHERE feed_id = '{transport_feed_id}'
-                                 GROUP BY sply_fips) c
+                              ON (m.max_id = b.MOVESRunID AND m.state = b.state)
+                            JOIN (SELECT  sply_fips
+                                        , SUM(used_qnty) AS used_qnty
+                                  FROM {production_schema}.{transport_table}
+                                  WHERE feed_id = '{transport_feed_id}'
+                                  GROUP BY sply_fips) c
                               ON a.fips = c.sply_fips
                        SET start_hotel_emissions = (b.ratePerVehicle * c.used_qnty / {capacity} / {g_per_mt})
                        WHERE a.pollutantID = '{pollutant_name}' AND feedstock = '{feed}'
