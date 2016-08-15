@@ -457,11 +457,16 @@ class Driver:
                   'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 2);' \
                 .format(t=table, **self.kvals)
             self.db.execute_sql(sql)
+            logger.debug('Adding fips column to {t}'.format(t=table))
+            sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN fips char(5);' \
+                  'UPDATE {moves_output_db}.{t} SET fips = LEFT(MOVESScenarioID, 5);' \
+                .format(t=table, **self.kvals)
+            self.db.execute_sql(sql)
 
             columns = ('MOVESScenarioID', 'MOVESRunID', 'yearID', 'monthID', 'dayID', 'hourID',
                        'pollutantID', 'processID', 'sourceTypeID', 
                        'roadTypeID', 'avgSpeedBinID', 'state',
-                       'MOVESScenarioID_no_fips', table)
+                       'MOVESScenarioID_no_fips', 'fips', table)
 
             for column in columns:
                 logger.debug('Adding index on {t}.{c}'.format(c=column, t=table))
