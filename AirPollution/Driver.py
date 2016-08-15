@@ -521,6 +521,8 @@ class Driver:
 
         feed_id_dict = config.get('feed_id_dict')
 
+        # for testing:
+        # self.feedstock_list = ['CS', ]
         for feedstock in self.feedstock_list:
             # set feedstock id
             kvals['feed'] = feed_id_dict[feedstock]
