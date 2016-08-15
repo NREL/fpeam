@@ -141,7 +141,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         state_list = self.db.output(query)[0]
         # for testing:
         # state_list = (('01', ), ) # ('19', ), )
-        
+
         for state in state_list:
             # set state
             state = state[0]
@@ -242,7 +242,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                     ON mx.MOVESScenarioID = f.MOVESScenarioID
                                  WHERE mx.pollutantID = '{pollutantID}'
                                    AND mx.MOVESScenarioID_no_fips = '{end_moves_scen_id}'
-                                   AND mx.state = '{state}'
                                  GROUP BY mx.state, mx.pollutantID, mx.MOVESScenarioID) m
                               ON (m.max_id = b.MOVESRunID AND m.state = b.state)
                             JOIN (SELECT  sply_fips
