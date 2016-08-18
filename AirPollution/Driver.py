@@ -420,20 +420,20 @@ class Driver:
                               'ratepervehicle',
                               'startspervehicle']
 
-                for table in table_list:
+                for table in table_list:  # @TODO: verify this runs
                     self.kvals['table'] = table
-                    query_set_extra_columns = """UPDATE  moves_output_db.{table}
+                    query_set_extra_columns = """UPDATE {moves_output_db}.{table}
                                                  SET fips = LEFT(MOVESScenarioID, 5)
                                                  WHERE fips is NULL;
 
-                                                 UPDATE moves_output_db.{table}
+                                                 UPDATE {moves_output_db}.{table}
                                                  SET state = LEFT(MOVESScenarioID, 2)
-                                                 WHERE state is NULL ;
+                                                 WHERE state is NULL;
 
-                                                 UPDATE moves_output_db.{table}
+                                                 UPDATE {moves_output_db}.{table}
                                                  SET movesscenarioID_no_fips = RIGHT(MOVESScenarioID, 19)
                                                  WHERE movesscenarioID_no_fips is NULL;
-                                               ;""".format(**self.kvals)
+                                               """.format(**self.kvals)
                     self.db.input(query_set_extra_columns)
 
             else:
