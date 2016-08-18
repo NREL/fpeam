@@ -14,10 +14,11 @@ from scipy.stats import scoreatpercentile
 from model.Database import Database
 from utils import config, logger
 from matplotlib import ticker
+import os
 
 
 class FigurePlottingBT16:
-    def __init__(self, db):
+    def __init__(self, db, data_type):
         """
 
         :param db: model.Database instance
@@ -26,22 +27,49 @@ class FigurePlottingBT16:
 
         # init properties
         self.db = db
+        self.data_type = data_type
 
         self.f_color = ['r', 'b', 'g', 'k', 'c', 'y', 'm', 'coral']  # @TODO: remove hardcoded values
         self.f_marker = ['o', 'o', 'o', 'o', 'o', 'o', 'o', 'o']  # @TODO: remove hardcoded values
-        self.row_list = [0, 0, 1, 1, 2, 2, 0, 2]  # @TODO: remove hardcoded values
-        self.col_list = [0, 1, 0, 1, 0, 1, 2, 2]  # @TODO: remove hardcoded values
-        self.pol_list_label = ['$NO_x$', '$NH_3$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', '$VOC$']  # @TODO: remove hardcoded values
+        self.row_list = [0, 0, 0, 1, 1, 2, 2, ]  # @TODO: remove hardcoded values
+        self.col_list = [2, 0, 1, 0, 1, 0, 1, ]  # @TODO: remove hardcoded values
+        self.pol_list_label = ['$VOC$', '$NH_3$', '$NO_x$', '$PM_{2.5}$', '$PM_{10}$', '$CO$', '$SO_x$', ]  # @TODO: remove hardcoded values
 
-        self.pol_list = ['nox', 'nh3', 'pm25', 'pm10', 'co', 'sox', 'voc']  # @TODO: remove hardcoded values
+        self.pol_list = ['voc', 'nh3', 'nox', 'pm25', 'pm10', 'co', 'sox']  # @TODO: remove hardcoded values
 
-        self.feedstock_list = ['Corn Grain', 'Corn Stover', 'Sorghum stubble', 'Wheat Straw', 'Switchgrass', 'Miscanthus', 'Forest Residues', 'Whole Trees']  # @TODO: remove hardcoded values
-        self.f_list = ['CG', 'CS', 'SS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
-        self.act_list = ['Non-Harvest', 'Chemical', 'Harvest']  # @TODO: remove hardcoded values
+        self.feedstock_list = ['Corn Grain', 'Corn Stover', 'Sorghum stubble', 'Wheat Straw', 'Switchgrass',
+                               'Miscanthus', 'Forest Residues', 'Whole Trees']  # @TODO: remove hardcoded values
+
+        # toggle for aggregating corn stover and sorghum stubble
+        self.aggregate_cs_ss = config['aggregate_cs_ss']
+
+        if self.aggregate_cs_ss is False:
+            self.f_list = ['CG', 'CS', 'SS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
+            self.f_labels = ['CG', 'CS', 'SS', 'Strw', 'SG', 'MS', 'FR', 'FB']
+            self.act_list = ['Chemical', 'Harvest', 'Non-Harvest', ]  # @TODO: remove hardcoded values
+        else:
+            self.f_list = ['CG', 'CS', 'WS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
+            self.f_labels = ['CG', 'Stvr', 'Strw', 'SG', 'MS', 'FR', 'FB']
+            self.act_list = ['Chemical', 'Harvest', 'Non-Harvest', ]  # @TODO: remove hardcoded values
+
+        if self.data_type == 'delivered':
+            self.f_list = ['CS', 'SG', 'MS', 'FR', 'FW']  # @TODO: remove hardcoded values
+            self.f_labels = ['Stvr', 'SG', 'MS', 'FR', 'FB']
+            self.act_list = ['Pre-processing', 'Chemical', 'Harvest', 'Non-Harvest', 'Off-site Transport', ]  # @TODO: remove hardcoded values
 
         self.etoh_vals = [2.76 / 0.02756, 89.6, 89.6, 89.6, 89.6, 75.7, 75.7, 89.6]  # gallons per dry short ton  # @TODO: remove hardcoded values (convert to dt from bushels / 0.02756); add reference
 
         self.feed_id_dict = config.get('feed_id_dict')
+        self.mt_to_lb = 2204.62
+
+        # set path for figures
+        self.path = os.path.join(config.get('project_path'), config.get('title'))
+
+        # kvals for figures
+        self.kvals_figures = {'db_name': config.get('results_db'),
+                              'te_table': config.get('results_table'),
+                              'year': config.get('year_dict')['all_crops'],
+                              'yield': config.get('yield'), }
 
     def compile_results(self):
         """
@@ -883,10 +911,11 @@ class FigurePlottingBT16:
 
         return results
 
-    def plot_emissions_per_gal(self, emissions_per_dt_dict):
+    def plot_emissions_per_gal(self, emissions_per_dt_dict, filename):
         """
 
-        :param emissions_per_dt_dict:
+        :param filename: filename for saving figure
+        :param emissions_per_dt_dict: dictionary of emissions per dt by feedstock and pollutant
         :return:
         """
 
@@ -913,11 +942,11 @@ class FigurePlottingBT16:
             formatter.set_powerlimits((-4, 3))
 
             # ax1.set_title(self.pol_list_label[p_num])
-            ax1.text(len(self.feedstock_list) + 0.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
+            ax1.text(len(self.f_list) + 0.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
 
             bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
-            ax1.set_xlim(0.5, len(self.feedstock_list) + 0.5)
+            ax1.set_xlim(0.5, len(self.f_list) + 0.5)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
@@ -941,15 +970,24 @@ class FigurePlottingBT16:
         if config.as_bool('show_figures') is True:
             plt.show()
 
+        # save figure
+        fig.savefig(os.path.join(self.path, 'Figures', filename), format='png')
+
         data = [emissions_per_gal, ]
 
         return data
 
-    def plot_emissions_per_dt(self, emissions_per_dt_dict):
+    def plot_emissions_per_dt(self, emissions_per_dt_dict, filename):
+        """
+
+        :param filename: filename for saving figure
+        :param emissions_per_dt_dict: dictionary of emissions per dt by feedstock and pollutant
+        :return:
+        """
 
         logger.info('Plotting emissions per dt')
 
-        fig, axarr = plt.subplots(3, 3, figsize=(8.5, 7))
+        fig, axarr = plt.subplots(3, 3, figsize=(8.5, 8))
         matplotlib.rcParams.update({'font.size': 13})
 
         for p_num, pollutant in enumerate(self.pol_list):
@@ -958,56 +996,109 @@ class FigurePlottingBT16:
             for f_num, feedstock in enumerate(self.f_list):
                 emissions_per_dt = emissions_per_dt_dict[feedstock][pollutant]
 
-                g_per_dt = list(x[0] * 1e3 for x in emissions_per_dt)
-                plotvals.append(g_per_dt)
+                if emissions_per_dt[0][0] is None:
+                    emissions_per_dt = [(0, ), ]
+
+                lb_per_dt = list(x[0] * self.mt_to_lb for x in emissions_per_dt)
+                plotvals.append(lb_per_dt)
 
             row = self.row_list[p_num]
             col = self.col_list[p_num]
             ax1 = axarr[row, col]
             ax1.set_yscale('log')
-            ax1.set_ylim(bottom=1e-6, top=1e3)
+            ax1.set_ylim(bottom=7.5e-6, top=2e2)
             formatter = ticker.ScalarFormatter(useMathText=True)
             formatter.set_scientific(True)
-            formatter.set_powerlimits((-6, 3))
+            formatter.set_powerlimits((-5, 2))
 
-            for label in ax1.get_yticklabels()[::2]:
-                label.set_visible(False)
+            # for label in ax1.get_yticklabels()[::2]:
+            #     label.set_visible(False)
 
-            ax1.text(len(self.feedstock_list) + 0.3, 4e2, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
+            ax1.text(len(self.f_list) + 0.3, 8e1, self.pol_list_label[p_num], fontsize=13, ha='right', va='top', weight='heavy')
             # ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter("%s"))  # enable for non-scientific formatting
-            bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000)
-            ax1.set_xlim(0.5, len(self.feedstock_list) + 0.5)
+            bp = ax1.boxplot(plotvals, notch=0, sym='', vert=1, whis=1000, patch_artist=True)
+            ax1.set_xlim(0.25, len(self.f_list) + 0.75)
 
             plt.setp(bp['boxes'], color='black')
             plt.setp(bp['whiskers'], color='black', linestyle='-')
             plt.setp(bp['medians'], color='black')
 
+            for box1 in bp['boxes']:
+                box1.set(facecolor='#bebebe')
+
             self.__plot_interval__(plotvals, ax1)
-            ax1.set_xticklabels(self.f_list, rotation='horizontal')
+            ax1.set_xticklabels(self.f_labels, rotation='vertical')
 
         # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
-        plt.setp([axarr[0, 0].get_xticklabels()], visible=False)
-        plt.setp([axarr[0, 1].get_xticklabels()], visible=False)
-        plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
+        # plt.setp([axarr[0, 0].get_xticklabels()], visible=False)
+        # plt.setp([axarr[0, 1].get_xticklabels()], visible=False)
+        # plt.setp([a.get_xticklabels() for a in axarr[1, :]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
         plt.setp([a.get_yticklabels() for a in axarr[:, 2]], visible=False)
 
-        axarr[0, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
-        axarr[1, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
-        axarr[2, 0].set_ylabel('Emissions \n (kg/dt)', color='black', fontsize=13)
+        axarr[0, 0].set_ylabel('Emissions (lb/dt)', color='black', fontsize=13)
+        axarr[1, 0].set_ylabel('Emissions (lb/dt)', color='black', fontsize=13)
+        axarr[2, 0].set_ylabel('Emissions (lb/dt)', color='black', fontsize=13)
 
+        # add legend
+        # select axis
+        ax1 = axarr[1, 2]
+        # create normal distribution for boxplot legend
+        N = 500
+        norm = np.random.normal(10, 1, 500)
+
+        # set axis properties
+        axarr[1, 2].set_xlim([-1, 3])
+        axarr[1, 2].set_ylim([6.5, 13.5])
+
+        # generate boxplot with two empty spaces to the left
+        bp = ax1.boxplot([[0, ], [0, ], norm, ], notch=0, sym='', vert=1, whis=1000, patch_artist=True)
+
+        # add labels to create boxplot legend
+        ax1.text(2.5, min(norm), 'minimum', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, scoreatpercentile(norm, 5), '5th percentile', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, scoreatpercentile(norm, 25), '25th percentile', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, median(norm), 'median', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, scoreatpercentile(norm, 75), '75th percentile', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, scoreatpercentile(norm, 95), '95th percentile', fontsize=11, ha='right', va='center', )
+        ax1.text(2.5, max(norm), 'maximum', fontsize=11, ha='right', va='center', )
+
+        # change line properties for boxplots
+        plt.setp(bp['boxes'], color='black')
+        plt.setp(bp['whiskers'], color='black', linestyle='-')
+        plt.setp(bp['medians'], color='black')
+
+        # change box colors for boxplot
+        for box1 in bp['boxes']:
+            box1.set(facecolor='#bebebe')  # another color option: '#F0F0F0'
+
+        # add 95 and 5 percent intervals
+        perc95 = scoreatpercentile(norm, 95)
+        perc5 = scoreatpercentile(norm, 5)
+        ax1.plot(3, perc95, '_', markersize=25, color='k')
+        ax1.plot(3, perc5, '_', markersize=25, color='k')
+
+        # turn off axes for subplots without data
+        ax1.axis('off')
+        plt.axis('off')
+
+        # tighten plot layout
         fig.tight_layout()
 
+        # show figure
         if config.as_bool('show_figures') is True:
             plt.show()
 
-        data = [emissions_per_dt, ]
+        # save figure
+        fig.savefig(os.path.join(self.path, 'Figures', filename), format='png')
 
+        # return data
+        data = [emissions_per_dt, ]
         return data
 
     def __plot_interval__(self, data_array, ax):
 
-        num_feed = len(self.feedstock_list)
+        num_feed = len(self.f_list)
         num_array = array([x for x in range(num_feed)]) + 1  # index starts at 1, not zero
 
         perc95list = list()
@@ -1034,18 +1125,30 @@ class FigurePlottingBT16:
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
-        kvals = {'feedstock': self.f_list[f_num].lower(),
-                 'pollutant': self.pol_list[p_num],
-                 'scenario_name': config.get('title'),
-                 'te_table': 'total_emissions_join_prod'  # @TODO: this is manually defined several places; consolidate
-                 }
+        kvals = self.kvals_figures
+        kvals['pollutant'] = self.pol_list[p_num]
+
+        if self.f_list[f_num] == 'SS' and self.aggregate_cs_ss is True:
+            kvals['feedstock'] = 'none'
+        elif self.f_list[f_num] == 'CS' and self.aggregate_cs_ss is True:
+            kvals['feedstock'] = "(feedstock = 'cs' OR feedstock = 'ss')"
+        else:
+            kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num].lower())
+
+        if self.data_type == 'produced':
+            kvals['source_filter'] = """AND    prod > 0
+                                        AND    source_category NOT LIKE '%transport%'
+                                        AND    source_category NOT LIKE '%processing%'"""
+        elif self.data_type == 'delivered':
+            kvals['source_filter'] = """AND used_qnty > 0
+                                        AND avg_total_cost < 100"""
 
         query_emissions_per_prod = """SELECT   SUM({pollutant} / (prod)) AS mt_{pollutant}_perdt
-                                      FROM     {scenario_name}.{te_table}
-                                      WHERE    prod                   > 0.0
-                                        AND    feedstock              = '{feedstock}'
-                                        AND    source_category NOT LIKE '%transport%'
-                                        AND    source_category NOT LIKE '%processing%'
+                                      FROM     {db_name}.{te_table}
+                                      WHERE    {feedstock}
+                                        AND    year = '{year}'
+                                        AND    yield = '{yield}'
+                                      {source_filter}
                                       GROUP BY fips
                                       ORDER BY fips
                                       ;""".format(**kvals)
@@ -1064,21 +1167,33 @@ class FigurePlottingBT16:
 
         :param f_num: feedstock number
         :param p_num: pollutant number
+        :param data_type: type of data used (produced only or delivered (i.e., produced and supplied))
         :return emissions_per_pollutant: emissions in (pollutant dt) / (total feedstock harvested dt)
         """
 
-        kvals = {'feedstock': self.f_list[f_num].lower(),
-                 'pollutant': self.pol_list[p_num],
-                 'scenario_name': config.get('title'),
-                 'te_table': 'total_emissions_join_prod'  # @TODO: defined multiple places
-                 }
+        kvals = self.kvals_figures
+        kvals['pollutant'] = self.pol_list[p_num]
+
+        if self.f_list[f_num] == 'SS' and self.aggregate_cs_ss is True:
+            kvals['feedstock'] = 'none'
+        elif self.f_list[f_num] == 'CS' and self.aggregate_cs_ss is True:
+            kvals['feedstock'] = "(feedstock = 'cs' OR feedstock = 'ss')"
+        else:
+            kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num].lower())
+
+        if self.data_type == 'produced':
+            kvals['source_filter'] = """AND source_category NOT LIKE '%transport%'
+                                        AND    source_category NOT LIKE '%processing%'"""
+        elif self.data_type == 'delivered':
+            kvals['source_filter'] = ""
 
         query_emissions = """SELECT   SUM({pollutant}) AS {pollutant}
-                             FROM     {scenario_name}.{te_table}
+                             FROM     {db_name}.{te_table}
                              WHERE    prod > 0.0
-                               AND    feedstock = '{feedstock}'
-                               AND    source_category NOT LIKE '%transport%'
-                               AND    source_category NOT LIKE '%processing%'
+                               AND    {feedstock}
+                               AND    year = '{year}'
+                               AND    yield = '{yield}'
+                             {source_filter}
                              GROUP BY fips
                              ORDER BY fips
                              ;""".format(**kvals)
@@ -1091,13 +1206,14 @@ class FigurePlottingBT16:
 
         return emissions
 
-    def contribution_figure(self):
-        kvals = {'scenario_name': config.get('title'),
-                 'te_table': 'total_emissions_join_prod_sum_emissions'}
+    def contribution_figure(self, filename):
+        kvals = self.kvals_figures
 
         condition_list = {'Non-Harvest': """(source_category = \'Irrigation\' OR source_category = \'Non-Harvest\' OR source_category = \'Non-Harvest - fug dust\')""",
                           'Harvest': """(source_category = \'Harvest\' OR source_category = \'Harvest - fug dust\' OR source_category = \'Loading\')""",
-                          'Chemical': """(source_category = \'Chemical\' OR source_category = \'Fertilizer\')"""}
+                          'Chemical': """(source_category = \'Chemical\' OR source_category = \'Fertilizer\')""",
+                          'Pre-processing': """(source_category LIKE \'%processing%\')""",
+                          'Off-site Transport': """(source_category LIKE \'%transport%\')""", }
         emissions_per_activity = dict()
         for f_num, feedstock in enumerate(self.f_list):
             pol_dict = dict()
@@ -1109,12 +1225,31 @@ class FigurePlottingBT16:
                 for act_num, activity in enumerate(self.act_list):
                     kvals['cond'] = condition_list[activity]
 
-                    query = """ SELECT   SUM({pollutant} / total_{pollutant})
-                                FROM     {scenario_name}.{te_table}
+                    if self.f_list[f_num] == 'SS' and self.aggregate_cs_ss is True:
+                        kvals['feedstock'] = 'none'
+                    elif self.f_list[f_num] == 'CS' and self.aggregate_cs_ss is True:
+                        kvals['feedstock'] = "(feedstock = 'cs' OR feedstock = 'ss')"
+                    else:
+                        kvals['feedstock'] = "feedstock = '{feedstock}'".format(feedstock=self.f_list[f_num].lower())
+
+                    if self.data_type == 'produced':
+                        kvals['source_filter'] = """AND source_category NOT LIKE '%transport%'
+                                                    AND source_category NOT LIKE '%processing%'"""
+                        kvals['tot_emissions'] = """total_{pollutant}""".format(**kvals)
+                    elif self.data_type == 'delivered':
+                        kvals['source_filter'] = "AND used_qnty > 0"
+                        kvals['tot_emissions'] = """total_{pollutant}_trans""".format(**kvals)
+
+                    query = """ SELECT   SUM({pollutant} / {tot_emissions})
+                                FROM     {db_name}.{te_table}
                                 WHERE    {cond}
-                                  AND    feedstock         = '{feed}'
+                                  AND    {feedstock}
                                   AND    total_{pollutant} > 0
                                   AND    prod              > 0
+                                  AND    {pollutant} IS NOT NULL
+                                  AND    year = '{year}'
+                                  AND    yield = '{yield}'
+                                {source_filter}
                                 GROUP BY fips
                                 """.format(**kvals)
 
@@ -1122,13 +1257,13 @@ class FigurePlottingBT16:
                     act_dict[activity] = list()
                     if output is not None:
                         act_dict[activity] = output[0]
-                    if feedstock == 'FR' and activity == 'Non-Harvest':
+                    if (feedstock == 'FR' and activity == 'Non-Harvest') or (not feedstock.startswith('F') and activity == 'Pre-processing'):
                         act_dict[activity] = ((0, ), )
 
                 pol_dict[pollutant] = act_dict
             emissions_per_activity[feedstock] = pol_dict
 
-        fig, axarr = plt.subplots(3, 7, figsize=(12, 5.5))
+        fig, axarr = plt.subplots(len(self.act_list), 7, figsize=(12, 5.5/3*len(self.act_list)))
 
         matplotlib.rcParams.update({'font.size': 13})
 
@@ -1160,16 +1295,16 @@ class FigurePlottingBT16:
                     if row == 0:
                         axarr[col, row].set_ylabel(activity)
 
-                    # ax1.plot([f_num + 1], mean_val, color=self.f_color[f_num], marker='_', markersize=20)
-                    ax1.plot([f_num + 1], med_val, color=self.f_color[f_num], marker='_', markersize=12, markeredgewidth=2)
+                    if max_val > 0:
+                        # ax1.plot([f_num + 1], mean_val, color=self.f_color[f_num], marker='_', markersize=20)
+                        ax1.plot([f_num + 1], med_val, color=self.f_color[f_num], marker='_', markersize=12, markeredgewidth=2)
 
-                    # Plot the max/min values
-                    ax1.plot([f_num + 1] * 2, [max_val, min_val], color=self.f_color[f_num], marker=self.f_marker[f_num], markersize=7, linewidth=2, markeredgewidth=0.0)
+                        # Plot the max/min values
+                        ax1.plot([f_num + 1] * 2, [max_val, min_val], color=self.f_color[f_num], marker=self.f_marker[f_num], markersize=7, linewidth=2, markeredgewidth=0.0)
 
                     # Set axis limits
-                    ax1.set_xlim([0, 8])
-
-                    ax1.set_xticklabels(([''] + self.f_list), rotation='vertical')
+                    ax1.set_xlim(0.25, len(self.f_list) + 0.75)
+                    ax1.set_xticklabels(([''] + self.f_labels), rotation='vertical')
 
         # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
         plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
@@ -1186,6 +1321,8 @@ class FigurePlottingBT16:
         if config.as_bool('show_figures') is True:
             plt.show()
 
+        # save figure
+        fig.savefig(os.path.join(self.path, 'Figures', filename), format='png')
 
 if __name__ == '__main__':
     # get scenario title
