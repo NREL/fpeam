@@ -996,7 +996,7 @@ class FigurePlottingBT16:
             for f_num, feedstock in enumerate(self.f_list):
                 emissions_per_dt = emissions_per_dt_dict[feedstock][pollutant]
 
-                if emissions_per_dt[0][0] is None:
+                if len(emissions_per_dt) == 0:
                     emissions_per_dt = [(0, ), ]
 
                 lb_per_dt = list(x[0] * self.mt_to_lb for x in emissions_per_dt)
