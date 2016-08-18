@@ -207,29 +207,26 @@ class Driver:
 
                 # check if regional crop budget should be used
                 if regional_crop_budget is False:  # if not, run with national budget
-                    # new population object created for each run_code, where Pop is the abstract class and .<type> is the concrete class
-                    if run_code.startswith('CG_I'):
-                        pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                    elif run_code[3] == 'L':
-                        pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                    elif run_code.startswith('SG'):
-                        pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                    elif run_code.startswith('FR'):
-                        pop = Pop.ForestPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                    elif run_code.startswith('CS'):
-                        pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                    elif run_code.startswith('WS'):
-                        pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                    elif run_code.startswith('CG'):
-                        pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    raise NotImplementedError  # outdated run code parsing for non-regional crop budget
+                    # # new population object created for each run_code, where Pop is the abstract class and .<type> is the concrete class
+                    # if run_code.startswith('CG_I'):
+                    #     pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    # elif run_code[3] == 'L':  # catches miscanthus and switchgrass loading activities
+                    #     pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    # elif run_code.startswith('SG'):  # switchgrass non-loading activities
+                    #     pop = Pop.SwitchgrassPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    # elif run_code.startswith('FR'):  # forest residues
+                    #     pop = Pop.ForestPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    # elif run_code.startswith('CS'):
+                    #     pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    # elif run_code.startswith('WS'):
+                    #     pop = Pop.ResiduePop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
+                    # elif run_code.startswith('CG'):
+                    #     pop = Pop.CornGrainPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
                 else:  # if regional crop budget should be used
                     # get irrigation data for corn grain using the same method as for national budget
                     if run_code.startswith('CG_I'):
                         pop = Pop.CornGrainIrrigationPop(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                    # get loading equipment if run code ends with L (except for forestry because loading equipment is included in the crop budget)
-                    # elif run_code[3] == 'L' and not run_code.startswith('F'):
-                    #     pop = Pop.LoadingEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
-                    # for all other run codes, use regional crop budgets
                     else:
                         pop = Pop.RegionalEquipment(cont=self.cont, episode_year=scenario_year, run_code=run_code)
 
@@ -690,7 +687,6 @@ class Driver:
         :return:
         """
 
-        # @TODO: this probably needs to be re-rewritten to handle loading and sorghum
         for run_code in self.run_codes:
             if not (run_code.startswith('SG') or run_code.startswith('MS')):
                 if not run_code[4] == 'L':

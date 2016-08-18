@@ -171,8 +171,6 @@ class ScenarioOptions:
                 self.kvals['till_type'] = 'convtill'
                 self.kvals['tillage'] = 'CT'
 
-            # @TODO: rewrite run_code parsing; at least MS loading data is not parsed correctly
-            # @TODO: even if parsed well, source tables are not loaded with loading data because loading data is not included in agricultural crop budgets (and is subsumed as harvest in forestry)
             # set operation type and activity type from run code
             if self.run_code.startswith('SG') or self.run_code.startswith('MS'):
                 self.kvals['activity'] = self.run_code[3]
