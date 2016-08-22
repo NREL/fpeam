@@ -281,6 +281,7 @@ class FigurePlottingBT16:
 
         self.db.execute_sql(sql=sql)
 
+        logger.info('Adding indices to table')
         for col in ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock', ):
             sql = 'CREATE INDEX idx_{col} ON {scenario_name}.{new_table} ({col});'.format(col=col, **kvals)
             self.db.execute_sql(sql=sql)
