@@ -342,7 +342,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                       '{pollutant_name}',
                                       '{logistics_type}',
                                       '{yield_type}'
-                                      ,{lb_to_mt} * {k_a} * (uprsm_pct_silt / 12) ^ {a} * ({W} / 3) ^ {b}) * used_qnty / {capacity} *
+                                      ,({lb_to_mt} * {k_a} * (uprsm_pct_silt / 12) ^ {a} * ({W} / 3) ^ {b}) * used_qnty / {capacity} *
                                         (CASE WHEN {dist} <= {dist1} THEN {dist}
                                               ELSE {dist1}
                                          END)
