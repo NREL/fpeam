@@ -220,9 +220,6 @@ class Transportation(SaveDataHelper.SaveDataHelper):
             self.kvals['pollutant_name'] = key
             self.kvals['pollutantID'] = self.pollutant_dict[key]
 
-            # @TODO: moves_output_db tables need to be cleaned so there is only one result for each movesid
-            # @TODO: fix join for rate per vehicle emissions to select max MOVESRunID
-
             query = """UPDATE {scenario_name}.transportation a
                        LEFT JOIN (SELECT MOVESScenarioID
                                        , state
@@ -323,10 +320,9 @@ class Transportation(SaveDataHelper.SaveDataHelper):
         # set distance limits for unpaved versus paved
         if not self.kvals['feed'].startswith('f'):
             self.kvals['dist1'] = 2
-            self.kvals['dist2'] = 50
         else:
             self.kvals['dist1'] = 10
-            self.kvals['dist2'] = 50
+        self.kvals['dist2'] = 50
 
         for pm in pm_list:
             # set k_a and k_b values for correct pm type
@@ -345,39 +341,26 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                       '{year}',
                                       '{pollutant_name}',
                                       '{logistics_type}',
-                                      '{yield_type}',
-                                      ({lb_to_mt} * {k_a} * (uprsm_pct_silt / 12) ^ {a} * ({W} / 3) ^ {b}) * (CASE WHEN {dist} <= {dist1}
-                                                                                                         THEN IFNULL(SUM(used_qnty / {capacity} * {dist}), 0)
-                                                                                                         ELSE 0
-                                                                                                         END
-                                                                                                         +
-                                                                                                         CASE WHEN {dist} > {dist1}
-                                                                                                         THEN IFNULL(sum(used_qnty / {capacity} * 2), 0)
-                                                                                                         ELSE 0
-                                                                                                         END) AS unpaved_fd_emissions,
-                                      {lb_to_mt} * {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 * (CASE WHEN {dist} <= {dist1}
-                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
-                                                                                        ELSE 0
-                                                                                        END
-                                                                                        +
-                                                                                        CASE WHEN ({dist} > 2 AND {dist} <= {dist2})
-                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * ({dist} - 2)), 0)
-                                                                                        ELSE 0
-                                                                                        END
-                                                                                        +
-                                                                                        CASE WHEN {dist} > 50
-                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * ({dist2})), 0)
-                                                                                        ELSE 0
-                                                                                        END) AS sec_paved_fd_emissions,
-                                      {lb_to_mt} * {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 * (CASE WHEN {dist}   <= {dist2}
-                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * 0), 0)
-                                                                                        ELSE 0
-                                                                                        END
-                                                                                        +
-                                                                                        CASE WHEN {dist} > {dist2}
-                                                                                        THEN IFNULL(SUM(used_qnty / {capacity} * ({dist} - 50)), 0)
-                                                                                        ELSE 0
-                                                                                        END) AS pri_paved_fd_emissions
+                                      '{yield_type}'
+                                      ,{lb_to_mt} * {k_a} * (uprsm_pct_silt / 12) ^ {a} * ({W} / 3) ^ {b}) * used_qnty / {capacity} *
+                                        (CASE WHEN {dist} <= {dist1} THEN {dist}
+                                              ELSE {dist1}
+                                         END)
+                                       AS unpaved_fd_emissions
+
+                                      ,{lb_to_mt} * {k_b} * {sLS} ^ 0.91 * {W} ^ 1.02 * used_qnty / {capacity} *
+                                        (CASE WHEN {dist} <= {dist1} THEN 0
+                                              WHEN {dist} > {dist1} AND {dist} <= {dist2} THEN {dist} - {dist1}
+                                              ELSE {dist2} - {dist1}
+                                         END)
+                                       AS sec_paved_fd_emissions
+
+                                      ,{lb_to_mt} * {k_b} * {sLP} ^ 0.91 * {W} ^ 1.02 * used_qnty / {capacity} *
+                                        (CASE WHEN {dist} > {dist2} THEN {dist} - {dist2}
+                                             ELSE 0
+                                         END)
+                                       AS pri_paved_fd_emissions
+
                          FROM {production_schema}.{transport_table} td
                          LEFT JOIN {constants_schema}.state_road_data sd ON LEFT(td.sply_fips, 2) = sd.st_fips
                          WHERE feed_id = '{transport_feed_id}'

@@ -431,11 +431,7 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
 
         query = """ UPDATE {scenario_name}.{feed}_raw raw
                     LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
-                    LEFT JOIN {constants_schema}.{silt_table} tfd ON
-                            CASE
-                                WHEN (length(prod.fips) = 5) THEN (LEFT(prod.fips, 2)     = LEFT(tfd.st_fips, 2))
-                                WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips, 2))
-                            END
+                    LEFT JOIN {constants_schema}.{silt_table} tfd  ON LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2)
                     SET fug_pm25 = (prod.total_prod / {onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}),
                         fug_pm10 = (prod.total_prod / {onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt})
                     WHERE (raw.description LIKE '%{till_type}%') AND
