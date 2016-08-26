@@ -281,6 +281,41 @@ class FigurePlottingBT16:
 
         self.db.execute_sql(sql=sql)
 
+        # update used quantity for transport to allocate using production values
+        sql = """UPDATE {scenario_name}.{new_table} a
+                LEFT JOIN (SELECT fips, feedstock, year, yield, source_category, sum({pollutant}) AS sum_{pollutant}, sum(prod) AS total_prod
+                           FROM {scenario_name}.{new_table}
+                           WHERE source_category LIKE '%transport%'
+                           GROUP BY fips, feedstock, year, yield, source_category) b
+                       ON (a.fips = b.fips AND
+                           a.feedstock = b.feedstock AND
+                           a.year = b.year AND
+                           a.yield = b.yield AND
+                           a.source_category = b.source_category)
+                SET a.used_qnty = a.used_qnty * a.prod / b.total_prod
+                WHERE a.source_category LIKE '%transport%';
+        """.format(**kvals)
+        self.db.execute_sql(sql=sql)
+
+        # update total emissions for transport to allocate using actual production values rather than reduction factor (1/3)
+        for pollutant in self.pol_list:
+            kvals['pollutant'] = pollutant
+            sql = """UPDATE {scenario_name}.{new_table} a
+                     LEFT JOIN (SELECT fips, feedstock, year, yield, source_category, sum({pollutant}) AS sum_{pollutant}, sum(prod) AS total_prod
+                                FROM {scenario_name}.{new_table}
+                                WHERE source_category LIKE '%transport%'
+                                GROUP BY fips, feedstock, year, yield, source_category) b
+                            ON (a.fips = b.fips AND
+                                a.feedstock = b.feedstock AND
+                                a.year = b.year AND
+                                a.yield = b.yield AND
+                                a.source_category = b.source_category)
+                     SET a.{pollutant} = b.sum_{pollutant} * a.prod / b.total_prod
+                     WHERE a.source_category LIKE '%transport%';
+             """.format(**kvals)
+
+            self.db.execute_sql(sql=sql)
+
         logger.info('Adding indices to table')
         for col in ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock', ):
             sql = 'CREATE INDEX idx_{col} ON {scenario_name}.{new_table} ({col});'.format(col=col, **kvals)
@@ -440,25 +475,6 @@ class FigurePlottingBT16:
                 self.db.execute_sql(sql=sql)
 
                 i += 1
-
-            # update total emissions for transport to allocate using actual production values rather than reduction factor (1/3)
-            # @TODO: transport emissions need to be weighted correctly when inserted into total emissions table (under get_logistics)
-            for pollutant in self.pol_list:
-                kvals['pollutant'] = pollutant
-                sql = """UPDATE {scenario_name}.{table} a
-                             LEFT JOIN (SELECT fips, feedstock, year, yield, source_category, sum({pollutant}) AS sum_{pollutant}, sum(prod) AS total_prod
-                                        FROM {scenario_name}.{table}
-                                        WHERE source_category LIKE '%transport%'
-                                        GROUP BY fips, feedstock, year, yield, source_category) b
-                             ON (a.fips = b.fips AND
-                                a.feedstock = b.feedstock AND
-                                a.year = b.year AND
-                                a.yield = b.yield AND
-                                a.source_category = b.source_category)
-                             SET a.{pollutant} = b.sum_{pollutant} * a.prod / b.total_prod
-                             WHERE a.source_category LIKE '%transport%'""".format(**kvals)
-
-                self.db.execute_sql(sql=sql)
 
         for col in ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock'):
             sql = "CREATE INDEX idx_{table}_{col} ON {scenario_name}.{table} ({col});".format(col=col, **kvals)
