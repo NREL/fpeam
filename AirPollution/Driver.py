@@ -146,6 +146,9 @@ class Driver:
         # set fips list for post-processing moves data
         self.moves_fips_list = moves_fips_list
 
+        # list of MOVES output tables that are currently used for transportation
+        self.moves_table_list = ['ratePerDistance', 'ratePerVehicle']
+
     def _check_title(self, title):
         """
         Make sure the program is less then 8 characters and is not a run code.
@@ -411,28 +414,6 @@ class Driver:
                                               ;""".format(**self.kvals)
                 self.db.input(query_moves_metadata)
 
-                # set values for extra columns in MOVES output tables (i.e., fips, state, and MOVESScenarioID_no_fips)
-                table_list = ['rateperdistance',
-                              'rateperstart',
-                              'ratepervehicle',
-                              'startspervehicle']
-
-                for table in table_list:  # @TODO: verify this runs
-                    self.kvals['table'] = table
-                    query_set_extra_columns = """UPDATE {moves_output_db}.{table}
-                                                 SET fips = LEFT(MOVESScenarioID, 5)
-                                                 WHERE fips is NULL;
-
-                                                 UPDATE {moves_output_db}.{table}
-                                                 SET state = LEFT(MOVESScenarioID, 2)
-                                                 WHERE state is NULL;
-
-                                                 UPDATE {moves_output_db}.{table}
-                                                 SET movesscenarioID_no_fips = RIGHT(MOVESScenarioID, 19)
-                                                 WHERE movesscenarioID_no_fips is NULL;
-                                               """.format(**self.kvals)
-                    self.db.input(query_set_extra_columns)
-
             else:
                 # otherwise, report that MOVES run already complete
                 logger.info('MOVES run already complete for feedstock: %s, fips: %s' % (feed, fips))
@@ -443,20 +424,31 @@ class Driver:
 
         :return:
         """
-        for table in ('ratePerDistance', 'ratePerVehicle'):
+        for table in self.moves_table_list:
+
             logger.debug('Adding short scenario ID to {t}'.format(t=table))
-            sql = """ALTER TABLE {moves_output_db}.{t} ADD COLUMN MOVESScenarioID_no_fips CHAR(19);
-                         UPDATE {moves_output_db}.{t} SET MOVESScenarioID_no_fips = RIGHT(MOVESScenarioID, 19);
-                         """.format(t=table, **self.kvals)
+            sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN MOVESScenarioID_no_fips CHAR(19);'\
+                .format(t=table, **self.kvals)
             self.db.execute_sql(sql)
             logger.debug('Adding state fips column to {t}'.format(t=table))
-            sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);' \
-                  'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 2);' \
+            sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN state char(2);'\
                 .format(t=table, **self.kvals)
             self.db.execute_sql(sql)
             logger.debug('Adding fips column to {t}'.format(t=table))
-            sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN fips char(5);' \
-                  'UPDATE {moves_output_db}.{t} SET fips = LEFT(MOVESScenarioID, 5);' \
+            sql = 'ALTER TABLE {moves_output_db}.{t} ADD COLUMN fips char(5);'\
+                .format(t=table, **self.kvals)
+            self.db.execute_sql(sql)
+
+            logger.debug('Updating short scenario ID to {t}'.format(t=table))
+            sql = 'UPDATE {moves_output_db}.{t} SET MOVESScenarioID_no_fips = RIGHT(MOVESScenarioID, 19);'\
+                .format(t=table, **self.kvals)
+            self.db.execute_sql(sql)
+            logger.debug('Updating state fips column to {t}'.format(t=table))
+            sql = 'UPDATE {moves_output_db}.{t} SET state = LEFT(MOVESScenarioID, 2);'\
+                .format(t=table, **self.kvals)
+            self.db.execute_sql(sql)
+            logger.debug('Updating fips column to {t}'.format(t=table))
+            sql = 'UPDATE {moves_output_db}.{t} SET fips = LEFT(MOVESScenarioID, 5);'\
                 .format(t=table, **self.kvals)
             self.db.execute_sql(sql)
 
