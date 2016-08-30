@@ -342,13 +342,13 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                       '{pollutant_name}',
                                       '{logistics_type}',
                                       '{yield_type}'
-                                      ,({lb_to_mt} * {k_a} * power((uprsm_pct_silt / 12), {a}) * power(({W} / 3), {b})) * used_qnty / {capacity} *
+                                      ,{lb_to_mt} * {k_a} * power((uprsm_pct_silt / 12), {a}) * power(({W} / 3), {b}) * used_qnty / {capacity} *
                                         (CASE WHEN {dist} <= {dist1} THEN {dist}
                                               ELSE {dist1}
                                          END)
                                        AS unpaved_fd_emissions
 
-                                      ,{lb_to_mt} * {k_b} * power({sLS}, 0.91) * power({W}, 1.02 )* used_qnty / {capacity} *
+                                      ,{lb_to_mt} * {k_b} * power({sLS}, 0.91) * power({W}, 1.02) * used_qnty / {capacity} *
                                         (CASE WHEN {dist} <= {dist1} THEN 0
                                               WHEN {dist} > {dist1} AND {dist} <= {dist2} THEN {dist} - {dist1}
                                               ELSE {dist2} - {dist1}
@@ -357,7 +357,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
 
                                       ,{lb_to_mt} * {k_b} * power({sLP}, 0.91) * power({W}, 1.02) * used_qnty / {capacity} *
                                         (CASE WHEN {dist} > {dist2} THEN {dist} - {dist2}
-                                             ELSE 0
+                                              ELSE 0
                                          END)
                                        AS pri_paved_fd_emissions
 
