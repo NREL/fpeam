@@ -432,8 +432,8 @@ class FugitiveDust(SaveDataHelper.SaveDataHelper):
         query = """ UPDATE {scenario_name}.{feed}_raw raw
                     LEFT JOIN {production_schema}.{feed}_data prod ON raw.fips = prod.fips
                     LEFT JOIN {constants_schema}.{silt_table} tfd  ON LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2)
-                    SET fug_pm25 = (prod.total_prod / {onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}),
-                        fug_pm10 = (prod.total_prod / {onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt})
+                    SET fug_pm25 = (prod.total_prod / {onfarm_truck_capacity} * ({k25} * {D} * power((tfd.uprsm_pct_silt / 12), {a25})) * power(({weight} / 3), {b25}))) * {convert_lb_to_mt}),
+                        fug_pm10 = (prod.total_prod / {onfarm_truck_capacity} * ({k10} * {D} * power((tfd.uprsm_pct_silt / 12), {a10})) * power(({weight} / 3), {b10}))) * {convert_lb_to_mt})
                     WHERE (raw.description LIKE '%{till_type}%') AND
                           (raw.description LIKE '%{transport}%')""".format(**kvals)
 
@@ -590,18 +590,13 @@ class SG_FugitiveDust(SaveDataHelper.SaveDataHelper):
             kvals['b10'] = 0.45
             kvals['D'] = config.get('onfarm_default_distance')  # default value for distance traveled (in vehicle miles traveled)
 
-            # @TODO: clean up FIPS app-wide (i.e., make them all numbers or all 0-padded strings in code and database
-            # @TODO: change case statement to lpad()
             query = """ UPDATE    {scenario_name}.{feed}_raw raw
                         LEFT JOIN {production_schema}.{feed}_data prod
                                ON raw.fips = prod.fips
                         LEFT JOIN {constants_schema}.{silt_table} tfd
-                               ON CASE
-                                    WHEN (length(prod.fips) = 5) THEN (    LEFT(prod.fips, 2) = LEFT(tfd.st_fips, 2))
-                                    WHEN (length(prod.fips) = 4) THEN (0 + LEFT(prod.fips, 1) = LEFT(tfd.st_fips, 2))
-                                  END
-                        SET       fug_pm25 = (prod.total_prod/{onfarm_truck_capacity} * ({k25} * {D} * ((tfd.uprsm_pct_silt / 12)^{a25}) * (({weight} / 3)^{b25})) * {convert_lb_to_mt}),
-                                  fug_pm10 = (prod.total_prod/{onfarm_truck_capacity} * ({k10} * {D} * ((tfd.uprsm_pct_silt / 12)^{a10}) * (({weight} / 3)^{b10})) * {convert_lb_to_mt})
+                               ON LEFT(LPAD(prod.fips, 5, '0'), 2) = LEFT(tfd.st_fips, 2)
+                        SET       fug_pm25 = prod.total_prod / {onfarm_truck_capacity} * {k25} * {D} * power((tfd.uprsm_pct_silt / 12), {a25}) * power(({weight} / 3), {b25}) * {convert_lb_to_mt},
+                                  fug_pm10 = prod.total_prod / {onfarm_truck_capacity} * {k10} * {D} * power((tfd.uprsm_pct_silt / 12), {a10}) * power(({weight} / 3), {b10}) * {convert_lb_to_mt}
                         WHERE (raw.description = '{description}')
                         ;""".format(**kvals)
 
