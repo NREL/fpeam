@@ -188,7 +188,18 @@ def get_fips(scenario_year, state_level_moves, db, crop):
                     UNION
                     (SELECT IFNULL(prod,0) as prod, LEFT(fips,2) as state, fips, 'ws'
                     FROM {production_schema}.herb_{yield}_{year}
-                    WHERE (crop = 'Sorghum stubble') AND prod > 0);
+                    WHERE (crop = 'Sorghum stubble') AND prod > 0)
+
+                    UNION
+                    (SELECT IFNULL(total_prod,0) as prod, LEFT(fips,2) as state, fips, 'fr'
+                    FROM {production_schema}.fr_data_{yield}_{year}
+                    WHERE total_prod > 0)
+
+                    UNION
+                    (SELECT IFNULL(total_prod,0) as prod, LEFT(fips,2) as state, fips, 'fw'
+                    FROM {production_schema}.fw_data_{yield}_{year}
+                    WHERE total_prod > 0)
+                    ;
 
                     ALTER TABLE {production_schema}.prod ADD INDEX (prod);
                     ALTER TABLE {production_schema}.prod ADD INDEX (state);
