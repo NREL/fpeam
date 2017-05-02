@@ -1,8 +1,6 @@
 import os
 import sys
 
-from PyQt4 import QtGui  # QtCore
-
 from src.AirPollution import utils
 from controller.Controller import Controller
 from model.Database import Database
@@ -153,7 +151,10 @@ if __name__ == "__main__":
                  'src_pass': config.get('db_pass'),
                  'src_table': config.get('te_table_name'),
                  'fpath': os.path.join(config.get('project_path'), config.get('title'), '%s.sql' % (config.get('te_table_name'), )),
-                 'dst_host': config.get('te_db_host'),
+                 'dst
+                 
+                 
+                 _host': config.get('te_db_host'),
                  'dst_db': config.get('te_db_name'),
                  'dst_user': config.get('te_db_user'),
                  'dst_pass': config.get('te_db_pass'),
@@ -164,13 +165,3 @@ if __name__ == "__main__":
 
         logger.info('Transferring total emissions data to {dst_db}.{dst_table} on {dst_host}'.format(**kvals))
         driver.transfer_total_emissions(**kvals)
-
-    # For running the GUI
-    if config.as_bool('use_gui') is True:
-        db = Database(None)
-        m = Model(db)
-
-        app = QtGui.QApplication(sys.argv)
-        myController = Controller(m)
-        myController.show()
-        sys.exit(app.exec_())
