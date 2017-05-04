@@ -29,8 +29,8 @@ from AirPollution.utils import config, logger
 import AirPollution.MOVESModule as MOVESModule
 
 import os
-import Logistics as Logistics
-import Transportation
+import AirPollution.Logistics as Logistics
+import AirPollution.Transportation as Transportation
 
 
 class Driver:
