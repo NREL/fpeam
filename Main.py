@@ -1,8 +1,7 @@
 import os
 import sys
 
-from src.AirPollution import utils
-from controller.Controller import Controller
+from AirPollution import utils
 from model.Database import Database
 from model.Model import Model
 from src.AirPollution.Driver import Driver
