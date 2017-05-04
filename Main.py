@@ -3,7 +3,6 @@ import sys
 
 from AirPollution import utils
 from model.Database import Database
-from model.Model import Model
 from src.AirPollution.Driver import Driver
 from src.AirPollution.FigurePlottingBT16 import FigurePlottingBT16
 from development.LoadData import LoadData
