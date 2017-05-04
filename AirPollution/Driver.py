@@ -29,7 +29,6 @@ from AirPollution.utils import config, logger
 import AirPollution.MOVESModule as MOVESModule
 
 import os
-import subprocess
 import Logistics as Logistics
 import Transportation
 
