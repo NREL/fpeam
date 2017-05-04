@@ -12,7 +12,7 @@ import pymysql
 warnings.filterwarnings("ignore", "Unknown table.*")
 # warnings.filterwarnings("ignore", "")
 
-from src.AirPollution.utils import config, logger
+from AirPollution.utils import config, logger
 
 
 class Database:
