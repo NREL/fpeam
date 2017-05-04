@@ -37,12 +37,12 @@ except (configobj.ConfigObjError, IOError), e:
     print('Config error: %s' % (e, ))
     # if configobj fails to load the main config file, try a variation
     try:
-        cfile = os.path.abspath(os.path.join('..', 'config.ini'))
-        dfile = os.path.abspath(os.path.join('..', 'database.ini'))
-        sfile = os.path.abspath(os.path.join('..', 'scenario.ini'))
-        if os.path.exists(os.path.join('..', 'local.ini')) is True:
-            lfile = os.path.abspath(os.path.join('..', 'local.ini'))
-        cspec_file = os.path.abspath(os.path.join('..', 'configspec.ini'))
+        cfile = os.path.abspath(os.path.join('.', 'config.ini'))
+        dfile = os.path.abspath(os.path.join('.', 'database.ini'))
+        sfile = os.path.abspath(os.path.join('.', 'scenario.ini'))
+        if os.path.exists(os.path.join('.', 'local.ini')) is True:
+            lfile = os.path.abspath(os.path.join('.', 'local.ini'))
+        cspec_file = os.path.abspath(os.path.join('.', 'configspec.ini'))
 
         config = configobj.ConfigObj(cfile, configspec=cspec_file, file_error=True)
     except Exception, e:
