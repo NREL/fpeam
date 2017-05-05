@@ -149,10 +149,7 @@ if __name__ == "__main__":
                  'src_pass': config.get('db_pass'),
                  'src_table': config.get('te_table_name'),
                  'fpath': os.path.join(config.get('project_path'), config.get('title'), '%s.sql' % (config.get('te_table_name'), )),
-                 'dst
-                 
-                 
-                 _host': config.get('te_db_host'),
+                 'dst_host': config.get('te_db_host'),
                  'dst_db': config.get('te_db_name'),
                  'dst_user': config.get('te_db_user'),
                  'dst_pass': config.get('te_db_pass'),
