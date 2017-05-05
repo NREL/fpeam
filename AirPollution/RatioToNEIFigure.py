@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import scoreatpercentile
 # import re
 import os
-from src.AirPollution.utils import config, logger
 
 
 # @TODO: refactor to match PEP8 standards
