@@ -6,7 +6,7 @@ from model.Database import Database
 from AirPollution.Driver import Driver
 from AirPollution.FigurePlottingBT16 import FigurePlottingBT16
 from LoadData import LoadData
-import src.AirPollution.CleanTables as CleanTables
+import AirPollution.CleanTables as CleanTables
 
 
 if __name__ == "__main__": 
