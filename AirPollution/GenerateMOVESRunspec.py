@@ -18,7 +18,7 @@ Output:
 """
 from lxml import etree
 from lxml.builder import E
-from src.AirPollution import utils
+from AirPollution import utils
 
 class GenerateMOVESRunSpec:
     """
