@@ -1,5 +1,5 @@
 from model.Database import Database
-from src.AirPollution.utils import cdate as CDATE
+from AirPollution.utils import cdate as CDATE
 from utils import logger, config
 
 # make backup table
