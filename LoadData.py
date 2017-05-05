@@ -9,7 +9,7 @@ Imports production data into database
 # import pymysql
 import os
 import csv
-from src.AirPollution.utils import config, logger
+from AirPollution.utils import config, logger
 from model.Database import Database
 
 INCLUDE_OAT_BARLEY_STRAW = config.get('include_oat_barley_straw')
