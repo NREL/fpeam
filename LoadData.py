@@ -40,9 +40,9 @@ class LoadData:
         self.constants_schema = config.get('constants_schema')
 
         # file paths for input data
-        self.filepath_equip = './development/input_data/equip_budgets/'
-        self.filepath_prod = './development/input_data/current_ag/'
-        self.filepath_prod_fr = './development/input_data/forestry_prod_data/'
+        self.filepath_equip = './input_data/equip_budgets/'
+        self.filepath_prod = './input_data/current_ag/'
+        self.filepath_prod_fr = './input_data/forestry_prod_data/'
 
         # file names for equipment budgets
         self.equipfiles = {'cg': 'bdgtconv_20151215.csv',
