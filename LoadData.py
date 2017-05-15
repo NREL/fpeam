@@ -894,7 +894,7 @@ class LoadData:
 
                         # specify path for raw data file
                         year2 = self.year_sub[year]
-                        filename = "./development/input_data/logistics_transport_data/transport_{crop_type}_{case}_{system}_{year}.csv".format(crop_type=crop_type, case=case, system=system, year=year2, )
+                        filename = "./input_data/logistics_transport_data/transport_{crop_type}_{case}_{system}_{year}.csv".format(crop_type=crop_type, case=case, system=system, year=year2, )
 
                         # load raw data file
                         query_load_rawdata = """
