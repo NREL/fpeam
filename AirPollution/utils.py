@@ -230,7 +230,7 @@ def get_fips(scenario_year, state_level_moves, db, crop):
                                          FROM {production_schema}.prod
                                          WHERE prod > 0
                                          GROUP BY fips, state) sum
-                              ON summed_max.max_sum = sum.summed_prod;
+                              ON summed_max.max_sum = sum.summed_prod + 0;
 
                               ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_MOVESScenarioID (MOVESScenarioID);
                               ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_state (state);
