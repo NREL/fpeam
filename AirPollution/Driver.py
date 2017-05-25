@@ -29,6 +29,7 @@ from AirPollution.utils import config, logger
 import AirPollution.MOVESModule as MOVESModule
 
 import os
+import subprocess
 import AirPollution.Logistics as Logistics
 import AirPollution.Transportation as Transportation
 
@@ -797,11 +798,13 @@ class Driver:
                  't': src_table,
                  'f': fpath}
 
-        export_command = '{b} -h {h} -u {u} -p{p} --no-create-info {s} {t} > {f}'.format(**kvals)
-        logger.debug(export_command)
+        export_command_1 = '{b}'.format(**kvals)
+        export_command_2 = '-h {h} -u {u} -p {p} --no-create-info {s} {t} > {f}'.format(**kvals)
+        logger.debug(export_command_1)
+        logger.debug(export_command_2)
 
         try:
-            os.system(export_command)
+            subprocess.call([export_command_1, export_command_2])
         except Exception, e:
             logger.error('Total emissions export failed: %s' % (e,))
             return False
