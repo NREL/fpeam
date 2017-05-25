@@ -813,11 +813,13 @@ class Driver:
         kvals['h'] = dst_host
         kvals['s'] = dst_db
 
-        import_command = '{b} -h {h} -u {u} -p{p} -D {s} < {f}'.format(**kvals)
-        logger.debug(import_command)
+        import_command_1 = '{b}'.format(**kvals)
+        import_command_2 = '-h {h} -u {u} -p {p} -D {s} < {f}'.format(**kvals)
+        logger.debug(import_command_1)
+        logger.debug(import_command_2)
 
         try:
-            os.system(import_command)
+            subprocess.call([import_command_1, import_command_2])
         except Exception, e:
             logger.error('Total emissions import failed: %s' % (e,))
             return False
