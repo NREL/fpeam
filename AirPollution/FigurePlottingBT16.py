@@ -171,7 +171,7 @@ class FigurePlottingBT16:
         # drop and then create table with combinations of year, yield, feedstock, tillage and fips for scenario
         sql = """DROP TABLE IF EXISTS {scenario_name}.scenario_combo;""".format(**kvals)
         self.db.execute_sql(sql)
-
+        logger.info('Creating scenario_combo table')
         sql = """CREATE TABLE {scenario_name}.scenario_combo AS
                  SELECT ca.fips
                       , b.source_category
@@ -189,6 +189,7 @@ class FigurePlottingBT16:
         self.db.execute_sql(sql)
 
         for col in ('fips', 'source_category', 'yield', 'year', 'tillage', 'feedstock'):
+            logger.info('Adding index to scenario_combo for %s ' % col)
             sql = 'ALTER TABLE {scenario_name}.scenario_combo ADD INDEX idx_scenario_combo_{col} ({col});'.format(col=col, **kvals)
             self.db.execute_sql(sql)
 
@@ -201,6 +202,7 @@ class FigurePlottingBT16:
         self.db.execute_sql(sql)
 
         # sql = """CREATE VIEW {scenario_name}.te_fulljoin_naa AS
+        logger.info('Initializing total_emissions_join_prod_sum_emissions_nei_trans')
         sql = """CREATE TABLE           {scenario_name}.{new_table} AS
                  SELECT sc.fips
                       , sc.year
@@ -295,11 +297,13 @@ class FigurePlottingBT16:
                 SET a.used_qnty = a.used_qnty * a.prod / b.total_prod
                 WHERE a.source_category LIKE '%transport%';
         """.format(**kvals)
+        logger.info('Updating total_emissions_join_prod_sum_emissions_nei_trans')
         self.db.execute_sql(sql=sql)
 
         # update total emissions for transport to allocate using actual production values rather than reduction factor (1/3)
         for pollutant in self.pol_list:
             kvals['pollutant'] = pollutant
+            logger.info('Updating %s total_emissions_join_prod_sum_emissions_nei_trans' % pollutant)
             sql = """UPDATE {scenario_name}.{new_table} a
                      LEFT JOIN (SELECT fips, feedstock, year, yield, source_category, sum({pollutant}) AS sum_{pollutant}, sum(prod) AS total_prod
                                 FROM {scenario_name}.{new_table}
@@ -316,8 +320,9 @@ class FigurePlottingBT16:
 
             self.db.execute_sql(sql=sql)
 
-        logger.info('Adding indices to table')
+
         for col in ('fips', 'year', 'yield', 'tillage', 'source_category', 'feedstock', ):
+            logger.info('Adding index for %s to total_emissions_join_prod_sum_emissions_nei_trans' % col)
             sql = 'CREATE INDEX idx_{col} ON {scenario_name}.{new_table} ({col});'.format(col=col, **kvals)
             self.db.execute_sql(sql=sql)
 
@@ -410,6 +415,7 @@ class FigurePlottingBT16:
             self.db.execute_sql(sql=sql)
 
         for col in ('fips', 'source_category', 'yield', 'year', 'tillage', 'feedstock'):
+            logger.info('Creating index in total_emissions_join_prod_sum_emissions for %s' % col)
             sql = "CREATE INDEX idx_{new_table}_{col} ON {scenario_name}.{new_table} ({col});".format(col=col, **kvals)
             self.db.execute_sql(sql)
 
