@@ -1,5 +1,4 @@
 import os
-import sys
 
 from AirPollution import utils
 from model.Database import Database
