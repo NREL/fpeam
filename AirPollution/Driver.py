@@ -812,6 +812,8 @@ class Driver:
         kvals['b'] = mysql_binary
         kvals['h'] = dst_host
         kvals['s'] = dst_db
+        kvals['u'] = dst_user
+        kvals['p'] = dst_pass
 
         import_command_1 = '{b}'.format(**kvals)
         import_command_2 = '-h {h} -u {u} -p {p} -D {s} < {f}'.format(**kvals)
