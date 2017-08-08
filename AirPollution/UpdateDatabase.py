@@ -33,8 +33,12 @@ class UpdateDatabase(SaveDataHelper.SaveDataHelper):
                    FROM {moves_database}.avgspeeddistribution table1
                    LEFT JOIN {moves_database}.hourday table2
                    ON table1.hourDayID = table2.hourDayID
-                   WHERE sourceTypeID = '61')
-                   ;""".format(**self.kvals)
+                   WHERE sourceTypeID = '61');
+                   alter table {constants_schema}.averageSpeed add vmt_fraction float;
+                   update {constants_schema}.averageSpeed as a
+                   join {constants_schema}.vmt_fraction as b
+                   on a.roadTypeID = b.roadTypeID
+                   set a.vmt_fraction = b.vmt_fraction;""".format(**self.kvals)
 
         self.db.create(query)
 
