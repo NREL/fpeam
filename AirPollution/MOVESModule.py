@@ -248,8 +248,6 @@ class MOVESModule:
             if scen_id_output[0][0][0] == "{fips}_{crop}_{year}_{month}_{day}".format(fips=fips, crop=self.crop, day=self.moves_timespan['d'][0], month=self.moves_timespan['mo'][0], year=self.yr):  # scenario ID for MOVES runs
                 moves_output_exists = True
 
-        moves_output_exists = False
-
         # instantiate MOVESBatch if MOVES output does not already exist
         if moves_output_exists is False:
             batch_file = MOVESBatch.MOVESBatch(crop=self.crop, model_run_title=self.model_run_title, fips=fips, yr=self.yr, path_moves=self.path_moves,
