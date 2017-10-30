@@ -37,12 +37,12 @@ except (configobj.ConfigObjError, IOError), e:
     print('Config error: %s' % (e, ))
     # if configobj fails to load the main config file, try a variation
     try:
-        cfile = os.path.abspath(os.path.join('..', 'config.ini'))
-        dfile = os.path.abspath(os.path.join('..', 'database.ini'))
-        sfile = os.path.abspath(os.path.join('..', 'scenario.ini'))
-        if os.path.exists(os.path.join('..', 'local.ini')) is True:
-            lfile = os.path.abspath(os.path.join('..', 'local.ini'))
-        cspec_file = os.path.abspath(os.path.join('..', 'configspec.ini'))
+        cfile = os.path.abspath(os.path.join('.', 'config.ini'))
+        dfile = os.path.abspath(os.path.join('.', 'database.ini'))
+        sfile = os.path.abspath(os.path.join('.', 'scenario.ini'))
+        if os.path.exists(os.path.join('.', 'local.ini')) is True:
+            lfile = os.path.abspath(os.path.join('.', 'local.ini'))
+        cspec_file = os.path.abspath(os.path.join('.', 'configspec.ini'))
 
         config = configobj.ConfigObj(cfile, configspec=cspec_file, file_error=True)
     except Exception, e:
@@ -230,7 +230,7 @@ def get_fips(scenario_year, state_level_moves, db, crop):
                                          FROM {production_schema}.prod
                                          WHERE prod > 0
                                          GROUP BY fips, state) sum
-                              ON summed_max.max_sum = sum.summed_prod;
+                              ON sum.summed_prod <= summed_max.max_sum + 0.1 and sum.summed_prod >= summed_max.max_sum - 0.1;
 
                               ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_MOVESScenarioID (MOVESScenarioID);
                               ALTER TABLE {constants_schema}.moves_statelevel_fips_list_{year} ADD INDEX idx_state (state);

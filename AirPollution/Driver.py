@@ -5,33 +5,33 @@ All stored in a Container.
 Temporary Global Variables: run_code, fips, state, episode_year.
 """
 
-import Container
-import Batch
-import QueryRecorder
+import AirPollution.Container as Container
+import AirPollution.Batch as Batch
+import AirPollution.QueryRecorder as QueryRecorder
 
-import Options as Opt
-import Allocate as Alo
-import Population as Pop
-import UpdateDatabase
-import FugitiveDust
-import Chemical
-import CombustionEmissions
-import Fertilizer
-import SinglePassAllocation
-import NEIComparison
-import EmissionsPerGalFigure
-from EmissionsPerAcreFigure import EmissionsPerAcreFigure
-from EmissionPerProdFigure import EmissionPerProdFigure
-import RatioToNEIFigure
-import ContributionFigure
+import AirPollution.Options as Opt
+import AirPollution.Allocate as Alo
+import AirPollution.Population as Pop
+import AirPollution.UpdateDatabase as UpdateDatabase
+import AirPollution.FugitiveDust as FugitiveDust
+import AirPollution.Chemical as Chemical
+import AirPollution.CombustionEmissions as CombustionEmissions
+import AirPollution.Fertilizer as Fertilizer
+import AirPollution.SinglePassAllocation as SinglePassAllocation
+import AirPollution.NEIComparison as NEIComparison
+import AirPollution.EmissionsPerGalFigure as EmissionsPerGalFigure
+from AirPollution.EmissionsPerAcreFigure import EmissionsPerAcreFigure
+from AirPollution.EmissionPerProdFigure import EmissionPerProdFigure
+import AirPollution.RatioToNEIFigure as RatioToNEIFigure
+import AirPollution.ContributionFigure as ContributionFigure
 
-from utils import config, logger
-import MOVESModule
+from AirPollution.utils import config, logger
+import AirPollution.MOVESModule as MOVESModule
 
 import os
 import subprocess
-import Logistics as Logistics
-import Transportation
+import AirPollution.Logistics as Logistics
+import AirPollution.Transportation as Transportation
 
 
 class Driver:
@@ -798,11 +798,13 @@ class Driver:
                  't': src_table,
                  'f': fpath}
 
-        export_command = '{b} -h {h} -u {u} -p{p} --no-create-info {s} {t} > {f}'.format(**kvals)
-        logger.debug(export_command)
+        export_command_1 = '{b}'.format(**kvals)
+        export_command_2 = '-h {h} -u {u} -p {p} --no-create-info {s} {t} > {f}'.format(**kvals)
+        logger.debug(export_command_1)
+        logger.debug(export_command_2)
 
         try:
-            os.system(export_command)
+            subprocess.call([export_command_1, export_command_2])
         except Exception, e:
             logger.error('Total emissions export failed: %s' % (e,))
             return False
@@ -810,12 +812,16 @@ class Driver:
         kvals['b'] = mysql_binary
         kvals['h'] = dst_host
         kvals['s'] = dst_db
+        kvals['u'] = dst_user
+        kvals['p'] = dst_pass
 
-        import_command = '{b} -h {h} -u {u} -p{p} -D {s} < {f}'.format(**kvals)
-        logger.debug(import_command)
+        import_command_1 = '{b}'.format(**kvals)
+        import_command_2 = '-h {h} -u {u} -p {p} -D {s} < {f}'.format(**kvals)
+        logger.debug(import_command_1)
+        logger.debug(import_command_2)
 
         try:
-            os.system(import_command)
+            subprocess.call([import_command_1, import_command_2])
         except Exception, e:
             logger.error('Total emissions import failed: %s' % (e,))
             return False

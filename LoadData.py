@@ -9,7 +9,7 @@ Imports production data into database
 # import pymysql
 import os
 import csv
-from src.AirPollution.utils import config, logger
+from AirPollution.utils import config, logger
 from model.Database import Database
 
 INCLUDE_OAT_BARLEY_STRAW = config.get('include_oat_barley_straw')
@@ -40,9 +40,9 @@ class LoadData:
         self.constants_schema = config.get('constants_schema')
 
         # file paths for input data
-        self.filepath_equip = './development/input_data/equip_budgets/'
-        self.filepath_prod = './development/input_data/current_ag/'
-        self.filepath_prod_fr = './development/input_data/forestry_prod_data/'
+        self.filepath_equip = './input_data/equip_budgets/'
+        self.filepath_prod = './input_data/current_ag/'
+        self.filepath_prod_fr = './input_data/forestry_prod_data/'
 
         # file names for equipment budgets
         self.equipfiles = {'cg': 'bdgtconv_20151215.csv',
@@ -116,6 +116,7 @@ class LoadData:
         # list of columns in transportation table
         self.column_dict = {'conv': 'feed_id char(55), sply_fips char(5), used_qnty float(15,5), avg_total_cost float(15,5), avg_dist int',
                             'adv': 'feed_id char(55), sply_fips char(5), used_qnty float(15,5), avg_flddep_dist float(15,5), avg_depref_dist float(15,5), avg_total_cost float(15,5), avg_dist int'}
+        self.vmt_fraction = config.get('vmt_fraction')  # fraction of VMT by road type
 
         # variables for forestry equipment
         self.forestry_feed_list = ['fr', 'fw', ]  # list of forestry types (forest residues (fr) and whole trees (fw))
@@ -344,6 +345,29 @@ class LoadData:
                     for col in ('fips', 'convtill_yield', 'convtill_planted_ac', 'convtill_harv_ac', 'convtill_prod', 'reducedtill_yield', 'reducedtill_planted_ac', 'reducedtill_harv_ac', 'reducedtill_prod', 'notill_yield', 'notill_planted_ac', 'notill_harv_ac', 'notill_prod', 'total_prod', 'total_harv_ac'):
                         sql = """CREATE INDEX idx_{crop}_data_{case}_{year}_{col} ON {prod}.{crop}_data_{case}_{year} ({col});""".format(col=col, **kvals)
                         self.db.execute_sql(sql)
+
+    def load_vmt_fraction_data(self):
+        # load scenario-specific vmt_fraction data from the config file into the constants schema
+
+        kvals = {'const': self.constants_schema,
+                 'vmt_fraction_2': self.vmt_fraction[str(2)],
+                 'vmt_fraction_3': self.vmt_fraction[str(3)],
+                 'vmt_fraction_4': self.vmt_fraction[str(4)],
+                 'vmt_fraction_5': self.vmt_fraction[str(5)]}
+
+        vmt_drop = "drop table if exists {const}.vmt_fraction;".format(**kvals)
+        self.db.execute_sql(vmt_drop)
+
+        create_vmt_fraction_table = """
+            create table {const}.vmt_fraction
+                (roadTypeID int, vmt_fraction float);""".format(**kvals)
+        self.db.execute_sql(create_vmt_fraction_table)
+
+        update_vmt_fraction_table = """
+            insert into {const}.vmt_fraction    
+            (roadTypeID, vmt_fraction) 
+            VALUES(2, {vmt_fraction_2}), (3, {vmt_fraction_3}), (4, {vmt_fraction_4}), (5, {vmt_fraction_5});""".format(**kvals)
+        self.db.execute_sql(update_vmt_fraction_table)
 
     def load_scenario_data(self):
         # once all data are loaded, select correct data for scenario
@@ -894,7 +918,7 @@ class LoadData:
 
                         # specify path for raw data file
                         year2 = self.year_sub[year]
-                        filename = "./development/input_data/logistics_transport_data/transport_{crop_type}_{case}_{system}_{year}.csv".format(crop_type=crop_type, case=case, system=system, year=year2, )
+                        filename = "./input_data/logistics_transport_data/transport_{crop_type}_{case}_{system}_{year}.csv".format(crop_type=crop_type, case=case, system=system, year=year2, )
 
                         # load raw data file
                         query_load_rawdata = """
@@ -1352,6 +1376,9 @@ class LoadData:
 
         # load chemical data
         self.load_chem_data()
+
+        # load vmt_fraction data
+        self.load_vmt_fraction_data()
 
         # load data for specific scenario into {feed}_data
         self.load_scenario_data()

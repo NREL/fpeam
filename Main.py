@@ -1,14 +1,11 @@
 import os
-import sys
 
-from src.AirPollution import utils
-from controller.Controller import Controller
+from AirPollution import utils
 from model.Database import Database
-from model.Model import Model
-from src.AirPollution.Driver import Driver
-from src.AirPollution.FigurePlottingBT16 import FigurePlottingBT16
-from development.LoadData import LoadData
-import src.AirPollution.CleanTables as CleanTables
+from AirPollution.Driver import Driver
+from AirPollution.FigurePlottingBT16 import FigurePlottingBT16
+from LoadData import LoadData
+import AirPollution.CleanTables as CleanTables
 
 
 if __name__ == "__main__": 
@@ -151,10 +148,7 @@ if __name__ == "__main__":
                  'src_pass': config.get('db_pass'),
                  'src_table': config.get('te_table_name'),
                  'fpath': os.path.join(config.get('project_path'), config.get('title'), '%s.sql' % (config.get('te_table_name'), )),
-                 'dst
-                 
-                 
-                 _host': config.get('te_db_host'),
+                 'dst_host': config.get('te_db_host'),
                  'dst_db': config.get('te_db_name'),
                  'dst_user': config.get('te_db_user'),
                  'dst_pass': config.get('te_db_pass'),

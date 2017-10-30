@@ -167,7 +167,7 @@ class Transportation(SaveDataHelper.SaveDataHelper):
                                      , SUM(a.ratePerDistance * b.avgSpeedFraction) AS avg_rate_per_distance
                                      , c.used_qnty / {capacity} AS trips
                                      , ({vmt}) AS vmt
-                                     , SUM(a.ratePerDistance * b.avgSpeedFraction) * c.used_qnty / {capacity} * ({vmt}) / {g_per_mt} AS run_emissions
+                                     , SUM(a.ratePerDistance * b.avgSpeedFraction * ({vmt}) * b.vmt_fraction) * c.used_qnty / {capacity} / {g_per_mt} AS run_emissions
                                      , LEFT(c.sply_fips, 2)
                            FROM      {moves_output_db}.rateperdistance                          a
                            LEFT JOIN {constants_schema}.averagespeed                            b

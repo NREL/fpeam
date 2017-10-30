@@ -1,5 +1,5 @@
 import SaveDataHelper
-from src.AirPollution.utils import config
+from AirPollution.utils import config
 
 
 class Fertilizer(SaveDataHelper.SaveDataHelper):
