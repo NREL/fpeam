@@ -65,3 +65,7 @@ docs/_build/
 target/
 
 .idea/
+
+# CSV files for prototyping
+fugdust.csv
+state_road_data.csv
