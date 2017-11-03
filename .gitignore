@@ -68,4 +68,5 @@ target/
 
 # CSV files for prototyping
 fugdust_input.csv
+fugdust_output.csv
 state_road_data.csv
