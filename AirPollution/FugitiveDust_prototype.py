@@ -142,33 +142,14 @@ dat = prod_dat.merge(budg_dat_fugdust, on = ['crop', 'till', 'polyfrr'],
                      how = 'outer').merge(silt_table, on = 'st_fips',
                                           how = 'outer')
 
-# factors for calculating PM10 emissions from on-farm travel
-onfarm_truck_capacity = 15.0  # dt / load
-weight = 32.01  # short tons - should this be in lbs? cf conversion factor
-k25 = 0.15 # unitless
-k10 = 1.5 # unitless
-a25 = 0.9 # unitless
-a10 = 0.9 # unitless
-b25 = 0.45 # unitless
-b10 = 0.45 # unitless
-D = 1.0 # vmt - default value for on-farm distance traveled
-
 # calculate pm10 by multiplying the PM10 emissions factors (which include
 # emissions from harvest, non-harvest and lime application activities) by
 # harvested acres and adding PM10 from on-farm travel (also allocated between
 # opertypes by horsepower-hours), then converting the sum to metric tons
-dat['pm10'] = (dat.harv * dat.pm10_lbac_alloc +
-               dat.hp_hrs_alloc * (dat.production / onfarm_truck_capacity *
-                                   k10*D*(dat.uprsm_pct_silt/12.0)**a10 *
-                                   (weight/3.0)**b10)) * \
-              convert_lb_to_mt
+dat['pm10'] = (dat.harv * dat.pm10_lbac_alloc) * convert_lb_to_mt
 
 # calculate PM2.5 by multiplying the PM2.5 emissions (including emissions
 # from harvest, non-harvest and lime application activities) by harvested
 # acres and adding the PM2.5 from on-farm travel (also allocated between
 # opertypes by horsepower-hours), then converting the sum to metric tons
-dat['pm25'] = (dat.harv * dat.pm25_lbac_alloc +
-               dat.hp_hrs_alloc * (dat.production / onfarm_truck_capacity *
-                                   k25*D*(dat.uprsm_pct_silt/12.0)**a25 *
-                                   (weight/3.0)**b25)) * \
-              convert_lb_to_mt
+dat['pm25'] = (dat.harv * dat.pm25_lbac_alloc) * convert_lb_to_mt
