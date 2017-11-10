@@ -219,28 +219,27 @@ class Logistics:
         metric ton of feedstock)
         b = constant (1000 kg per metric ton)
 
-        :return: data frame with fully disaggregated electricit use and VOC
-        values, plus source category column
+        :return:
         """
-        transport_merged = self.transport.merge(self.electricity_per_dt,
-                                                on = ['feed_id',
-                                                      'logistics_type'],
-                                                how = 'left').merge(
+        self.transport_merged = self.transport.merge(self.electricity_per_dt,
+                                                     on = ['feed_id',
+                                                           'logistics_type'],
+                                                     how = 'left').merge(
             self.voc_wood_ef, on = ['feed_id', 'logistics_type'], how = 'left')
 
         # add column containing VOC emissions from wood drying
         # 0.9071847: metric ton per short ton
         # 1000.0: kg per metric ton
-        transport_merged['voc'] = transport_merged['used_qnty'] * (
-            transport_merged['grain_dryer_ef'] + transport_merged[
+        self.transport_merged['voc'] = self.transport_merged['used_qnty'] * (
+            self.transport_merged['grain_dryer_ef'] + self.transport_merged[
             'hammer_mill_ef']) * (0.9071847/1000.0)
 
         # add column containing electricity use for biomass drying
-        transport_merged['electricity'] = transport_merged['used_qnty'] * \
-                                          transport_merged['kWh_per_dt']
+        self.transport_merged['electricity'] = self.transport_merged[
+            'used_qnty'] * self.transport_merged['kWh_per_dt']
 
         # add column defining source category and logistics type
-        transport_merged['source_category'] = 'Pre-processing, ' \
-                                              + transport_merged.logistics_type
+        self.transport_merged['source_category'] = 'Pre-processing, '\
+                                                   + self.transport_merged[
+                                                       'logistics_type']
 
-        return transport_merged
