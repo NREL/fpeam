@@ -184,7 +184,7 @@ class Logistics:
             transport_herb_bc_conv).append(transport_woody_bc_conv)
 
 
-    def calc_logistics(self):
+    def get_logistics_emissions(self):
         """
         Calculates electricity use for biomass drying and VOC emissions from
         wood drying
@@ -219,7 +219,7 @@ class Logistics:
         VOC_ef_d = emission factor for VOC from grain dryer (kg per dry
         metric ton of feedstock)
         b = constant (1000 kg per metric ton)
-            
+
         :return: output_df containing electricity consumption for biomass
         drying by feedstock and FIPS, and VOC emissions from wood drying (
         residues and whole trees only) also by feedstock and FIPS
