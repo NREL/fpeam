@@ -3,12 +3,10 @@
 Created on Mon Feb 29 1:02:31 2016
 Prototyped on Wednesday November 8 2017
 
-Populates tables for logistics emissions and electricity consumption
-associated with feedstock processing
-
-Inputs include:
-    list of feedstock types (feedstock_list)
-    container (cont)
+- Computes the emissions and electricity use associated with feedstock
+processing
+- Only emissions are VOC from wood drying (forestry only)
+- Electricity is tabulated to compute total kWh by feedstock type and fips
 
 @author: aeberle, rhanes
 """
@@ -19,12 +17,6 @@ import pandas as pd
 import os
 
 class Logistics:
-    """
-    - Computes the emissions and electricity use associated with feedstock
-    processing
-    - Only emissions are VOC from wood drying (forestry only)
-    - Electricity is tabulated to compute total kWh by feedstock type and fips
-    """
 
     def __init__(self):
         """
@@ -63,14 +55,22 @@ class Logistics:
                                                              'Residues',
                                                              'Whole tree',
                                                              'Whole tree'],
-                                                'logistics_type': ['conv', 'adv',
-                                                                   'conv', 'adv',
-                                                                   'conv', 'adv',
-                                                                   'conv', 'adv',
-                                                                   'conv', 'adv',
-                                                                   'conv', 'adv',
-                                                                   'conv', 'adv',
-                                                                   'conv', 'adv',],
+                                                'logistics_type': ['conv',
+                                                                   'adv',
+                                                                   'conv',
+                                                                   'adv',
+                                                                   'conv',
+                                                                   'adv',
+                                                                   'conv',
+                                                                   'adv',
+                                                                   'conv',
+                                                                   'adv',
+                                                                   'conv',
+                                                                   'adv',
+                                                                   'conv',
+                                                                   'adv',
+                                                                   'conv',
+                                                                   'adv',],
                                                  'kWh_per_dt': [36.0, 188.5,
                                                                 36.0, 188.5,
                                                                 36.0, 188.5,
@@ -183,6 +183,7 @@ class Logistics:
             transport_woody_hh_adv).append(
             transport_herb_bc_conv).append(transport_woody_bc_conv)
 
+
     def calc_logistics(self):
         """
         Calculates electricity use for biomass drying and VOC emissions from
@@ -218,28 +219,30 @@ class Logistics:
         VOC_ef_d = emission factor for VOC from grain dryer (kg per dry
         metric ton of feedstock)
         b = constant (1000 kg per metric ton)
-
-        :return:
+            
+        :return: output_df containing electricity consumption for biomass
+        drying by feedstock and FIPS, and VOC emissions from wood drying (
+        residues and whole trees only) also by feedstock and FIPS
         """
-        self.transport_merged = self.transport.merge(self.electricity_per_dt,
-                                                     on = ['feed_id',
-                                                           'logistics_type'],
-                                                     how = 'left').merge(
+        output_df = self.transport.merge(self.electricity_per_dt,
+                                         on = ['feed_id',
+                                               'logistics_type'],
+                                         how = 'left').merge(
             self.voc_wood_ef, on = ['feed_id', 'logistics_type'], how = 'left')
 
         # add column containing VOC emissions from wood drying
         # 0.9071847: metric ton per short ton
         # 1000.0: kg per metric ton
-        self.transport_merged['voc'] = self.transport_merged['used_qnty'] * (
-            self.transport_merged['grain_dryer_ef'] + self.transport_merged[
-            'hammer_mill_ef']) * (0.9071847/1000.0)
+        output_df['voc'] = output_df['used_qnty'] * \
+                           (output_df['grain_dryer_ef'] +
+                            output_df['hammer_mill_ef']) * (0.9071847/1000.0)
 
         # add column containing electricity use for biomass drying
-        self.transport_merged['electricity'] = self.transport_merged[
-            'used_qnty'] * self.transport_merged['kWh_per_dt']
+        output_df['electricity'] = output_df['used_qnty'] * \
+                                   output_df['kWh_per_dt']
 
         # add column defining source category and logistics type
-        self.transport_merged['source_category'] = 'Pre-processing, '\
-                                                   + self.transport_merged[
-                                                       'logistics_type']
+        output_df['source_category'] = 'Pre-processing, '\
+                                       + output_df['logistics_type']
 
+        return output_df
