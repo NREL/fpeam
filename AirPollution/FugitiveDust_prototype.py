@@ -168,7 +168,7 @@ class FugitiveDust:
         self.budg_dat_fugdust['pm25_lbac_alloc'] = \
             0.20 * self.budg_dat_fugdust.pm10_lbac_alloc
 
-    def set_fugdust_emissions(self):
+    def get_fugdust_emissions(self):
         """
 
 
