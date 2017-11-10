@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+Created November 2 2017
+
+Code snippet for calculating fugitive dust (PM10 and PM2.5) from harvest,
+non-harvest and lime application.  Dust from on-farm transportation of
+feedstock is not calculated.
+
+"""
+
 import pandas as pd
 
 # remove when csv no longer needed
