@@ -48,10 +48,6 @@ class FugitiveDust:
         self.fugdust_ef = fugdust_ef.append(fugdust_ef_stover).append(
             fugdust_ef_straw).append(fugdust_ef_stubble)
 
-        # read in silt data table (stored in fpeam.state_road_data)
-        # @todo replace with default or user-defined data pulled from database
-        self.silt_table = pd.read_csv(os.getcwd() + '\\state_road_data.csv')
-
         # read in complete production data set
         # @todo replace with default or user-defined data pulled from database
         prod_dat = pd.read_csv(os.getcwd() + '\\input_data\\' +
@@ -185,10 +181,8 @@ class FugitiveDust:
         # (pounds per acre)
         output_df = self.prod_dat.merge(self.budg_dat_fugdust,
                                        on = ['crop', 'till', 'polyfrr'],
-                                       how = 'outer').merge(self.silt_table,
-                                                            on = 'st_fips',
-                                                            how = 'outer')
-        
+                                       how = 'outer')
+
         # calculate pm10 by multiplying the PM10 emissions factors (which
         # include emissions from harvest, non-harvest and lime application
         # activities) by harvested acres and adding PM10 from on-farm travel
