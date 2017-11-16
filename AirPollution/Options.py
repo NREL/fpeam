@@ -264,6 +264,7 @@ class NROptionFile:
         self.temp_min = config.as_float('nonroad_temp_min')
         self.temp_max = config.as_float('nonroad_temp_max')
         self.temp_mean = config.as_float('nonroad_temp_min')
+        # @todo should temp_mean pull in nonroad_temp_mean?
 
         # create .opt file
         self._nr_options(fips)
