@@ -95,6 +95,7 @@ class ScenarioOptions:
 
     def _get_prod_data(self, query):
         """
+        NOT USED
         Execute sql statement and return results
 
         :param query: query to extract data
@@ -104,6 +105,7 @@ class ScenarioOptions:
 
     def _get_query(self, run_code, regional_crop_budget):
         """
+        NOT USED
         query database for appropriate production data based on run_code
 
         :param run_code: STRING current run code to know what data to query from the db
@@ -261,7 +263,7 @@ class NROptionFile:
         # temperatures
         self.temp_min = config.as_float('nonroad_temp_min')
         self.temp_max = config.as_float('nonroad_temp_max')
-        self.temp_mean = config.as_float('nonroad_temp_min')
+        self.temp_mean = config.as_float('nonroad_temp_mean')
 
         # create .opt file
         self._nr_options(fips)
