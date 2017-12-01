@@ -75,3 +75,5 @@ fugdust_output.csv
 state_road_data.csv
 logistics_output.csv
 ~$datadictionary.xlsx
+*.xlsx
+*$*.xlsx
