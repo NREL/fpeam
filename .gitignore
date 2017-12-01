@@ -77,3 +77,7 @@ logistics_output.csv
 ~$datadictionary.xlsx
 *.xlsx
 *$*.xlsx
+
+# irrigation .py files
+IrrigationAcres.py
+LoadIrrigationData.py
