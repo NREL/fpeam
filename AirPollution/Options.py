@@ -326,7 +326,7 @@ class NROptionFile:
                  'temp_min': self.temp_min,
                  'temp_max': self.temp_max,
                  'temp_mean': self.temp_mean,
-                 'ALLOC_XREF': os.path.join(config.get('nonroad_path'), 'data', 'allocate', 'allocate.xrf'),
+                 'ALLOC_XREF': FPEAM.nonroad_options['ALLOC_XREF'],
                  'ACTIVITY': os.path.join(config.get('nonroad_path'), 'data', 'activity', 'activity.dat'),
                  'EXH_TECHNOLOGY': os.path.join(config.get('nonroad_path'), 'data', 'tech', 'tech-exh.dat'),
                  'EVP_TECHNOLOGY': os.path.join(config.get('nonroad_path'), 'data', 'tech', 'tech-evp.dat'),

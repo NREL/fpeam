@@ -29,7 +29,7 @@ class Population(object):
         self.run_code = run_code
 
         # get dictionary for NONROAD equipment
-        self.nonroad_equip_dict = config.get('nonroad_equip_dict')
+        self.nonroad_equip_dict = config.get('ej')
 
         # get dictionary for crop budget
         self.crop_budget_dict = config.get('crop_budget_dict')
@@ -690,7 +690,7 @@ class CornGrainIrrigationPop(Population):
         kvals = {'fips': fips,
                  'subregion_code': '',
                  'year': self.episode_year,
-                 'scc_code': 2265005060,
+                     'scc_code': 2265005060,
                  'equip_desc': '4-Str Irrigation Sets',
                  'min_hp': hp_min,
                  'max_hp': hp_max,
