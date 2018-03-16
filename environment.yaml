@@ -1,55 +1,7 @@
 name: fpeam
 dependencies:
-- anaconda-client=1.2.1=py27_0
-- appnope=0.1.0=py27_0
-- clyent=1.2.0=py27_0
-- configobj=5.0.6=py27_0
-- decorator=4.0.9=py27_0
-- freetype=2.5.2=2
-- ipython=4.1.2=py27_2
-- ipython_genutils=0.1.0=py27_0
-- libpng=1.6.17=0
-- libxml2=2.9.2=0
-- libxslt=1.1.28=2
-- lxml=3.5.0=py27_0
-- matplotlib=1.4.3=np19py27_3
-- numpy=1.9.2=py27_0
-- openssl=1.0.2g=0
-- path.py=8.2=py27_0
-- pexpect=4.0.1=py27_0
-- pickleshare=0.5=py27_0
-- pip=8.1.0=py27_0
-- ptyprocess=0.5=py27_0
-- pymysql=0.6.7=py27_0
-- pyparsing=2.0.3=py27_0
-- pyqt=4.11.3=py27_0
-- python=2.7.11=0
-- python-dateutil=2.4.2=py27_0
-- pyyaml=3.11=py27_1
-- qt=4.8.6=3
-- readline=6.2=2
-- requests=2.9.0=py27_0
-- scipy=0.15.1=np19py27_0
-- setuptools=20.2.2=py27_0
-- simplegeneric=0.8.1=py27_0
-- sip=4.16.5=py27_0
-- six=1.10.0=py27_0
-- sqlite=3.9.2=0
-- tk=8.5.18=0
-- traitlets=4.2.1=py27_0
-- wheel=0.29.0=py27_0
-- yaml=0.1.6=0
-- zlib=1.2.8=0
-- pip:
-  - awscli==1.10.20
-  - boto3==1.3.0
-  - botocore==1.4.11
-  - colorama==0.3.3
-  - docutils==0.12
-  - futures==3.0.5
-  - ipython-genutils==0.1.0
-  - jmespath==0.9.0
-  - pyasn1==0.1.9
-  - rsa==3.3
-  - s3transfer==0.0.1
-
+- pandas
+- configobj
+- psycopg2
+- python=2.7
+- sqlite
