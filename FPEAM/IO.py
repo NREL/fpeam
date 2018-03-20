@@ -1,25 +1,8 @@
-# populate DB from GUI or config file
-# provide interface to the database
+"""Input and output helper utilties."""
 
 import sys
-import os
+
 import pandas as pd
-
-# from sqlalchemy.engine import Engine
-# from sqlalchemy import event
-# from sqlalchemy import create_engine
-# from sqlalchemy.exc import SQLAlchemyError
-
-import Budget.HEADERS as BUDGET_HEADERS
-
-# set default loaders
-
-
-# @event.listens_for(Engine, "connect")
-# def set_sqlite_pragma(dbapi_connection, connection_record):
-#     cursor = dbapi_connection.cursor()
-#     cursor.execute("PRAGMA foreign_keys=ON")
-#     cursor.close()
 
 
 def load_config(*fpath):
@@ -29,13 +12,14 @@ def load_config(*fpath):
     :param fpath: [string] INI file path
     :return: [configObj]
     """
-
     import configobj
     import validate
 
     # set file paths
-    _config_fpaths = ['fpeam.ini', 'database.ini', 'moves.ini', 'nonroad.ini'] + fpath + ['local.ini', ]
-    _cspec_fpath = 'config.spec'
+    _config_fpaths = set(
+            ['../fpeam.ini', '../database.ini', '../moves.ini', '../nonroad.ini'] + list(fpath)
+            + ['../local.ini', ])
+    _cspec_fpath = '../config.spec'
 
     # init config
     _config = configobj.ConfigObj({}, configspec=_cspec_fpath, file_error=True, unrepr=False)
@@ -57,18 +41,18 @@ def load_config(*fpath):
     if not _validated_config:
         for (_section_list, _key, _) in configobj.flatten_errors(_config, _validated_config):
             if _key is not None:
-                _msg = 'The "%s" key in the section "%s" failed validation' % (_key, ', '.join(_section_list))
+                _msg = 'Invalid keys in section {}: {}'.format(_key, ', '.join(_section_list))
             else:
-                _msg = 'The following section was missing: %s ' % ', '.join(_section_list)
+                _msg = 'Missing sections: {} '.format(', '.join(_section_list))
             print(_msg)
-        print 'Check configuration file(s) for errors'
+        print('Check configuration file(s) for errors')
 
         sys.exit('invalid config file(s): {}'.format(_config_fpaths))
     else:
         return _config
 
 
-def load(fpath, columns, **kwargs):
+def load(fpath, columns, memory_map=True, header=0, **kwargs):
     """
     Load data from a text file at <fpath>.
 
@@ -76,18 +60,11 @@ def load(fpath, columns, **kwargs):
 
     :param fpath: [string] file path to budget file or SQLite database file
     :param columns: [dict] {name: type, }
+    :param memory_map: [bool] load directly to memory for improved performance
+    :param header: [int] 0-based row index containing column names
     :return: [DataFrame]
     """
+    _names = kwargs.get('names', columns.keys())
 
-    try:
-        # verify file path
-        assert os.path.exists(fpath)
-    except AssertionError:
-        raise IOError('{} is not a valid file path'.format(fpath))
-
-    try:
-        _names = kwargs['names']
-    except KeyError:
-        _names = columns.keys()
-
-    return pd.read_table(filepath_or_buffer=fpath, names=_names, dtype=columns, usecols=columns.keys())
+    return pd.read_table(filepath_or_buffer=fpath, sep=',', names=_names, dtype=columns,
+                         usecols=columns.keys(),  memory_map=memory_map, header=header)
