@@ -1,5 +1,6 @@
 import pandas as pd
-from FPEAM.IO import load
+from IO import load
+from collections import OrderedDict
 
 
 class Data(pd.DataFrame):
@@ -29,25 +30,28 @@ class Data(pd.DataFrame):
         raise NotImplementedError
 
     def validate(self):
+
         # @TODO: add validation methods
         raise NotImplementedError
 
 
 class Budget(Data):
 
-    COLUMNS = {'id': str,
-               'feedstock': str,
-               'tillage': str,
-               'region_id': str,
-               'rotation_year': str,
-               'operation_unit': str,
-               'activity': str,
-               'equipment_name': str,
-               'equipment_hp': float,
-               'capacity': float,
-               'resource': str,
-               'rate': float,
-               'unit': str}
+    COLUMNS = OrderedDict((('id', str),
+                           ('feedstock', str),
+                           ('tillage', str),
+                           ('region_id', str),
+                           ('rotation_year', str),
+                           ('operation_unit', str),
+                           ('activity', str),
+                           ('equipment_name', str),
+                           ('equipment_hp', float),
+                           ('capacity', float),
+                           ('resource', str),
+                           ('rate', float),
+                           ('unit', str)))
+
+# id, feedstock, tillage, region_id, rotation_year, operation_unit, activity, equipment_name, equipment_hp, capacity, resource, rate, unit
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Budget, self).__init__(df=df, fpath=fpath, columns=columns)
@@ -55,19 +59,10 @@ class Budget(Data):
 
 class Production(Data):
 
-    COLUMNS = {
-               'feedstock': str,
-               'tillage': str,
-               'region_id': str,
-               'rotation_year': str,
-               'operation_unit': str,
-               'activity': str,
-               'equipment_name': str,
-               'equipment_hp': float,
-               'capacity': float,
-               'resource': str,
-               'rate': float,
-               'unit': str}
+    COLUMNS = OrderedDict((('region_id', str),
+                           ('feedstock', str),
+                           ('tillage', str),
+                           ('yield', float)))
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Production, self).__init__(df=df, fpath=fpath, columns=columns)
