@@ -60,6 +60,7 @@ Data source for NH3:
  EPA. 2015. 2011 National Emissions Inventory, version 2 Technical Support Document. Emissions Inventory and Analysis Group.  Research Triangle Park, NC: EPA. Available at: https://www.epa.gov/air-emissions-inventories/2011-national-emissions-inventory-nei-technical-support-document.
 
  TABLE: NO<sub>x</sub> and NH<sub>3</sub> emission factors for application of nitrogenous fertilizers.
+ 
 | N Fertilizer       | Pollutant      | % Fertilizer Volatilized as Pollutant |
 | ------------------ | -------------- | ------------------------------------- |
 | Anhydrous Ammonia  | NO<sub>x</sub> | 0.79                                  |
@@ -78,6 +79,7 @@ Data source for NH3:
 @TODO find and add source for n fertilizer allocation (BTS)
 
 TABLE: Distribution of nitrogenous fertilizers. The national average distribution is used for corn grain and stover, sorghum stubble, and wheat straw. The perennial crop distribution is used for switchgrass, miscanthus and all forest products.
+
 | N Fertilizer       | National Average Distribution | Perennial Crop Distribution |
 |--------------------|-------------------------------|-----------------------------|
 | Anhydrous Ammonia  | 0.3404                        | 0                           |
