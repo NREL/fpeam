@@ -9,21 +9,21 @@ FPEAM is organized into modules that calculate pollutant emissions from a partic
 * MOVES: Off-farm, on-road transportation of biomass to biorefineries.
 * NONROAD: On-farm use of agricultural equipment.  Includes emissions from fuel combustion and equipment operation.
 * Chemical: Emissions from volatilization of nitrogenous fertilizers, herbicides and insecticides.
-* FugitiveDust: Fugitive dust (PM2.5 and PM10) emissions from on-farm transportation.
+* FugitiveDust: Fugitive dust (PM2.5 and PM10) emissions from on-farm activities.
 
-Config files are used for each module. Values in config files with sources
-
-Within each section, GUI user options list the FPEAM parameters and options that can be controlled via the built-in GUI. These are considered basic options necessary for the average user to construct FPEAM scenarios. Advanced user options cannot be controlled via the GUI; they must be changed manually by editing the .ini files for FPEAM and for each module. Advanced user options are not considered to be necessary for the average user to define and run FPEAM scenarios, but may be useful in defining custom scenarios that explore alternative supply chain options.
+Config files are used for each module. Within each config file section, GUI user options list the FPEAM parameters and options that can be controlled via the built-in GUI. These are considered basic options necessary for the average user to construct FPEAM scenarios. Advanced user options cannot be controlled via the GUI; they must be changed manually by editing the .ini files for FPEAM and for each module. Advanced user options are not considered to be necessary for the average user to define and run FPEAM scenarios, but may be useful in defining custom scenarios that explore alternative supply chain options.
 
 ## Input data and formatting
 
 A default for each data set described in this section is provided with the FPEAM code base and can be used to run basic scenarios.  Any or all of these data sets can be altered or replaced by users to run custom scenarios.  Any changes to the format (column names, column data types, etc) of any data set will break FPEAM.
 
+This section describes the basic crop production data on which every FPEAM module runs. Several modules require additional input data, which can also be revised or replaced by users. These additional input data are discussed in the section for each module.
+
 ### Crop equipment and activity budget
 
 Columns and data types
 
-Typical source of budget data (POLYSYS?)
+Typical source of budget data 
 
 Changes to make to the default budget data to model different scenarios
 
@@ -33,14 +33,15 @@ Sample / small subset of budget data demonstrating format
 
 Columns and data types
 
-Typical source of production data
+Typical source of production data (POLYSYS and forSEAM)
 
 Sample / small subset of data demonstrating format
 
-### Fugitive dust emissions factors
+## Output
 
-### Chemical application emissions factors
+### Structure of csv file
 
+### Figures generated within the GUI
 
 # MOVES Module
 
@@ -114,6 +115,7 @@ TABLE: Default moves_timespan dictionary. This timespan represents a typical har
 
 
 ## Output
+
 Table of emission factors
 
 Postprocessing
@@ -137,7 +139,23 @@ The only NONROAD options available through the GUI is the run_nonroad flag that 
 
 TABLE: NONROAD temperature range.
 
+| Temperature |             |
+| ------------|-------------|
+| Minimum     | 50.0 &deg;F |
+| Mean        | 60.0 &deg;F |
+| Maximum     | 68.8 &deg;F |
+
 TABLE: Matching generic equipment types from the budget to specific NONROAD equipment and fuel types.
+
+| Budget equipment names | NONROAD equipment types |
+| ---------------------- | ----------------------- |
+| tractor | Dsl - Agricultural Tractors |
+| combine | Dsl - Combines |
+| chipper | Dsl - Chippers/Stump Grinders (com) |
+| loader | Dsl - Forest Eqp - Feller/Bunch/Skidder |
+| other_forest_eqp | Dsl - Forest Eqp - Feller/Bunch/Skidder |
+| chain_saw | Lawn & Garden Equipment Chain Saws |
+| crawler | Dsl - Crawler Tractors |
 
 ## Module structure and function
 
@@ -150,59 +168,50 @@ Table of total emissions for off-road equipment operation
 
 ## GUI user options
 
+The only GUI option for the chemical module is the run_chemical flag that controls whether the module is run.
+
 ## Advanced user options
 
-## Data and Calculations
+There are no advanced user options for the chemical module within the chemical.ini file, but users may edit the input data files described below.
 
-Data sources for NOX:
- ANL. 2012. Green House Gases, Regulated Emissions, and Energy Use in Transportation (GREET) Model version 1 2012 revision 2. Lemont, IL: Argonne National Laboratory. Available at: http://greet.es.anl.gov/.
-	In 2017 model, see sheet EtOH cell D489 for possible source of 0.79 number
-	Cannot find other NOx numbers in 2017, 2012 or GREET publications
-	
- EPA. 2011a. NEI Technical Support Documentation. U.S. Environmental Protection Agency. Available at https://www.epa.gov/air-emissions-inventories/2011-national-emissions-inventory-nei-technical-support-document.
-	See table 2-2: NEI does not estimate NOX emissions from fertilizer application, only NH3.
-	
-Data source for NH3:
- EPA. 2015. 2011 National Emissions Inventory, version 2 Technical Support Document. Emissions Inventory and Analysis Group.  Research Triangle Park, NC: EPA. Available at: https://www.epa.gov/air-emissions-inventories/2011-national-emissions-inventory-nei-technical-support-document.
-
- TABLE: NO<sub>x</sub> and NH<sub>3</sub> emission factors for application of nitrogenous fertilizers.
+TABLE: NO (used as proxy for NO<sub>x</sub>) and NH<sub>3</sub> emission factors for application of nitrogenous fertilizers. NO emission factors obtained from FOA (2001) and GREET (ANL 2010); NH<sub>3</sub> factors obtained from Goebes et al. 2003 and Davidson et al. 2004.  See [Zhang et al. (2015)](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620) for additional information.
  
-| N Fertilizer       | Pollutant      | % Fertilizer Volatilized as Pollutant |
-| ------------------ | -------------- | ------------------------------------- |
-| Anhydrous Ammonia  | NO<sub>x</sub> | 0.79                                  |
-| Anhydrous Ammonia  | NH<sub>3</sub> | 4.00                                  |
-| Ammonium Nitrate   | NO<sub>x</sub> | 3.80                                  |
-| Ammonium Nitrate   | NH<sub>3</sub> | 1.91                                  |
-| Ammonium Sulfate   | NO<sub>x</sub> | 3.50                                  |
-| Ammonium Sulfate   | NH<sub>3</sub> | 9.53                                  |
-| Urea               | NO<sub>x</sub> | 0.90                                  |
-| Urea               | NH<sub>3</sub> | 15.8                                  |
-| Nitrogen Solutions | NO<sub>x</sub> | 0.79                                  |
-| Nitrogen Solutions | NH<sub>3</sub> | 8.00                                  |
+| N Fertilizer               | Pollutant      | Emission Factor | Units                             |
+| -------------------------- | -------------- | --------------- | --------------------------------- |
+| Anhydrous Ammonia          | NO             | 0.79            | % of N in fertilizer              |
+| Anhydrous Ammonia          | NH<sub>3</sub> | 4.00            | % N volatilized as NH<sub>3</sub> |
+| Ammonium Nitrate (33.5% N) | NO             | 3.80            | % of N in fertilizer              |
+| Ammonium Nitrate (33.5% N) | NH<sub>3</sub> | 1.91            | % N volatilized as NH<sub>3</sub> |
+| Ammonium Sulfate           | NO             | 3.50            | % of N in fertilizer              |
+| Ammonium Sulfate           | NH<sub>3</sub> | 9.53            | % N volatilized as NH<sub>3</sub> |
+| Urea (44 - 46% N)          | NO             | 0.90            | % of N in fertilizer              |
+| Urea (44 - 46% N)          | NH<sub>3</sub> | 15.8            | % N volatilized as NH<sub>3</sub> |
+| Nitrogen Solutions         | NO             | 0.79            | % of N in fertilizer              |
+| Nitrogen Solutions         | NH<sub>3</sub> | 8.00            | % N volatilized as NH<sub>3</sub> |
 
-@TODO add in source, table for fertilizer SCC codes
+TABLE: Distribution of nitrogenous fertilizers. The national average distribution from 2010 [(USDA)](https://www.ers.usda.gov/data-products/fertilizer-use-and-price.aspx#26720) is used for corn grain and stover, sorghum stubble, and wheat straw. The perennial crop distribution which consists of nitrogen solutions only is used for switchgrass, miscanthus and all forest products. (Turhollow, 2011, personal communication)
 
-@TODO find and add source for n fertilizer allocation (BTS)
-
-TABLE: Distribution of nitrogenous fertilizers. The national average distribution is used for corn grain and stover, sorghum stubble, and wheat straw. The perennial crop distribution is used for switchgrass, miscanthus and all forest products.
-
-| N Fertilizer       | National Average Distribution | Perennial Crop Distribution |
-|--------------------|-------------------------------|-----------------------------|
-| Anhydrous Ammonia  | 0.3404                        | 0                           |
-| Ammonium Nitrate   | 0.0247                        | 0                           |
-| Ammonium Sulfate   | 0.0279                        | 0                           |
-| Urea               | 0.2542                        | 0                           |
-| Nitrogen Solutions | 0.3528                        | 1                           |
+| N Fertilizer       | 2010 National Average Distribution | Perennial Crop Distribution |
+|--------------------|------------------------------------|-----------------------------|
+| Anhydrous Ammonia  | 0.3404                             | 0                           |
+| Ammonium Nitrate   | 0.0247                             | 0                           |
+| Ammonium Sulfate   | 0.0279                             | 0                           |
+| Urea               | 0.2542                             | 0                           |
+| Nitrogen Solutions | 0.3528                             | 1                           |
 
 ## Output
 
 # Fugitive Dust Module
 
+The fugitive dust module calculates PM2.5 and PM10 emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from biomass transportation is not calculated.
+
 ## GUI user options
+
+The only GUI option for the fugitive dust module is the run_fugdust flat that controls whether the module is run.
 
 ## Advanced user options
 
-TABLE:
+TABLE: Parameters controlling how biomass is transported on-farm from field to roadside.
 
 | Parameter | Data Type | Default Value | Units | Description |
 |-----------|-----------|---------------|-------|-------------|
