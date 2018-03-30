@@ -199,6 +199,12 @@ TABLE: Distribution of nitrogenous fertilizers. The national average distributio
 | Urea               | 0.2542                             | 0                           |
 | Nitrogen Solutions | 0.3528                             | 1                           |
 
+In addition to NO<sub>x</sub> and NH<sub>3</sub> emissions from nitrogenous fertilizers, the chemical module also calculates VOC emissions from application of herbicides and pesticides. Due to lack of more detailed data, the VOC emissions are calculated with a simple emissions factor and the total amount of herbicides and pesticides applied.  From Zhang et al. (2015), VOC emissions are calculated as:
+
+VOC (lb/acre/year) = R * I * ER * C<sub>VOC</sub>
+
+where R is the pesticide or herbicide application rate (lb/harvested acre/year), I is the amount of active ingredient per pound of pesticide or herbicide (lb active ingredient/lb chemical, assumed to be 1), ER is the evaporation rate (assumed to be 0.9) and C<sub>VOC</sub> is the VOC content in the active ingredient (lb VOC/lb active ingredient, assumed to be 0.835.
+
 ## Output
 
 # Fugitive Dust Module
@@ -207,7 +213,7 @@ The fugitive dust module calculates PM2.5 and PM10 emissions from on-farm (harve
 
 ## GUI user options
 
-The only GUI option for the fugitive dust module is the run_fugdust flat that controls whether the module is run.
+The only GUI option for the fugitive dust module is the run_fugdust flag that controls whether the module is run.
 
 ## Advanced user options
 
@@ -217,7 +223,5 @@ TABLE: Parameters controlling how biomass is transported on-farm from field to r
 |-----------|-----------|---------------|-------|-------------|
 | onfarm_truck_capacity | float | 15 | dry short tons/load | Amount of biomass that can be transported on-farm by one truck in one trip. |
 | onfarm_default_distance | float | 1 | miles | Average distance that biomass is transported on-farm, from the field to the roadside. |
-
-## Data and Calculations
 
 ## Output
