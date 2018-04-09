@@ -65,7 +65,7 @@ Users may develop alternate crop production scenarios using POLYSYS and ForSEAM,
 
 Columns and data types
 
-Typical source of production data
+Typical source of production data (POLYSYS and forSEAM)
 
 Sample / small subset of data demonstrating format
 
