@@ -32,7 +32,7 @@ class Data(pd.DataFrame):
     def validate(self):
 
         # @TODO: add validation methods
-        raise NotImplementedError
+        return True
 
 
 class Budget(Data):
@@ -50,8 +50,6 @@ class Budget(Data):
                            ('resource', str),
                            ('rate', float),
                            ('unit', str)))
-
-# id, feedstock, tillage, region_id, rotation_year, operation_unit, activity, equipment_name, equipment_hp, capacity, resource, rate, unit
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Budget, self).__init__(df=df, fpath=fpath, columns=columns)
