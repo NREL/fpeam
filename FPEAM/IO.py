@@ -27,8 +27,7 @@ def load_config(*fpath):
     # load and add additional configs
     for _config_fpath in _config_fpaths:
         try:
-            True
-            # @TODO: populate config.spec #_config.merge(configobj.ConfigObj(_config_fpath))
+            _config.merge(configobj.ConfigObj(_config_fpath))
         except (configobj.ConfigObjError, IOError):
             raise
 
