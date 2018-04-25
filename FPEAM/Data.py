@@ -1,4 +1,5 @@
 import pandas as pd
+import logging
 from IO import load
 from collections import OrderedDict
 
@@ -10,7 +11,9 @@ class Data(pd.DataFrame):
 
     COLUMNS = {}
 
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=COLUMNS, logger=logging.getLogger(__name__)):
+
+        self._logger = logger
 
         _df = df or load(fpath=fpath, columns=columns)
 
@@ -39,14 +42,15 @@ class Budget(Data):
 
     COLUMNS = OrderedDict((('id', str),
                            ('feedstock', str),
-                           ('tillage', str),
-                           ('region_id', str),
+                           ('tillage_type', str),
+                           ('equipment_region', str),
                            ('rotation_year', str),
                            ('operation_unit', str),
                            ('activity', str),
                            ('equipment_name', str),
                            ('equipment_hp', float),
                            ('capacity', float),
+                           ('module', str),
                            ('resource', str),
                            ('rate', float),
                            ('unit', str)))
@@ -57,10 +61,56 @@ class Budget(Data):
 
 class Production(Data):
 
-    COLUMNS = OrderedDict((('region_id', str),
+    COLUMNS = OrderedDict((('scenario', str),
+                           ('year', int),
                            ('feedstock', str),
-                           ('tillage', str),
-                           ('yield', float)))
+                           ('tillage_type', str),
+                           ('production_region', str),
+                           ('equipment_region', str),
+                           ('nonroad_fips', str),
+                           ('moves_fips', str),
+                           ('planted', float),
+                           ('harvested', float),
+                           ('produced', float),
+                           ('yield', float),
+                           ('production_unit', str),
+                           ('yield_unit', str)))
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Production, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
+class Fertilizer(Data):
+
+    COLUMNS = OrderedDict((('resource', str),
+                           ('type', str),
+                           ('chemical_id', str),
+                           ('pollutant', str),
+                           ('emission_factor', float)))
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(Fertilizer, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
+class EmissionFactor(Data):
+    COLUMNS = OrderedDict((('resource', str),
+                           ('type', str),
+                           ('pollutant', str),
+                           ('rate', float)))
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(EmissionFactor, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
+class FugitiveDust(Data):
+
+    COLUMNS = OrderedDict((('feedstock', str),
+                           ('tillage_type', str),
+                           ('source_category', str),
+                           ('budget_year', int),
+                           ('pollutant', str),
+                           ('rate', float),
+                           ('unit', str)))
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(FugitiveDust, self).__init__(df=df, fpath=fpath, columns=columns)

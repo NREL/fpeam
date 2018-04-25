@@ -1,8 +1,11 @@
 """Input and output helper utilties."""
 
 import sys
+import logging
 
 import pandas as pd
+
+LOGGER = logging.getLogger(__name__)
 
 
 def load_config(*fpath):
@@ -44,8 +47,8 @@ def load_config(*fpath):
                 _msg = 'Invalid keys in section {}: {}'.format(_key, ', '.join(_section_list))
             else:
                 _msg = 'Missing sections: {} '.format(', '.join(_section_list))
-            print(_msg)
-        print('Check configuration file(s) for errors')
+            LOGGER.error(_msg)
+        LOGGER.error('Check configuration file(s) for errors')
 
         sys.exit('invalid config file(s): {}'.format(_config_fpaths))
     else:

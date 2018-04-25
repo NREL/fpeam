@@ -1,7 +1,7 @@
 """Executes FPEAM against given datasets and configuration files."""
 
 import argparse
-import os.path
+import os
 
 from FPEAM import (Data, IO, FPEAM)
 
