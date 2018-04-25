@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 class Data(pd.DataFrame):
     """
-    Equipment budget representation.
+    FPEAM data representation.
     """
 
     COLUMNS = {}
@@ -93,6 +93,7 @@ class Fertilizer(Data):
 
 
 class EmissionFactor(Data):
+
     COLUMNS = OrderedDict((('resource', str),
                            ('type', str),
                            ('pollutant', str),
@@ -114,3 +115,12 @@ class FugitiveDust(Data):
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(FugitiveDust, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
+class SCC(Data):
+
+    COLUMNS = OrderedDict((('name', str),
+                           ('scc', str)))
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(SCC, self).__init__(df=df, fpath=fpath, columns=columns)
