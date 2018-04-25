@@ -24,6 +24,9 @@ class Data(pd.DataFrame):
         # error if not able to coerce
         # backfill non-mandatory missing
 
+    def __enter__(self):
+        return self
+
     def backfill(self):
         # @TODO: add backfill methods
         raise NotImplementedError
@@ -36,6 +39,14 @@ class Data(pd.DataFrame):
 
         # @TODO: add validation methods
         return True
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # process exceptions
+        if exc_type is not None:
+            self._logger.exception('%s\n%s\n%s' % (exc_type, exc_val, exc_tb))
+            return False
+        else:
+            return self
 
 
 class Budget(Data):
