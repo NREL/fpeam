@@ -69,6 +69,8 @@ Values in the crop, tillage and equipment_group column must match to those provi
 
 If values in the region column do not correspond to the FIPS code (county identifiers) used in MOVES and NONROAD, an additional file giving the mapping of the region values to FIPS values must be provided. When running FPEAM interactively via the GUI, the user will be prompted to provide this file if necessary.
 
+Columns with restricted data values must contain only the allowed values listed in the table below; these columns are tillage, crop_measure and unit. Column values other than those allowed will produce an error and FPEAM will not run.
+
 TABLE: List of columns in production data set with data types and allowed values where relevant
 | Column name | Data type | Allowed values | Description |
 | ----------- | --------- | -------------- | ----------- |
