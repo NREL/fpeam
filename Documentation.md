@@ -241,7 +241,9 @@ where R is the pesticide or herbicide application rate (lb/harvested acre/year),
 
 # Fugitive Dust Module
 
-The fugitive dust module calculates PM2.5 and PM10 emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from biomass transportation is not calculated.
+The fugitive dust module calculates PM2.5 and PM10 emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from biomass transportation is not calculated because @TODO
+
+PM10 emissions are calculated using crop-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf) , which are available in Chapter 9 of the Billion Ton Study 2016 Update. PM2.5 emissions are calculated by applying a fraction to calculated PM10 emissions. The fraction used, 0.2, represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf) . This value was used to calculate the PM2.5 emission factors in the fugitive dust input data file. Users can use a different fraction or alternative emissions factors by editing the input data.
 
 ## GUI user options
 
