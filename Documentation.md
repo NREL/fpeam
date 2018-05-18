@@ -21,35 +21,37 @@ This section describes the basic crop production data on which every FPEAM modul
 
 ### Crop equipment and activity budget
 
-Budgets must be at a regional level of resolution. If only national level data is available, the budget must include this data for each region in order to capture impacts from agriculture in every region.
+Budgets must be at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default budget data, some region identifiers are numbered (with the numbers stored as characters rather than integers) and some are named.
+
+For each activity that involves agricultural equipment, the equipment name must be provided. These are user-defined names that can be matched to NONROAD equipment types during scenario definition or with a provided CSV file for batch runs.
+
+Columns with restricted values are: tillage, activity, resource and unit. The allowed values are listed in the table below. If input data is provided that contains non-allowed values in these columns, FPEAM will produce an error and the input data must be corrected before a scenario can be run.
 
 TABLE: List of columns in budget data with data type and allowed values where relevant
 
-| Column name | Data type | Allowed values |
-| ----------- | --------- | -------------- |
-| id | string | - |
-| feedstock | string | Corn, Corn stover, Whole tree, Forest residue, Miscanthus, Poplar, Sorghum, Sorghum stubble, Soybean, Soybean residue, Switchgrass, Wheat, Wheat straw |   
-| tillage | string (two characters) | CT, NT, RT |
-| region_id | integer | [0, 13] |
-| rotation_year | integer | - |
-| operation_unit | integer | - |
-| activity | string (four characters) | ESTC, HARV, HRVC, HRVR, MNTC, MNTR |
-| equipment_name | string | - |
-| equipment_hp | integer | - |
-| capacity | float | - |
-| resource | string | diesel, herbicide, insecticide, k2o, lime, n, other, p2o5, time |
-| rate | float | - |
-| unit | string | hour/acre, gallons/acre, pound/acre, pound/dry short ton |
+| Column name | Data type | Allowed values | Description |
+| ----------- | --------- | -------------- | ----------- |
+| crop | string | - | Crop being grown |
+| tillage | string  | conventional tillage, no tillage, reduced tillage | Type of tillage practice |
+| equipment_group | string | - | Region identifier |
+| budget_year | integer | - | 
+| operation_order | integer | - | Chronological order of operations within each year |
+| activity | string | establishment, maintenance, harvest | Activity category |
+| equipment_name | string | - | Description of equipment used |
+| equipment_horsepower | integer | - | Horsepower (if applicable to equipment) |
+| resource | string | diesel, herbicide, insecticide, k2o, lime, nitrogen, other, p2o5, time | Resource used (each activity may have multiple resources associated with it) |
+| rate | float | - | Quantity of resource used |
+| unit | string | gallon/acre, gallon/dry short ton, hour/acre, hour/dry short ton, pound/acre, pound/dry short ton  | Units of resource used |
 
 TABLE: Budget data examples
 
-| id | feedstock | tillage | region_id | rotation_year | operation_unit | activity | equipment_name | equipment_hp | capacity | resource | rate | unit |
-| -- | --------- | ------- | --------- | ------------- | -------------- | -------- | -------------- | ------------ | -------- | -------- | ---- | ---- |
-| WI.CT.06 | Willow | CT | 6 | 2 | 12 | MNTC | Tractor 2wd 55 hp | 55 | NA | herbicide | 0.75 | pound/acre |
-| CN.CT.02 | Corn | CT | 1 | 2 | 2 | ESTC | Tractor 2wd 205 hp | 205 | NA | k2o | 46.0 | pound/acre |
-| CN.NT.09 | Corn stover | NT | 1 | 9 | 3 | MNTC | Tractor 2wd 55 hp | 55 | NA | n | 48.0 | pound/dry short ton |
-| SW.NT.12 | Switchgrass | NT | 12 | 8 | 38 | HRVC | Tractor 2wd 160 hp | 160 | NA | time | 0.103 | hour/acre |
-| RESD.04.HWL.NC | Forest residue | NA | 0 | 1 | 0 | HARV | Whole Tree Chipper (large) | 750 | 40.8 | diesel | 0.281 | gallon/dry short ton |
+| crop | tillage | equipment_group | budget_year | operation_order | activity | equipment_name | equipment_horsepower | resource | rate | unit |
+| ---- | ------- | --------------- | ----------- | --------------- | -------- | -------------- | -------------------- | -------- | ---- | ---- |
+| willow | conventional tillage | 6	| 2 | 12 | maintenance | tractor 2wd 55 hp | 55 | herbicide | 0.75 | pound/acre |
+| corn | conventional tillage | 1 | 1 | 2 | establishment | tractor 2wd 100 hp | 100 | time | 0.087 | hour/acre |
+| corn stover | no tillage | 9 | 1 | 3 | maintenance | nitrogen | 12.8 | pound/dry short ton |
+| switchgrass | no tillage | 12 | 8 | 38 | harvest | tractor 2wd 160 hp | 160 | diesel | 0.742 | gallon/acre |
+| forest residues | no tillage | northeast | 1 | 2 | harvest | whole tree chipper (large) | 750 | time | 0.0245 | hour/dry short ton |
 
 The budget data provided with the FPEAM release was obtained from the Policy Analysis System (POLYSYS) model, "a national, interregional, agricultural model" [(Ugarte and Ray, 2000)](https://www.sciencedirect.com/science/article/pii/S0961953499000951 ). From the [University of Tennessee's Bio-Based Energy Analysis Group](https://ag.tennessee.edu/arec/Pages/beag.aspx ), POLYSYS 
 
@@ -63,11 +65,37 @@ Users may develop alternate crop production scenarios using POLYSYS and ForSEAM,
 
 ### Crop production
 
-Columns and data types
+Values in the crop, tillage and equipment_group column must match to those provided in the budget data file. Any production values without matching budgets, or vice versa, will not be included in FPEAM calculations.
+
+If values in the region column do not correspond to the FIPS code (county identifiers) used in MOVES and NONROAD, an additional file giving the mapping of the region values to FIPS values must be provided. When running FPEAM interactively via the GUI, the user will be prompted to provide this file if necessary.
+
+TABLE: List of columns in production data set with data types and allowed values where relevant
+| Column name | Data type | Allowed values | Description |
+| ----------- | --------- | -------------- | ----------- |
+| crop | string | - | Crop being grown; may be food crop, energy crop or residue |
+| scenario | string | - | Production scenario name |
+| year | integer | - | Year in which crop was planted and harvested |
+| tillage | string | conventional tillage, reduced tillage, no tillage | Type of tillage pracice |
+| region | string | - | Additional region identifier to be matched to FIPS codes for MOVES and NONROAD; may represent regions larger or smaller in scale than equipment_group |
+| equipment_group | string | - | Region identifier; must match equipment_group values in budget data set |
+| crop_measure | string | harvested (unit: acre), planted (unit: acre), produced (unit: dry short ton), yield (unit: dry short ton/acre) | 
+| crop_amount | float | - |
+| unit | string | acre, dry short ton, dry short ton/acre |
+
+TABLE: Production data examples
+
+| crop | scenario | year | tillage | region | equipment_group | crop_measure | crop_amount | unit |
+| ---- | -------- | ---- | ------- | ------ | --------------- | ------------ | ----------- | ---- |
+| poplar | HH3060 | 2040 | conventional tillage | 12067 | 13 | yield | 61.6 | dry short ton/acre |
+| poplar | HH3060 | 2040 | conventional tillage | 12067 | 13 | produced | 113.7 | dry short ton  |
+| poplar | HH3060 | 2040 | conventional tillage | 12067 | 13 | harvested | 1.87 | acre |
+| poplar | HH3060 | 2040 | conventional tillage | 12067 | 13 | planted | 14.8 | acre |
+| wheat | BC1060 | 2017 | reduced tillage | 04019 | 11 | produced | 4374.5 | dry short ton |
+| wheat | BC1060 | 2017 | reduced tillage | 04019 | 11 | yield | 2.8 | dry short ton/acre |
+| wheat | BC1060 | 2017 | reduced tillage | 04019 | 11 | planted | 1854.5 | acre |
+| wheat | BC1060 | 2017 | reduced tillage | 04019 | 11 | harvested | 1572.8 | acre |
 
 Typical source of production data (POLYSYS and forSEAM)
-
-Sample / small subset of data demonstrating format
 
 ## Output
 
