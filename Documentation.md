@@ -99,6 +99,46 @@ TABLE: Production data examples
 
 Typical source of production data (POLYSYS and forSEAM)
 
+### Additional input data
+
+TABLE: Moisture content (mass fraction) at time of transport.
+
+| crop | moisture content | source |
+| ---- | ---------------- | ------ |
+| barley straw |  0.069 | Mani et al. (2004) |
+| biomass sorghum | 0.650 | Estimated from Rocateli et al. (2012) |
+| corn stover |  0.15 | McAloon et al. (2000) |
+| energy cane | 0.1 | Estimated from Miao et al. (2011) |
+| eucalyptus | 0.1 | Assumed equal to willow |
+| forest residues | 0.5 | Bouchard et al. (2012) |
+| hay | 0.069 | Assumed equal to barley straw |
+| miscanthus | 0.1 | Estimated from Miao et al. (2011) |
+| oats straw | 0.069 | Assumed equal to barley straw |
+| pine | 0.1 | Assumed equal to willow |
+| poplar | 0.1 | Assumed equal to willow |
+| sorghum stubble | 0.650 | Assumed equal to biomass sorghum |
+| switchgrass | 0.052 | Mani et al. (2004) |
+| wheat straw | 0.083 | Mani et al. (2004) |
+| whole tree | 0.5 | Bouchard et al. (2012) |
+| willow | 0.1 | Estimated from Miao et al. (2011) |
+
+
+TABLE: Bushel weight in wet short tons by crop.
+
+| crop | wet short tons per bushel | source |
+| ---- | ------------------------- | ------ | 
+| barley | 0.024 | 1. |
+| corn | 0.028 | 1. |
+| cotton | 0.016 | 1. |
+| oats | 0.016 | 1. |
+| rice | 0.0225 | 2. |
+| sorghum | 0.025 | 1. | 
+| soybeans | 0.03 | 1. |
+| wheat | 0.03 | 1. |
+
+1. Murphy, William J. Tables for Weights and Measurements: Crops. University of Missouri Extension. Available at https://extension2.missouri.edu/G4020. Accessed May 25, 2018.
+2. ftp://www.ilga.gov/JCAR/AdminCode/008/00800600ZZ9998bR.html
+
 ## Output
 
 ### Structure of csv file
