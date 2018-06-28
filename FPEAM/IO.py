@@ -1,58 +1,46 @@
 """Input and output helper utilties."""
 
-import sys
-import logging
+import os
+import utils
 
 import pandas as pd
 
-LOGGER = logging.getLogger(__name__)
+CONFIG_FOLDER = os.path.join('..', 'configs')
+
+LOGGER = utils.logger(name=__name__)
 
 
-def load_config(*fpath):
+def load_configs(*fpath):
     """
-    Load config file.
+    Load and validate config file(s).
 
-    :param fpath: [string] INI file path
+    'local.ini' is always loaded last, unless supplied in <fpath>.
+
+    :param fpath: [string] additional INI file path(s)
     :return: [configObj]
     """
-    import configobj
-    import validate
 
-    # set file paths
-    _config_fpaths = set(
-            ['../fpeam.ini', '../database.ini', '../moves.ini', '../nonroad.ini'] + list(fpath)
-            + ['../local.ini', ])
-    _cspec_fpath = '../config.spec'
+    import configobj
+
+    fpath = list(fpath)
+
+    # add local config if available
+    _local_fpath = os.path.join(CONFIG_FOLDER, 'local.ini')
+    if os.path.exists(_local_fpath) and _local_fpath not in fpath:
+        fpath.append(_local_fpath)
 
     # init config
-    _config = configobj.ConfigObj({}, configspec=_cspec_fpath, file_error=True, unrepr=False)
+    _config = configobj.ConfigObj({}, file_error=True, unrepr=False, stringify=False)
 
-    # load and add additional configs
-    for _config_fpath in _config_fpaths:
+    # add additional configs
+    for _config_fpath in [_fpath for _fpath in fpath if _fpath is not None]:
         try:
+            LOGGER.debug('importing config file: %s' % (os.path.abspath(_config_fpath), ))
             _config.merge(configobj.ConfigObj(_config_fpath))
         except (configobj.ConfigObjError, IOError):
             raise
 
-    # init config validator
-    _validator = validate.Validator()
-
-    # validate config
-    _validated_config = _config.validate(_validator)
-
-    # if errors in config, log and exit
-    if not _validated_config:
-        for (_section_list, _key, _) in configobj.flatten_errors(_config, _validated_config):
-            if _key is not None:
-                _msg = 'Invalid keys in section {}: {}'.format(_key, ', '.join(_section_list))
-            else:
-                _msg = 'Missing sections: {} '.format(', '.join(_section_list))
-            LOGGER.error(_msg)
-        LOGGER.error('Check configuration file(s) for errors')
-
-        sys.exit('invalid config file(s): {}'.format(_config_fpaths))
-    else:
-        return _config
+    return _config
 
 
 def load(fpath, columns, memory_map=True, header=0, **kwargs):
@@ -62,12 +50,27 @@ def load(fpath, columns, memory_map=True, header=0, **kwargs):
     See pandas.read_table() help for additional arguments.
 
     :param fpath: [string] file path to budget file or SQLite database file
-    :param columns: [dict] {name: type, }
+    :param columns: [dict] {name: type, ...}
     :param memory_map: [bool] load directly to memory for improved performance
     :param header: [int] 0-based row index containing column names
     :return: [DataFrame]
     """
-    _names = kwargs.get('names', columns.keys())
 
-    return pd.read_table(filepath_or_buffer=fpath, sep=',', names=_names, dtype=columns,
-                         usecols=columns.keys(),  memory_map=memory_map, header=header)
+    try:
+        LOGGER.debug('importing columns %s from %s' % (columns, os.path.abspath(fpath)))
+        _df = pd.read_table(filepath_or_buffer=fpath, sep=',', dtype=columns,
+                            usecols=columns.keys(), memory_map=memory_map, header=header, **kwargs)
+    except ValueError as e:
+        if e.__str__() == 'Usecols do not match names.':
+            from collections import Counter
+            _df = pd.read_table(filepath_or_buffer=fpath, sep=',', dtype=columns,
+                                memory_map=memory_map, header=header, **kwargs)
+            _df_columns = Counter(_df.columns)
+            _cols = list(set(columns.keys()) - set(_df_columns))
+            raise ValueError('%(f)s missing columns: %(cols)s' % (dict(f=fpath, cols=_cols)))
+        # elif e.__str__.startswith('ValueError: could not convert'):
+        #     raise e
+        else:
+            raise e
+    else:
+        return _df
