@@ -41,15 +41,19 @@ class Chemical(Module):
         #  total fertilizer
         self.fertilizer_distribution = fertilizer_distribution
 
-    def get_voc(self, resource, voc_content_percent, voc_evaporation_rate):
+    def get_emissions(self, resource, factors):
         """
         Calculate evaporative VOC emissions for <resource>.
 
         :param resource: [string] equipment resource value
-        :param voc_content_percent: [float] Percent VOC (lbs VOC / lb active ingredient)
-        :param voc_evaporation_rate: [float] Rate of VOC evaporation
+        :param factors: [list] factors
         :return: [dict] {<resource>_voc: DataFrame[production row_id x voc}
         """
+
+        # expand factors
+        _final_factor = 1
+        for _factor in factors:
+            _final_factor *= _factor
 
         # create column selectors
         _idx = ['feedstock', 'tillage_type', 'equipment_group']
@@ -59,91 +63,18 @@ class Chemical(Module):
         # create row selectors
         _equip_rows = self.equipment.resource == resource
 
-        # combine production and equipment
+        # combine production and equipment  # @TODO: filtered by crop_measure == 'harvested'
         _df = self.production[_prod_columns].merge(self.equipment[_equip_rows][_equip_columns],
                                                    on=_idx)
 
         # calculate VOCs
-        _df.eval('voc = @voc_evaporation_rate * @voc_content_percent * crop_amount * rate',
+        _df.eval('voc = @_final_factor * crop_amount * rate',
                  inplace=True)
 
         # clean up DataFrame
         _df = _df[['row_id', 'voc']].set_index('row_id', drop=True)
 
-        return {'%s_voc' % resource: _df}
-
-    def other(self):
-        """
-        Calculate non-VOC chemical emissions.
-
-        :return: [DataFrame]
-        """
-
-        raise NotImplementedError
-
-        #
-        # #
-        #
-        # # combine budget and production data
-        # _output_df = self.equipment.merge(self.production,
-        #                                   on=['feedstock', 'tillage_type', 'equipment_group'],
-        #                                   how='outer')
-        #
-        # # add emission factors
-        # _output_df.merge(self.fertilizer_distribution, on='feedstock', how='outer')
-        #
-        # # add column: total N fertilizer by FIPS and feedstock
-        # #   (n lb/acre * harvest)
-        # # + (n lb/dt   * production)
-        #
-        # assert 1
-        #
-        # _output_df['nfert'] = _output_df.n_lbac.multiply(_output_df.harv, fill_value=0) + _output_df.n_lbdt.multiply(_output_df.production, fill_value=0)
-        #
-        # # add column: total VOC emissions from insecticide and herbicide
-        # # application by FIPS
-        #
-        # # huntley
-        # _output_df['voc'] = (voc_evaporation_rate
-        #                      * voc_content_percent
-        #                      * self.conversions['tonne']['ton']
-        #                      * self.conversions['ton']['pound'])\
-        #     * (_output_df.insc_lbac.multiply(_output_df.harv, fill_value=0)
-        #         + _output_df.herb_lbac.multiply(_output_df.harv, fill_value=0))
-        # #   (lbs VOC/acre)
-        # # * (lbs active/lbs VOC)
-        # # * (lbs VOC/lbs active)
-        # # * (mt/lbs)
-        # # = mt VOC
-        #
-        # # emissions = harvested acres * lbs/acre * Evaporation rate * VOC content (lbs VOC / lb active ingridient) * conversion from lbs to mt.
-        # # emissions = total VOC emissions (lbs VOC).
-        # # total_harv_ac = total harvested acres. (acres)
-        # # pest.EF = lbs VOC/acre.
-        # # .9 =  evaporation rate. (lbs active/lbs VOC)
-        # # .835 = voc content. lbs VOC / lb active ingridient.
-        # # (acres) * (lbs VOC/acre) * (lbs active/lbs VOC) * (lbs VOC/lbs active) * (mt/lbs) = mt VOC
-        #
-        # # calculate NOx and NH3 emissions factors for each feedstock
-        # # Units: kg pollutant per kg total N fertilizer
-        # self.nfert_ems = pd.DataFrame({"nox_ef":
-        #                                self.fertilizers.multiply(self.emission_factors['nox'],
-        #                                                          axis='index').sum(axis='index'),
-        #                                "nh3_ef":
-        #                                self.fertilizers.multiply(self.emission_factors['nh3'],
-        #                                                          axis='index').sum(axis='index')})
-        # self.nfert_ems['crop'] = self.nfert_ems.index
-        #
-        # # add column: total NOx emissions from N fertilizer application by FIPS
-        # _output_df['nox'] = _output_df.nfert.multiply(_output_df.nox_ef, fill_value=0)
-        #
-        # # add column: total NH3 emissions from N fertilizer application by FIPS
-        # _output_df['nh3'] = _output_df.nfert.multiply(_output_df.nh3_ef, fill_value=0)
-        #
-        # # add in column for activity
-        # _output_df['source_category'] = 'Chem'
-        #
-        # return _output_df
+        return {'%s' % resource: _df}
 
     def run(self):
         """
@@ -156,9 +87,8 @@ class Chemical(Module):
         _voc_evaporation_rate = self.config.as_float('voc_evaporation_rate')
 
         for _resource in ['insecticide', 'herbacide']:
-            self.emissions.append(self.get_voc(resource=_resource,
-                                               voc_evaporation_rate=_voc_evaporation_rate,
-                                               voc_content_percent=_voc_content_percent))
+            self.emissions.append(self.get_emissions(resource=_resource, factors=[_voc_evaporation_rate,
+                                                                                  _voc_content_percent]))
 
         self.status = 'complete'
 
