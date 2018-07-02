@@ -1,27 +1,27 @@
 # Introduction
-FPEAM calculates air pollutants from agricultural activities and transportation associated with production of biomass for renewable energy.
+FPEAM calculates criteria air pollutants and precursors from agricultural activities and transportation associated with production of biomass for renewable energy.
 
-Pollutants included are: CH<sub>4</sub>, NH<sub>3</sub>, NO<sub>x</sub>, SO<sub>2</sub>, VOC, PM2.5, PM10
+Pollutants included are: CH<sub>4</sub>, NH<sub>3</sub>, NO<sub>x</sub>, SO<sub>2</sub>, volatile organic compounds (VOC), PM2.5, PM10
 
 ## Code structure
 FPEAM is organized into modules that calculate pollutant emissions from a particular activity category. Each module is described further in its own section.
 
 * MOVES: Off-farm, on-road transportation of biomass to biorefineries.
 * NONROAD: On-farm use of agricultural equipment.  Includes emissions from fuel combustion and equipment operation.
-* Chemical: Emissions from volatilization of nitrogenous fertilizers, herbicides and insecticides.
+* Chemical: Emissions from volatilization of nitrogenous fertilizers (NO<sub>x</sub>), herbicides and insecticides (VOC).
 * FugitiveDust: Fugitive dust (PM2.5 and PM10) emissions from on-farm activities.
 
 Config files are used for each module. Within each config file section, GUI user options list the FPEAM parameters and options that can be controlled via the built-in GUI. These are considered basic options necessary for the average user to construct FPEAM scenarios. Advanced user options cannot be controlled via the GUI; they must be changed manually by editing the .ini files for FPEAM and for each module. Advanced user options are not considered to be necessary for the average user to define and run FPEAM scenarios, but may be useful in defining custom scenarios that explore alternative supply chain options.
 
 ## Input data and formatting
 
-A default for each data set described in this section is provided with the FPEAM code base and can be used to run basic scenarios.  Any or all of these data sets can be altered or replaced by users to run custom scenarios.  Any changes to the format (column names, column data types, etc) of any data set will break FPEAM.
+A default for each data set described in this section is provided with the FPEAM code base and can be used to run basic crop production scenarios.  Any or all of these data sets can be altered or replaced by users to run custom scenarios.  Any changes to the format (column names, column data types, etc) of any data set will break FPEAM.
 
-This section describes the basic crop production data on which every FPEAM module runs. Several modules require additional input data, which can also be revised or replaced by users. These additional input data are discussed in the section for each module.
+This section describes the crop production data and equipment and activity budgets on which every FPEAM module runs. Several modules require additional input data, which can also be revised, expanded or replaced by users. These additional input data are discussed in the section for each module.
 
 ### Crop equipment and activity budget
 
-Budgets must be at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default budget data, some region identifiers are numbered (with the numbers stored as characters rather than integers) and some are named.
+Budgets must be at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default budget data, some region identifiers are numbered (with the numbers stored as characters rather than integers) and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions.
 
 For each activity that involves agricultural equipment, the equipment name must be provided. These are user-defined names that can be matched to NONROAD equipment types during scenario definition or with a provided CSV file for batch runs.
 
@@ -34,7 +34,7 @@ TABLE: List of columns in budget data with data type and allowed values where re
 | crop | string | - | Crop being grown |
 | tillage | string  | conventional tillage, no tillage, reduced tillage | Type of tillage practice |
 | equipment_group | string | - | Region identifier |
-| budget_year | integer | - | 
+| budget_year | integer | - | Year of crop rotation |
 | operation_order | integer | - | Chronological order of operations within each year |
 | activity | string | establishment, maintenance, harvest | Activity category |
 | equipment_name | string | - | Description of equipment used |
@@ -137,7 +137,7 @@ TABLE: Bushel weight in wet short tons by crop.
 | wheat | 0.03 | 1. |
 
 1. Murphy, William J. Tables for Weights and Measurements: Crops. University of Missouri Extension. Available at https://extension2.missouri.edu/G4020. Accessed May 25, 2018.
-2. ftp://www.ilga.gov/JCAR/AdminCode/008/00800600ZZ9998bR.html
+2. U.S. Department of Agriculture, Office of Weights and Measures. Standard weight per bushel for agricultural commodities. Available at ftp://www.ilga.gov/JCAR/AdminCode/008/00800600ZZ9998bR.html Accessed May 25, 2018.
 
 ## Output
 
@@ -276,19 +276,19 @@ The only GUI option for the chemical module is the run_chemical flag that contro
 
 There are no advanced user options for the chemical module within the chemical.ini file, but users may edit the input data files described below.
 
-TABLE: NO (used as proxy for NO<sub>x</sub>) and NH<sub>3</sub> emission factors for application of nitrogenous fertilizers. NO emission factors obtained from FOA (2001) and GREET (ANL 2010); NH<sub>3</sub> factors obtained from Goebes et al. 2003 and Davidson et al. 2004.  See [Zhang et al. (2015)](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620) for additional information.
+TABLE: NO (used as proxy for NO<sub>x</sub>) and NH<sub>3</sub> emission factors for application of nitrogenous fertilizers. NO emission factors obtained from FOA (2001) and GREET (ANL 2010); NH<sub>3</sub> factors obtained from Goebes et al. 2003 and Davidson et al. 2004.  See [Zhang et al. (2015)](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620) for additional information. Note that as of July 2, 2018 the Davidson et al. reference, the CMU Ammonia Model, Version 3.6 from The Environmental Institute at Carnegie Mellon University was not available online and source data could not be verified.
  
 | N Fertilizer               | Pollutant      | Emission Factor | Units                             |
 | -------------------------- | -------------- | --------------- | --------------------------------- |
-| Anhydrous Ammonia          | NO             | 0.79            | % of N in fertilizer              |
+| Anhydrous Ammonia          | NO             | 0.79            | Fertilizer induced NO emission (mass %) |
 | Anhydrous Ammonia          | NH<sub>3</sub> | 4.00            | % N volatilized as NH<sub>3</sub> |
-| Ammonium Nitrate (33.5% N) | NO             | 3.80            | % of N in fertilizer              |
+| Ammonium Nitrate (33.5% N) | NO             | 3.80            | Fertilizer induced NO emission (mass %) |
 | Ammonium Nitrate (33.5% N) | NH<sub>3</sub> | 1.91            | % N volatilized as NH<sub>3</sub> |
-| Ammonium Sulfate           | NO             | 3.50            | % of N in fertilizer              |
+| Ammonium Sulfate           | NO             | 3.50            | Fertilizer induced NO emission (mass %) |
 | Ammonium Sulfate           | NH<sub>3</sub> | 9.53            | % N volatilized as NH<sub>3</sub> |
-| Urea (44 - 46% N)          | NO             | 0.90            | % of N in fertilizer              |
+| Urea (44 - 46% N)          | NO             | 0.90            | Fertilizer induced NO emission (mass %) |
 | Urea (44 - 46% N)          | NH<sub>3</sub> | 15.8            | % N volatilized as NH<sub>3</sub> |
-| Nitrogen Solutions         | NO             | 0.79            | % of N in fertilizer              |
+| Nitrogen Solutions         | NO             | 0.79            | Fertilizer induced NO emission (mass %) |
 | Nitrogen Solutions         | NH<sub>3</sub> | 8.00            | % N volatilized as NH<sub>3</sub> |
 
 TABLE: Distribution of nitrogenous fertilizers. The national average distribution from 2010 [(USDA)](https://www.ers.usda.gov/data-products/fertilizer-use-and-price.aspx#26720) is used for corn grain and stover, sorghum stubble, and wheat straw. The perennial crop distribution which consists of nitrogen solutions only is used for switchgrass, miscanthus and all forest products. (Turhollow, 2011, personal communication)
