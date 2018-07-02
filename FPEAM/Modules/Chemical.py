@@ -155,7 +155,7 @@ class Chemical(Module):
         _voc_content_percent = self.config.as_float('voc_content_percent')
         _voc_evaporation_rate = self.config.as_float('voc_evaporation_rate')
 
-        for _resource in ['insecticide', 'herbacide']:
+        for _resource in ['insecticide', 'herbicide']:
             self.emissions.append(self.get_voc(resource=_resource,
                                                voc_evaporation_rate=_voc_evaporation_rate,
                                                voc_content_percent=_voc_content_percent))
