@@ -5,17 +5,9 @@ from FPEAM import (utils, IO)
 LOGGER = utils.logger(name=__name__)
 
 
-class Chemical(Module):
+class EmissionFactors(Module):
     """Base class to manage execution of pollutants calculated from
     emission factors"""
-
-    # @TODO: remove _inputs
-    _inputs = """- equipment: equipment budgets
-                 - production: crop production data
-                 - resource_distribution: defines the distribution of resource 
-                 subtypes (specific chemicals) for each resource
-                 - emission_factors: all pollutant emission factors by 
-                 resource type and subtype (lb pollutant/lb resource)"""
 
     def __init__(self, config, equipment, production, resource_distribution,
                  emission_factors,
@@ -31,7 +23,7 @@ class Chemical(Module):
         """
 
         # init parent
-        super(Chemical, self).__init__(config=config)
+        super(EmissionFactors, self).__init__(config=config)
 
         # init properties
         self.emissions = []
@@ -70,33 +62,33 @@ class Chemical(Module):
                                          inplace = True)
 
 
-    def get_emissions(self, resource):
+    def get_emissions(self):
         """
         Calculate all emissions from <resource> for which a subtype
         distribution and emissions factors are provided.
 
-        :param resource: [string] resource value from equipment
-        :return: [dict] {<resource>_voc: DataFrame[production row_id x voc}
+        :return: _df: DataFrame containing pollutant amounts
         """
 
         # create column selectors
         _idx = ['feedstock', 'tillage_type', 'equipment_group']
-        _prod_columns = ['row_id', 'region'] + _idx + ['crop_amount']
-        _equip_columns = _idx + ['rate', ]
+        _prod_columns = ['row_id'] + _idx + ['crop_amount']
+        _equip_columns = ['row_id'] + _idx + ['rate', ]
         _factors_columns = ['feedstock', 'resource', 'overall_rate',
                             'pollutant']
 
         # create row selectors
-        _equip_rows = self.equipment.resource == resource & \
-                      self.equipment.crop_measure == 'harvested'
-        _factors_rows = self.overall_factors.resource == resource
+        _equip_rows = self.equipment.crop_measure == 'harvested'
+        # @TODO add crop_measure selector to config file, remove hardcoding
+        # here
 
         # combine production and equipment and overall factors
+        # @TODO define suffix for duplicated columns as _prod and _equip
         _df = self.production[_prod_columns].merge(self.equipment[
                                                        _equip_rows][
                                                        _equip_columns],
                                                    on = _idx).merge(
-            self.overall_factors[_factors_columns][_factors_rows],
+            self.overall_factors[_factors_columns],
             on = ['feedstock', 'resource'])
 
         # calculate emissions
@@ -104,31 +96,33 @@ class Chemical(Module):
                  inplace = True)
 
         # clean up DataFrame
-        _df = _df[['row_id', 'pollutant_amount']].set_index('row_id',
-                                                            drop = True)
+        _df = _df[['row_id_prod', 'row_id_equip', 'resource',
+                   'resource_subtype',
+                   'pollutant_amount']].set_index('row_id_prod',
+                                                  drop = True)
 
-        # @TODO add column with source category - maybe defined from
-        # user-provided argument
-
-        return {'%s' % resource: _df}
+        return _df
 
     def run(self):
         """
         Execute all calculations.
 
-        :return: [bool] True on success
+        :return: _results DataFrame containing pollutant amounts
         """
 
-        # generate resource list from unique entries in equipment,
-        # resource_distribution and emission_factors
-        _resource_list = set(self.equipment.resource.unique()) & \
-                         set(self.emission_factors.resource.unique()) & \
-                         set(self.resource_distribution.resource.unique())
+        _results = None
+        _status = self.status
 
-        for _resource in _resource_list:
-            self.emissions.append(self.get_emissions(resource = _resource))
-
-        self.status = 'complete'
+        try:
+            _results = self.get_emissions()
+        except Exception as e:
+            LOGGER.exception(e)
+            _status = 'failed'
+        else:
+            _status = 'complete'
+        finally:
+            self.status = _status
+            return _results
 
     def summarize(self):
         pass

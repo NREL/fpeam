@@ -89,7 +89,7 @@ class Module(object):
 
         :return: [bool] True on success
         """
-        self.status = 'excuted'
+        self.status = 'executed'
         self.graph = None
         self.results = None
 

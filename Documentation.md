@@ -241,7 +241,7 @@ The only NONROAD options available through the GUI is the run_nonroad flag that 
 
 TABLE: NONROAD temperature range.
 
-| Temperature |             |
+|             | Temperature |
 | ------------|-------------|
 | Minimum     | 50.0 &deg;F |
 | Mean        | 60.0 &deg;F |

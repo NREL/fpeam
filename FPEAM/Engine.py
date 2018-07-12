@@ -13,7 +13,7 @@ class Engine(object):
     """Execute modules."""
 
     # @TODO: can't these be discovered via the Modules module?
-    MODULES = {'chemical': Modules.Chemical,
+    MODULES = {'chemical': Modules.EmissionFactors,
                'fugitive_dust': Modules.FugitiveDust,
                'MOVES': Modules.MOVES,
                'NONROAD': Modules.NONROAD}
