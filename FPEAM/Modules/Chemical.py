@@ -6,7 +6,8 @@ LOGGER = utils.logger(name=__name__)
 
 
 class Chemical(Module):
-    """Base class to manage execution of chemical emissions"""
+    """Base class to manage execution of pollutants calculated from
+    emission factors"""
 
     # @TODO: remove _inputs
     _inputs = """- equipment: equipment budgets
