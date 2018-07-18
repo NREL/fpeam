@@ -120,6 +120,9 @@ class MOVESModule:
         with open(vmtname, 'wb') as csvfile:
             vmtwriter = csv.writer(csvfile, dialect='excel')
             vmtwriter.writerow(['HPMSVtypeID', 'yearID', 'HPMSBaseYearVMT'])
+            # @TODO convert HPMSVtypeID = 60 to an input - maybe have users
+            # select a vehicle type by name and then populate all relevant
+            # MOVES IDs like sourceTypeID on line 131-132
             vmtwriter.writerow(['60', self.yr, vmt_short_haul])  # combination short-haul truck
 
         # source type population (number of vehicles by vehicle type)
@@ -133,6 +136,8 @@ class MOVESModule:
         fuelformname = os.path.join(self.save_path_countyinputs, '{fips}_fuelformulation_{year}.csv'.format(**kvals))
         fuelusagename = os.path.join(self.save_path_countyinputs, '{fips}_fuelusagefraction_{year}.csv'.format(**kvals))
 
+
+
         # export county-level fuel supply data
         sql = """SELECT * FROM {moves_database}.fuelsupply
                             WHERE {moves_database}.fuelsupply.fuelRegionID =
@@ -140,12 +145,15 @@ class MOVESModule:
                             AND {moves_database}.fuelsupply.fuelYearID = '{year}'""".format(**kvals)
         self._get_and_write_data_file_lines(sql, fuelsupplyname)
 
+        # @TODO convert fuelSubtypeIDs to user input, with full list in
+        # MOVES limited by vehicle type selection
         # export county-level fuel formulation data
         sql = """SELECT * FROM {moves_database}.fuelformulation
                             WHERE {moves_database}.fuelformulation.fuelSubtypeID = '21'
                             OR {moves_database}.fuelformulation.fuelSubtypeID = '20';""".format(**kvals)
         self._get_and_write_data_file_lines(sql, fuelformname)
 
+        # @TODO same for fuelSupplyFuelTypeID
         # export county-level fuel usage fraction data
         sql = """SELECT * FROM {moves_database}.fuelusagefraction
                             WHERE {moves_database}.fuelusagefraction.countyID = '{countyID}'
@@ -181,6 +189,7 @@ class MOVESModule:
         kvals['year'] = self.yr
         kvals['moves_database'] = self.moves_database
 
+        # @TODO sourceTypeID used here should pull from the same user input
         # export MOVES defaults for national inputs (i.e., hourVMTFraction, monthVMTFraction, dayVMTFraction, and avgspeeddistribution)
         tables = ['hourvmtfraction', 'monthvmtfraction', 'dayvmtfraction', 'avgspeeddistribution']
         for table in tables:
@@ -190,8 +199,9 @@ class MOVESModule:
             self._get_and_write_data_file_lines(query=sql, fname=filename)
 
         # create file for alternative vehicle fuels and technology (avft)
+        # self.fuelfraction comes from user input
         sourcetype = '61'
-        engtech = '1'
+        engtech = '1' # @TODO convert to user input
         avftname = os.path.join(self.save_path_nationalinputs, 'avft.csv')
         with open(avftname, "wb") as f:
             csv_writer = csv.writer(f)
@@ -203,6 +213,7 @@ class MOVESModule:
                     i += 1
 
         # create file for default age distribution (values in age_distribution dictionary were computed using MOVES Default Age Distribution Tool)
+        # @TODO convert sourceTypeID to user input
         for feed in self.yr_list:
             agedistname = os.path.join(self.save_path_nationalinputs, 'default-age-distribution-tool-moves%s.csv' % (self.yr_list[feed], ))
             with open(agedistname, 'wb') as f:
@@ -211,7 +222,9 @@ class MOVESModule:
                 for bins in range(0, 31):
                     csv_writer.writerow(['61', self.yr_list[feed], bins, self.age_distribution[self.yr_list[feed]][bins]])
 
-        # create file for road type fraction 
+        # create file for road type fraction
+        # @TODO this whole file could be an input (as csv or via GUI),
+        # it's small enough
         roadtypename = os.path.join(self.save_path_nationalinputs, 'roadtype.csv')
         with open(roadtypename, 'wb') as f:
             csv_writer = csv.writer(f)
@@ -234,6 +247,7 @@ class MOVESModule:
         # set fips
         fips = self.fips
 
+        # @TODO keep this functionality but refer to module complete flags
         # check MOVES metadata table to see if MOVES was already run for this FIPS, yearID, monthID, and dayID
         # get data MOVES scenario ID from database if scenario ID matches this FIPS, yearID, monthID, and dayID
         query = """SELECT scen_id
