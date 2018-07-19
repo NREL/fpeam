@@ -84,13 +84,15 @@ class EmissionFactors(Module):
         _equip_rows = self.equipment.crop_measure == 'harvested'
 
         # combine production and equipment and overall factors
-        # @TODO define suffix for duplicated columns as _prod and _equip
         _df = self.production[_prod_columns].merge(self.equipment[
                                                        _equip_rows][
                                                        _equip_columns],
-                                                   on = _idx).merge(
-            self.overall_factors[_factors_columns],
-            on = ['feedstock', 'resource'])
+                                                   on = _idx,
+                                                   suffixes = ['_prod',
+                                                               '_equip'
+                                                               ]).merge(
+            self.overall_factors[_factors_columns], on = ['feedstock',
+                                                          'resource'])
 
         # calculate emissions
         _df.eval('pollutant_amount = overall_factor * crop_amount * rate',
