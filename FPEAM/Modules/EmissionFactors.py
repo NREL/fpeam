@@ -10,7 +10,7 @@ class EmissionFactors(Module):
     emission factors"""
 
     def __init__(self, config, equipment, production, resource_distribution,
-                 emission_factors,
+                 emission_factors, crop_measure_type,
                  **kvals):
         """
         :param config [ConfigObj] configuration options
@@ -35,6 +35,9 @@ class EmissionFactors(Module):
 
         # Resource subtype distribution, Units: unitless fraction
         self.resource_distribution = resource_distribution
+
+        # Selector for the crop amount that scales emission factors
+        self.crop_measure_type = crop_measure_type
 
         # merge emissions factors and resource subtype distribution
         # dataframes by matching resource and resource subtype
@@ -79,8 +82,6 @@ class EmissionFactors(Module):
 
         # create row selectors
         _equip_rows = self.equipment.crop_measure == 'harvested'
-        # @TODO add crop_measure selector to config file, remove hardcoding
-        # here
 
         # combine production and equipment and overall factors
         # @TODO define suffix for duplicated columns as _prod and _equip
