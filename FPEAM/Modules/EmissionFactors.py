@@ -78,16 +78,15 @@ class EmissionFactors(Module):
         # create column selectors
         _idx = ['feedstock', 'tillage_type', 'equipment_group']
         _prod_columns = ['row_id'] + _idx + ['crop_amount']
-        _equip_columns = ['row_id'] + _idx + ['rate', ]
+        _equip_columns = ['row_id'] + _idx + ['rate']
         _factors_columns = ['feedstock', 'resource', 'overall_rate',
                             'pollutant']
 
         # create row selectors
-        _equip_rows = self.equipment.crop_measure == 'harvested'
+        _prod_rows = self.production.crop_measure == self.crop_measure_type
 
         # combine production and equipment and overall factors
-        _df = self.production[_prod_columns].merge(self.equipment[
-                                                       _equip_rows][
+        _df = self.production[_prod_rows][_prod_columns].merge(self.equipment[
                                                        _equip_columns],
                                                    on = _idx,
                                                    suffixes = ['_prod',
