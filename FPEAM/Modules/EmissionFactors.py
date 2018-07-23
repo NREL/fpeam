@@ -20,6 +20,8 @@ class EmissionFactors(Module):
         distribution (fraction, unitless) by feedstock
         :param emission_factors: [DataFrame] Emission factors for each
         resource and resource subtype (lb pollutant/lb resource)
+        :param crop_measure_type: [string] selects which crop amount is used to
+         scale emission factors and calculate pollutants
         """
 
         # init parent
