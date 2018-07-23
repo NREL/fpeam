@@ -59,7 +59,8 @@ class FugitiveDust(Module):
         _idx = ['feedstock', 'tillage_type']
 
         # define list of columns of interest in production
-        _prod_columns = ['row_id'] + _idx + ['region', 'crop_amount']
+        _prod_columns = ['row_id'] + _idx + ['region_production',
+                                             'crop_amount']
 
         # select only production rows corresponding to the user-defined crop
         #  measure
@@ -76,7 +77,7 @@ class FugitiveDust(Module):
         # clean up DataFrame
         # @TODO verify that these are the columns to return
         _df = _df[['row_id', 'feedstock', 'source_category', 'tillage_type',
-                   'source_category', 'region', 'pollutant',
+                   'source_category', 'region_production', 'pollutant',
                    'pollutant_amount']].set_index('row_id', drop = True)
 
         return _df
