@@ -81,3 +81,27 @@ class FugitiveDust(Module):
                    'pollutant_amount']].set_index('row_id', drop = True)
 
         return _df
+
+    def run(self):
+        """
+        Execute all calculations.
+
+        :return: _results DataFrame containing fugitive dust amounts
+        """
+
+        _results = None
+        _status = self.status
+
+        try:
+            _results = self.get_fugitivedust()
+        except Exception as e:
+            LOGGER.exception(e)
+            _status = 'failed'
+        else:
+            _status = 'complete'
+        finally:
+            self.status = _status
+            return _results
+
+    def summarize(self):
+        pass
