@@ -13,7 +13,7 @@ class FugitiveDust(Module):
         :param config [ConfigObj] configuration options
         :param production: [DataFrame] production values
         :param fugitive_dust_emission_factors: [DataFrame] fugitive dust
-        generation per acre
+        generation per acre for an average crop production year
         """
 
         # init parent
@@ -21,22 +21,9 @@ class FugitiveDust(Module):
 
         # init properties
         self.production = production
+        self.fugitive_dust = fugitive_dust_emission_factors
         self.crop_measure_type = crop_measure_type
-
-        # pre-process fugitive dust input file to calculate
-        # fugitive dust generation per acre for one average year
-
-        # average fugitive dust emission factors over rotation_year within
-        # each feedstock-tillage-pollutant combo
-        # these average numbers get multiplied by acreages to calculate
-        # fugitive dust by feedstock, tillage type, source category and region
-        self.fugitive_dust = fugitive_dust_emission_factors.groupby([
-            'feedstock', 'tillage_type', 'source_category',
-            'pollutant'], as_index=False).mean()
-
-        # remove rotation_year column which no longer has useful
-        # information in it
-        self.fugitive_dust.drop('rotation_year', axis=1, inplace=True)
+        
 
     def get_fugitivedust(self):
         """
