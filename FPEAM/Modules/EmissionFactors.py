@@ -57,15 +57,8 @@ class EmissionFactors(Module):
         #  convert resource mass to pollutant mass
         self.overall_factors = _factors_merge.groupby(['feedstock',
                                                        'resource',
-                                                       'pollutant']).sum()
-
-        # convert the indexes created by groupby back into regular columns
-        # for further merging with equipment, production
-        self.overall_factors.reset_index(level = ['feedstock',
-                                                  'resource',
-                                                  'pollutant'],
-                                         inplace = True)
-
+                                                       'pollutant'],
+                                                      as_index = False).sum()
 
     def get_emissions(self):
         """
