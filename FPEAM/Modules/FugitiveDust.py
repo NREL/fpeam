@@ -54,7 +54,7 @@ class FugitiveDust(Module):
 
         # clean up DataFrame
         # @TODO verify that these are the columns to return
-        _df = _df[['row_id', 'source_category', 'pollutant',
+        _df = _df[['row_id', 'pollutant',
                    'pollutant_amount']].set_index('row_id', drop=True)
 
         return _df
