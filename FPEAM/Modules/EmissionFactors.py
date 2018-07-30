@@ -10,7 +10,7 @@ class EmissionFactors(Module):
     emission factors"""
 
     def __init__(self, config, equipment, production, resource_distribution,
-                 emission_factors, crop_measure_type,
+                 emission_factors, feedstock_measure_type,
                  **kvals):
         """
         :param config [ConfigObj] configuration options
@@ -20,7 +20,7 @@ class EmissionFactors(Module):
         distribution (fraction, unitless) by feedstock
         :param emission_factors: [DataFrame] Emission factors for each
         resource and resource subtype (lb pollutant/lb resource)
-        :param crop_measure_type: [string] selects which crop amount is used to
+        :param feedstock_measure_type: [string] selects which crop amount is used to
          scale emission factors and calculate pollutants
         """
 
@@ -39,7 +39,7 @@ class EmissionFactors(Module):
         self.resource_distribution = resource_distribution
 
         # Selector for the crop amount that scales emission factors
-        self.crop_measure_type = crop_measure_type
+        self.feedstock_measure_type = feedstock_measure_type
 
         # merge emissions factors and resource subtype distribution
         # dataframes by matching resource and resource subtype
@@ -70,13 +70,14 @@ class EmissionFactors(Module):
 
         # create column selectors
         _idx = ['feedstock', 'tillage_type', 'equipment_group']
-        _prod_columns = ['row_id'] + _idx + ['crop_amount']
+        _prod_columns = ['row_id'] + _idx + ['feedstock_amount']
         _equip_columns = ['row_id'] + _idx + ['rate']
         _factors_columns = ['feedstock', 'resource', 'overall_rate',
                             'pollutant']
 
         # create row selectors
-        _prod_rows = self.production.crop_measure == self.crop_measure_type
+        _prod_rows = self.production.feedstock_measure == \
+                     self.feedstock_measure_type
 
         # combine production and equipment and overall factors
         _df = self.production[_prod_rows][_prod_columns].merge(self.equipment[
@@ -89,7 +90,7 @@ class EmissionFactors(Module):
                                                           'resource'])
 
         # calculate emissions
-        _df.eval('pollutant_amount = overall_factor * crop_amount * rate',
+        _df.eval('pollutant_amount = overall_factor * feedstock_amount * rate',
                  inplace = True)
 
         # clean up DataFrame

@@ -8,7 +8,7 @@ class FugitiveDust(Module):
     """Base class to manage execution of on-farm fugitive dust calculations"""
 
     def __init__(self, config, production, fugitive_dust_emission_factors,
-                 crop_measure_type, **kvals):
+                 feedstock_measure_type, **kvals):
         """
         :param config [ConfigObj] configuration options
         :param production: [DataFrame] production values
@@ -22,7 +22,7 @@ class FugitiveDust(Module):
         # init properties
         self.production = production
         self.fugitive_dust = fugitive_dust_emission_factors
-        self.crop_measure_type = crop_measure_type
+        self.feedstock_measure_type = feedstock_measure_type
         
 
     def get_fugitivedust(self):
@@ -39,18 +39,19 @@ class FugitiveDust(Module):
 
         # define list of columns of interest in production
         _prod_columns = ['row_id'] + _idx + ['region_production',
-                                             'crop_amount']
+                                             'feedstock_amount']
 
         # select only production rows corresponding to the user-defined crop
         #  measure
-        _prod_rows = self.production.crop_measure == self.crop_measure_type
+        _prod_rows = self.production.feedstock_measure == \
+                     self.feedstock_measure_type
 
         # merge production with fugitive dust
         _df = self.production[_prod_rows][_prod_columns].merge(
             self.fugitive_dust, on=_idx)
 
         # calculate fugitive dust
-        _df.eval('pollutant_amount = crop_amount * rate', inplace=True)
+        _df.eval('pollutant_amount = feedstock_amount * rate', inplace=True)
 
         # clean up DataFrame
         # @TODO verify that these are the columns to return
