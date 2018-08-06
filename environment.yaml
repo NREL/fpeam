@@ -2,4 +2,4 @@ name: fpeam
 dependencies:
 - pandas
 - configobj
-- python=2.7
+- python=3.5+
