@@ -81,6 +81,12 @@ class Module(object):
         _conversions['ton'] = dict()
         _conversions['ton']['pounds'] = 1.0 / 2000.0  # 1 ton = 2000 lbs
 
+        _conversions['mile'] = dict()
+        _conversions['mile']['kilometer'] = 1.60934
+
+        _conversions['kilometer'] = dict()
+        _conversions['kilometer']['mile'] = 0.621371
+
         return _conversions
 
     def run(self):
