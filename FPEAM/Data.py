@@ -1,16 +1,9 @@
 import pandas as pd
 from IO import load
-from collections import OrderedDict
 
 from . import utils
 
 LOGGER = utils.logger(name=__name__)
-
-# move logger to file-level
-# move basicConfig to fpeam.py and out of module
-# maybe don't use DataFrame (could have adverse side-effects)
-# don't need to re-set inherited properties
-# use pytest for crying out loud
 
 
 class Data(pd.DataFrame):
@@ -188,3 +181,27 @@ class NONROADEquipment(Data):
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(NONROADEquipment, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
+class TransportationGraph(Data):
+
+    COLUMNS = {'edge_id': int,
+               'u_of_edge': int,
+               'v_of_edge': int,
+               'weight': float}
+
+    INDEX_COLUMNS = ('edge_id', )
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(TransportationGraph, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
+class CountyNode(Data):
+
+    COLUMNS = {'fips': str,
+               'node_id': int}
+
+    INDEX_COLUMNS = ('fips', )
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(CountyNode, self).__init__(df=df, fpath=fpath, columns=columns)
