@@ -69,24 +69,18 @@ class MOVES(Module):
 
         # file-specific input directories - combine paths from config with
         # file-specific subdirectory names
-        self.save_path_importfiles = os.path.join(self.moves_datafiles_path,
-                                                  'import_files')
-        self.save_path_runspecfiles = os.path.join(self.moves_datafiles_path,
-                                                   'run_specs')
-        self.save_path_countyinputs = os.path.join(self.moves_datafiles_path,
-                                                   'county_inputs')
-        self.save_path_nationalinputs = os.path.join(self.moves_datafiles_path,
-                                                     'national_inputs')
+        self.save_path_importfiles = os.path.join(self.moves_datafiles_path, 'import_files')
+        self.save_path_runspecfiles = os.path.join(self.moves_datafiles_path, 'run_specs')
+        self.save_path_countyinputs = os.path.join(self.moves_datafiles_path, 'county_inputs')
+        self.save_path_nationalinputs = os.path.join(self.moves_datafiles_path, 'national_inputs')
 
         # additional input file paths
-        self.avft_filename = os.path.join(self.save_path_nationalinputs,
-                                          'avft.csv')
+        self.avft_filename = os.path.join(self.save_path_nationalinputs, 'avft.csv')
         self.setenv_file = os.path.join(self.moves_path, 'setenv.bat')
 
         # file-specific output directory - combine paths from config with
         # file-specific subdirectory names
-        self.save_path_outputs = os.path.join(self.moves_datafiles_path,
-                                              'outputs')
+        self.save_path_outputs = os.path.join(self.moves_datafiles_path, 'outputs')
 
         # list of file paths for MOVES inputs and outputs
         _path_list = [self.save_path_importfiles,
@@ -202,8 +196,7 @@ class MOVES(Module):
             kvals['table'] = _table
 
             _table_sql = """SELECT * FROM {moves_database}.{table} WHERE
-                     sourceTypeID = {source_type_id};""".format(
-                    **kvals)
+                     sourceTypeID = {source_type_id};""".format(**kvals)
 
             # pull data from database and save in a csv
             pd.read_sql(_table_sql, self.moves_con).to_csv(os.path.join(
@@ -219,8 +212,7 @@ class MOVES(Module):
         # @NOTE DO NOT CHANGE data frame column names
         _avft_file = pd.DataFrame({'sourceTypeID': np.repeat(self.source_type_id,
                                                              self.fuel_fraction.__len__()),
-                                   'modelYearID': np.repeat(range(1960, 2051),
-                                                            2),
+                                   'modelYearID': np.repeat(range(1960, 2051), 2),
                                    'fuelTypeID': np.tile(range(1, 3),
                                                          0.5 * self.fuel_fraction.__len__()),
                                    'engTechID': np.repeat(self.engine_tech,
@@ -237,8 +229,7 @@ class MOVES(Module):
 
         _agedist_sql = """SELECT * FROM
         {moves_database}.sourcetypeagedistribution WHERE
-        sourceTypeID = {source_type_id} AND yearID = {year};""".format(
-                **kvals)
+        sourceTypeID = {source_type_id} AND yearID = {year};""".format(**kvals)
 
         # save this file name to self so it can be used by create_xml_import
         self.agedistfilename = os.path.join(
@@ -246,8 +237,7 @@ class MOVES(Module):
                 'default-age-distribution-tool-moves%s.csv' % (self.year,))
 
         # pull data from database and save in a csv
-        pd.read_sql(_agedist_sql, self.moves_con).to_csv(self.agedistfilename,
-                                                         index=False)
+        pd.read_sql(_agedist_sql, self.moves_con).to_csv(self.agedistfilename, index=False)
 
         # create file for road type VMT fraction from user-specified VMT
         # fractions
@@ -260,12 +250,10 @@ class MOVES(Module):
         # store in self for later use in postprocessing
         self.roadtypevmt = pd.DataFrame({'sourceTypeID': np.repeat(self.source_type_id, 4),
                                          'roadTypeID': range(1, 5),
-                                         'roadTypeVMTFraction':
-                                             self.vmt_fraction})
+                                         'roadTypeVMTFraction': self.vmt_fraction})
 
         # write to csv
-        self.roadtypevmt.to_csv(self.roadtypevmt_filename, sep=',',
-                                index=False)
+        self.roadtypevmt.to_csv(self.roadtypevmt_filename, sep=',', index=False)
 
     def create_county_data(self, fips):
         """
@@ -314,8 +302,7 @@ class MOVES(Module):
         # need one for each fips
         _sourcetype = pd.DataFrame({'yearID': self.year,
                                     'sourceTypeID': self.source_type_id,
-                                    'sourceTypePopulation':
-                                        self.pop_short_haul})
+                                    'sourceTypePopulation': self.pop_short_haul})
 
         # @NOTE the name is FIPS dependent, cannot be created in init
         self.sourcetype_filename = os.path.join(self.save_path_countyinputs,
@@ -341,8 +328,7 @@ class MOVES(Module):
                                                 'year}.csv'.format(**kvals))
 
         # pull data from database and save in a csv
-        pd.read_sql(_fuelsupply_sql,
-                    self.moves_con).to_csv(self.fuelsupply_filename)
+        pd.read_sql(_fuelsupply_sql, self.moves_con).to_csv(self.fuelsupply_filename)
 
         # export county-level fuel formulation data
         # need one for each FIPS-year combination
@@ -375,8 +361,7 @@ class MOVES(Module):
                                                'year}.csv'.format(**kvals))
 
         # pull data from database and save in a csv
-        pd.read_sql(_fuelusagename_sql,
-                    self.moves_con).to.csv(self.fuelusage_filename)
+        pd.read_sql(_fuelusagename_sql, self.moves_con).to.csv(self.fuelusage_filename)
 
         # export county-level meteorology data
         # need one for each FIPS
@@ -409,14 +394,10 @@ class MOVES(Module):
         # create these files here since they were generated in a loop in
         # create_national_inputs - no stored filename
         # path to average speed distribution file (national inputs)
-        _avgspeeddist_filename = os.path.join(self.save_path_nationalinputs,
-                                              'avgspeeddistribution')
-        _month_vmt_filename = os.path.join(self.save_path_nationalinputs,
-                                           'monthvmtfraction')
-        _day_vmt_filename = os.path.join(self.save_path_nationalinputs,
-                                         'dayvmtfraction')
-        _hour_vmt_filename = os.path.join(self.save_path_nationalinputs,
-                                          'hourvmtfraction')
+        _avgspeeddist_filename = os.path.join(self.save_path_nationalinputs, 'avgspeeddistribution')
+        _month_vmt_filename = os.path.join(self.save_path_nationalinputs, 'monthvmtfraction')
+        _day_vmt_filename = os.path.join(self.save_path_nationalinputs, 'dayvmtfraction')
+        _hour_vmt_filename = os.path.join(self.save_path_nationalinputs, 'hourvmtfraction')
 
         # create XML for elements with CDATA
         self.internalcontrol = etree.XML(
@@ -463,8 +444,7 @@ class MOVES(Module):
                         hourvmtfilename=_hour_vmt_filename), self.parser)
 
         # input database
-        self.db_in = "fips_{fips}_{year}_in".format(fips=fips,
-                                                    year=self.year)
+        self.db_in = "fips_{fips}_{year}_in".format(fips=fips, year=self.year)
         # scenario ID for MOVES runs
         # ends up in tables in the MOVES output database
         self.scenid = "{fips}_{year}_{month}_{day}".format(fips=fips,
@@ -574,8 +554,7 @@ class MOVES(Module):
                     "ECPM": ["1", "2", "90", "91"],
                     "Carbon": ["1", "2", "90", "91"],
                     "H20": ["1", "2", "90", "91"],
-                    "NMHC": ["1", "2", "11", "12", "13", "18", "19", "90",
-                             "91"],
+                    "NMHC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
                     "NOX": ["1", "2", "15", "16", "17", "90", "91"],
                     "PM10": ["1", "2", "15", "16", "17", "90", "91"],
                     "PM25": ["1", "2", "15", "16", "17", "90", "91"],
@@ -583,8 +562,7 @@ class MOVES(Module):
                     "SO2": ["1", "2", "15", "16", "17", "90", "91"],
                     "TEC": ["1", "2", "90", "91"],
                     "THC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
-                    "VOC": ["1", "2", "11", "12", "13", "15", "16", "17", "18",
-                            "19", "90", "91"]}
+                    "VOC": ["1", "2", "11", "12", "13", "15", "16", "17", "18", "19", "90", "91"]}
 
         # XML for pollutant process associations
         # create element for pollutant process associations
@@ -614,16 +592,14 @@ class MOVES(Module):
         # XML for road types
         roadtypes = etree.Element("roadtypes", {"separateramps": "false"})
         for roads in roaddict:
-            roadtype = etree.SubElement(roadtypes, "roadtype",
-                                        roadtypeid=roads)
+            roadtype = etree.SubElement(roadtypes, "roadtype", roadtypeid=roads)
             roadtype.set("roadtypename", roaddict[roads])
             roadtype.set("modelCombination", "M1")
 
         # Create XML element tree for MOVES input database information
 
         # XML for database selection
-        databasesel = etree.Element("databaseselection",
-                                    servername=self.server)
+        databasesel = etree.Element("databaseselection", servername=self.server)
         databasesel.set("databasename", self.db_in)
 
         # Create XML element tree for MOVES vehicle age distribution
@@ -729,8 +705,7 @@ class MOVES(Module):
         # Transform element tree to string and save to file
 
         # create string from element tree
-        stringout = etree.tostring(importfilestring, pretty_print=True,
-                                   encoding='utf8')
+        stringout = etree.tostring(importfilestring, pretty_print=True, encoding='utf8')
 
         # create import filename using FIPS code, crop, and scenario year
         _im_filename = os.path.join(self.save_path_importfiles,
@@ -758,39 +733,30 @@ class MOVES(Module):
                                                        year=self.year)
 
         # Create XML element tree for elements with MOVES inputs with CDATA
-        description = etree.XML('<description><![CDATA[]]></description>',
-                                _parser)
+        description = etree.XML('<description><![CDATA[]]></description>', _parser)
         internalcontrol = etree.XML(
                 '<internalcontrolstrategy classname="gov.epa.otaq.moves.master.implementation.ghg.'
                 'internalcontrolstrategies.rateofprogress.RateOfProgressStrategy">'
-                '<![CDATA[useParameters	No]]></internalcontrolstrategy>',
-                _parser)
+                '<![CDATA[useParameters	No]]></internalcontrolstrategy>', _parser)
 
         # Create XML element tree for MOVES uncertainty parameters
-        uncertaintyparam = etree.Element("uncertaintyparameters",
-                                         uncertaintymodeenabled="false")
+        uncertaintyparam = etree.Element("uncertaintyparameters", uncertaintymodeenabled="false")
         uncertaintyparam.set("numberofrunspersimulation", "0")
         uncertaintyparam.set("numberofsimulations", "0")
 
         # Create XML element tree for MOVES output emissions breakdown,
         # which specifies which outputs are included in MOVES analysis
-        outputemissions = etree.Element(
-                "outputemissionsbreakdownselection")
+        outputemissions = etree.Element("outputemissionsbreakdownselection")
         etree.SubElement(outputemissions, "modelyear", selected="false")
         etree.SubElement(outputemissions, "fueltype", selected="false")
         etree.SubElement(outputemissions, "fuelsubtype", selected="false")
-        etree.SubElement(outputemissions, "emissionprocess",
-                         selected="true")
+        etree.SubElement(outputemissions, "emissionprocess", selected="true")
         etree.SubElement(outputemissions, "onroadoffroad", selected="true")
         etree.SubElement(outputemissions, "roadtype", selected="true")
-        etree.SubElement(outputemissions, "sourceusetype",
-                         selected="false")
-        etree.SubElement(outputemissions, "movesvehicletype",
-                         selected="false")
+        etree.SubElement(outputemissions, "sourceusetype", selected="false")
+        etree.SubElement(outputemissions, "movesvehicletype", selected="false")
         etree.SubElement(outputemissions, "onroadscc", selected="false")
-        estimateduncer = etree.SubElement(outputemissions,
-                                          "estimateuncertainty",
-                                          selected="false")
+        estimateduncer = etree.SubElement(outputemissions, "estimateuncertainty", selected="false")
         estimateduncer.set("numberOfIterations", "2")
         estimateduncer.set("keepSampledData", "false")
         estimateduncer.set("keepIterations", "false")
@@ -800,29 +766,22 @@ class MOVES(Module):
         etree.SubElement(outputemissions, "regclassid", selected="false")
 
         # Create XML element tree for MOVES output database information
-        outputdatabase = etree.Element("outputdatabase",
-                                       servername=self.server)
+        outputdatabase = etree.Element("outputdatabase", servername=self.server)
         outputdatabase.set("databasename", self.moves_output_db)
         outputdatabase.set("description", "")
 
         # Create XML element tree for MOVES input database information
-        scaleinput = etree.Element("scaleinputdatabase",
-                                   servername=self.server)
-        scaleinput.set("databasename",
-                       "fips_{fips}_{year}_in".format(fips=fips,
-                                                      year=self.year))
+        scaleinput = etree.Element("scaleinputdatabase", servername=self.server)
+        scaleinput.set("databasename", "fips_{fips}_{year}_in".format(fips=fips, year=self.year))
         scaleinput.set("description", "")
 
         # Create XML element tree for units used for MOVES output
         outputfactors = etree.Element("outputfactors")
-        timefac = etree.SubElement(outputfactors, "timefactors",
-                                   selected="true")
+        timefac = etree.SubElement(outputfactors, "timefactors", selected="true")
         timefac.set("units", "Hours")
-        disfac = etree.SubElement(outputfactors, "distancefactors",
-                                  selected="true")
+        disfac = etree.SubElement(outputfactors, "distancefactors", selected="true")
         disfac.set("units", "Miles")
-        massfac = etree.SubElement(outputfactors, "massfactors",
-                                   selected="true")
+        massfac = etree.SubElement(outputfactors, "massfactors", selected="true")
         massfac.set("units", "Grams")
         massfac.set("energyunits", "Joules")
 
@@ -835,8 +794,7 @@ class MOVES(Module):
         gendata.set("description", "")
 
         # lookupflags for database
-        lookupflag = etree.Element("lookuptableflags",
-                                   scenarioid=_scenid)
+        lookupflag = etree.Element("lookuptableflags", scenarioid=_scenid)
         lookupflag.set("truncateoutput", "true")
         lookupflag.set("truncateactivity", "true")
         lookupflag.set("truncatebaserates", "true")
@@ -973,8 +931,7 @@ class MOVES(Module):
         # XML for road types
         roadtypes = etree.Element("roadtypes", {"separateramps": "false"})
         for _roads in _roaddict:
-            roadtype = etree.SubElement(roadtypes, "roadtype",
-                                        roadtypeid=_roads)
+            roadtype = etree.SubElement(roadtypes, "roadtype", roadtypeid=_roads)
             roadtype.set("roadtypename", _roaddict[_roads])
             roadtype.set("modelCombination", "M1")
 
@@ -987,31 +944,21 @@ class MOVES(Module):
         _runspecfilestring = (
             E.runspec(
                     description,
-                    E.models(
-                            etree.Element("model", value="ONROAD")
-                    ),
+                    E.models(etree.Element("model", value="ONROAD")),
                     etree.Element("modelscale", value="Rates"),
                     etree.Element("modeldomain", value="SINGLE"),
-                    E.geographicselections(
-                            geoselect
-                    ),
+                    E.geographicselections(geoselect),
                     timespan,
-                    E.onroadvehicleselections(
-                            vehicle_selection
-                    ),
-                    E.offroadvehicleselections(""
-                                               ),
-                    E.offroadvehiclesccs(""
-                                         ),
+                    E.onroadvehicleselections(vehicle_selection),
+                    E.offroadvehicleselections(""),
+                    E.offroadvehiclesccs(""),
                     roadtypes,
                     polproc,
-                    E.databaseselections(""
-                                         ),
+                    E.databaseselections(""),
                     E.internalcontrolstrategies(internalcontrol),
                     inputdatabase,
                     uncertaintyparam,
-                    etree.Element("geographicoutputdetail",
-                                  description="LINK"),
+                    etree.Element("geographicoutputdetail", description="LINK"),
                     outputemissions,
                     outputdatabase,
                     etree.Element("outputtimestep", value="Hour"),
@@ -1025,13 +972,10 @@ class MOVES(Module):
                     inputdatabase,
                     etree.Element("pmsize", value="0"),
                     outputfactors,
-                    E.savedata(""
-                               ),
-                    E.donotexecute(""
-                                   ),
+                    E.savedata(""),
+                    E.donotexecute(""),
                     gendata,
-                    etree.SubElement(gendata, "donotperformfinalaggregation",
-                                     selected="false"),
+                    etree.SubElement(gendata, "donotperformfinalaggregation", selected="false"),
                     lookupflag,
                     # @TODO check that this works
                     version=self.moves_version)
@@ -1076,20 +1020,17 @@ class MOVES(Module):
         # path for batch import file
         self.batchimport_filename = os.path.join(self.moves_path,
                                                  'batch_import_FPEAM_{fips}_{year}_{'
-                                                 'title}_{timestamp}.bat'.format(
-                                                         **kvals))
+                                                 'title}_{timestamp}.bat'.format(**kvals))
         # path for XML import files
         self.xmlimport_filename = os.path.join(self.save_path_importfiles,
-                                               '{fips}_import_{year}.mrs'.format(
-                                                       **kvals))
+                                               '{fips}_import_{year}.mrs'.format(**kvals))
         # path for batch run file
         self.batchrun_filename = os.path.join(self.moves_path,
                                               'batch_run_FPEAM_{fips}_{year}_{title}_{'
                                               'timestamp}.bat'.format(**kvals))
         # path for XML runspec files
         self.runspec_filename = os.path.join(self.save_path_runspecfiles,
-                                             '{fips}_runspec_{year}.mrs'.format(
-                                                     **kvals))
+                                             '{fips}_runspec_{year}.mrs'.format(**kvals))
 
         # Create batch file for importing data using MOVES County Data Manager
 
@@ -1100,12 +1041,10 @@ class MOVES(Module):
             batchwriter.writerow([self.setenv_file])
             batchwriter.writerow(['echo Running %s' % (os.path.join(
                     self.save_path_importfiles,
-                    '{fips}_import_{year}.mrs'.format(fips=fips,
-                                                      year=self.year)))])
+                    '{fips}_import_{year}.mrs'.format(fips=fips, year=self.year)))])
             batchwriter.writerow([
                 'java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine'
-                ' -i {importfile}'.format(
-                        importfile=self.xmlimport_filename)])
+                ' -i {importfile}'.format(importfile=self.xmlimport_filename)])
 
         # Create batch file for running MOVES
 
@@ -1116,8 +1055,7 @@ class MOVES(Module):
             # @TODO: remove this echo and make a logger call
             batchwriter.writerow(['echo Running %s' % (os.path.join(
                     self.save_path_runspecfiles,
-                    '{fips}_runspec_{year}.mrs'.format(fips=fips,
-                                                       year=self.year)))])
+                    '{fips}_runspec_{year}.mrs'.format(fips=fips, year=self.year)))])
             batchwriter.writerow(['java -Xmx512M '
                                   'gov.epa.otaq.moves.master.'
                                   'commandline.MOVESCommandLine'
@@ -1166,8 +1104,7 @@ class MOVES(Module):
 
         # read in the table and get the list of unique fips for which
         # results already exist (takes year, month, day into account)
-        _fips_cached = pd.read_sql(_results_fips_sql,
-                                   self.moves_con).fips.unique()
+        _fips_cached = pd.read_sql(_results_fips_sql, self.moves_con).fips.unique()
 
         return _fips_cached
 
@@ -1202,15 +1139,13 @@ class MOVES(Module):
         for _table in _moves_table_list:
             LOGGER.debug('Adding fips column to {t}'.format(t=_table))
             _add_fips_sql = """ALTER TABLE {moves_output_db}.{t} 
-                                ADD COLUMN fips char(5);""".format(t=_table,
-                                                                   **kvals)
-            _nrows_fips_alter = self.moves_cursor.execute(_add_fips_sql)
+                                ADD COLUMN fips char(5);""".format(t=_table, **kvals)
+            self.moves_cursor.execute(_add_fips_sql)
 
             LOGGER.debug('Updating fips column to {t}'.format(t=_table))
             _update_fips_sql = """UPDATE {moves_output_db}.{t} 
-                    SET fips = LEFT(MOVESScenarioID, 5);""".format(t=_table,
-                                                                   **kvals)
-            _nrows_fips_update = self.moves_cursor.execute(_update_fips_sql)
+                    SET fips = LEFT(MOVESScenarioID, 5);""".format(t=_table, **kvals)
+            self.moves_cursor.execute(_update_fips_sql)
 
         # close cursor
         self.moves_cursor.close()
@@ -1250,18 +1185,15 @@ class MOVES(Module):
                     ON dist_table.MOVESRunID =
                     runid_filter.MOVESRunID
               WHERE dist_table.yearID = {year} AND dist_table.monthID = {
-              month} AND dist_table.dayID = {day};""".format(
-                **kvals)
+              month} AND dist_table.dayID = {day};""".format(**kvals)
 
         # read in all possibly relevant entries from the rate per distance
         # table
-        _rateperdistance_all = pd.read_sql(_rateperdistance_table_sql,
-                                           self.moves_con)
+        _rateperdistance_all = pd.read_sql(_rateperdistance_table_sql, self.moves_con)
 
         # create a filter for relevant rateperdistance rows based on which
         # fips in rateperdistance are equal to fips in the moves run list
-        _rateperdistance_filter = _rateperdistance_all.fips.isin(
-                self.moves_run_list.fips)
+        _rateperdistance_filter = _rateperdistance_all.fips.isin( self.moves_run_list.fips)
 
         # filter down the large rateperdistance table into just the rows
         # that are relevant to this run
@@ -1293,14 +1225,11 @@ class MOVES(Module):
                         AND veh.fips = q.fips) runid_filter
                 ON veh_table.MOVESRunID = runid_filter.MOVESRunID
               WHERE dist_table.yearID = {year} AND dist_table.monthID = {
-              month} AND dist_table.dayID = {day};""".format(
-                **kvals)
+              month} AND dist_table.dayID = {day};""".format(**kvals)
 
-        _ratepervehicle_all = pd.read_sql(_ratepervehicle_table_sql,
-                                          self.moves_con)
+        _ratepervehicle_all = pd.read_sql(_ratepervehicle_table_sql, self.moves_con)
 
-        _ratepervehicle_filter = _ratepervehicle_all.fips.isin(
-                self.moves_run_list.fips)
+        _ratepervehicle_filter = _ratepervehicle_all.fips.isin( self.moves_run_list.fips)
 
         _ratepervehicle = _ratepervehicle_all[_ratepervehicle_filter]
 
@@ -1308,10 +1237,8 @@ class MOVES(Module):
 
         # add state column to both tables by pulling out first two digits of
         #  MOVESScenarioID
-        _rateperdistance['state'] = \
-            _rateperdistance.MOVESScenarioID.str.slice(stop=2)
-        _ratepervehicle['state'] = \
-            _ratepervehicle.MOVESScenarioID.str.slice(stop=2)
+        _rateperdistance['state'] = _rateperdistance.MOVESScenarioID.str.slice(stop=2)
+        _ratepervehicle['state'] = _ratepervehicle.MOVESScenarioID.str.slice(stop=2)
 
         # create the average speed table that will be used in calculating
         # the average emissions rate per distance
@@ -1331,8 +1258,7 @@ class MOVES(Module):
         # the VMT fraction table created during MOVES setup
         # @NOTE the roadTypeID column in roadtypevmt needs to be int64 type
         _averagespeed = pd.read_sql(_averagespeed_query,
-                                    self.moves_con).merge(self.roadtypevmt,
-                                                          on='roadTypeID')
+                                    self.moves_con).merge(self.roadtypevmt, on='roadTypeID')
 
         # Calculate total running emissions per trip (by pollutant)
         # Equal to sum(ratePerDistance * vmtfrac_in_speedbin[i] * vmt)
@@ -1465,7 +1391,6 @@ class MOVES(Module):
                                                     as_index=False).max()
 
         if self.moves_state_level:
-
             # sum total feedstock production within each fips-state-year combo
             _amts_by_fips = _prod_by_fips_feed.groupby(['MOVES_fips',
                                                         'MOVES_state'],
@@ -1480,18 +1405,14 @@ class MOVES(Module):
             # unique fips-state combos to run MOVES on
             self.moves_run_list = _max_amts[['MOVES_fips',
                                              'MOVES_state']].drop_duplicates()
-
         elif self.moves_by_feedstock:
-
             # get a list of unique fips-state-year combos to run MOVES on
             # keep feedstock in there to match results from each MOVES run
             # to the correct set of feedstock production data
             self.moves_run_list = _max_amts_feed[['MOVES_fips',
                                                   'MOVES_state',
                                                   'feedstock']].drop_duplicates()
-
         else:
-
             # if neither moves_state_level nor moves_by_feedstock are True,
             # the fips-state-year combos to run MOVES on come straight from
             # the production data
@@ -1523,8 +1444,7 @@ class MOVES(Module):
              'feedstock_amount']].drop_duplicates()
 
         # rename the non-summed year column to maintain that identifier
-        self.prod_moves_runs.rename(index=str, columns={'year_y': 'year'},
-                                    inplace=True)
+        self.prod_moves_runs.rename(index=str, columns={'year_y': 'year'}, inplace=True)
 
         # @NOTE prod_moves_runs is being stored in self as a potential
         # output or check on functionality; it'll also be used in
@@ -1534,7 +1454,6 @@ class MOVES(Module):
         # begin to create the input data and run MOVES
 
         if self.use_cached_results:
-
             # run only fips for which there are no cached results
             # @TODO implement: subset and redefine moves_run_list, 
             # excluding those fips for which results already exist
@@ -1543,15 +1462,12 @@ class MOVES(Module):
 
             for _fips in _exclude_fips:
                 # report that MOVES run already complete
-                LOGGER.info('MOVES run already complete for fips: %s' %
-                            _fips)
+                LOGGER.info('MOVES run already complete for fips: %s' % _fips)
 
             # create shortened list of fips to run through MOVES
             _run_fips = [x for x in self.prod_moves_runs.MOVES_run_fips
                          if x not in _exclude_fips]
-
         else:
-
             # run all fips regardless of whether cached results exist or not
             _run_fips = self.moves_run_list.MOVES_run_fips
 
