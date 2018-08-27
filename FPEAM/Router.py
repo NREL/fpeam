@@ -40,7 +40,9 @@ class Router(object):
         _from_node = self.node_map[from_fips]
         _to_node = self.node_map[to_fips]
 
-        return self.algorithm(self.Graph, _from_node, _to_node)
+        _route = self.algorithm(self.Graph, _from_node, _to_node)
+
+        return _route
 
 
 if __name__ == '__main__':
