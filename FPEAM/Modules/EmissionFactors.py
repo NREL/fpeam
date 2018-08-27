@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from os import path
-from Module import Module
-from FPEAM import (utils, IO)
+from .Module import Module
+from .. import (utils, IO)
 LOGGER = utils.logger(name=__name__)
 
 
