@@ -1,4 +1,3 @@
-from Engine import Engine
 from collections import Iterable
 import Data
 import utils
@@ -46,7 +45,7 @@ class FPEAM(object):
         self.emission_factors =\
             Data.EmissionFactor(fpath=self.config.get('emission_factors', None))
         self.fertilizer_distribution =\
-            Data.FertilizerDistribution(fpath=self.config.get('fertilizer_distribution', None))
+            Data.ResourceDistribution(fpath=self.config.get('fertilizer_distribution', None))
         self.fugitive_dust =\
             Data.FugitiveDust(fpath=self.config.get('fugitive_dust_emission_factors', None))
         self.moisture_content =\
