@@ -104,10 +104,15 @@ class Equipment(Data):
 
 class Production(Data):
 
-    COLUMNS = {'feedstock': str, 'tillage_type': str,
-               'production_region': str, 'equipment_group': str,
-               'nonroad_fips': str, 'moves_fips': str,
-               'feedstock_measure': str, 'feedstock_amount': float, 'unit': str}
+    COLUMNS = {'feedstock': str,
+               'tillage_type': str,
+               'region_production': str,
+               'region_destination': str,
+               'equipment_group': str,
+               'feedstock_measure': str,
+               'feedstock_amount': float,
+               'unit_numerator': str,
+               'unit_denominator': str}
 
     # @TODO: moves_fips and nonroad_fips columns should be optional and backfilled with NaN if not present
 
