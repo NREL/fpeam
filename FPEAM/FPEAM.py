@@ -1,8 +1,9 @@
 from collections import Iterable
-import Data
-import utils
-import Modules
-from IO import CONFIG_FOLDER
+from . import Data
+from . import utils
+from . import Modules
+from .IO import CONFIG_FOLDER
+from .Router import Router
 import os
 LOGGER = utils.logger(name=__name__)
 
@@ -19,8 +20,6 @@ class FPEAM(object):
     def __init__(self, run_config):
 
         """
-        :param budget: [DataFrame]
-        :param production: [DataFrame]
         :param run_config: [ConfigObj]
         """
 
@@ -54,6 +53,12 @@ class FPEAM(object):
             Data.NONROADEquipment(fpath=self.config.get('nonroad_equipment', None))
         self.ssc_codes = Data.SCCCodes(fpath=self.config.get('scc_codes', None))
 
+        self.transportation_graph =\
+            Data.TransportationGraph(fpath=self.config.get('transportation_graph', None))
+        self.county_node = Data.CountyNode(fpath=self.config.get('county_node', None))
+
+        self.router = Router(edges=self.transportation_graph, node_map=self.county_node)
+
         for _module in self.config['modules']:
             try:
                 self.__setattr__(_module,
@@ -63,7 +68,8 @@ class FPEAM(object):
                                                         emission_factors=self.emission_factors,
                                                         fertilizer_distribution=self.fertilizer_distribution,
                                                         fugitive_dust=self.fugitive_dust,
-                                                        moisture_content=self.moisture_content))
+                                                        moisture_content=self.moisture_content,
+                                                        router=self.router))
             except KeyError:
                 if _module not in FPEAM.MODULES.keys():
                     LOGGER.warning('invalid module name: {}.'
@@ -75,88 +81,6 @@ class FPEAM(object):
                 raise
             else:
                 self._modules[_module] = self.__getattribute__(_module)
-
-    # self.Engine = Engine(budget=self.budget, production=self.production, config=self.config)
-
-    # @property
-    # def budget(self):
-    #     return self._budget
-    #
-    # @budget.setter
-    # def budget(self, value):
-    #     try:
-    #         assert Data.Budget.validate(value)
-    #     except AssertionError:
-    #         raise RuntimeError('{} failed validation: \n\n{}'.format('budget', value.head()))
-    #     else:
-    #         self._budget = Data.Budget(df=value)
-    #
-    # @property
-    # def production(self):
-    #     return self._production
-    #
-    # @production.setter
-    # def production(self, value):
-    #     try:
-    #         assert Data.Production.validate(value)
-    #     except AssertionError:
-    #         raise RuntimeError('{} failed validation: \n\n{}'.format('production', value.head()))
-    #     else:
-    #         self._production = Data.Production(df=value)
-    #
-    # @property
-    # def emission_factors(self):
-    #     return self._emission_factors
-    #
-    # @emission_factors.setter
-    # def emission_factors(self, value):
-    #     try:
-    #         assert Data.EmissionFactor.validate(value)
-    #     except AssertionError:
-    #         raise RuntimeError('{} failed validation: \n\n{}'.format('emission factors',
-    #                                                                  value.head()))
-    #     else:
-    #         self._emission_factors = Data.EmissionFactor(df=value)
-    #
-    # @property
-    # def fugitive_dust(self):
-    #     return self._fugitive_dust
-    #
-    # @fugitive_dust.setter
-    # def fugitive_dust(self, value):
-    #     try:
-    #         assert Data.FugitiveDust.validate(value)
-    #     except AssertionError:
-    #         raise RuntimeError('{} failed validation: \n\n{}'.format('emission factors',
-    #                                                                  value.head()))
-    #
-    # @property
-    # def fertilizer_distribution(self):
-    #     return self._fertilizer_distribution
-    #
-    # @fertilizer_distribution.setter
-    # def fertilizer_distribution(self, value):
-    #     try:
-    #         assert Data.FertilizerDistribution.validate(value)
-    #     except AssertionError:
-    #         raise RuntimeError('{} failed validation: \n\n{}'.format('emission factors',
-    #                                                                  value.head()))
-    #     else:
-    #         self._fertilizer_distribution = Data.FertilizerDistribution(df=value)
-    #
-    # @property
-    # def moisture_content(self):
-    #     return self._moisture_content
-    #
-    # @moisture_content.setter
-    # def moisture_content(self, value):
-    #     try:
-    #         assert Data.MoistureContent.validate(value)
-    #     except AssertionError:
-    #         raise RuntimeError('{} failed validation: \n\n{}'.format('emission factors',
-    #                                                                  value.head()))
-    #     else:
-    #         self._moisture_content = Data.MoistureContent(df=value)
 
     @property
     def config(self):
