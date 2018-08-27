@@ -6,23 +6,13 @@ import os
 
 from FPEAM import (Data, IO, FPEAM, utils)
 
-# try:
-#     str = basestring
-# except NameError:
-#     pass
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Execute FPEAM model against a given equipment'
                     ' group set and production'
                     ' dataset and configuration files')
 
-    # parser.add_argument('budget', type=str, help='equipment budget')
-    # parser.add_argument('production', type=str, help='production data')
     parser.add_argument('run_config', type=str, help='execution configuration')
-
-    # data_group = parser.add_argument_group('data files')
-    # data_group.add_argument('--')
 
     config_group = parser.add_argument_group('configuration files')
     config_group.add_argument('--fpeam_config', type=str,
@@ -59,7 +49,9 @@ if __name__ == '__main__':
     # create shared logger
     _logger = utils.logger(name=__name__)
     if args.verbose:
-        logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s [%(filename)s:%(module)s.%(funcName)s.%(lineno)d] %(message)s')
+        logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
+                                                  ' [%(filename)s:%(module)s.'
+                                                  '%(funcName)s.%(lineno)d] %(message)s')
 
     # load config options
     _config = IO.load_configs(args.moves_config,
@@ -67,10 +59,6 @@ if __name__ == '__main__':
                               args.chemical_config,
                               args.fugitivedust_config,
                               args.run_config)
-
-    # # load data
-    # _budget = Data.Equipment(fpath=_budget)
-    # _production = Data.Production(fpath=args.production)
 
     _fpeam = FPEAM(run_config=_config)
 
