@@ -1,6 +1,8 @@
 state_level_moves = boolean
 moves_by_crop = boolean
 
+feedstock_measure_type = string(default='harvested')
+
 moves_database = string
 moves_output_db = string
 moves_db_user = string

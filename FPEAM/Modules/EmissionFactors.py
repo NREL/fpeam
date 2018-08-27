@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
+
 from .Module import Module
-from .. import (utils, IO)
+from .. import utils
 LOGGER = utils.logger(name=__name__)
 
 
 class EmissionFactors(Module):
-    """Base class to manage execution of pollutants calculated from
-    emission factors"""
+    """Base class to manage execution of pollutants calculated from emission factors"""
 
     def __init__(self, config, equipment, production, resource_distribution,
-                 emission_factors, feedstock_measure_type,
-                 **kvals):
+                 emission_factors, **kvals):
         """
         :param config [ConfigObj] configuration options
         :param equipment: [DataFrame] equipment group
         :param production: [DataFrame] production values
-        :param resource_distribution: [DataFrame] Resource subtype
-        distribution (fraction, unitless) by feedstock
+        :param resource_distribution: [DataFrame] Resource subtype distribution
+                                      (fraction, unit-less) by feedstock
         :param emission_factors: [DataFrame] Emission factors for each
-        resource and resource subtype (lb pollutant/lb resource)
-        :param feedstock_measure_type: [string] selects which crop amount is used to
-         scale emission factors and calculate pollutants
+                                 resource and resource subtype (lb pollutant/lb resource)
         """
 
         # init parent
@@ -34,22 +31,20 @@ class EmissionFactors(Module):
         # Emissions factors, Units: lb pollutant/lb resource
         self.emission_factors = emission_factors
 
-        # Resource subtype distribution, Units: unitless fraction
+        # Resource subtype distribution, Units: unit-less fraction
         self.resource_distribution = resource_distribution
 
         # Selector for the crop amount that scales emission factors
-        self.feedstock_measure_type = feedstock_measure_type
+        self.feedstock_measure_type = config.get('feedstock_measure_type')
 
         # merge emissions factors and resource subtype distribution
         # dataframes by matching resource and resource subtype
-        _factors_merge = self.resource_distribution.merge(
-            self.emission_factors, on = ['resource',
-                                         'resource_subtype'])
+        _factors_merge = self.resource_distribution.merge(self.emission_factors,
+                                                          on=['resource', 'resource_subtype'])
 
         # calculate overall rate as the product of the resource subtype
         # distributions and the subtype-specific emission factors
-        _factors_merge.eval('overall_rate = distribution * rate',
-                            inplace = True)
+        _factors_merge.eval('overall_rate = distribution * rate', inplace=True)
 
         # sum emissions factors within unique combinations of
         # feedstock-resource-pollutant to generate overall factors that will
@@ -57,14 +52,14 @@ class EmissionFactors(Module):
         self.overall_factors = _factors_merge.groupby(['feedstock',
                                                        'resource',
                                                        'pollutant'],
-                                                      as_index = False).sum()
+                                                      as_index=False).sum()
 
     def get_emissions(self):
         """
         Calculate all emissions from <resource> for which a subtype
         distribution and emissions factors are provided.
 
-        :return: _df: DataFrame containing pollutant amounts
+        :return: [DataFrame] pollutant amounts
         """
 
         # create column selectors
@@ -75,28 +70,19 @@ class EmissionFactors(Module):
                             'pollutant']
 
         # create row selectors
-        _prod_rows = self.production.feedstock_measure == \
-                     self.feedstock_measure_type
+        _prod_rows = self.production.feedstock_measure == self.feedstock_measure_type
 
         # combine production and equipment and overall factors
-        _df = self.production[_prod_rows][_prod_columns].merge(self.equipment[
-                                                       _equip_columns],
-                                                   on = _idx,
-                                                   suffixes = ['_prod',
-                                                               '_equip'
-                                                               ]).merge(
-            self.overall_factors[_factors_columns], on = ['feedstock',
-                                                          'resource'])
+        _df = self.production[_prod_rows][_prod_columns]\
+            .merge(self.equipment[_equip_columns], on=_idx, suffixes=['_prod', '_equip'])\
+            .merge(self.overall_factors[_factors_columns], on=['feedstock', 'resource'])
 
         # calculate emissions
-        _df.eval('pollutant_amount = overall_factor * feedstock_amount * rate',
-                 inplace = True)
+        _df.eval('pollutant_amount = overall_factor * feedstock_amount * rate', inplace=True)
 
         # clean up DataFrame
         _df = _df[['row_id_prod', 'row_id_equip', 'resource',
-                   'resource_subtype',
-                   'pollutant_amount']].set_index('row_id_prod',
-                                                  drop = True)
+                   'resource_subtype', 'pollutant_amount']].set_index('row_id_prod', drop=True)
 
         return _df
 
@@ -104,7 +90,7 @@ class EmissionFactors(Module):
         """
         Execute all calculations.
 
-        :return: _results DataFrame containing pollutant amounts
+        :return: [DataFrame] pollutant amounts
         """
 
         _results = None
