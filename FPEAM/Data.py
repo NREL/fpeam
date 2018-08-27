@@ -154,7 +154,7 @@ class FugitiveDust(Data):
     COLUMNS = {'feedstock': str,
                'tillage_type': str,
                'pollutant': str,
-               'rate': int,
+               'rate': float,
                'unit_numerator': str,
                'unit_denominator': str}
 
