@@ -1,4 +1,4 @@
-from Module import Module
+from .Module import Module
 from FPEAM import utils
 
 LOGGER = utils.logger(name=__name__)

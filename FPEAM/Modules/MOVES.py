@@ -5,10 +5,10 @@ import time
 import numpy as np
 import pandas as pd
 import pymysql
-from Module import Module
 from lxml import etree
 from lxml.builder import E
 
+from .Module import Module
 from FPEAM import utils
 
 LOGGER = utils.logger(name=__name__)
