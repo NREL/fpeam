@@ -82,8 +82,17 @@ class Data(pd.DataFrame):
 
 class Equipment(Data):
 
-    COLUMNS = {'feedstock': str, 'tillage_type': str, 'equipment_group': str, 'budget_year': int, 'operation_unit': int,
-               'activity': str, 'equipment_name': str, 'equipment_horsepower': float, 'resource': str, 'rate': float, 'unit': str}
+    COLUMNS = {'feedstock': str,
+               'tillage_type': str,
+               'equipment_group': str,
+               'budget_year': int,
+               'operation_unit': int,
+               'activity': str,
+               'equipment_name': str,
+               'equipment_horsepower': float,
+               'resource': str,
+               'rate': float,
+               'unit': str}
 
     INDEX_COLUMNS = ('equipment_group', 'feedstock', 'tillage_type', 'equipment_group',
                      'budget_year', 'operation_unit', 'activity', 'equipment_name', 'equipment_horsepower',
@@ -108,26 +117,28 @@ class Production(Data):
         super(Production, self).__init__(df=df, fpath=fpath, columns=columns)
 
 
-class FertilizerDistribution(Data):
+class ResourceDistribution(Data):
 
     COLUMNS = {'feedstock': str,
-               'chemical_id': str,
-               'allocation': float}
+               'resource': str,
+               'resource_subtype': str,
+               'distribution': float}
 
-    INDEX_COLUMNS = ('feedstock', 'chemical_id')
+    INDEX_COLUMNS = ('feedstock', 'resource', 'resource_subtype')
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
-        super(FertilizerDistribution, self).__init__(df=df, fpath=fpath, columns=columns)
+        super(ResourceDistribution, self).__init__(df=df, fpath=fpath, columns=columns)
 
 
 class EmissionFactor(Data):
     COLUMNS = {'resource': str,
-               'chemical_id': str,
+               'resource_subtype': str,
                'pollutant': str,
                'rate': float,
-               'unit': str}
+               'unit_numerator': str,
+               'unit_denominator': str,}
 
-    INDEX_COLUMNS = ('resource', 'chemical_id', 'pollutant')
+    INDEX_COLUMNS = ('resource', 'resource_subtype', 'pollutant')
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(EmissionFactor, self).__init__(df=df, fpath=fpath, columns=columns)
@@ -137,13 +148,12 @@ class FugitiveDust(Data):
 
     COLUMNS = {'feedstock': str,
                'tillage_type': str,
-               'source_category': str,
-               'budget_year': int,
                'pollutant': str,
-               'rate': float,
-               'unit': str}
+               'rate': int,
+               'unit_numerator': str,
+               'unit_denominator': str}
 
-    INDEX_COLUMNS = ('feedstock', 'tillage_type', 'source_category', 'budget_year', 'pollutant')
+    INDEX_COLUMNS = ('feedstock', 'tillage_type', 'pollutant',)
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(FugitiveDust, self).__init__(df=df, fpath=fpath, columns=columns)
