@@ -46,10 +46,10 @@ class Router(object):
 
 
 if __name__ == '__main__':
-    import sys
-    sys.path.append('~/src/fpeam')
-    import FPEAM
-
+    # import sys
+    # sys.path.append('~/src/fpeam')
+    # import FPEAM
+    #
     from FPEAM import Data
 
     r = Router(edges=Data.TransportationGraph(fpath='../data/inputs/transportation_graph.csv'),
