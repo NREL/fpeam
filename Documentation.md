@@ -48,8 +48,8 @@ TABLE: List of columns and data types in equipment dataset.
 | equipment_horsepower | integer | Horsepower (if applicable to equipment) |
 | resource | string | Resource used (each activity may have multiple resources associated with it) |
 | rate | float | Quantity of resource used |
-| unit_numer | string | Numerator of resource rate unit |
-| unit_denom | string | Denominator of resource rate unit |
+| unit_numerator | string | Numerator of resource rate unit |
+| unit_denominator | string | Denominator of resource rate unit |
 
 
 Budgets must be at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered (with the numbers stored as characters rather than integers) and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions.
@@ -60,7 +60,7 @@ Columns with restricted values are: tillage_type, activity, resource and unit. T
 
 TABLE: Equipment data examples
 
-| feedstock | tillage_type | equipment_group | rotation_year | activity | equipment_name | equipment_horsepower | resource | rate | unit_numer | unit_denom |
+| feedstock | tillage_type | equipment_group | rotation_year | activity | equipment_name | equipment_horsepower | resource | rate | unit_numerator | unit_denominator |
 | :--- | :------ | :-------------: | :---------: | :-------------: | :------- | :------------- | :------------------: | :------- | :--: | :--------: | :--------: |
 | willow | conventional tillage | 6	| 2 | maintenance | tractor 2wd 55 hp | 55 | herbicide | 0.75 | pound | acre |
 | corn | conventional tillage | 1 | 1 | establishment | tractor 2wd 100 hp | 100 | time | 0.087 | hour | acre |
@@ -94,13 +94,13 @@ TABLE: List of columns in production data set with data types and descriptions
 | region_destination | string | Identifies the region to which the harvested feedstock from this region_production is transported |
 | equipment_group | string | Region identifier; must match equipment_group values in equipment data set |
 | feedstock_measure | string | Identifies the value in the feedstock_amount column | 
-| feedstock_amount | float | Feedstock amount defined by feedstock_measure, with units given by unit_numer and unit_denom |
-| unit_numer | string | Numerator of feedstock_amount unit |
-| unit_denom | string | Denominator of feedstock_amount unit |
+| feedstock_amount | float | Feedstock amount defined by feedstock_measure, with units given by unit_numerator and unit_denominator |
+| unit_numerator | string | Numerator of feedstock_amount unit |
+| unit_denominator | string | Denominator of feedstock_amount unit |
 
 TABLE: Production data examples
 
-| feedstock | tillage_type | region_production | region_destination | equipment_group | feedstock_measure | feedstock_amount | unit_numer | unit_denom |
+| feedstock | tillage_type | region_production | region_destination | equipment_group | feedstock_measure | feedstock_amount | unit_numerator | unit_denominator |
 | :--- | :------ | :----: | :------------: | :----------- | :---------: | ---- |
 | poplar | conventional tillage | 12067 | - | 13 | yield | 61.6 | dry short ton | acre |
 | poplar | conventional tillage | 12067 | - | 13 | produced | 113.7 | dry short ton  | - |
@@ -292,7 +292,7 @@ The emission factors input files
 
 TABLE: Default emissions factors for NO (used as a proxy for NO<sub>x</sub>) and NH<sub>3</sub> from nitrogen fertilizers and VOC from herbicides and insecticides. NO emission factors were obtained from FOA (2001) and GREET (ANL 2010). NH<sub>3</sub> factors were obtained from Goebes et al. 2003, Davidson et al. 2004 and the 17/14 ratio of NH<sub>3</sub> to N. See [Zhang et al. (2015)](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620) for additional information. Note that as of July 2, 2018 the Davidson et al. reference, the CMU Ammonia Model, Version 3.6 from The Environmental Institute at Carnegie Mellon University was not available online and source data could not be verified. 
  
-| resource | resource subtype           | pollutant      | emission_factor | unit_numer | unit_denom |
+| resource | resource subtype           | pollutant      | emission_factor | unit_numerator | unit_denominator |
 | :------- | :------------------------- | :------------: | :-------------: | :--------: | :--------: |
 | nitrogen | anhydrous ammonia          | NO<sub>x</sub> | 0.79            | pound      | pound |
 | nitrogen | anhydrous ammonia          | NH<sub>3</sub> | 4.86            | pound      | pound |
@@ -336,7 +336,7 @@ TABLE: The default resource subtype distribution data file defines the nitrogen 
 
 The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from biomass transportation is not calculated.
 
-PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf) , which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf) . Users are able to use a different fraction or alternative emissions factors by editing the input data.
+PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf) , which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf) . Users are able to use a different PM<sub>2.5</sub> fraction or alternative emissions factors by editing the input data.
 
 TABLE: List of columns and data types in equipment dataset.
 
@@ -347,12 +347,12 @@ TABLE: List of columns and data types in equipment dataset.
 | source_category | string | Identifies harvest or non-harvest fugitive dust | 
 | pollutant | string | Identifies if the rate is for PM10 or PM2.5 |
 | rate | float | Amount of fugitive dust generated per acre for the feedstock specified in an average year |
-| unit_numer | string | Numerator of rate unit |
-| unit_denom | string | Denominator of rate unit |
+| unit_numerator | string | Numerator of rate unit |
+| unit_denominator | string | Denominator of rate unit |
 
 TABLE: Fugitive dust input file example
 
-| feedstock | tillage_type | source_category | pollutant | rate | unit_numer | unit_denom |
+| feedstock | tillage_type | source_category | pollutant | rate | unit_numerator | unit_denominator |
 | :-------- | :----------- | :-------------- | :-------: | :--: | :--------- | :--------- |
 | sorghum stubble | conventional tillage | harvest | PM10 | 1.7 | pound | acre |
 | sorghum stubble | conventional tillage | harvest | PM25 | 0.34 | pound | acre |
