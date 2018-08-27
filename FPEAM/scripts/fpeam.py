@@ -4,7 +4,7 @@ import argparse
 import logging
 import os
 
-from FPEAM import (Data, IO, FPEAM, utils)
+from FPEAM import (IO, FPEAM, utils)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
