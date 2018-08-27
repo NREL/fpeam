@@ -1,5 +1,5 @@
 import pandas as pd
-from IO import load
+from .IO import load
 
 from . import utils
 

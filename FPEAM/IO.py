@@ -1,12 +1,12 @@
 """Input and output helper utilties."""
 
 import os
-import utils
+from . import utils
 
 import pandas as pd
 
 CONFIG_FOLDER = os.path.join('..', 'configs')
-
+DATA_FOLDER = os.path.join('..', 'data')
 LOGGER = utils.logger(name=__name__)
 
 
