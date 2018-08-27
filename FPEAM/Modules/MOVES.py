@@ -1171,7 +1171,7 @@ class MOVES(Module):
 
         return _fips_cached
 
-    def postprocess_moves(self):
+    def postprocess(self):
         """
         pulls moves output from database
         user input y/n: clear out old moves results
@@ -1428,7 +1428,7 @@ class MOVES(Module):
 
         return _transportation_emissions
 
-    def run_moves(self):
+    def run(self):
         """
         Calls all necessary methods to do preprocessing, setup MOVES input
         files, run MOVES via command line, and postprocess output
@@ -1611,7 +1611,7 @@ class MOVES(Module):
                         fips=_fips, year=self.year))
 
         # postprocess output - same regardless of cached status
-        self.postprocess_moves()
+        self.postprocess()
 
     def __enter__(self):
 
