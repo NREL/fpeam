@@ -3,3 +3,4 @@ dependencies:
 - pandas
 - configobj
 - python=3.5+
+- networkx

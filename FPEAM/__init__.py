@@ -1,10 +1,10 @@
-import Data
-import Engine
-import Figures
-from FPEAM import FPEAM
+from . import Data
+from . import Engine
+from . import Figures
+from .FPEAM import FPEAM
 import IO
-import Interfaces
-import Modules
+from . import Interfaces
+from . import Modules
 import utils
 
 # Set default logging handler to avoid "No handler found" warnings.

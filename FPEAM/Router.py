@@ -9,7 +9,7 @@ LOGGER = utils.logger(name=__name__)
 class Router(object):
     """Discover routing between nodes"""
 
-    def __index__(self, edges, node_map, algorithm=bidirectional_dijkstra):
+    def __init__(self, edges, node_map, algorithm=bidirectional_dijkstra):
         """
 
         :param edges: [DataFrame]
@@ -37,7 +37,19 @@ class Router(object):
         :return: [DataFrame]
         """
 
-        _from_node = None
-        _to_node = None
+        _from_node = self.node_map[from_fips]
+        _to_node = self.node_map[to_fips]
 
         return self.algorithm(self.Graph, _from_node, _to_node)
+
+
+if __name__ == '__main__':
+    import sys
+    sys.path.append('~/src/fpeam')
+    import FPEAM
+
+    from FPEAM import Data
+
+    r = Router(edges=Data.TransportationGraph(fpath='../data/inputs/transportation_graph.csv'),
+               node_map=Data.CountyNode(fpath='../data/inputs/counts_node.csv'))
+    r.get_route(from_fips='01001', to_fips='01003')
