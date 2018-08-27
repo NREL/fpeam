@@ -1,78 +1,85 @@
+from FPEAM import utils
 from Module import Module
-
-from FPEAM import (Data, utils)
 
 LOGGER = utils.logger(name=__name__)
 
 
 class FugitiveDust(Module):
-    """Base class to manage execution of Transporation emissions"""
+    """Base class to manage execution of on-farm fugitive dust calculations"""
 
-    def __init__(self, config, **kvals):
+    def __init__(self, config, production, fugitive_dust_emission_factors,
+                 feedstock_measure_type, **kvals):
+        """
+        :param config [ConfigObj] configuration options
+        :param production: [DataFrame] production values
+        :param fugitive_dust_emission_factors: [DataFrame] fugitive dust
+        generation per acre for an average crop production year
+        """
 
         # init parent
         super(FugitiveDust, self).__init__(config=config)
 
-    def _pre_process(self):
-        # merges budget and product data
-        return
+        # init properties
+        self.production = production
+        self.fugitive_dust = fugitive_dust_emission_factors
+        self.feedstock_measure_type = feedstock_measure_type
+        
 
-    def _post_process(self):
-        return
+    def get_fugitivedust(self):
+        """
+        Calculate total PM10 and PM2.5 emissions from fugitive dust by
+        feedstock, tillage type, source category and region.
 
-    # def __enter__(self):
-    #     return self
-    #
-    # def __exit__(self, exc_type, exc_val, exc_tb):
-    #     # process exceptions
-    #     if exc_type is not None:
-    #         LOGGER.exception('%s\n%s\n%s' % (exc_type, exc_val, exc_tb))
-    #         return False
-    #     else:
-    #         return self
+        :return: _df: DataFrame containing PM10 and PM2.5 amounts by
+        feedstock, tillage type, source category and region
+        """
 
+        # define columns used to merge production with fugitive_dust
+        _idx = ['feedstock', 'tillage_type']
 
-class OnFarmFugitiveDust(FugitiveDust):
-    """Class to manage execution of on-farm fugitive dust emissions"""
+        # define list of columns of interest in production
+        _prod_columns = ['row_id'] + _idx + ['region_production',
+                                             'feedstock_amount']
 
-    def __init__(self, config):
-        # init parent
-        super(FugitiveDust, self).__init__(config=config)
+        # select only production rows corresponding to the user-defined crop
+        #  measure
+        _prod_rows = self.production.feedstock_measure == \
+                     self.feedstock_measure_type
 
-    def proceess(self):
-        # calculate emissions
-        return
+        # merge production with fugitive dust
+        _df = self.production[_prod_rows][_prod_columns].merge(
+            self.fugitive_dust, on=_idx)
 
-    # def __enter__(self):
-    #     return self
-    #
-    # def __exit__(self, exc_type, exc_val, exc_tb):
-    #     # process exceptions
-    #     if exc_type is not None:
-    #         LOGGER.exception('%s\n%s\n%s' % (exc_type, exc_val, exc_tb))
-    #         return False
-    #     else:
-    #         return self
+        # calculate fugitive dust
+        _df.eval('pollutant_amount = feedstock_amount * rate', inplace=True)
 
+        # clean up DataFrame
+        # @TODO verify that these are the columns to return
+        _df = _df[['row_id', 'pollutant',
+                   'pollutant_amount']].set_index('row_id', drop=True)
 
-class OnRoadFugitiveDust(FugitiveDust):
-    """Class to manage execution of on-road fugitive dust emissions"""
+        return _df
 
-    def __init__(self, config):
-        # init parent
-        super(FugitiveDust, self).__init__(config=config)
+    def run(self):
+        """
+        Execute all calculations.
 
-    def process(self):
-        # calculate
-        return
+        :return: _results DataFrame containing fugitive dust amounts
+        """
 
-    # def __enter__(self):
-    #     return self
-    #
-    # def __exit__(self, exc_type, exc_val, exc_tb):
-    #     # process exceptions
-    #     if exc_type is not None:
-    #         LOGGER.exception('%s\n%s\n%s' % (exc_type, exc_val, exc_tb))
-    #         return False
-    #     else:
-    #         return self
+        _results = None
+        _status = self.status
+
+        try:
+            _results = self.get_fugitivedust()
+        except Exception as e:
+            LOGGER.exception(e)
+            _status = 'failed'
+        else:
+            _status = 'complete'
+        finally:
+            self.status = _status
+            return _results
+
+    def summarize(self):
+        pass
