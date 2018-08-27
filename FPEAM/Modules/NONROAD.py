@@ -38,15 +38,15 @@ class NONROAD(Module):
 
         # @todo create dirs if they do not exist
 
+
     def create_allocate_file(self):
         """
         write spatial indicators to .alo file for the NonRoad program to
         use. File are written on a state-level basis.
         :return: None
         """
-
-
-
+        # @todo verify that NONROAD needs the allocation file to run,
+        # and what it does if so
 
 
     def create_options_file(self, fips):
@@ -82,7 +82,8 @@ class NONROAD(Module):
                                          'data', 'season', 'season.dat'),
                  'MESSAGE': os.path.join(self.project_path, 'MESSAGES',
                                          '%s.msg' % (_state,)),
-                 # @todo changed dir name from runcode to fips
+                 # @note changed dir name from runcode to fips
+                 # @todo use fips-feedstock(-tillage-activitytype?) combination
                  'OUTPUT_DATA': os.path.join(self.out_path_pop_alo, 'OUT',
                                              fips, '%s.out' % (_state,)),
                  'EPS2_AMS': '',
@@ -420,6 +421,8 @@ class NONROAD(Module):
         :return: None
         """
 
+        # @todo pull in nrsourcetype and nrhprangebin, merge, to get some of
+        #  the data needed in the population file
 
 
 
