@@ -19,8 +19,7 @@ LOGGER = utils.logger(name=__name__)
 class MOVES(Module):
 
     def __init__(self, config, production, region_fips_map,
-                 feedstock_measure_type, truck_capacity, completed_moves_runs,
-                 year, **kvals):
+                 feedstock_measure_type, truck_capacity, year, **kvals):
 
         # init parent
         super(MOVES, self).__init__(config=config)
@@ -33,11 +32,6 @@ class MOVES(Module):
 
         # this is a DF read in from a csv file
         self.truck_capacity = truck_capacity
-
-        # initialize empty list in which to store the MOVES runs already
-        # completed
-        # @todo how should completed MOVES runs be recorded?
-        self.completed_moves_runs = completed_moves_runs
 
         self.use_cached_results = config.get('use_cached_results')
 
@@ -1273,8 +1267,7 @@ class MOVES(Module):
               		ON dist_table.MOVESRunID =
               		runid_filter.MOVESRunID
               WHERE dist_table.yearID = {year} AND dist_table.monthID = {
-              month} AND dist_table.dayID = {day};""".format(
-            **kvals)
+              month} AND dist_table.dayID = {day};""".format(**kvals)
 
         # read in all possibly relevant entries from the rate per distance
         # table
