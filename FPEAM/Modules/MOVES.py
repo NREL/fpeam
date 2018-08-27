@@ -10,7 +10,6 @@ from lxml.builder import E
 
 from .Module import Module
 from FPEAM import utils
-from FPEAM.Router import Router
 
 LOGGER = utils.logger(name=__name__)
 
@@ -38,10 +37,6 @@ class MOVES(Module):
 
         # this is a DF read in from a csv file
         self.truck_capacity = truck_capacity
-
-        # initialize empty list in which to store the MOVES runs already completed
-        # @TODO how should completed MOVES runs be recorded?
-        self.completed_moves_runs = completed_moves_runs
 
         self.use_cached_results = config.get('use_cached_results')
 
@@ -1539,11 +1534,6 @@ class MOVES(Module):
                            moves_folder=self.moves_path,
                            run_moves=batch_run_dict[_fips])  # @TODO what's this
                 os.system(command)
-
-                # @TODO this is a stopgap way to record which MOVES runs
-                # have been completed - replace with proper caching method
-                self.completed_moves_runs.append("{fips}_{year}".format(
-                        fips=_fips, year=self.year))
 
         # postprocess output - same regardless of cached status
         self.postprocess()
