@@ -26,7 +26,8 @@ class Router(object):
         self.routes = None
         self.Graph = nx.Graph()
 
-        _ = list(map(lambda x: self.Graph.add_edge(**x), self.edges, ))
+        LOGGER.debug('loading routing graph')
+        _ = self.edges.apply(lambda x: self.Graph.add_edge(**x), axis=1)
 
     def get_route(self, from_fips, to_fips):
         """
