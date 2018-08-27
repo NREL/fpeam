@@ -10,6 +10,7 @@ from lxml.builder import E
 
 from .Module import Module
 from FPEAM import utils
+from FPEAM.Router import Router
 
 LOGGER = utils.logger(name=__name__)
 
@@ -22,12 +23,14 @@ class MOVES(Module):
 
     def __init__(self, config, production, region_fips_map,
                  feedstock_measure_type, truck_capacity, completed_moves_runs,
-                 year, **kvals):
+                 year, router=None, **kvals):
 
         # init parent
         super(MOVES, self).__init__(config=config)
 
-        # store input arguments in self
+        self._router = None
+        self.router = router
+
         self.production = production
         self.year = year
         self.region_fips_map = region_fips_map
@@ -162,6 +165,20 @@ class MOVES(Module):
 
         # user input - timespan for which MOVES is run
         self.moves_timespan = config.get('moves_timespan')
+
+    @property
+    def router(self):
+        return self._router
+
+    @router.setter
+    def router(self, value):
+        try:
+            getattr(value, 'run')
+        except AttributeError:
+            LOGGER.error('%s is not a valid routing engine. '
+                         'Method .get_route(node, node) is required' % value)
+        else:
+            self._router = value
 
     def create_national_data(self):
         """
@@ -1301,6 +1318,9 @@ class MOVES(Module):
                 on='feedstock')
 
         # @TODO insert routing output in here
+        if self.router:
+            _vmt_by_county = self.router.get_route(from_fips=None, to_fips=None)
+
         _run_emissions['vmt'] = 1.0
 
         # evaluate running emissions
@@ -1310,7 +1330,6 @@ class MOVES(Module):
                 inplace=True)
 
         # start and hotelling emissions
-
         _avgRateVeh = _ratepervehicle.groupby(['fips', 'state', 'yearID',
                                                'monthID', 'dayID',
                                                'pollutantID'],
