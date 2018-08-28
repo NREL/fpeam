@@ -1,3 +1,5 @@
+feedstock_measure_type = string(default='harvested')
+
 onfarm_truck_capacity = float
 
 onfarm_default_distance = float

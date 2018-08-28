@@ -14,7 +14,7 @@ project_path = string
 equipment = string
 production = string
 emission_factor = string(default='../data/inputs/emission_factor.csv')
-fertilizer_distribution = string(default='../data/inputs/resource_distribution.csv')
+resource_distribution = string(default='../data/inputs/resource_distribution.csv')
 fugitive_dust_emission_factor = string(default='../data/inputs/fugitive_dust_emission_factor.csv')
 moisture_content = string(default='../data/inputs/moisture_content.csv')
 nonroad_equipment = string(default='../data/inputs/nonroad_equipment.csv')
