@@ -1,4 +1,5 @@
 import os
+import pymysql
 import pandas as pd
 import numpy as np
 
@@ -32,9 +33,19 @@ class NONROAD(Module):
         self.time_resource_name = config.get('time_resource_name')
         self.nonroad_feedstock_measure = config.get(
             'nonroad_feedstock_measure')
-        # @todo this is a dataframe of equipment names matching the
+        # @note this is a dataframe of equipment names matching the
         # equipment input and SCC codes from nonroad, pulled in from csv
-        self.nonroad_equipment = config.get('nonroad_equipment')
+        self.nonroad_equipment = nonroad_equipment
+
+        # moves database parameters
+        self.moves_database = config.get('moves_database')
+
+        # open connection to MOVES default database for input/output
+        self.moves_con = pymysql.connect(host=config.get('moves_db_host'),
+                                         user=config.get('moves_db_user'),
+                                         password=config.get('moves_db_pass'),
+                                         db=config.get('moves_database'),
+                                         local_infile=True)
 
         # @todo create dirs if they do not exist
 
@@ -421,8 +432,111 @@ class NONROAD(Module):
         :return: None
         """
 
-        # @todo pull in nrsourcetype and nrhprangebin, merge, to get some of
-        #  the data needed in the population file
+        ## preprocess and merge equipment and production dfs
+
+        # filter down production and equipment to nonroad-relevant values
+        _prod_filter = self.production.feedstock_measure == \
+                      self.nonroad_feedstock_measure
+        _equip_filter = self.equipment.resource == self.time_resource_name
+
+        # apply filter to production and equipment
+        _prod_filtered = self.production[_prod_filter]
+        _equip_filtered = self.equipment[_equip_filter]
+
+        # sum resource rates over rotation year to prep for calculating
+        # average rates
+        _equip_grouped = _equip_filtered.groupby(['feedstock', 'tillage_type',
+                                                  'equipment_group',
+                                                  'activity', 'equipment_name',
+                                                  'equipment_horsepower'],
+                                                 as_index=False).sum()
+
+        # find the maximum rotation year within groups for calculating
+        # average rates
+        _max_year = _equip_filtered.groupby(['feedstock', 'tillage_type',
+                                             'equipment_group'],
+                                            as_index=False).max()[[
+            'feedstock', 'tillage_type', 'equipment_group', 'rotation_year']]
+
+        # rename rotation year to max rotation year to avoid confusion
+        _max_year.rename(index=str, columns={'rotation_year':
+                                                 'max_rotation_year'},
+                         inplace=True)
+
+        # rename rate column to total rate
+        _equip_grouped.rename(index=str,
+                              columns={'rate': 'total_rotation_rate'},
+                              inplace=True)
+
+        # remove rotation_year column so it can be replaced with the maximum
+        #  rotation year
+        del _equip_grouped['rotation_year']
+
+        # combine the total rate df with the maximum rotation year df
+        _equip_avg = _equip_grouped.merge(_max_year, how='left',
+                                          on=['feedstock', 'tillage_type',
+                                              'equipment_group'])
+
+        # calculate average rate from total rotation rate and max rotation year
+        _equip_avg.eval('average_rate = total_rotation_rate / '
+                        'max_rotation_year',
+                        inplace=True)
+
+        # merge prod and the equip with average rates on feedstock, tillage
+        # type and equipment group
+        # note that how='left' and how='inner' produce the same merged df in
+        #  this step
+        _prod_equip_merge = _prod_filtered.merge(_equip_avg,
+                                                 how='inner',
+                                                 on=['feedstock',
+                                                     'tillage_type',
+                                                     'equipment_group'])
+
+        # calculate total hours for each equipment type - activity type combo
+        _prod_equip_merge.eval('total_harvest_rate = feedstock_amount * '
+                               'average_rate',
+                               inplace=True)
+
+        # assemble kvals for sql statement formatting
+        kvals = {}
+        kvals['moves_database'] = self.moves_database
+
+        # read in nrsourceusetype table to get the hp range IDs, hp averages,
+        # and hours used per year (annual activity used to calculate
+        # population) by SCC
+        _nrsourceusetype_sql = """SELECT SCC, NRHPRangeBinID, hoursUsedPerYear,
+            hpAvg FROM {moves_database}.nrsourceusetype;""".format(**kvals)
+
+        _nrsourceusetype = pd.read_sql(_nrsourceusetype_sql, self.moves_con)
+
+        # filter down the nrsourceusetype table based on the list of
+        # equipment in user-provided nonroad_equipment
+        _scc_filter = _nrsourceusetype.SCC.isin(
+            self.nonroad_equipment.nonroad_equipment_scc)
+
+        _nrsourceusetype_filtered = _nrsourceusetype[_scc_filter]
+
+        # read in nrhprangebin that matches hp range IDs to hp min and max
+        # values
+        _nrhprangebin_sql = """SELECT NRHPRangeBinID, hpMin, hpMax
+                        FROM {moves_database}.nrhprangebin""".format(**kvals)
+
+        _nrhprangebin = pd.read_sql(_nrhprangebin_sql, self.moves_con)
+
+        # merge the nonroad_equipment, nrsourceusetype and nrhprangebin
+        # together to generate a df of information needed in the population
+        # file
+        # the dropna is because the default nonroad_equipment file has many
+        # missing values; it won't impact a file with no missing values
+        _nr_pop_info = self.nonroad_equipment.dropna().merge(_nrsourceusetype,
+                                                             how='inner',
+                                                             left_on='nonroad_equipment_scc',
+                                                             right_on='SCC').merge(
+                                                        _nrhprangebin,
+                                                        how='inner',
+                                                        on='NRHPRangeBinID')
+
+        
 
 
 
