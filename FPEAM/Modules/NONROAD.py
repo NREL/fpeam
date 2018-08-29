@@ -12,7 +12,7 @@ LOGGER = utils.logger(name=__name__)
 class NONROAD(Module):
     
     def __init__(self, config, production, equipment, year,
-                 nonroad_equipment, **kvals):
+                 region_nonroad_fips_map, nonroad_equipment, **kvals):
 
         # init parent
         super(NONROAD, self).__init__(config=config)
@@ -36,6 +36,8 @@ class NONROAD(Module):
         # @note this is a dataframe of equipment names matching the
         # equipment input and SCC codes from nonroad, pulled in from csv
         self.nonroad_equipment = nonroad_equipment
+        self.region_nonroad_fips_map = region_nonroad_fips_map
+
 
         # moves database parameters
         self.moves_database = config.get('moves_database')
@@ -443,6 +445,11 @@ class NONROAD(Module):
         _prod_filtered = self.production[_prod_filter]
         _equip_filtered = self.equipment[_equip_filter]
 
+        # merge production with the region_production-fips map for NONROAD fips
+        _prod_nr_fips = _prod_filtered.merge(self.region_nonroad_fips_map,
+                                             how='inner',
+                                             on='region_production')
+
         # sum resource rates over rotation year to prep for calculating
         # average rates
         _equip_grouped = _equip_filtered.groupby(['feedstock', 'tillage_type',
@@ -486,14 +493,14 @@ class NONROAD(Module):
         # type and equipment group
         # note that how='left' and how='inner' produce the same merged df in
         #  this step
-        _prod_equip_merge = _prod_filtered.merge(_equip_avg,
-                                                 how='inner',
-                                                 on=['feedstock',
-                                                     'tillage_type',
-                                                     'equipment_group'])
+        _prod_equip_merge = _prod_nr_fips.merge(_equip_avg,
+                                                how='inner',
+                                                on=['feedstock',
+                                                    'tillage_type',
+                                                    'equipment_group'])
 
         # calculate total hours for each equipment type - activity type combo
-        _prod_equip_merge.eval('total_harvest_rate = feedstock_amount * '
+        _prod_equip_merge.eval('total_annual_rate = feedstock_amount * '
                                'average_rate',
                                inplace=True)
 
@@ -536,7 +543,57 @@ class NONROAD(Module):
                                                         how='inner',
                                                         on='NRHPRangeBinID')
 
-        
+        _nr_equip_filter = _equip_avg[['equipment_name',
+                                       'equipment_horsepower']].drop_duplicates()
+
+        _nr_pop_info_filtered = _nr_pop_info.merge(_nr_equip_filter,
+                                                   how='inner',
+                                                   on='equipment_name')
+
+        _hp_filter = ((_nr_pop_info_filtered.equipment_horsepower >=
+                       _nr_pop_info_filtered.hpMin) & (
+                _nr_pop_info_filtered.equipment_horsepower <=
+                _nr_pop_info_filtered.hpMax))
+
+        _nr_pop_info_filtered = _nr_pop_info_filtered[_hp_filter]
+
+        # merge the nr population info with equipment before calculating equipment
+        # population from actual activity hours and hours-per-year from nonroad
+        _nr_pop_equip_merge = _prod_equip_merge.merge(_nr_pop_info_filtered,
+                                                      how='left',
+                                                      on=['equipment_name',
+                                                          'equipment_horsepower'])
+
+        _nr_pop_equip_merge.eval('equipment_population = total_annual_rate / '
+                                 'hoursUsedPerYear', inplace=True)
+
+        # use population info to construct population files
+
+        # initialize population file
+        path = os.path.join(self.path, '%s_%s.pop' % (state, self.run_code))
+
+        self.pop_file = open(path, 'w')
+
+        lines = """
+        ------------------------------------------------------------------------------
+          1 -   5   FIPS code
+          7 -  11   subregion code (used for subcounty estimates)
+         13 -  16   year of population estimates
+         18 -  27   SCC code (no globals accepted)
+         29 -  68   equipment description (ignored)
+         70 -  74   minimum HP range
+         76 -  80   maximum HP range (ranges must match those internal to model)
+         82 -  86   average HP in range (if blank model uses midpoint)
+         88 -  92   expected useful life (in hours of use)
+         93 - 102   flag for scrappage distribution curve (DEFAULT = standard curve)
+        106 - 122   population estimate
+
+        FIPS       Year  SCC        Equipment Description                    HPmn  HPmx HPavg  Life ScrapFlag     Population
+        ------------------------------------------------------------------------------
+        /POPULATION/
+        """
+        self.pop_file.writelines(lines)
+
 
 
 
