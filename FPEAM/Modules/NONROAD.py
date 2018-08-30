@@ -21,6 +21,11 @@ class NONROAD(Module):
         self.production = production
         self.equipment = equipment
         self.year = year
+
+        # add year as an extra column in production
+        self.production['year'] = self.year
+
+        # @TODO update to match the correct name in the config file
         self.model_run_title = config.get('scenario_name')
         self.project_path = os.path.join(config.get('project_path'),
                                          self.model_run_title)
@@ -52,7 +57,7 @@ class NONROAD(Module):
         # @todo create dirs if they do not exist
 
 
-    def create_allocate_file(self):
+    def create_allocate_files(self):
         """
         write spatial indicators to .alo file for the NonRoad program to
         use. File are written on a state-level basis.
@@ -62,7 +67,7 @@ class NONROAD(Module):
         # and what it does if so
 
 
-    def create_options_file(self, fips):
+    def create_options_files(self, fips):
         """
         creates options file by filling in a template with values from
         config, production and equipment
@@ -426,7 +431,34 @@ class NONROAD(Module):
 
         _opt_file.close()
 
-    def create_population_file(self):
+
+    def write_population_file_line(self, df):
+        """
+        Function for applying over the rows of a dataframe containing all
+        relevant NONROAD equipment population data
+        :return: None
+        """
+
+        kvals = {'fips': df.NONROAD_fips,
+                 'sub_reg': '',
+                 'year': self.year,
+                 'scc_code': df.SCC,
+                 'equip_desc': df.equipment_description,
+                 'min_hp': df.hpMin,
+                 'max_hp': df.hpMax,
+                 'avg_hp': df.hpAvg,
+                 'life': df.equipment_lifetime,
+                 'flag': 'DEFAULT',
+                 'pop': df.equipment_population}
+
+        _string_to_write = '{fips:0>5} {sub_reg:>5} {year:>4} {scc_code:>10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5.1f} {life:>5} {flag:<10} {pop:>17.7f} \n'.format(**kvals)
+
+        self.pop_file.writelines(_string_to_write)
+
+        return None
+
+
+    def create_population_files(self):
         """
         Calculates [level?] populations of all equipment from
         operation-hours found in the equipment input and the annual hours of
@@ -450,9 +482,13 @@ class NONROAD(Module):
                                              how='inner',
                                              on='region_production')
 
+        # add column with state derived from NONROAD fips column
+        _prod_nr_fips['state'] = _prod_nr_fips.NONROAD_fips.str.slice(stop=2)
+
         # sum resource rates over rotation year to prep for calculating
         # average rates
-        _equip_grouped = _equip_filtered.groupby(['feedstock', 'tillage_type',
+        _equip_grouped = _equip_filtered.groupby(['feedstock',
+                                                  'state', 'tillage_type',
                                                   'equipment_group',
                                                   'activity', 'equipment_name',
                                                   'equipment_horsepower'],
@@ -511,10 +547,17 @@ class NONROAD(Module):
         # read in nrsourceusetype table to get the hp range IDs, hp averages,
         # and hours used per year (annual activity used to calculate
         # population) by SCC
-        _nrsourceusetype_sql = """SELECT SCC, NRHPRangeBinID, hoursUsedPerYear,
-            hpAvg FROM {moves_database}.nrsourceusetype;""".format(**kvals)
+        _nrsourceusetype_sql = """SELECT SCC, NRHPRangeBinID, 
+            medianLifeFullLoad, hoursUsedPerYear, hpAvg
+            FROM {moves_database}.nrsourceusetype;""".format(**kvals)
 
         _nrsourceusetype = pd.read_sql(_nrsourceusetype_sql, self.moves_con)
+
+        # rename the equipment lifetime column
+        _nrsourceusetype.rename(index=str,
+                                columns={'medianLifeFullLoad':
+                                             'equipment_lifetime'},
+                                inplace=True)
 
         # filter down the nrsourceusetype table based on the list of
         # equipment in user-provided nonroad_equipment
@@ -550,6 +593,9 @@ class NONROAD(Module):
                                                    how='inner',
                                                    on='equipment_name')
 
+        # create horsepower filter based on comparing the equipment hp to hp
+        #  bins - this is to avoid multiple entries with different hp
+        # ranges for each piece of equipment
         _hp_filter = ((_nr_pop_info_filtered.equipment_horsepower >=
                        _nr_pop_info_filtered.hpMin) & (
                 _nr_pop_info_filtered.equipment_horsepower <=
@@ -564,35 +610,85 @@ class NONROAD(Module):
                                                       on=['equipment_name',
                                                           'equipment_horsepower'])
 
+        # calculate the equipment population from the annual rate (from the
+        # equipment input data) and the hours used per year (from nonroad
+        # defaults)
         _nr_pop_equip_merge.eval('equipment_population = total_annual_rate / '
                                  'hoursUsedPerYear', inplace=True)
 
-        # use population info to construct population files
+        # keep only the columns relevant to either the population file name
+        # or file contents
+        _nr_pop = _nr_pop_equip_merge[['state', 'feedstock', 'tillage_type',
+                                       'activity', 'NONROAD_fips', 'year',
+                                       'SCC', 'equipment_description',
+                                       'hpMin', 'hpMax', 'hpAvg',
+                                       'equipment_lifetime']]
 
-        # initialize population file
-        path = os.path.join(self.path, '%s_%s.pop' % (state, self.run_code))
+        ## use population info to construct population files
 
-        self.pop_file = open(path, 'w')
+        # set path to population file for this scenario
+        # project_path already contains the scenario name
+        _pop_dir = os.path.join(self.project_path, 'POP')
 
-        lines = """
-        ------------------------------------------------------------------------------
-          1 -   5   FIPS code
-          7 -  11   subregion code (used for subcounty estimates)
-         13 -  16   year of population estimates
-         18 -  27   SCC code (no globals accepted)
-         29 -  68   equipment description (ignored)
-         70 -  74   minimum HP range
-         76 -  80   maximum HP range (ranges must match those internal to model)
-         82 -  86   average HP in range (if blank model uses midpoint)
-         88 -  92   expected useful life (in hours of use)
-         93 - 102   flag for scrappage distribution curve (DEFAULT = standard curve)
-        106 - 122   population estimate
+        _pop_files = _nr_pop[['state', 'feedstock', 'tillage_type',
+                              'activity']].drop_duplicates()
 
-        FIPS       Year  SCC        Equipment Description                    HPmn  HPmx HPavg  Life ScrapFlag     Population
-        ------------------------------------------------------------------------------
-        /POPULATION/
-        """
-        self.pop_file.writelines(lines)
+        # open, create and close all population files for a scenario
+        for _file in np.arange(_pop_files.shape[0]):
+            _nr_pop_filter = (_nr_pop.state == _pop_files.state[_file]) & (
+                _nr_pop.feedstock == _pop_files.feedstock[_file]) & (
+                _nr_pop.tillage_type == _pop_files.tillage_type[_file]) & (
+                _nr_pop.activity == _pop_files.activity[_file])
+
+            _nr_pop_sub = _nr_pop[_nr_pop_filter]
+
+            _state = _pop_files.state[_file]
+            _feedstock = _pop_files.feedstock[_file]
+            _tillage_type = _pop_files.tillage_type[_file]
+            _activity = _pop_files.activity[_file]
+
+            path = os.path.join(_pop_dir, '%s_%s_%s_%s.pop' % (_state,
+                                                               _feedstock,
+                                                               _tillage_type,
+                                                               _activity))
+
+            self.pop_file = open(path, 'w')
+
+            _opening_lines = """
+            ------------------------------------------------------------------------------
+              1 -   5   FIPS code
+              7 -  11   subregion code (used for subcounty estimates)
+             13 -  16   year of population estimates
+             18 -  27   SCC code (no globals accepted)
+             29 -  68   equipment description (ignored)
+             70 -  74   minimum HP range
+             76 -  80   maximum HP range (ranges must match those internal to model)
+             82 -  86   average HP in range (if blank model uses midpoint)
+             88 -  92   expected useful life (in hours of use)
+             93 - 102   flag for scrappage distribution curve (DEFAULT = standard curve)
+            106 - 122   population estimate
+
+            FIPS       Year  SCC        Equipment Description                    HPmn  HPmx HPavg  Life ScrapFlag     Population
+            ------------------------------------------------------------------------------
+            /POPULATION/
+            """
+            self.pop_file.writelines(_opening_lines)
+
+            # @todo apply_along_axis to write data lines
+            # ignore the output, file lines are written within the function
+            # being applied along the rows of _nr_pop_sub
+            _output = np.apply_along_axis(self.write_population_file_line, 0,
+                                          _nr_pop_sub)
+
+            _ending_line = '/END/'
+
+            self.pop_file.writelines(_ending_line)
+
+            self.pop_file.close()
+
+
+
+
 
 
 
