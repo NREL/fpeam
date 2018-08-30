@@ -54,7 +54,19 @@ class NONROAD(Module):
                                          db=config.get('moves_database'),
                                          local_infile=True)
 
-        # @todo create dirs if they do not exist
+        # create dirs in the project path (which includes the scenario name)
+        #  if the directories do not already exist
+        _nr_folders = [self.project_path,
+                       os.path.join(self.project_path, 'MESSAGES'),
+                       os.path.join(self.project_path, 'ALLOCATE'),
+                       os.path.join(self.project_path, 'POP'),
+                       os.path.join(self.project_path, 'OPT'),
+                       os.path.join(self.project_path, 'OUT'),
+                       os.path.join(self.project_path, 'FIGURES'),
+                       os.path.join(self.project_path, 'QUERIES')]
+        for _folder in _nr_folders:
+            if not os.path.exists(_folder):
+                os.makedirs(_folder)
 
 
     def create_allocate_files(self):
@@ -63,6 +75,7 @@ class NONROAD(Module):
         use. File are written on a state-level basis.
         :return: None
         """
+        
         # @todo verify that NONROAD needs the allocation file to run,
         # and what it does if so
 
@@ -102,17 +115,17 @@ class NONROAD(Module):
                                          '%s.msg' % (_state,)),
                  # @note changed dir name from runcode to fips
                  # @todo use fips-feedstock(-tillage-activitytype?) combination
-                 'OUTPUT_DATA': os.path.join(self.out_path_pop_alo, 'OUT',
+                 'OUTPUT_DATA': os.path.join(self.project_path, 'OUT',
                                              fips, '%s.out' % (_state,)),
                  'EPS2_AMS': '',
                  'US_COUNTIES_FIPS': os.path.join(self.nonroad_path, 'data',
                                                   'allocate', 'fips.dat'),
                  'RETROFIT': '',
-                 'Population_File': os.path.join(self.out_path_pop_alo,
+                 'Population_File': os.path.join(self.project_path,
                                                  'POP', '%s_%s.pop' % (fips)),
                  'National_defaults': os.path.join(self.nonroad_path, 'data',
                                                    'growth', 'nation.grw'),
-                 'Harvested_acres': os.path.join(self.out_path_pop_alo,
+                 'Harvested_acres': os.path.join(self.project_path,
                                                  'ALLOCATE',
                                                  '%s_%s.alo' % (fips)),
                  'EMFAC_THC_exhaust': os.path.join(self.nonroad_path, 'data',
