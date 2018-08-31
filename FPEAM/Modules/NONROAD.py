@@ -37,6 +37,8 @@ class NONROAD(Module):
 
         self.year = year
 
+        self.forestry_feedstock_names =config.get('forestry_feedstock_names')
+
         # add year as an extra column in production
         self.production['year'] = self.year
 
@@ -76,22 +78,21 @@ class NONROAD(Module):
         # population files
         self.nr_files['alo_file_names'] = self.nr_files['pop_file_names']
 
-        # create a column of options directory names for later looping
+        # create a column of options and out directory names for later looping
         # the feedstock bit has to be in a separate column for the next
         # command to run
+        # the directory names for the OUT files are the same as for the OPT
+        # files
         self.nr_files['feedstock_trim'] = [w.replace(' ', '') for w in
                                            self.nr_files['feedstock']]
         # DO NOT include the file extension because it is tacked on later
         # when the full path(s) is/are generated
-        self.nr_files['opt_dir_names'] = self.nr_files['feedstock_trim'] + \
+        self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_trim']\
+                                             + \
                                           '_' + \
                                           [w.replace(' ', '') for w in
                                            self.nr_files['tillage_type']] +\
                                           '_' + self.nr_files['activity']
-
-        # the directory names for the OUT files are the same as for the OPT
-        # files
-        self.nr_files['out_dir_names'] = self.nr_files['opt_dir_names']
 
         # @TODO update to match the correct name in the config file
         self.model_run_title = config.get('scenario_name')
@@ -134,13 +135,13 @@ class NONROAD(Module):
 
         # create subdirectories in the OUT and OPT directories for each
         # feedstock-tillagetype-activity combination
-        for i in self.nr_files.shape[0]:
+        for _dir in list(self.nr_files.out_opt_dir_names):
 
             _out_path = os.path.join(self.project_path, 'OUT',
-                                     self.nr_files.out_dir_names[i])
+                                     _dir)
 
             _opt_path = os.path.join(self.project_path, 'OPT',
-                                     self.nr_files.opt_dir_names[i])
+                                     _dir)
 
             if not os.path.exists(_out_path):
                 os.makedirs(_out_path)
@@ -157,8 +158,134 @@ class NONROAD(Module):
         :return: None
         """
 
-        # @todo verify that NONROAD needs the allocation file to run,
-        # and what it does if so
+        # @todo calculate indicators by
+        # state-fips-feedstock-tillagetype-activity
+        # (the indicators will be identical(?) for the tillage type and
+        # activity levels, but they're included to match with the other
+        # NONROAD files being generated)
+
+        # loop thru state-tillagetype-activity to create files and write the
+        #  preamble
+        for _file in list(self.nr_files.alo_file_names):
+
+            # initialize file
+            _alo_file_path = open(os.path.join(self.project_path, _file,
+                                               '.alo'))
+
+            _preamble = """
+            ------------------------------------------------------------------------
+            This is the packet that contains the allocation indicator data.  Each
+            indicator value is a measured or projected value such as human
+            population or land area.  The format is as follows.
+    
+            1-3    Indicator code
+            6-10   FIPS code (can be global FIPS codes e.g. 06000 = all of CA)
+            11-15  Subregion code (blank means is entire nation, state or county)
+            16-20  Year of estimate or prediction
+            21-40  Indicator value
+            41-45  Blank (unused)
+            46+    Optional Description (unused)
+            ------------------------------------------------------------------------
+            /INDICATORS/
+            """
+
+            _alo_file_path.writelines(_preamble)
+
+
+            for i in np.arange(self.nr_files.shape[0]):
+
+                # pull out the production rows relvant to the file being generated
+                #  to get a list of FIPS - also filters by feedstock measure
+                _prod_filter = (self.production.state ==
+                                self.nr_files.state.iloc[i]) & \
+                               (self.production.feedstock ==
+                                self.nr_files.feedstock.iloc[i]) & \
+                               (self.production.tillage_type ==
+                                self.nr_files.tillage_type.iloc[i]) & \
+                               (self.production.activity ==
+                                self.nr_files.activity.iloc[i]) & \
+                               (self.production.feedstock_measure ==
+                                self.nonroad_feedstock_measure)
+
+                # filter down production and get the list of both fips and
+                # feedstock amounts (indicator values)
+                _indicator_list = self.production[_prod_filter]
+
+                # loop thru fips w/in each state-tillagetype-activity to create the
+                # indicator lines in the file
+                for _fips in list(_indicator_list.NONROAD_fips):
+                    # calculate indicators by fips - harvested acres for all crop
+                    # except for forest residues and forest whole trees; ??? for the
+                    # two forest products
+
+                    if self.forestry_feedstock_names is not None:
+
+                        if self.nr_files.feedstock.iloc[i] in \
+                                self.forestry_feedstock_names:
+
+                            _ind_code = 'LOG'
+
+                            # calculate forestry indicator
+                            _ind = _indicator_list.feedstock_amount[
+                                       _indicator_list.NONROAD_fips == _fips] * 2000.0 / 30.0
+
+                        else:
+
+                            _ind_code = 'FRM'
+
+                            # calculate harvested acres indicator
+                            _ind = _indicator_list.feedstock_amount[
+                                _indicator_list.NONROAD_fips == _fips]
+
+                    else:
+
+                        _ind_code = 'FRM'
+
+                        # calculate harvested acres indicator
+                        _ind = _indicator_list.feedstock_amount[
+                            _indicator_list.NONROAD_fips == _fips]
+
+
+                    _alo_line = """%s  %s      %s    %s\n""" % (
+                        _ind_code,  _fips, self.year, _ind)
+
+                    _alo_file_path.writelines(_alo_line)
+
+
+                # write line with state indicator total
+                _ind_state_total = _indicator_list.feedstock_amount.sum()
+
+                if self.forestry_feedstock_names is not None:
+
+                    if _ind_state_total.feedstock.unique() in \
+                            self.forestry_feedstock_names:
+
+                        _ind_state_total = _ind_state_total * 2000.0 / 30.0
+
+                        _state_line = """LOG  %s000      %s    %s\n""" % (
+                            _indicator_list.state_abbreviation.unique(),
+                            self.year, _ind_state_total)
+
+                    else:
+
+                        _state_line = """FRM  %s000      %s    %s\n""" % (
+                            _indicator_list.state_abbreviation.unique(),
+                            self.year, _ind_state_total)
+
+                else:
+
+                    _state_line = """FRM  %s000      %s    %s\n""" % (
+                        _indicator_list.state_abbreviation.unique(),
+                        self.year, _ind_state_total)
+
+                # write the state toatl line
+                _alo_file_path.writelines(_state_line)
+
+                # write final line of file
+                _alo_file_path.writelines('/END/')
+
+                # close file
+                _alo_file_path.close()
 
 
     def create_options_files(self):
@@ -287,11 +414,11 @@ class NONROAD(Module):
                           'OUTPUT_DATA': os.path.join(self.project_path, 'OUT',
                               '%s.out' % (self.nr_files.out_dir_names[i],)),
                           'Population_File': os.path.join(self.project_path,
-                              'POP', '%s.pop' %
+                                        'POP', '%s.pop' %
                                           (self.nr_files.state_abbreviation[
                                               i])),
                           'Harvested_acres': os.path.join(self.project_path,
-                              'ALLOCATE', '%s.alo' %
+                                          'ALLOCATE', '%s.alo' %
                                           (self.nr_files.state_abbreviation[
                                               i]))}
 
