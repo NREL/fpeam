@@ -753,7 +753,7 @@ T4M       1.0       0.02247
                 _opt_file.close()
 
 
-    def _write_population_file_line(self, df):
+    def _write_population_file_line(self, df, _pop_file):
         """
         Function for applying over the rows of a dataframe containing all
         relevant NONROAD equipment population data
@@ -774,14 +774,14 @@ T4M       1.0       0.02247
 
         _string_to_write = '{fips:0>5} {sub_reg:>5} {year:>4} {scc_code:>10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5.1f} {life:>5} {flag:<10} {pop:>17.7f} \n'.format(**kvals)
 
-        self.pop_file.writelines(_string_to_write)
+        _pop_file.writelines(_string_to_write)
 
         return None
 
 
     def create_population_files(self):
         """
-        Calculates [level?] populations of all equipment from
+        Calculates  populations of all equipment from
         operation-hours found in the equipment input and the annual hours of
         operation from the MOVES database
         :return: None
@@ -865,14 +865,29 @@ T4M       1.0       0.02247
         _nr_pop_equip_merge.eval('equipment_population = total_annual_rate / '
                                  'hoursUsedPerYear', inplace=True)
 
+        # sum equipment populations so there's only one population per
+        # equipment type
+        _nr_pop = _nr_pop_equip_merge.groupby(['state_abbreviation',
+                                               'feedstock',
+                                               'tillage_type',
+                                               'activity',
+                                               'NONROAD_fips',
+                                               'year',
+                                               'SCC',
+                                               'equipment_description',
+                                               'hpMin',
+                                               'hpMax',
+                                               'hpAvg',
+                                               'equipment_lifetime'],
+                                              as_index=False).sum()
+
         # keep only the columns relevant to either the population file name
         # or file contents
-        _nr_pop = _nr_pop_equip_merge[['state_abbreviation', 'feedstock',
-                                       'tillage_type',
-                                       'activity', 'NONROAD_fips', 'year',
-                                       'SCC', 'equipment_description',
-                                       'hpMin', 'hpMax', 'hpAvg',
-                                       'equipment_lifetime']]
+        _nr_pop = _nr_pop[['state_abbreviation', 'feedstock',
+                           'tillage_type', 'activity', 'NONROAD_fips', 'year',
+                           'SCC', 'equipment_description', 'hpMin', 'hpMax',
+                           'hpAvg', 'equipment_lifetime',
+                           'equipment_population']]
 
         ## use population info to construct population files
 
@@ -880,61 +895,68 @@ T4M       1.0       0.02247
         # project_path already contains the scenario name
         _pop_dir = os.path.join(self.project_path, 'POP')
 
+        _opening_lines = """
+------------------------------------------------------------------------------
+  1 -   5   FIPS code
+  7 -  11   subregion code (used for subcounty estimates)
+ 13 -  16   year of population estimates
+ 18 -  27   SCC code (no globals accepted)
+ 29 -  68   equipment description (ignored)
+ 70 -  74   minimum HP range
+ 76 -  80   maximum HP range (ranges must match those internal to model)
+ 82 -  86   average HP in range (if blank model uses midpoint)
+ 88 -  92   expected useful life (in hours of use)
+ 93 - 102   flag for scrappage distribution curve (DEFAULT = standard curve)
+106 - 122   population estimate
+
+FIPS       Year  SCC        Equipment Description                    HPmn  HPmx HPavg  Life ScrapFlag     Population
+------------------------------------------------------------------------------
+/POPULATION/
+"""
+
         # open, create and close all population files for a scenario
-        for _file in np.arange(self.nr_files.shape[0]):
+        for i in np.arange(self.nr_files.shape[0]):
 
-            _nr_pop_filter = (_nr_pop.state == self.nr_files.state[_file]) & (
-                    _nr_pop.feedstock == self.nr_files.feedstock[_file]) & (
-                    _nr_pop.tillage_type == self.nr_files.tillage_type[_file]) & (
-                    _nr_pop.activity == self.nr_files.activity[_file])
+            # create filter to pull out only the lines in _nr_pop that are
+            # relevant to this population file
+            _nr_pop_filter = (_nr_pop.state_abbreviation ==
+                              self.nr_files.state_abbreviation.iloc[i]) & (
+                    _nr_pop.feedstock == self.nr_files.feedstock.iloc[i])\
+                             & (_nr_pop.tillage_type ==
+                                self.nr_files.tillage_type.iloc[i]) & (
+                    _nr_pop.activity == self.nr_files.activity.iloc[i])
 
+            # subset _nr_pop
             _nr_pop_sub = _nr_pop[_nr_pop_filter]
 
-            _state = self.nr_files.state[_file]
-            _feedstock = self.nr_files.feedstock[_file]
-            _tillage_type = self.nr_files.tillage_type[_file]
-            _activity = self.nr_files.activity[_file]
+            # get components of population file lines
+            _state = self.nr_files.state_abbreviation.iloc[i]
+            _feedstock = self.nr_files.feedstock.iloc[i]
+            _tillage_type = self.nr_files.tillage_type.iloc[i]
+            _activity = self.nr_files.activity.iloc[i]
 
+            # construct complete path to population file
             _pop_path = os.path.join(_pop_dir,
-                                     self.nr_files.pop_file_names[_file],
-                                     '.pop')
+                                     self.nr_files.pop_file_names.iloc[
+                                         i] + '.pop')
 
-            # open the population file for writing
-            self.pop_file = open(_pop_path, 'w')
+            # open, write and close population file
+            with open(_pop_path, 'w') as _pop_file:
 
-            _opening_lines = """
-            ------------------------------------------------------------------------------
-              1 -   5   FIPS code
-              7 -  11   subregion code (used for subcounty estimates)
-             13 -  16   year of population estimates
-             18 -  27   SCC code (no globals accepted)
-             29 -  68   equipment description (ignored)
-             70 -  74   minimum HP range
-             76 -  80   maximum HP range (ranges must match those internal to model)
-             82 -  86   average HP in range (if blank model uses midpoint)
-             88 -  92   expected useful life (in hours of use)
-             93 - 102   flag for scrappage distribution curve (DEFAULT = standard curve)
-            106 - 122   population estimate
+                # write the population file preamble to file
+                _pop_file.writelines(_opening_lines)
 
-            FIPS       Year  SCC        Equipment Description                    HPmn  HPmx HPavg  Life ScrapFlag     Population
-            ------------------------------------------------------------------------------
-            /POPULATION/
-            """
+                # apply the writing function over each row of the subsetted
+                # _nr_pop dataframe to write each line of the population file
+                _nr_pop_sub.apply(func=self._write_population_file_line,
+                                  axis=1, args=(_pop_file))
 
-            # write the population file preamble to file
-            self.pop_file.writelines(_opening_lines)
+                # write ending line
+                _pop_file.writelines('/END/')
 
-            # ignore the _output variable, the file lines are written within
-            # the function being applied along the rows of _nr_pop_sub and
-            # the output isn't used for anything
-            _output = np.apply_along_axis(self._write_population_file_line, 0,
-                                          _nr_pop_sub)
+                # close population file
+                _pop_file.close()
 
-            # write ending line
-            self.pop_file.writelines('/END/')
-
-            # close population file
-            self.pop_file.close()
 
 
 
