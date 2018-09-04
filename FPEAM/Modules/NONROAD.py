@@ -160,6 +160,7 @@ class NONROAD(Module):
         # this gets stored in self for use in the methods that create the
         # options, allocate and population files
         self.nr_files = self.prod_equip_merge[['state_abbreviation',
+                                               'state_fips',
                                                'feedstock',
                                                'tillage_type',
                                                'activity']].drop_duplicates()
@@ -292,8 +293,7 @@ population or land area.  The format is as follows.
 
                 # get the state two-digit code for the state total indicator
                 #  file line
-                _state_code = self.prod_equip_merge.state_fips[
-                    _prod_filter].drop_duplicates().values[0]
+                _state_code = self.nr_files.state_fips.iloc[i]
 
                 # loop thru fips w/in each state-tillagetype-activity to create the
                 # indicator lines in the file
@@ -478,6 +478,241 @@ population or land area.  The format is as follows.
                                                     'NRPOLLUT.csv'),
                  'DAILY_TEMPS_RVP': ''}
 
+        _options_file_template = """
+------------------------------------------------------
+                  PERIOD PACKET
+1  - Char 10  - Period type for this simulation.
+                  Valid responses are: ANNUAL, SEASONAL, and MONTHLY
+2  - Char 10  - Type of inventory produced.
+                  Valid responses are: TYPICAL DAY and PERIOD TOTAL
+3  - Integer  - year of episode (4 digit year)
+4  - Char 10  - Month of episode (use complete name of month)
+5  - Char 10  - Type of day
+                  Valid responses are: WEEKDAY and WEEKEND
+------------------------------------------------------
+/PERIOD/
+Period type        : Annual
+Summation type     : Period total
+Year of episode    : {episode_year}
+Season of year     :
+Month of year      :
+Weekday or weekend : Weekday
+Year of growth calc:
+Year of tech sel   :
+/END/
+
+------------------------------------------------------
+                  OPTIONS PACKET
+1  -  Char 80  - First title on reports
+2  -  Char 80  - Second title on reports
+3  -  Real 10  - Fuel RVP of gasoline for this simulation
+4  -  Real 10  - Oxygen weight percent of gasoline for simulation
+5  -  Real 10  - Percent sulfur for gasoline
+6  -  Real 10  - Percent sulfur for diesel
+7  -  Real 10  - Percent sulfur for LPG/CNG
+8  -  Real 10  - Minimum daily temperature (deg. F)
+9  -  Real 10  - maximum daily temperature (deg. F)
+10 -  Real 10  - Representative average daily temperature (deg. F)
+11 -  Char 10  - Flag to determine if region is high altitude
+                      Valid responses are: HIGH and LOW
+12 -  Char 10  - Flag to determine if RFG adjustments are made
+                      Valid responses are: YES and NO
+------------------------------------------------------
+/OPTIONS/
+Title 1            : {model_run_title}
+Title 2            :
+Fuel RVP for gas   : 8.0
+Oxygen Weight %    : 2.62
+Gas sulfur %       : 0.0339
+Diesel sulfur %    : 0.0011
+Marine Dsl sulfur %: 0.0435
+CNG/LPG sulfur %   : 0.003
+Minimum temper. (F): {temp_min}
+Maximum temper. (F): {temp_max}
+Average temper. (F): {temp_mean}
+Altitude of region : LOW
+EtOH Blend % Mkt   : 78.8
+EtOH Vol %         : 9.5
+/END/
+
+------------------------------------------------------
+                  REGION PACKET
+US TOTAL   -  emissions are for entire USA without state
+              breakout.
+
+50STATE    -  emissions are for all 50 states
+              and Washington D.C., by state.
+
+STATE      -  emissions are for a select group of states
+              and are state-level estimates
+
+COUNTY     -  emissions are for a select group of counties
+              and are county level estimates.  If necessary,
+              allocation from state to county will be performed.
+
+SUBCOUNTY  -  emissions are for the specified sub counties
+              and are subcounty level estimates.  If necessary,
+              county to subcounty allocation will be performed.
+
+US TOTAL   -  Nothing needs to be specified.  The FIPS
+              code 00000 is used automatically.
+
+50STATE    -  Nothing needs to be specified.  The FIPS
+              code 00000 is used automatically.
+
+STATE      -  state FIPS codes
+
+COUNTY     -  state or county FIPS codes.  State FIPS
+              code means include all counties in the
+              state.
+
+SUBCOUNTY  -  county FIPS code and subregion code.
+------------------------------------------------------
+/REGION/
+Region Level       : COUNTY
+All STATE          : {state_fips}
+/END/
+
+or use -
+Region Level       : STATE
+Michigan           : 26000
+------------------------------------------------------
+
+              SOURCE CATEGORY PACKET
+
+This packet is used to tell the model which source
+categories are to be processed.  It is optional.
+If used, only those source categories list will
+appear in the output data file.  If the packet is
+not found, the model will process all source
+categories in the population files.
+------------------------------------------------------
+/SOURCE CATEGORY/
+                   :2260005000
+                   :2265005000
+                   :2267005000
+                   :2268005000
+                   :2270005000
+                   :2270007015
+                   :2270002069
+                   :2270004066
+                   :2270004020
+/END/
+
+------------------------------------------------------
+/RUNFILES/
+ALLOC XREF         : {ALLOC_XREF}
+ACTIVITY           : {ACTIVITY}
+EXH TECHNOLOGY     : {EXH_TECHNOLOGY}
+EVP TECHNOLOGY     : {EVP_TECHNOLOGY}
+SEASONALITY        : {SEASONALITY}
+REGIONS            : {REGIONS}
+MESSAGE            : {MESSAGE}
+OUTPUT DATA        : {OUTPUT_DATA}
+EPS2 AMS           : {EPS2_AMS}
+US COUNTIES FIPS   : {US_COUNTIES_FIPS}
+RETROFIT           : {RETROFIT}
+/END/
+
+------------------------------------------------------
+This is the packet that defines the equipment population
+files read by the model.
+------------------------------------------------------
+/POP FILES/
+Population File    : {Population_File}
+/END/
+
+------------------------------------------------------
+This is the packet that defines the growth files
+files read by the model.
+------------------------------------------------------
+/GROWTH FILES/
+National defaults  : {National_defaults}
+/END/
+
+/ALLOC FILES/
+Harvested acres    : {Harvested_acres}
+/END/
+
+------------------------------------------------------
+This is the packet that defines the emissions factors
+files read by the model.
+------------------------------------------------------
+/EMFAC FILES/
+THC exhaust        : {EMFAC_THC_exhaust}
+CO exhaust         : {EMFAC_CO_exhaust}
+NOX exhaust        : {EMFAC_NOX_exhaust}
+PM exhaust         : {EMFAC_PM_exhaust}
+BSFC               : {EMFAC_BSFC}
+Crankcase          : {EMFAC_Crankcase}
+Spillage           : {EMFAC_Spillage}
+Diurnal            : {EMFAC_Diurnal}
+Tank Perm          : {EMFAC_Tank_Perm}
+Non-RM Hose Perm   : {EMFAC_Non_RM_Hose_Perm}
+RM Fill Neck Perm  : {EMFAC_RM_Fill_Neck_Perm}
+RM Supply/Return   : {EMFAC_RM_Supply_Return}
+RM Vent Perm       : {EMFAC_RM_Vent_Perm}
+Hot Soaks          : {EMFAC_Hot_Soaks}
+RuningLoss         : {EMFAC_RuningLoss}
+/END/
+
+------------------------------------------------------
+This is the packet that defines the deterioration factors
+files read by the model.
+------------------------------------------------------
+/DETERIORATE FILES/
+THC exhaust        : {DETERIORATE_THC_exhaust}
+CO exhaust         : {DETERIORATE_CO_exhaust}
+NOX exhaust        : {DETERIORATE_NOX_exhaust}
+PM exhaust         : {DETERIORATE_PM_exhaust}
+Diurnal            : {DETERIORATE_Diurnal}
+Tank Perm          : {DETERIORATE_Tank_Perm}
+Non-RM Hose Perm   : {DETERIORATE_Non_RM_Hose_Perm}
+RM Fill Neck Perm  : {DETERIORATE_RM_Fill_Neck_Perm}
+RM Supply/Return   : {DETERIORATE_RM_Supply_Return}
+RM Vent Perm       : {DETERIORATE_RM_Vent_Perm}
+Hot Soaks          : {DETERIORATE_Hot_Soaks}
+RuningLoss         : {DETERIORATE_RuningLoss}
+/END/
+
+Optional Packets - Add initial slash "/" to activate
+
+/STAGE II/
+Control Factor     : 0.0
+/END/
+Enter percent control: 95 = 95% control = 0.05 x uncontrolled
+Default should be zero control.
+
+/MODELYEAR OUT/
+EXHAUST BMY OUT    : {EXHAUST_BMY_OUT}
+EVAP BMY OUT       : {EVAP_BMY_OUT}
+/END/
+
+SI REPORT/
+SI report file-CSV : {SI_report_file_CSV}
+/END/
+
+/DAILY FILES/
+DAILY TEMPS/RVP    : {DAILY_TEMPS_RVP}
+/END/
+
+PM Base Sulfur
+ cols 1-10: dsl tech type;
+ 11-20: base sulfur wt%; or '1.0' means no-adjust (cert= in-use)
+/PM BASE SULFUR/
+T2        0.0350    0.02247
+T3        0.2000    0.02247
+T3B       0.0500    0.02247
+T4A       0.0500    0.02247
+T4B       0.0015    0.02247
+T4        0.0015    0.30
+T4N       0.0015    0.30
+T2M       0.0350    0.02247
+T3M       1.0       0.02247
+T4M       1.0       0.02247
+/END/
+"""
+
         # assemble id variable-specific kvals of file names and paths and
         # the state identifier
 
@@ -486,267 +721,36 @@ population or land area.  The format is as follows.
         for i in np.arange(self.nr_files.shape[0]):
 
             kvals_fips = {'state_fips': '{fips:0<5}'.format(
-                                    fips=self.nr_files.state_abbreviation[i]),
+                                    fips=self.nr_files.state_fips.iloc[i]),
                           'MESSAGE': os.path.join(self.project_path,
                                                   'MESSAGES',
-                              '%s.msg' % (self.nr_files.state_abbreviation[
+                              '%s.msg' % (self.nr_files.state_abbreviation.iloc[
                                   i])),
                           'OUTPUT_DATA': os.path.join(self.project_path, 'OUT',
-                              '%s.out' % (self.nr_files.out_dir_names[i],)),
+                              '%s.out' % (self.nr_files.out_opt_dir_names.iloc[
+                                              i],)),
                           'Population_File': os.path.join(self.project_path,
                                         'POP', '%s.pop' %
-                                          (self.nr_files.state_abbreviation[
+                                          (self.nr_files.pop_file_names.iloc[
                                               i])),
                           'Harvested_acres': os.path.join(self.project_path,
                                           'ALLOCATE', '%s.alo' %
-                                          (self.nr_files.state_abbreviation[
+                                          (self.nr_files.alo_file_names.iloc[
                                               i]))}
 
             # complete path to state OPT file including the subdirectory
             # name and the filename which is the state abbreviation
             f = os.path.join(self.project_path, 'OPT',
-                             self.nr_files.opt_dir_names[i],
-                             self.nr_files.state_abbreviation[i], '.opt')
+                             self.nr_files.out_opt_dir_names.iloc[i],
+                             self.nr_files.state_abbreviation.iloc[i] + '.opt')
+
 
             with open(f, 'w') as _opt_file:
-                lines = """
-            ------------------------------------------------------
-                              PERIOD PACKET
-            1  - Char 10  - Period type for this simulation.
-                              Valid responses are: ANNUAL, SEASONAL, and MONTHLY
-            2  - Char 10  - Type of inventory produced.
-                              Valid responses are: TYPICAL DAY and PERIOD TOTAL
-            3  - Integer  - year of episode (4 digit year)
-            4  - Char 10  - Month of episode (use complete name of month)
-            5  - Char 10  - Type of day
-                              Valid responses are: WEEKDAY and WEEKEND
-            ------------------------------------------------------
-            /PERIOD/
-            Period type        : Annual
-            Summation type     : Period total
-            Year of episode    : {episode_year}
-            Season of year     :
-            Month of year      :
-            Weekday or weekend : Weekday
-            Year of growth calc:
-            Year of tech sel   :
-            /END/
-    
-            ------------------------------------------------------
-                              OPTIONS PACKET
-            1  -  Char 80  - First title on reports
-            2  -  Char 80  - Second title on reports
-            3  -  Real 10  - Fuel RVP of gasoline for this simulation
-            4  -  Real 10  - Oxygen weight percent of gasoline for simulation
-            5  -  Real 10  - Percent sulfur for gasoline
-            6  -  Real 10  - Percent sulfur for diesel
-            7  -  Real 10  - Percent sulfur for LPG/CNG
-            8  -  Real 10  - Minimum daily temperature (deg. F)
-            9  -  Real 10  - maximum daily temperature (deg. F)
-            10 -  Real 10  - Representative average daily temperature (deg. F)
-            11 -  Char 10  - Flag to determine if region is high altitude
-                                  Valid responses are: HIGH and LOW
-            12 -  Char 10  - Flag to determine if RFG adjustments are made
-                                  Valid responses are: YES and NO
-            ------------------------------------------------------
-            /OPTIONS/
-            Title 1            : {model_run_title}
-            Title 2            :
-            Fuel RVP for gas   : 8.0
-            Oxygen Weight %    : 2.62
-            Gas sulfur %       : 0.0339
-            Diesel sulfur %    : 0.0011
-            Marine Dsl sulfur %: 0.0435
-            CNG/LPG sulfur %   : 0.003
-            Minimum temper. (F): {temp_min}
-            Maximum temper. (F): {temp_max}
-            Average temper. (F): {temp_mean}
-            Altitude of region : LOW
-            EtOH Blend % Mkt   : 78.8
-            EtOH Vol %         : 9.5
-            /END/
-    
-            ------------------------------------------------------
-                              REGION PACKET
-            US TOTAL   -  emissions are for entire USA without state
-                          breakout.
-    
-            50STATE    -  emissions are for all 50 states
-                          and Washington D.C., by state.
-    
-            STATE      -  emissions are for a select group of states
-                          and are state-level estimates
-    
-            COUNTY     -  emissions are for a select group of counties
-                          and are county level estimates.  If necessary,
-                          allocation from state to county will be performed.
-    
-            SUBCOUNTY  -  emissions are for the specified sub counties
-                          and are subcounty level estimates.  If necessary,
-                          county to subcounty allocation will be performed.
-    
-            US TOTAL   -  Nothing needs to be specified.  The FIPS
-                          code 00000 is used automatically.
-    
-            50STATE    -  Nothing needs to be specified.  The FIPS
-                          code 00000 is used automatically.
-    
-            STATE      -  state FIPS codes
-    
-            COUNTY     -  state or county FIPS codes.  State FIPS
-                          code means include all counties in the
-                          state.
-    
-            SUBCOUNTY  -  county FIPS code and subregion code.
-            ------------------------------------------------------
-            /REGION/
-            Region Level       : COUNTY
-            All STATE          : {state_fips}
-            /END/
-    
-            or use -
-            Region Level       : STATE
-            Michigan           : 26000
-            ------------------------------------------------------
-    
-                          SOURCE CATEGORY PACKET
-    
-            This packet is used to tell the model which source
-            categories are to be processed.  It is optional.
-            If used, only those source categories list will
-            appear in the output data file.  If the packet is
-            not found, the model will process all source
-            categories in the population files.
-            ------------------------------------------------------
-            /SOURCE CATEGORY/
-                               :2260005000
-                               :2265005000
-                               :2267005000
-                               :2268005000
-                               :2270005000
-                               :2270007015
-                               :2270002069
-                               :2270004066
-                               :2270004020
-            /END/
-    
-            ------------------------------------------------------
-            /RUNFILES/
-            ALLOC XREF         : {ALLOC_XREF}
-            ACTIVITY           : {ACTIVITY}
-            EXH TECHNOLOGY     : {EXH_TECHNOLOGY}
-            EVP TECHNOLOGY     : {EVP_TECHNOLOGY}
-            SEASONALITY        : {SEASONALITY}
-            REGIONS            : {REGIONS}
-            MESSAGE            : {MESSAGE}
-            OUTPUT DATA        : {OUTPUT_DATA}
-            EPS2 AMS           : {EPS2_AMS}
-            US COUNTIES FIPS   : {US_COUNTIES_FIPS}
-            RETROFIT           : {RETROFIT}
-            /END/
-    
-            ------------------------------------------------------
-            This is the packet that defines the equipment population
-            files read by the model.
-            ------------------------------------------------------
-            /POP FILES/
-            Population File    : {Population_File}
-            /END/
-    
-            ------------------------------------------------------
-            This is the packet that defines the growth files
-            files read by the model.
-            ------------------------------------------------------
-            /GROWTH FILES/
-            National defaults  : {National_defaults}
-            /END/
-    
-            /ALLOC FILES/
-            Harvested acres    : {Harvested_acres}
-            /END/
-    
-            ------------------------------------------------------
-            This is the packet that defines the emssions factors
-            files read by the model.
-            ------------------------------------------------------
-            /EMFAC FILES/
-            THC exhaust        : {EMFAC_THC_exhaust}
-            CO exhaust         : {EMFAC_CO_exhaust}
-            NOX exhaust        : {EMFAC_NOX_exhaust}
-            PM exhaust         : {EMFAC_PM_exhaust}
-            BSFC               : {EMFAC_BSFC}
-            Crankcase          : {EMFAC_Crankcase}
-            Spillage           : {EMFAC_Spillage}
-            Diurnal            : {EMFAC_Diurnal}
-            Tank Perm          : {EMFAC_Tank_Perm}
-            Non-RM Hose Perm   : {EMFAC_Non_RM_Hose_Perm}
-            RM Fill Neck Perm  : {EMFAC_RM_Fill_Neck_Perm}
-            RM Supply/Return   : {EMFAC_RM_Supply_Return}
-            RM Vent Perm       : {EMFAC_RM_Vent_Perm}
-            Hot Soaks          : {EMFAC_Hot_Soaks}
-            RuningLoss         : {EMFAC_RuningLoss}
-            /END/
-    
-            ------------------------------------------------------
-            This is the packet that defines the deterioration factors
-            files read by the model.
-            ------------------------------------------------------
-            /DETERIORATE FILES/
-            THC exhaust        : {DETERIORATE_THC_exhaust}
-            CO exhaust         : {DETERIORATE_CO_exhaust}
-            NOX exhaust        : {DETERIORATE_NOX_exhaust}
-            PM exhaust         : {DETERIORATE_PM_exhaust}
-            Diurnal            : {DETERIORATE_Diurnal}
-            Tank Perm          : {DETERIORATE_Tank_Perm}
-            Non-RM Hose Perm   : {DETERIORATE_Non_RM_Hose_Perm}
-            RM Fill Neck Perm  : {DETERIORATE_RM_Fill_Neck_Perm}
-            RM Supply/Return   : {DETERIORATE_RM_Supply_Return}
-            RM Vent Perm       : {DETERIORATE_RM_Vent_Perm}
-            Hot Soaks          : {DETERIORATE_Hot_Soaks}
-            RuningLoss         : {DETERIORATE_RuningLoss}
-            /END/
-    
-            Optional Packets - Add initial slash "/" to activate
-    
-            /STAGE II/
-            Control Factor     : 0.0
-            /END/
-            Enter percent control: 95 = 95% control = 0.05 x uncontrolled
-            Default should be zero control.
-    
-            /MODELYEAR OUT/
-            EXHAUST BMY OUT    : {EXHAUST_BMY_OUT}
-            EVAP BMY OUT       : {EVAP_BMY_OUT}
-            /END/
-    
-            SI REPORT/
-            SI report file-CSV : {SI_report_file_CSV}
-            /END/
-    
-            /DAILY FILES/
-            DAILY TEMPS/RVP    : {DAILY_TEMPS_RVP}
-            /END/
-    
-            PM Base Sulfur
-             cols 1-10: dsl tech type;
-             11-20: base sulfur wt%; or '1.0' means no-adjust (cert= in-use)
-            /PM BASE SULFUR/
-            T2        0.0350    0.02247
-            T3        0.2000    0.02247
-            T3B       0.0500    0.02247
-            T4A       0.0500    0.02247
-            T4B       0.0015    0.02247
-            T4        0.0015    0.30
-            T4N       0.0015    0.30
-            T2M       0.0350    0.02247
-            T3M       1.0       0.02247
-            T4M       1.0       0.02247
-            /END/
-            """.format(**kvals, **kvals_fips)
 
-            _opt_file.writelines(lines)
+                _opt_file.writelines(_options_file_template.format(**kvals,
+                                                                   **kvals_fips))
 
-            _opt_file.close()
+                _opt_file.close()
 
 
     def _write_population_file_line(self, df):
