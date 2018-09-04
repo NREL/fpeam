@@ -18,82 +18,6 @@ class NONROAD(Module):
         # init parent
         super(NONROAD, self).__init__(config=config)
 
-        # store input arguments in self
-        self.production = production
-        self.equipment = equipment
-
-        # @note nonroad_equipment is a dataframe of equipment names matching
-        #  the equipment input and SCC codes from nonroad, pulled in from csv
-        self.nonroad_equipment = nonroad_equipment
-
-        # this is a mapping from the region_production column of production
-        # to NONROAD fips values, used to derive state identifiers and run
-        # scenario through NONROAD
-        self.region_nonroad_fips_map = region_nonroad_fips_map
-
-        # mapping from 2-digit state FIPS to two-character state name
-        # abbreviations
-        self.state_fips_map = state_fips_map
-
-        self.year = year
-
-        self.forestry_feedstock_names =config.get('forestry_feedstock_names')
-
-        # add year as an extra column in production
-        self.production['year'] = self.year
-
-        # merge production with the region_production-fips map for NONROAD fips
-        self.production = self.production.merge(self.region_nonroad_fips_map,
-                                                how='inner',
-                                                on='region_production')
-
-        # add column with state derived from NONROAD fips column
-        self.production['state_fips'] = self.production.NONROAD_fips.str.slice(
-            stop=2)
-
-        self.production = self.production.merge(state_fips_map, how='inner',
-                                                on='state_fips')
-
-        # create list of unique state-feedstock-tillage type-activity
-        # combinations - one population file will be created for each of
-        # these combos
-        # this gets stored in self for use in creating the options, allocate
-        #  and population files
-        self.nr_files = self.production[['state_abbreviation', 'feedstock',
-                                         'tillage_type',
-                                         'activity']].drop_duplicates()
-
-        # do some assembly to create parseable filenames for each population
-        #  file - .pop extension SHOULD NOT be included as it is tacked on
-        # when the complete paths are created
-        self.nr_files['pop_file_names'] = self.nr_files['state_abbreviation'].map(str) + \
-                                        '_' + \
-                                  [w.replace(' ', '') for w in self.nr_files[
-                                       'feedstock']] + '_' + \
-                                  [w.replace(' ', '') for w in self.nr_files[
-                                       'tillage_type']] + '_' + \
-                                  self.nr_files['activity']
-
-        # the filenames for the allocate files are the same as for the
-        # population files
-        self.nr_files['alo_file_names'] = self.nr_files['pop_file_names']
-
-        # create a column of options and out directory names for later looping
-        # the feedstock bit has to be in a separate column for the next
-        # command to run
-        # the directory names for the OUT files are the same as for the OPT
-        # files
-        self.nr_files['feedstock_trim'] = [w.replace(' ', '') for w in
-                                           self.nr_files['feedstock']]
-        # DO NOT include the file extension because it is tacked on later
-        # when the full path(s) is/are generated
-        self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_trim']\
-                                             + \
-                                          '_' + \
-                                          [w.replace(' ', '') for w in
-                                           self.nr_files['tillage_type']] +\
-                                          '_' + self.nr_files['activity']
-
         # @TODO update to match the correct name in the config file
         self.model_run_title = config.get('scenario_name')
         self.project_path = os.path.join(config.get('project_path'),
@@ -117,6 +41,157 @@ class NONROAD(Module):
                                          password=config.get('moves_db_pass'),
                                          db=config.get('moves_database'),
                                          local_infile=True)
+
+        # store input arguments in self
+        self.production = production
+        self.equipment = equipment
+
+        # dataframe of equipment names matching the names in the equipment
+        # input df and SCC codes from nonroad
+        self.nonroad_equipment = nonroad_equipment
+
+        # mapping from the region_production column of production
+        # to NONROAD fips values, used to derive state identifiers and run
+        # scenario through NONROAD
+        self.region_nonroad_fips_map = region_nonroad_fips_map
+
+        # mapping from 2-digit state FIPS to two-character state name
+        # abbreviations
+        self.state_fips_map = state_fips_map
+
+        # scenario yaer
+        self.year = year
+
+        # list of feedstock names from equipment and production that
+        # correspond to forestry products
+        self.forestry_feedstock_names = config.get('forestry_feedstock_names')
+
+        # add year as an extra column in production
+        self.production['year'] = self.year
+
+        # merge production with the region_production-fips map for NONROAD fips
+        self.production = self.production.merge(self.region_nonroad_fips_map,
+                                                how='inner',
+                                                on='region_production')
+
+        # add column with state derived from NONROAD fips column
+        self.production['state_fips'] = self.production.NONROAD_fips.str.slice(
+            stop=2)
+
+        # merge with the state abbreviation df to have both state codes and
+        # state (character) abbreviations
+        self.production = self.production.merge(state_fips_map, how='inner',
+                                                on='state_fips')
+
+        # create filter to select only the feedstock measure used by NONROAD
+        _prod_filter = self.production.feedstock_measure == \
+                       self.nonroad_feedstock_measure
+
+        # filter down production rows based on what feedstock measure is
+        # used by NONROAD
+        self.production = self.production[_prod_filter]
+
+        # create filter to select only the time resource entries from the
+        # equipment df
+        _equip_filter = self.equipment.resource == self.time_resource_name
+
+        self.equipment = self.equipment[_equip_filter]
+
+        # in the equipment df: sum resource rates over rotation year to prep
+        # for calculating average rates
+        _equip_grouped = self.equipment.groupby(['feedstock',
+                                                 'tillage_type',
+                                                 'equipment_group',
+                                                 'activity',
+                                                 'equipment_name',
+                                                 'equipment_horsepower'],
+                                                as_index=False).sum()
+
+        # find the maximum rotation year within groups for calculating
+        # average rates
+        _max_year = self.equipment.groupby(['feedstock', 'tillage_type',
+                                             'equipment_group'],
+                                            as_index=False).max()[['feedstock',
+                                                                   'tillage_type',
+                                                                   'equipment_group',
+                                                                   'rotation_year']]
+
+        # rename rotation year to max rotation year
+        _max_year.rename(index=str, columns={'rotation_year':
+                                                 'max_rotation_year'},
+                         inplace=True)
+
+        # rename rate column to total rate
+        _equip_grouped.rename(index=str,
+                              columns={'rate': 'total_rotation_rate'},
+                              inplace=True)
+
+        # remove rotation_year column so it can be replaced with the maximum
+        #  rotation year
+        del _equip_grouped['rotation_year']
+
+        # combine the total rate df with the maximum rotation year df
+        _equip_avg = _equip_grouped.merge(_max_year, how='left',
+                                          on=['feedstock', 'tillage_type',
+                                              'equipment_group'])
+
+        # calculate average rate from total rotation rate and max rotation year
+        _equip_avg.eval('average_rate = total_rotation_rate / '
+                        'max_rotation_year',
+                        inplace=True)
+
+        # merge prod and the equip with average rates on feedstock, tillage
+        # type and equipment group
+        self.prod_equip_merge = self.production.merge(_equip_avg,
+                                                how='inner',
+                                                on=['feedstock',
+                                                    'tillage_type',
+                                                    'equipment_group'])
+
+        # calculate total hours for each equipment type - activity type combo
+        self.prod_equip_merge.eval('total_annual_rate = feedstock_amount * '
+                                   'average_rate',
+                                   inplace=True)
+
+        # create list of unique state-feedstock-tillage type-activity
+        # combinations - one population file, one allocation file and
+        # one options sub-directory and one out sub-directory will be created
+        # for each of these combos
+        # this gets stored in self for use in the methods that create the
+        # options, allocate and population files
+        self.nr_files = self.prod_equip_merge[['state_abbreviation',
+                                               'feedstock',
+                                               'tillage_type',
+                                               'activity']].drop_duplicates()
+
+        # do some assembly to create parseable filenames for each population
+        #  file - .pop extension SHOULD NOT be included as it is tacked on
+        # when the complete filepaths are created
+        self.nr_files['pop_file_names'] = self.nr_files['state_abbreviation'].map(str) + \
+                                        '_' + \
+                                  [w.replace(' ', '') for w in self.nr_files[
+                                       'feedstock']] + '_' + \
+                                  [w.replace(' ', '') for w in self.nr_files[
+                                       'tillage_type']] + '_' + \
+                                  self.nr_files['activity']
+
+        # the filenames for the allocate files are the same as for the
+        # population files
+        self.nr_files['alo_file_names'] = self.nr_files['pop_file_names']
+
+        # create a column of options and out directory names for later looping
+        # the feedstock bit has to be in a separate column for the next
+        # command to run
+        self.nr_files['feedstock_trim'] = [w.replace(' ', '') for w in
+                                           self.nr_files['feedstock']]
+
+        # create the out and options subdirectory names - names are identical
+        self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_trim']\
+                                             + \
+                                          '_' + \
+                                          [w.replace(' ', '') for w in
+                                           self.nr_files['tillage_type']] +\
+                                          '_' + self.nr_files['activity']
 
         # create dirs in the project path (which includes the scenario name)
         #  if the directories do not already exist
@@ -158,36 +233,36 @@ class NONROAD(Module):
         :return: None
         """
 
-        # @todo calculate indicators by
-        # state-fips-feedstock-tillagetype-activity
-        # (the indicators will be identical(?) for the tillage type and
-        # activity levels, but they're included to match with the other
-        # NONROAD files being generated)
+        # @note the indent has to be zero here b/c otherwise it will
+        # write to the allocation file
+        _preamble = """
+------------------------------------------------------------------------
+This is the packet that contains the allocation indicator data.  Each
+indicator value is a measured or projected value such as human
+population or land area.  The format is as follows.
+
+1-3    Indicator code
+6-10   FIPS code (can be global FIPS codes e.g. 06000 = all of CA)
+11-15  Subregion code (blank means is entire nation, state or county)
+16-20  Year of estimate or prediction
+21-40  Indicator value
+41-45  Blank (unused)
+46+    Optional Description (unused)
+------------------------------------------------------------------------
+/INDICATORS/
+"""
 
         # loop thru state-tillagetype-activity to create files and write the
         #  preamble
-        for _file in list(self.nr_files.alo_file_names):
+        for i in np.arange(self.nr_files.shape[0]):
 
             # initialize file
-            _alo_file_path = open(os.path.join(self.project_path, _file,
-                                               '.alo'))
+            _alo_file_path = open(os.path.join(self.project_path,
+                                               'ALLOCATE',
+                                               self.nr_files.alo_file_names.iloc[
+                                                   i] + '.alo'),
+                                  'w')
 
-            _preamble = """
-            ------------------------------------------------------------------------
-            This is the packet that contains the allocation indicator data.  Each
-            indicator value is a measured or projected value such as human
-            population or land area.  The format is as follows.
-    
-            1-3    Indicator code
-            6-10   FIPS code (can be global FIPS codes e.g. 06000 = all of CA)
-            11-15  Subregion code (blank means is entire nation, state or county)
-            16-20  Year of estimate or prediction
-            21-40  Indicator value
-            41-45  Blank (unused)
-            46+    Optional Description (unused)
-            ------------------------------------------------------------------------
-            /INDICATORS/
-            """
 
             _alo_file_path.writelines(_preamble)
 
@@ -196,20 +271,29 @@ class NONROAD(Module):
 
                 # pull out the production rows relvant to the file being generated
                 #  to get a list of FIPS - also filters by feedstock measure
-                _prod_filter = (self.production.state ==
-                                self.nr_files.state.iloc[i]) & \
-                               (self.production.feedstock ==
+                _prod_filter = (self.prod_equip_merge.state_abbreviation ==
+                                self.nr_files.state_abbreviation.iloc[i]) & \
+                               (self.prod_equip_merge.feedstock ==
                                 self.nr_files.feedstock.iloc[i]) & \
-                               (self.production.tillage_type ==
+                               (self.prod_equip_merge.tillage_type ==
                                 self.nr_files.tillage_type.iloc[i]) & \
-                               (self.production.activity ==
-                                self.nr_files.activity.iloc[i]) & \
-                               (self.production.feedstock_measure ==
-                                self.nonroad_feedstock_measure)
+                               (self.prod_equip_merge.activity ==
+                                self.nr_files.activity.iloc[i])
 
                 # filter down production and get the list of both fips and
                 # feedstock amounts (indicator values)
-                _indicator_list = self.production[_prod_filter]
+                _indicator_list = self.prod_equip_merge[_prod_filter][[
+                    'NONROAD_fips',
+                    'feedstock',
+                    'feedstock_amount']].drop_duplicates()
+
+                # write line with state indicator total
+                _ind_state_total = _indicator_list.feedstock_amount.sum()
+
+                # get the state two-digit code for the state total indicator
+                #  file line
+                _state_code = self.prod_equip_merge.state_fips[
+                    _prod_filter].drop_duplicates().values[0]
 
                 # loop thru fips w/in each state-tillagetype-activity to create the
                 # indicator lines in the file
@@ -227,7 +311,8 @@ class NONROAD(Module):
 
                             # calculate forestry indicator
                             _ind = _indicator_list.feedstock_amount[
-                                       _indicator_list.NONROAD_fips == _fips] * 2000.0 / 30.0
+                                       _indicator_list.NONROAD_fips ==
+                                       _fips].values[0] * 2000.0 / 30.0
 
                         else:
 
@@ -235,7 +320,8 @@ class NONROAD(Module):
 
                             # calculate harvested acres indicator
                             _ind = _indicator_list.feedstock_amount[
-                                _indicator_list.NONROAD_fips == _fips]
+                                _indicator_list.NONROAD_fips ==
+                                _fips].values[0]
 
                     else:
 
@@ -243,7 +329,7 @@ class NONROAD(Module):
 
                         # calculate harvested acres indicator
                         _ind = _indicator_list.feedstock_amount[
-                            _indicator_list.NONROAD_fips == _fips]
+                            _indicator_list.NONROAD_fips == _fips].values[0]
 
 
                     _alo_line = """%s  %s      %s    %s\n""" % (
@@ -252,31 +338,25 @@ class NONROAD(Module):
                     _alo_file_path.writelines(_alo_line)
 
 
-                # write line with state indicator total
-                _ind_state_total = _indicator_list.feedstock_amount.sum()
-
                 if self.forestry_feedstock_names is not None:
 
-                    if _ind_state_total.feedstock.unique() in \
+                    if  self.nr_files.feedstock.iloc[i] in \
                             self.forestry_feedstock_names:
 
                         _ind_state_total = _ind_state_total * 2000.0 / 30.0
 
                         _state_line = """LOG  %s000      %s    %s\n""" % (
-                            _indicator_list.state_abbreviation.unique(),
-                            self.year, _ind_state_total)
+                            _state_code, self.year, _ind_state_total)
 
                     else:
 
                         _state_line = """FRM  %s000      %s    %s\n""" % (
-                            _indicator_list.state_abbreviation.unique(),
-                            self.year, _ind_state_total)
+                           _state_code, self.year, _ind_state_total)
 
                 else:
 
                     _state_line = """FRM  %s000      %s    %s\n""" % (
-                        _indicator_list.state_abbreviation.unique(),
-                        self.year, _ind_state_total)
+                        _state_code, self.year, _ind_state_total)
 
                 # write the state toatl line
                 _alo_file_path.writelines(_state_line)
@@ -705,70 +785,6 @@ class NONROAD(Module):
 
         ## preprocess and merge equipment and production dfs
 
-        # filter down production and equipment to nonroad-relevant values
-        _prod_filter = self.production.feedstock_measure == \
-                      self.nonroad_feedstock_measure
-        _equip_filter = self.equipment.resource == self.time_resource_name
-
-        # apply filter to production and equipment
-        _prod_filtered = self.production[_prod_filter]
-        _equip_filtered = self.equipment[_equip_filter]
-
-        # sum resource rates over rotation year to prep for calculating
-        # average rates
-        _equip_grouped = _equip_filtered.groupby(['feedstock',
-                                                  'tillage_type',
-                                                  'equipment_group',
-                                                  'activity', 'equipment_name',
-                                                  'equipment_horsepower'],
-                                                 as_index=False).sum()
-
-        # find the maximum rotation year within groups for calculating
-        # average rates
-        _max_year = _equip_filtered.groupby(['feedstock', 'tillage_type',
-                                             'equipment_group'],
-                                            as_index=False).max()[[
-            'feedstock', 'tillage_type', 'equipment_group', 'rotation_year']]
-
-        # rename rotation year to max rotation year to avoid confusion
-        _max_year.rename(index=str, columns={'rotation_year':
-                                                 'max_rotation_year'},
-                         inplace=True)
-
-        # rename rate column to total rate
-        _equip_grouped.rename(index=str,
-                              columns={'rate': 'total_rotation_rate'},
-                              inplace=True)
-
-        # remove rotation_year column so it can be replaced with the maximum
-        #  rotation year
-        del _equip_grouped['rotation_year']
-
-        # combine the total rate df with the maximum rotation year df
-        _equip_avg = _equip_grouped.merge(_max_year, how='left',
-                                          on=['feedstock', 'tillage_type',
-                                              'equipment_group'])
-
-        # calculate average rate from total rotation rate and max rotation year
-        _equip_avg.eval('average_rate = total_rotation_rate / '
-                        'max_rotation_year',
-                        inplace=True)
-
-        # merge prod and the equip with average rates on feedstock, tillage
-        # type and equipment group
-        # note that how='left' and how='inner' produce the same merged df in
-        #  this step
-        _prod_equip_merge = _prod_nr_fips.merge(_equip_avg,
-                                                how='inner',
-                                                on=['feedstock',
-                                                    'tillage_type',
-                                                    'equipment_group'])
-
-        # calculate total hours for each equipment type - activity type combo
-        _prod_equip_merge.eval('total_annual_rate = feedstock_amount * '
-                               'average_rate',
-                               inplace=True)
-
         # assemble kvals for sql statement formatting
         kvals = {}
         kvals['moves_database'] = self.moves_database
@@ -815,8 +831,8 @@ class NONROAD(Module):
                                                         how='inner',
                                                         on='NRHPRangeBinID')
 
-        _nr_equip_filter = _equip_avg[['equipment_name',
-                                       'equipment_horsepower']].drop_duplicates()
+        _nr_equip_filter = self.prod_equip_merge[['equipment_name',
+                                                  'equipment_horsepower']].drop_duplicates()
 
         _nr_pop_info_filtered = _nr_pop_info.merge(_nr_equip_filter,
                                                    how='inner',
@@ -834,7 +850,7 @@ class NONROAD(Module):
 
         # merge the nr population info with equipment before calculating equipment
         # population from actual activity hours and hours-per-year from nonroad
-        _nr_pop_equip_merge = _prod_equip_merge.merge(_nr_pop_info_filtered,
+        _nr_pop_equip_merge = self.prod_equip_merge.merge(_nr_pop_info_filtered,
                                                       how='left',
                                                       on=['equipment_name',
                                                           'equipment_horsepower'])
