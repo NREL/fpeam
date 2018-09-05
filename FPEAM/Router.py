@@ -54,5 +54,5 @@ if __name__ == '__main__':
     from FPEAM import Data
 
     r = Router(edges=Data.TransportationGraph(fpath='../data/inputs/transportation_graph.csv'),
-               node_map=Data.CountyNode(fpath='../data/inputs/counts_node.csv'))
+               node_map=Data.CountyNode(fpath='../data/inputs/county_node.csv'))
     r.get_route(from_fips='01001', to_fips='01003')
