@@ -117,7 +117,8 @@ class Production(Data):
 
     # @TODO: moves_fips and nonroad_fips columns should be optional and backfilled with NaN if not present
 
-    INDEX_COLUMNS = ('production_region', 'feedstock', 'tillage_type', 'equipment_group')
+    INDEX_COLUMNS = ('region_production', 'feedstock', 'tillage_type',
+                     'equipment_group')
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Production, self).__init__(df=df, fpath=fpath, columns=columns)
