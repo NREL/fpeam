@@ -32,6 +32,11 @@ class NONROAD(Module):
         self.temp_min = config.get('nonroad_temp_min')
         self.temp_mean = config.get('nonroad_temp_mean')
         self.temp_max = config.get('nonroad_temp_max')
+        self.diesel_lhv = config.get('diesel_lhv')
+        self.diesel_nh3_ef = config.get('diesel_nh3_ef')
+        self.diesel_thc_voc_conversion = config.get(
+            'diesel_thc_voc_conversion')
+        self.diesel_pm10topm25 = config.get('diesel_pm10topm25')
         self.time_resource_name = config.get('time_resource_name')
         self.nonroad_feedstock_measure = config.get(
             'nonroad_feedstock_measure')
@@ -1039,12 +1044,82 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
             # close file
             _master_batch_file.close()
 
+
     def postprocess(self):
         """
         Contains all postprocessing functions for NONROAD raw output
-        :return: None
+        :return: dataframe of postprocessed nonroad emissions
         """
 
+        # create empty data frame to store the raw nonroad output
+        _nr_out = pd.DataFrame()
+
+        # loop through list of nonroad files
+        for i in np.arange(self.nr_files.shape[0]):
+
+            # create complete filepath to nonroad .out file
+            _nr_out_file = os.path.join(self.project_path, 'OUT',
+                                        self.nr_files.out_opt_dir_names.iloc[
+                                            i],
+                                        self.nr_files.state_abbreviation.iloc[
+                                            i] +
+                                        '.out')
+
+            # check if the .out file exists - if so, read in the data
+            if os.path.isfile(_nr_out_file):
+
+                # header specifies the file row that contains column names
+                # rows above the header are not read in
+                # usecols identifies the columns that are read in
+                # names gives names to the columns that are read in - the raw
+                # column names have whitespaces so it's easier to define new
+                #  names
+                _to_append = pd.read_table(_nr_out_file,
+                                           sep=',', header=9,
+                                           usecols=[0, 2, 5, 6,
+                                                    7, 9, 10, 19],
+                                           names=['fips', 'SCC', 'thc', 'co',
+                                                  'nox', 'so2', 'pm', 'fuel'])
+
+                # add some id variable columns
+                _to_append['state_fips'] = self.nr_files.state_fips.iloc[i]
+                _to_append['feedstock'] = self.nr_files.feedstock.iloc[i]
+                _to_append['tillage_type'] = self.nr_files.tillage_type.iloc[i]
+                _to_append['activity'] = self.nr_files.activity.iloc[i]
+
+                # append the results of this nonroad run to the full nonroad
+                #  output dataframe
+                _nr_out = _nr_out.append(_to_append, ignore_index=True)
+
+        ## convert units and calculate NH3 emissions from fuel consumption
+
+        # @todo convert all pollutant units to pounds
+        _nr_out['voc'] = _nr_out.thc * self.diesel_thc_voc_conversion
+
+        # @note nh3 emissions are in grams from this calculation
+        _nr_out['nh3'] = _nr_out.fuel * self.diesel_lhv * self.diesel_nh3_ef
+
+        _nr_out['pm25'] = _nr_out.pm10 * self.diesel_pm10topm25
+
+        del _nr_out['thc'], _nr_out['fuel']
+
+        # melt the nonroad output to put pollutant names in one column and
+        # pollutant amounts in a second column
+        # @todo should we keep SCC in these results?
+        _nr_out_melted = _nr_out.melt(id_vars=['feedstock', 'state_fips',
+                                               'fips', 'tillage_type',
+                                               'activity', 'SCC'],
+                                      value_vars=['co', 'nox', 'so2', 'pm10',
+                                                  'pm25', 'voc', 'nh3'],
+                                      var_name='pollutantID',
+                                      value_name='pollutant_amount')
+
+        # rename the state column to match output of other modules
+        _nr_out_melted.rename(index=str,
+                              columns={'state_fips': 'state'},
+                              inplace=True)
+
+        return _nr_out_melted
 
 
     def run_nonroad(self):
@@ -1061,16 +1136,18 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         self.create_batch_files()
 
+        # use Popen to run the master batch file
         p = Popen(self.master_batch_filepath)
         p.wait()
 
-        self.postprocess()
+        self.nonroad_emissions = self.postprocess()
 
 
 
     def __enter__(self):
 
         return self
+
 
     def __exit__(self, exc_type, exc_val, exc_tb):
 
