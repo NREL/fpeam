@@ -2,6 +2,7 @@ import os
 import pymysql
 import pandas as pd
 import numpy as np
+from subprocess import Popen
 
 from .Module import Module
 from FPEAM import utils
@@ -175,9 +176,9 @@ class NONROAD(Module):
                                         '_' + \
                                   [w.replace(' ', '') for w in self.nr_files[
                                        'feedstock']] + '_' + \
-                                  [w.replace(' ', '') for w in self.nr_files[
-                                       'tillage_type']] + '_' + \
-                                  self.nr_files['activity']
+                                  self.nr_files['tillage_type'].str[:2] + \
+                                          '_' + \
+                                  self.nr_files['activity'].str[:2]
 
         # the filenames for the allocate files are the same as for the
         # population files
@@ -189,13 +190,15 @@ class NONROAD(Module):
         self.nr_files['feedstock_trim'] = [w.replace(' ', '') for w in
                                            self.nr_files['feedstock']]
 
-        # create the out and options subdirectory names - names are identical
-        self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_trim']\
-                                             + \
-                                          '_' + \
-                                          [w.replace(' ', '') for w in
-                                           self.nr_files['tillage_type']] +\
-                                          '_' + self.nr_files['activity']
+        # create the out and options subdirectory names - the OUT and OPT
+        # names are identical so only one column is created
+        # @note the first two characters of tillage type and activity are used
+        #  to keep the OUT filenames under 25 characters total
+        self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_trim'] \
+                                     + \
+                                     '_' + \
+                                     self.nr_files['tillage_type'].str[:2] + \
+                                     '_' + self.nr_files['activity'].str[:2]
 
         # create dirs in the project path (which includes the scenario name)
         #  if the directories do not already exist
@@ -1012,11 +1015,12 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 _batch_file.close()
 
         # create the master batch file
-        _master_batch_filepath = os.path.join(_batch_path,
+        # store in self for use in run method
+        self.master_batch_filepath = os.path.join(_batch_path,
                                               self.model_run_title + '.bat')
 
         # open the master batch file
-        with open(_master_batch_filepath, 'w') as _master_batch_file:
+        with open(self.master_batch_filepath, 'w') as _master_batch_file:
 
             # loop through every file in the _batch_path directory
             for _file in os.listdir(_batch_path):
@@ -1035,6 +1039,12 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
             # close file
             _master_batch_file.close()
 
+    def postprocess(self):
+        """
+        Contains all postprocessing functions for NONROAD raw output
+        :return: None
+        """
+
 
 
     def run_nonroad(self):
@@ -1043,9 +1053,33 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         :return: None
         """
 
+        self.create_population_files()
+
+        self.create_allocate_files()
+
+        self.create_options_files()
+
+        self.create_batch_files()
+
+        p = Popen(self.master_batch_filepath)
+        p.wait()
+
+        self.postprocess()
 
 
 
+    def __enter__(self):
 
+        return self
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
 
+        # close connection to MOVES database
+        self.moves_con.close()
+
+        # process exceptions
+        if exc_type is not None:
+            LOGGER.exception('%s\n%s\n%s' % (exc_type, exc_val, exc_tb))
+            return False
+        else:
+            return self
