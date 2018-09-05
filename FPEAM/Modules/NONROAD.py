@@ -1076,9 +1076,9 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 #  names
                 _to_append = pd.read_table(_nr_out_file,
                                            sep=',', header=9,
-                                           usecols=[0, 2, 5, 6,
+                                           usecols=[0, 5, 6,
                                                     7, 9, 10, 19],
-                                           names=['fips', 'SCC', 'thc', 'co',
+                                           names=['fips', 'thc', 'co',
                                                   'nox', 'so2', 'pm', 'fuel'])
 
                 # add some id variable columns
@@ -1103,12 +1103,16 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         del _nr_out['thc'], _nr_out['fuel']
 
+        # sum emissions over different equipment types or different horsepowers
+        _nr_out = _nr_out.groupby([['feedstock', 'state_fips', 'fips',
+                                    'tlilage_type', 'activity']],
+                                  as_index=False).sum()
+
         # melt the nonroad output to put pollutant names in one column and
         # pollutant amounts in a second column
-        # @todo should we keep SCC in these results?
         _nr_out_melted = _nr_out.melt(id_vars=['feedstock', 'state_fips',
                                                'fips', 'tillage_type',
-                                               'activity', 'SCC'],
+                                               'activity'],
                                       value_vars=['co', 'nox', 'so2', 'pm10',
                                                   'pm25', 'voc', 'nh3'],
                                       var_name='pollutantID',
