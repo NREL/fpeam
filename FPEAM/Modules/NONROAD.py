@@ -1,6 +1,8 @@
 import os
+import pymysql
 import pandas as pd
 import numpy as np
+from subprocess import Popen
 
 from .Module import Module
 from FPEAM import utils
@@ -11,61 +13,383 @@ LOGGER = utils.logger(name=__name__)
 class NONROAD(Module):
     
     def __init__(self, config, production, equipment, year,
-                 nonroad_equipment, **kvals):
+                 region_nonroad_fips_map, nonroad_equipment,
+                 state_fips_map, **kvals):
 
         # init parent
         super(NONROAD, self).__init__(config=config)
 
-        # store input arguments in self
-        self.production = production
-        self.equipment = equipment
-        self.year = year
+        # @TODO update to match the correct name in the config file
         self.model_run_title = config.get('scenario_name')
-        self.project_path = os.path.join(config.get('project_path'),
+        self.nonroad_path = config.get('nonroad_path')
+        self.nonroad_project_path = config.get('nonroad_project_path')
+        self.nonroad_exe = config.get('nonroad_exe')
+
+        self.project_path = os.path.join(config.get('nonroad_project_path'),
                                          self.model_run_title)
 
         # store nonroad parameters in self
         self.temp_min = config.get('nonroad_temp_min')
         self.temp_mean = config.get('nonroad_temp_mean')
         self.temp_max = config.get('nonroad_temp_max')
-        self.nonroad_path = config.get('nonroad_path')
         self.time_resource_name = config.get('time_resource_name')
         self.nonroad_feedstock_measure = config.get(
             'nonroad_feedstock_measure')
-        # @todo this is a dataframe of equipment names matching the
-        # equipment input and SCC codes from nonroad, pulled in from csv
-        self.nonroad_equipment = config.get('nonroad_equipment')
 
-        # @todo create dirs if they do not exist
+        # moves database parameters
+        self.moves_database = config.get('moves_database')
 
-    def create_allocate_file(self):
+        # open connection to MOVES default database for input/output
+        self.moves_con = pymysql.connect(host=config.get('moves_db_host'),
+                                         user=config.get('moves_db_user'),
+                                         password=config.get('moves_db_pass'),
+                                         db=config.get('moves_database'),
+                                         local_infile=True)
+
+        # store input arguments in self
+        self.production = production
+        self.equipment = equipment
+
+        # dataframe of equipment names matching the names in the equipment
+        # input df and SCC codes from nonroad
+        self.nonroad_equipment = nonroad_equipment
+
+        # mapping from the region_production column of production
+        # to NONROAD fips values, used to derive state identifiers and run
+        # scenario through NONROAD
+        self.region_nonroad_fips_map = region_nonroad_fips_map
+
+        # mapping from 2-digit state FIPS to two-character state name
+        # abbreviations
+        self.state_fips_map = state_fips_map
+
+        # scenario yaer
+        self.year = year
+
+        # list of feedstock names from equipment and production that
+        # correspond to forestry products
+        self.forestry_feedstock_names = config.get('forestry_feedstock_names')
+
+        # add year as an extra column in production
+        self.production['year'] = self.year
+
+        # merge production with the region_production-fips map for NONROAD fips
+        self.production = self.production.merge(self.region_nonroad_fips_map,
+                                                how='inner',
+                                                on='region_production')
+
+        # add column with state derived from NONROAD fips column
+        self.production['state_fips'] = self.production.NONROAD_fips.str.slice(
+            stop=2)
+
+        # merge with the state abbreviation df to have both state codes and
+        # state (character) abbreviations
+        self.production = self.production.merge(state_fips_map, how='inner',
+                                                on='state_fips')
+
+        # create filter to select only the feedstock measure used by NONROAD
+        _prod_filter = self.production.feedstock_measure == \
+                       self.nonroad_feedstock_measure
+
+        # filter down production rows based on what feedstock measure is
+        # used by NONROAD
+        self.production = self.production[_prod_filter]
+
+        # create filter to select only the time resource entries from the
+        # equipment df
+        _equip_filter = self.equipment.resource == self.time_resource_name
+
+        self.equipment = self.equipment[_equip_filter]
+
+        # in the equipment df: sum resource rates over rotation year to prep
+        # for calculating average rates
+        _equip_grouped = self.equipment.groupby(['feedstock',
+                                                 'tillage_type',
+                                                 'equipment_group',
+                                                 'activity',
+                                                 'equipment_name',
+                                                 'equipment_horsepower'],
+                                                as_index=False).sum()
+
+        # find the maximum rotation year within groups for calculating
+        # average rates
+        _max_year = self.equipment.groupby(['feedstock', 'tillage_type',
+                                             'equipment_group'],
+                                            as_index=False).max()[['feedstock',
+                                                                   'tillage_type',
+                                                                   'equipment_group',
+                                                                   'rotation_year']]
+
+        # rename rotation year to max rotation year
+        _max_year.rename(index=str, columns={'rotation_year':
+                                                 'max_rotation_year'},
+                         inplace=True)
+
+        # rename rate column to total rate
+        _equip_grouped.rename(index=str,
+                              columns={'rate': 'total_rotation_rate'},
+                              inplace=True)
+
+        # remove rotation_year column so it can be replaced with the maximum
+        #  rotation year
+        del _equip_grouped['rotation_year']
+
+        # combine the total rate df with the maximum rotation year df
+        _equip_avg = _equip_grouped.merge(_max_year, how='left',
+                                          on=['feedstock', 'tillage_type',
+                                              'equipment_group'])
+
+        # calculate average rate from total rotation rate and max rotation year
+        _equip_avg.eval('average_rate = total_rotation_rate / '
+                        'max_rotation_year',
+                        inplace=True)
+
+        # merge prod and the equip with average rates on feedstock, tillage
+        # type and equipment group
+        self.prod_equip_merge = self.production.merge(_equip_avg,
+                                                how='inner',
+                                                on=['feedstock',
+                                                    'tillage_type',
+                                                    'equipment_group'])
+
+        # calculate total hours for each equipment type - activity type combo
+        self.prod_equip_merge.eval('total_annual_rate = feedstock_amount * '
+                                   'average_rate',
+                                   inplace=True)
+
+        # create list of unique state-feedstock-tillage type-activity
+        # combinations - one population file, one allocation file and
+        # one options sub-directory and one out sub-directory will be created
+        # for each of these combos
+        # this gets stored in self for use in the methods that create the
+        # options, allocate and population files
+        self.nr_files = self.prod_equip_merge[['state_abbreviation',
+                                               'state_fips',
+                                               'feedstock',
+                                               'tillage_type',
+                                               'activity']].drop_duplicates()
+
+        # do some assembly to create parseable filenames for each population
+        #  file - .pop extension SHOULD NOT be included as it is tacked on
+        # when the complete filepaths are created
+        self.nr_files['pop_file_names'] = self.nr_files['state_abbreviation'].map(str) + \
+                                        '_' + \
+                                  [w.replace(' ', '') for w in self.nr_files[
+                                       'feedstock']] + '_' + \
+                                  self.nr_files['tillage_type'].str[:2] + \
+                                          '_' + \
+                                  self.nr_files['activity'].str[:2]
+
+        # the filenames for the allocate files are the same as for the
+        # population files
+        self.nr_files['alo_file_names'] = self.nr_files['pop_file_names']
+
+        # create a column of options and out directory names for later looping
+        # the feedstock bit has to be in a separate column for the next
+        # command to run
+        self.nr_files['feedstock_trim'] = [w.replace(' ', '') for w in
+                                           self.nr_files['feedstock']]
+
+        # create the out and options subdirectory names - the OUT and OPT
+        # names are identical so only one column is created
+        # @note the first two characters of tillage type and activity are used
+        #  to keep the OUT filenames under 25 characters total
+        self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_trim'] \
+                                     + \
+                                     '_' + \
+                                     self.nr_files['tillage_type'].str[:2] + \
+                                     '_' + self.nr_files['activity'].str[:2]
+
+        # create dirs in the project path (which includes the scenario name)
+        #  if the directories do not already exist
+        _nr_folders = [self.project_path,
+                       os.path.join(self.project_path, 'MESSAGES'),
+                       os.path.join(self.project_path, 'ALLOCATE'),
+                       os.path.join(self.project_path, 'POP'),
+                       os.path.join(self.project_path, 'OPT'),
+                       os.path.join(self.project_path, 'OUT'),
+                       os.path.join(self.project_path, 'FIGURES'),
+                       os.path.join(self.project_path, 'QUERIES')]
+
+        for _folder in _nr_folders:
+            if not os.path.exists(_folder):
+                os.makedirs(_folder)
+
+        # create subdirectories in the OUT and OPT directories for each
+        # feedstock-tillagetype-activity combination
+        for _dir in list(self.nr_files.out_opt_dir_names):
+
+            _out_path = os.path.join(self.project_path, 'OUT',
+                                     _dir)
+
+            _opt_path = os.path.join(self.project_path, 'OPT',
+                                     _dir)
+
+            if not os.path.exists(_out_path):
+                os.makedirs(_out_path)
+
+            if not os.path.exists(_opt_path):
+                os.makedirs(_opt_path)
+
+
+
+    def create_allocate_files(self):
         """
         write spatial indicators to .alo file for the NonRoad program to
         use. File are written on a state-level basis.
         :return: None
         """
 
+        # @note the indent has to be zero here b/c otherwise it will
+        # write to the allocation file
+        _preamble = """
+------------------------------------------------------------------------
+This is the packet that contains the allocation indicator data.  Each
+indicator value is a measured or projected value such as human
+population or land area.  The format is as follows.
+
+1-3    Indicator code
+6-10   FIPS code (can be global FIPS codes e.g. 06000 = all of CA)
+11-15  Subregion code (blank means is entire nation, state or county)
+16-20  Year of estimate or prediction
+21-40  Indicator value
+41-45  Blank (unused)
+46+    Optional Description (unused)
+------------------------------------------------------------------------
+/INDICATORS/
+"""
+
+        # loop thru state-tillagetype-activity to create files and write the
+        #  preamble
+        for i in np.arange(self.nr_files.shape[0]):
+
+            # initialize file
+            _alo_file_path = open(os.path.join(self.project_path,
+                                               'ALLOCATE',
+                                               self.nr_files.alo_file_names.iloc[
+                                                   i] + '.alo'),
+                                  'w')
 
 
+            _alo_file_path.writelines(_preamble)
 
 
-    def create_options_file(self, fips):
+            for i in np.arange(self.nr_files.shape[0]):
+
+                # pull out the production rows relvant to the file being generated
+                #  to get a list of FIPS - also filters by feedstock measure
+                _prod_filter = (self.prod_equip_merge.state_abbreviation ==
+                                self.nr_files.state_abbreviation.iloc[i]) & \
+                               (self.prod_equip_merge.feedstock ==
+                                self.nr_files.feedstock.iloc[i]) & \
+                               (self.prod_equip_merge.tillage_type ==
+                                self.nr_files.tillage_type.iloc[i]) & \
+                               (self.prod_equip_merge.activity ==
+                                self.nr_files.activity.iloc[i])
+
+                # filter down production and get the list of both fips and
+                # feedstock amounts (indicator values)
+                _indicator_list = self.prod_equip_merge[_prod_filter][[
+                    'NONROAD_fips',
+                    'feedstock',
+                    'feedstock_amount']].drop_duplicates()
+
+                # write line with state indicator total
+                _ind_state_total = _indicator_list.feedstock_amount.sum()
+
+                # get the state two-digit code for the state total indicator
+                #  file line
+                _state_code = self.nr_files.state_fips.iloc[i]
+
+                # loop thru fips w/in each state-tillagetype-activity to create the
+                # indicator lines in the file
+                for _fips in list(_indicator_list.NONROAD_fips):
+                    # calculate indicators by fips - harvested acres for all crop
+                    # except for forest residues and forest whole trees; ??? for the
+                    # two forest products
+
+                    if self.forestry_feedstock_names is not None:
+
+                        if self.nr_files.feedstock.iloc[i] in \
+                                self.forestry_feedstock_names:
+
+                            _ind_code = 'LOG'
+
+                            # calculate forestry indicator
+                            _ind = _indicator_list.feedstock_amount[
+                                       _indicator_list.NONROAD_fips ==
+                                       _fips].values[0] * 2000.0 / 30.0
+
+                        else:
+
+                            _ind_code = 'FRM'
+
+                            # calculate harvested acres indicator
+                            _ind = _indicator_list.feedstock_amount[
+                                _indicator_list.NONROAD_fips ==
+                                _fips].values[0]
+
+                    else:
+
+                        _ind_code = 'FRM'
+
+                        # calculate harvested acres indicator
+                        _ind = _indicator_list.feedstock_amount[
+                            _indicator_list.NONROAD_fips == _fips].values[0]
+
+
+                    _alo_line = """%s  %s      %s    %s\n""" % (
+                        _ind_code,  _fips, self.year, _ind)
+
+                    _alo_file_path.writelines(_alo_line)
+
+
+                if self.forestry_feedstock_names is not None:
+
+                    if  self.nr_files.feedstock.iloc[i] in \
+                            self.forestry_feedstock_names:
+
+                        _ind_state_total = _ind_state_total * 2000.0 / 30.0
+
+                        _state_line = """LOG  %s000      %s    %s\n""" % (
+                            _state_code, self.year, _ind_state_total)
+
+                    else:
+
+                        _state_line = """FRM  %s000      %s    %s\n""" % (
+                           _state_code, self.year, _ind_state_total)
+
+                else:
+
+                    _state_line = """FRM  %s000      %s    %s\n""" % (
+                        _state_code, self.year, _ind_state_total)
+
+                # write the state toatl line
+                _alo_file_path.writelines(_state_line)
+
+                # write final line of file
+                _alo_file_path.writelines('/END/')
+
+                # close file
+                _alo_file_path.close()
+
+
+    def create_options_files(self):
         """
         creates options file by filling in a template with values from
         config, production and equipment
         :return: None
         """
 
-        _state = str(fips)[0:2]
-
+        # populate dictionary for options file formatting with entries that
+        # DO NOT change with state, fips, feedstock, tillage type or activity
+        # these values are the SAME in every options file created regardless
+        #  of scenario
         kvals = {'episode_year': self.year,
-                 'state_fips': '{fips:0<5}'.format(fips=fips[0:2]),
                  'model_run_title': self.model_run_title,
                  'temp_min': self.temp_min,
                  'temp_max': self.temp_max,
                  'temp_mean': self.temp_mean,
-                 # @todo check that the alloc_xref is OK, it comes from an
-                 # old code version
                  'ALLOC_XREF': os.path.join(self.nonroad_path, 'data',
                                             'allocate', 'allocate.xrf'),
                  'ACTIVITY': os.path.join(self.nonroad_path,
@@ -80,22 +404,12 @@ class NONROAD(Module):
                                              'data', 'season', 'season.dat'),
                  'REGIONS': os.path.join(self.nonroad_path,
                                          'data', 'season', 'season.dat'),
-                 'MESSAGE': os.path.join(self.project_path, 'MESSAGES',
-                                         '%s.msg' % (_state,)),
-                 # @todo changed dir name from runcode to fips
-                 'OUTPUT_DATA': os.path.join(self.out_path_pop_alo, 'OUT',
-                                             fips, '%s.out' % (_state,)),
                  'EPS2_AMS': '',
                  'US_COUNTIES_FIPS': os.path.join(self.nonroad_path, 'data',
                                                   'allocate', 'fips.dat'),
                  'RETROFIT': '',
-                 'Population_File': os.path.join(self.out_path_pop_alo,
-                                                 'POP', '%s_%s.pop' % (fips)),
                  'National_defaults': os.path.join(self.nonroad_path, 'data',
                                                    'growth', 'nation.grw'),
-                 'Harvested_acres': os.path.join(self.out_path_pop_alo,
-                                                 'ALLOCATE',
-                                                 '%s_%s.alo' % (fips)),
                  'EMFAC_THC_exhaust': os.path.join(self.nonroad_path, 'data',
                                                    'emsfac', 'exhthc.emf'),
                  'EMFAC_CO_exhaust': os.path.join(self.nonroad_path, 'data',
@@ -168,258 +482,604 @@ class NONROAD(Module):
                  'SI_report_file_CSV': os.path.join(self.project_path,
                                                     'MESSAGES',
                                                     'NRPOLLUT.csv'),
-                 'DAILY_TEMPS_RVP': ''
-                 }
+                 'DAILY_TEMPS_RVP': ''}
 
-        f = os.path.join(self.project_path, 'OPT', fips, '%s.opt' % (_state,))
-        with open(f, 'w') as _opt_file:
-            lines = """
-        ------------------------------------------------------
-                          PERIOD PACKET
-        1  - Char 10  - Period type for this simulation.
-                          Valid responses are: ANNUAL, SEASONAL, and MONTHLY
-        2  - Char 10  - Type of inventory produced.
-                          Valid responses are: TYPICAL DAY and PERIOD TOTAL
-        3  - Integer  - year of episode (4 digit year)
-        4  - Char 10  - Month of episode (use complete name of month)
-        5  - Char 10  - Type of day
-                          Valid responses are: WEEKDAY and WEEKEND
-        ------------------------------------------------------
-        /PERIOD/
-        Period type        : Annual
-        Summation type     : Period total
-        Year of episode    : {episode_year}
-        Season of year     :
-        Month of year      :
-        Weekday or weekend : Weekday
-        Year of growth calc:
-        Year of tech sel   :
-        /END/
+        _options_file_template = """
+------------------------------------------------------
+                  PERIOD PACKET
+1  - Char 10  - Period type for this simulation.
+                  Valid responses are: ANNUAL, SEASONAL, and MONTHLY
+2  - Char 10  - Type of inventory produced.
+                  Valid responses are: TYPICAL DAY and PERIOD TOTAL
+3  - Integer  - year of episode (4 digit year)
+4  - Char 10  - Month of episode (use complete name of month)
+5  - Char 10  - Type of day
+                  Valid responses are: WEEKDAY and WEEKEND
+------------------------------------------------------
+/PERIOD/
+Period type        : Annual
+Summation type     : Period total
+Year of episode    : {episode_year}
+Season of year     :
+Month of year      :
+Weekday or weekend : Weekday
+Year of growth calc:
+Year of tech sel   :
+/END/
 
-        ------------------------------------------------------
-                          OPTIONS PACKET
-        1  -  Char 80  - First title on reports
-        2  -  Char 80  - Second title on reports
-        3  -  Real 10  - Fuel RVP of gasoline for this simulation
-        4  -  Real 10  - Oxygen weight percent of gasoline for simulation
-        5  -  Real 10  - Percent sulfur for gasoline
-        6  -  Real 10  - Percent sulfur for diesel
-        7  -  Real 10  - Percent sulfur for LPG/CNG
-        8  -  Real 10  - Minimum daily temperature (deg. F)
-        9  -  Real 10  - maximum daily temperature (deg. F)
-        10 -  Real 10  - Representative average daily temperature (deg. F)
-        11 -  Char 10  - Flag to determine if region is high altitude
-                              Valid responses are: HIGH and LOW
-        12 -  Char 10  - Flag to determine if RFG adjustments are made
-                              Valid responses are: YES and NO
-        ------------------------------------------------------
-        /OPTIONS/
-        Title 1            : {model_run_title}
-        Title 2            :
-        Fuel RVP for gas   : 8.0
-        Oxygen Weight %    : 2.62
-        Gas sulfur %       : 0.0339
-        Diesel sulfur %    : 0.0011
-        Marine Dsl sulfur %: 0.0435
-        CNG/LPG sulfur %   : 0.003
-        Minimum temper. (F): {temp_min}
-        Maximum temper. (F): {temp_max}
-        Average temper. (F): {temp_mean}
-        Altitude of region : LOW
-        EtOH Blend % Mkt   : 78.8
-        EtOH Vol %         : 9.5
-        /END/
+------------------------------------------------------
+                  OPTIONS PACKET
+1  -  Char 80  - First title on reports
+2  -  Char 80  - Second title on reports
+3  -  Real 10  - Fuel RVP of gasoline for this simulation
+4  -  Real 10  - Oxygen weight percent of gasoline for simulation
+5  -  Real 10  - Percent sulfur for gasoline
+6  -  Real 10  - Percent sulfur for diesel
+7  -  Real 10  - Percent sulfur for LPG/CNG
+8  -  Real 10  - Minimum daily temperature (deg. F)
+9  -  Real 10  - maximum daily temperature (deg. F)
+10 -  Real 10  - Representative average daily temperature (deg. F)
+11 -  Char 10  - Flag to determine if region is high altitude
+                      Valid responses are: HIGH and LOW
+12 -  Char 10  - Flag to determine if RFG adjustments are made
+                      Valid responses are: YES and NO
+------------------------------------------------------
+/OPTIONS/
+Title 1            : {model_run_title}
+Title 2            :
+Fuel RVP for gas   : 8.0
+Oxygen Weight %    : 2.62
+Gas sulfur %       : 0.0339
+Diesel sulfur %    : 0.0011
+Marine Dsl sulfur %: 0.0435
+CNG/LPG sulfur %   : 0.003
+Minimum temper. (F): {temp_min}
+Maximum temper. (F): {temp_max}
+Average temper. (F): {temp_mean}
+Altitude of region : LOW
+EtOH Blend % Mkt   : 78.8
+EtOH Vol %         : 9.5
+/END/
 
-        ------------------------------------------------------
-                          REGION PACKET
-        US TOTAL   -  emissions are for entire USA without state
-                      breakout.
+------------------------------------------------------
+                  REGION PACKET
+US TOTAL   -  emissions are for entire USA without state
+              breakout.
 
-        50STATE    -  emissions are for all 50 states
-                      and Washington D.C., by state.
+50STATE    -  emissions are for all 50 states
+              and Washington D.C., by state.
 
-        STATE      -  emissions are for a select group of states
-                      and are state-level estimates
+STATE      -  emissions are for a select group of states
+              and are state-level estimates
 
-        COUNTY     -  emissions are for a select group of counties
-                      and are county level estimates.  If necessary,
-                      allocation from state to county will be performed.
+COUNTY     -  emissions are for a select group of counties
+              and are county level estimates.  If necessary,
+              allocation from state to county will be performed.
 
-        SUBCOUNTY  -  emissions are for the specified sub counties
-                      and are subcounty level estimates.  If necessary,
-                      county to subcounty allocation will be performed.
+SUBCOUNTY  -  emissions are for the specified sub counties
+              and are subcounty level estimates.  If necessary,
+              county to subcounty allocation will be performed.
 
-        US TOTAL   -  Nothing needs to be specified.  The FIPS
-                      code 00000 is used automatically.
+US TOTAL   -  Nothing needs to be specified.  The FIPS
+              code 00000 is used automatically.
 
-        50STATE    -  Nothing needs to be specified.  The FIPS
-                      code 00000 is used automatically.
+50STATE    -  Nothing needs to be specified.  The FIPS
+              code 00000 is used automatically.
 
-        STATE      -  state FIPS codes
+STATE      -  state FIPS codes
 
-        COUNTY     -  state or county FIPS codes.  State FIPS
-                      code means include all counties in the
-                      state.
+COUNTY     -  state or county FIPS codes.  State FIPS
+              code means include all counties in the
+              state.
 
-        SUBCOUNTY  -  county FIPS code and subregion code.
-        ------------------------------------------------------
-        /REGION/
-        Region Level       : COUNTY
-        All STATE          : {state_fips}
-        /END/
+SUBCOUNTY  -  county FIPS code and subregion code.
+------------------------------------------------------
+/REGION/
+Region Level       : COUNTY
+All STATE          : {state_fips}
+/END/
 
-        or use -
-        Region Level       : STATE
-        Michigan           : 26000
-        ------------------------------------------------------
+or use -
+Region Level       : STATE
+Michigan           : 26000
+------------------------------------------------------
 
-                      SOURCE CATEGORY PACKET
+              SOURCE CATEGORY PACKET
 
-        This packet is used to tell the model which source
-        categories are to be processed.  It is optional.
-        If used, only those source categories list will
-        appear in the output data file.  If the packet is
-        not found, the model will process all source
-        categories in the population files.
-        ------------------------------------------------------
-        /SOURCE CATEGORY/
-                           :2260005000
-                           :2265005000
-                           :2267005000
-                           :2268005000
-                           :2270005000
-                           :2270007015
-                           :2270002069
-                           :2270004066
-                           :2270004020
-        /END/
+This packet is used to tell the model which source
+categories are to be processed.  It is optional.
+If used, only those source categories list will
+appear in the output data file.  If the packet is
+not found, the model will process all source
+categories in the population files.
+------------------------------------------------------
+/SOURCE CATEGORY/
+                   :2260005000
+                   :2265005000
+                   :2267005000
+                   :2268005000
+                   :2270005000
+                   :2270007015
+                   :2270002069
+                   :2270004066
+                   :2270004020
+/END/
 
-        ------------------------------------------------------
-        /RUNFILES/
-        ALLOC XREF         : {ALLOC_XREF}
-        ACTIVITY           : {ACTIVITY}
-        EXH TECHNOLOGY     : {EXH_TECHNOLOGY}
-        EVP TECHNOLOGY     : {EVP_TECHNOLOGY}
-        SEASONALITY        : {SEASONALITY}
-        REGIONS            : {REGIONS}
-        MESSAGE            : {MESSAGE}
-        OUTPUT DATA        : {OUTPUT_DATA}
-        EPS2 AMS           : {EPS2_AMS}
-        US COUNTIES FIPS   : {US_COUNTIES_FIPS}
-        RETROFIT           : {RETROFIT}
-        /END/
+------------------------------------------------------
+/RUNFILES/
+ALLOC XREF         : {ALLOC_XREF}
+ACTIVITY           : {ACTIVITY}
+EXH TECHNOLOGY     : {EXH_TECHNOLOGY}
+EVP TECHNOLOGY     : {EVP_TECHNOLOGY}
+SEASONALITY        : {SEASONALITY}
+REGIONS            : {REGIONS}
+MESSAGE            : {MESSAGE}
+OUTPUT DATA        : {OUTPUT_DATA}
+EPS2 AMS           : {EPS2_AMS}
+US COUNTIES FIPS   : {US_COUNTIES_FIPS}
+RETROFIT           : {RETROFIT}
+/END/
 
-        ------------------------------------------------------
-        This is the packet that defines the equipment population
-        files read by the model.
-        ------------------------------------------------------
-        /POP FILES/
-        Population File    : {Population_File}
-        /END/
+------------------------------------------------------
+This is the packet that defines the equipment population
+files read by the model.
+------------------------------------------------------
+/POP FILES/
+Population File    : {Population_File}
+/END/
 
-        ------------------------------------------------------
-        This is the packet that defines the growth files
-        files read by the model.
-        ------------------------------------------------------
-        /GROWTH FILES/
-        National defaults  : {National_defaults}
-        /END/
+------------------------------------------------------
+This is the packet that defines the growth files
+files read by the model.
+------------------------------------------------------
+/GROWTH FILES/
+National defaults  : {National_defaults}
+/END/
 
-        /ALLOC FILES/
-        Harvested acres    : {Harvested_acres}
-        /END/
+/ALLOC FILES/
+Harvested acres    : {Harvested_acres}
+/END/
 
-        ------------------------------------------------------
-        This is the packet that defines the emssions factors
-        files read by the model.
-        ------------------------------------------------------
-        /EMFAC FILES/
-        THC exhaust        : {EMFAC_THC_exhaust}
-        CO exhaust         : {EMFAC_CO_exhaust}
-        NOX exhaust        : {EMFAC_NOX_exhaust}
-        PM exhaust         : {EMFAC_PM_exhaust}
-        BSFC               : {EMFAC_BSFC}
-        Crankcase          : {EMFAC_Crankcase}
-        Spillage           : {EMFAC_Spillage}
-        Diurnal            : {EMFAC_Diurnal}
-        Tank Perm          : {EMFAC_Tank_Perm}
-        Non-RM Hose Perm   : {EMFAC_Non_RM_Hose_Perm}
-        RM Fill Neck Perm  : {EMFAC_RM_Fill_Neck_Perm}
-        RM Supply/Return   : {EMFAC_RM_Supply_Return}
-        RM Vent Perm       : {EMFAC_RM_Vent_Perm}
-        Hot Soaks          : {EMFAC_Hot_Soaks}
-        RuningLoss         : {EMFAC_RuningLoss}
-        /END/
+------------------------------------------------------
+This is the packet that defines the emissions factors
+files read by the model.
+------------------------------------------------------
+/EMFAC FILES/
+THC exhaust        : {EMFAC_THC_exhaust}
+CO exhaust         : {EMFAC_CO_exhaust}
+NOX exhaust        : {EMFAC_NOX_exhaust}
+PM exhaust         : {EMFAC_PM_exhaust}
+BSFC               : {EMFAC_BSFC}
+Crankcase          : {EMFAC_Crankcase}
+Spillage           : {EMFAC_Spillage}
+Diurnal            : {EMFAC_Diurnal}
+Tank Perm          : {EMFAC_Tank_Perm}
+Non-RM Hose Perm   : {EMFAC_Non_RM_Hose_Perm}
+RM Fill Neck Perm  : {EMFAC_RM_Fill_Neck_Perm}
+RM Supply/Return   : {EMFAC_RM_Supply_Return}
+RM Vent Perm       : {EMFAC_RM_Vent_Perm}
+Hot Soaks          : {EMFAC_Hot_Soaks}
+RuningLoss         : {EMFAC_RuningLoss}
+/END/
 
-        ------------------------------------------------------
-        This is the packet that defines the deterioration factors
-        files read by the model.
-        ------------------------------------------------------
-        /DETERIORATE FILES/
-        THC exhaust        : {DETERIORATE_THC_exhaust}
-        CO exhaust         : {DETERIORATE_CO_exhaust}
-        NOX exhaust        : {DETERIORATE_NOX_exhaust}
-        PM exhaust         : {DETERIORATE_PM_exhaust}
-        Diurnal            : {DETERIORATE_Diurnal}
-        Tank Perm          : {DETERIORATE_Tank_Perm}
-        Non-RM Hose Perm   : {DETERIORATE_Non_RM_Hose_Perm}
-        RM Fill Neck Perm  : {DETERIORATE_RM_Fill_Neck_Perm}
-        RM Supply/Return   : {DETERIORATE_RM_Supply_Return}
-        RM Vent Perm       : {DETERIORATE_RM_Vent_Perm}
-        Hot Soaks          : {DETERIORATE_Hot_Soaks}
-        RuningLoss         : {DETERIORATE_RuningLoss}
-        /END/
+------------------------------------------------------
+This is the packet that defines the deterioration factors
+files read by the model.
+------------------------------------------------------
+/DETERIORATE FILES/
+THC exhaust        : {DETERIORATE_THC_exhaust}
+CO exhaust         : {DETERIORATE_CO_exhaust}
+NOX exhaust        : {DETERIORATE_NOX_exhaust}
+PM exhaust         : {DETERIORATE_PM_exhaust}
+Diurnal            : {DETERIORATE_Diurnal}
+Tank Perm          : {DETERIORATE_Tank_Perm}
+Non-RM Hose Perm   : {DETERIORATE_Non_RM_Hose_Perm}
+RM Fill Neck Perm  : {DETERIORATE_RM_Fill_Neck_Perm}
+RM Supply/Return   : {DETERIORATE_RM_Supply_Return}
+RM Vent Perm       : {DETERIORATE_RM_Vent_Perm}
+Hot Soaks          : {DETERIORATE_Hot_Soaks}
+RuningLoss         : {DETERIORATE_RuningLoss}
+/END/
 
-        Optional Packets - Add initial slash "/" to activate
+Optional Packets - Add initial slash "/" to activate
 
-        /STAGE II/
-        Control Factor     : 0.0
-        /END/
-        Enter percent control: 95 = 95% control = 0.05 x uncontrolled
-        Default should be zero control.
+/STAGE II/
+Control Factor     : 0.0
+/END/
+Enter percent control: 95 = 95% control = 0.05 x uncontrolled
+Default should be zero control.
 
-        /MODELYEAR OUT/
-        EXHAUST BMY OUT    : {EXHAUST_BMY_OUT}
-        EVAP BMY OUT       : {EVAP_BMY_OUT}
-        /END/
+/MODELYEAR OUT/
+EXHAUST BMY OUT    : {EXHAUST_BMY_OUT}
+EVAP BMY OUT       : {EVAP_BMY_OUT}
+/END/
 
-        SI REPORT/
-        SI report file-CSV : {SI_report_file_CSV}
-        /END/
+SI REPORT/
+SI report file-CSV : {SI_report_file_CSV}
+/END/
 
-        /DAILY FILES/
-        DAILY TEMPS/RVP    : {DAILY_TEMPS_RVP}
-        /END/
+/DAILY FILES/
+DAILY TEMPS/RVP    : {DAILY_TEMPS_RVP}
+/END/
 
-        PM Base Sulfur
-         cols 1-10: dsl tech type;
-         11-20: base sulfur wt%; or '1.0' means no-adjust (cert= in-use)
-        /PM BASE SULFUR/
-        T2        0.0350    0.02247
-        T3        0.2000    0.02247
-        T3B       0.0500    0.02247
-        T4A       0.0500    0.02247
-        T4B       0.0015    0.02247
-        T4        0.0015    0.30
-        T4N       0.0015    0.30
-        T2M       0.0350    0.02247
-        T3M       1.0       0.02247
-        T4M       1.0       0.02247
-        /END/
-        """.format(**kvals)
+PM Base Sulfur
+ cols 1-10: dsl tech type;
+ 11-20: base sulfur wt%; or '1.0' means no-adjust (cert= in-use)
+/PM BASE SULFUR/
+T2        0.0350    0.02247
+T3        0.2000    0.02247
+T3B       0.0500    0.02247
+T4A       0.0500    0.02247
+T4B       0.0015    0.02247
+T4        0.0015    0.30
+T4N       0.0015    0.30
+T2M       0.0350    0.02247
+T3M       1.0       0.02247
+T4M       1.0       0.02247
+/END/
+"""
 
-        _opt_file.writelines(lines)
+        # assemble id variable-specific kvals of file names and paths and
+        # the state identifier
 
-        _opt_file.close()
+        # loop thru the feedstock-tillage-activity combinations stored in
+        # nr_files
+        for i in np.arange(self.nr_files.shape[0]):
 
-    def create_population_file(self):
+            kvals_fips = {'state_fips': '{fips:0<5}'.format(
+                                    fips=self.nr_files.state_fips.iloc[i]),
+                          'MESSAGE': os.path.join(self.project_path,
+                                                  'MESSAGES',
+                              '%s.msg' % (self.nr_files.state_abbreviation.iloc[
+                                  i])),
+                          'OUTPUT_DATA': os.path.join(self.project_path, 'OUT',
+                              '%s.out' % (self.nr_files.out_opt_dir_names.iloc[
+                                              i],)),
+                          'Population_File': os.path.join(self.project_path,
+                                        'POP', '%s.pop' %
+                                          (self.nr_files.pop_file_names.iloc[
+                                              i])),
+                          'Harvested_acres': os.path.join(self.project_path,
+                                          'ALLOCATE', '%s.alo' %
+                                          (self.nr_files.alo_file_names.iloc[
+                                              i]))}
+
+            # complete path to state OPT file including the subdirectory
+            # name and the filename which is the state abbreviation
+            f = os.path.join(self.project_path, 'OPT',
+                             self.nr_files.out_opt_dir_names.iloc[i],
+                             self.nr_files.state_abbreviation.iloc[i] + '.opt')
+
+
+            with open(f, 'w') as _opt_file:
+
+                _opt_file.writelines(_options_file_template.format(**kvals,
+                                                                   **kvals_fips))
+
+                _opt_file.close()
+
+
+    def _write_population_file_line(self, df, _pop_file):
         """
-        Calculates [level?] populations of all equipment from
+        Function for applying over the rows of a dataframe containing all
+        relevant NONROAD equipment population data
+        :return: None
+        """
+
+        kvals = {'fips': df.NONROAD_fips,
+                 'sub_reg': '',
+                 'year': self.year,
+                 'scc_code': df.SCC,
+                 'equip_desc': df.equipment_description,
+                 'min_hp': df.hpMin,
+                 'max_hp': df.hpMax,
+                 'avg_hp': df.hpAvg,
+                 'life': df.equipment_lifetime,
+                 'flag': 'DEFAULT',
+                 'pop': df.equipment_population}
+
+        _string_to_write = '{fips:0>5} {sub_reg:>5} {year:>4} {scc_code:>10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5.1f} {life:>5} {flag:<10} {pop:>17.7f} \n'.format(**kvals)
+
+        _pop_file.writelines(_string_to_write)
+
+        return None
+
+
+    def create_population_files(self):
+        """
+        Calculates  populations of all equipment from
         operation-hours found in the equipment input and the annual hours of
         operation from the MOVES database
         :return: None
         """
 
+        ## preprocess and merge equipment and production dfs
+
+        # assemble kvals for sql statement formatting
+        kvals = {}
+        kvals['moves_database'] = self.moves_database
+
+        # read in nrsourceusetype table to get the hp range IDs, hp averages,
+        # and hours used per year (annual activity used to calculate
+        # population) by SCC
+        _nrsourceusetype_sql = """SELECT SCC, NRHPRangeBinID, 
+            medianLifeFullLoad, hoursUsedPerYear, hpAvg
+            FROM {moves_database}.nrsourceusetype;""".format(**kvals)
+
+        _nrsourceusetype = pd.read_sql(_nrsourceusetype_sql, self.moves_con)
+
+        # rename the equipment lifetime column
+        _nrsourceusetype.rename(index=str,
+                                columns={'medianLifeFullLoad':
+                                             'equipment_lifetime'},
+                                inplace=True)
+
+        # filter down the nrsourceusetype table based on the list of
+        # equipment in user-provided nonroad_equipment
+        _scc_filter = _nrsourceusetype.SCC.isin(
+            self.nonroad_equipment.nonroad_equipment_scc)
+
+        _nrsourceusetype_filtered = _nrsourceusetype[_scc_filter]
+
+        # read in nrhprangebin that matches hp range IDs to hp min and max
+        # values
+        _nrhprangebin_sql = """SELECT NRHPRangeBinID, hpMin, hpMax
+                        FROM {moves_database}.nrhprangebin""".format(**kvals)
+
+        _nrhprangebin = pd.read_sql(_nrhprangebin_sql, self.moves_con)
+
+        # merge the nonroad_equipment, nrsourceusetype and nrhprangebin
+        # together to generate a df of information needed in the population
+        # file
+        # the dropna is because the default nonroad_equipment file has many
+        # missing values; it won't impact a file with no missing values
+        _nr_pop_info = self.nonroad_equipment.dropna().merge(_nrsourceusetype,
+                                                             how='inner',
+                                                             left_on='nonroad_equipment_scc',
+                                                             right_on='SCC').merge(
+                                                        _nrhprangebin,
+                                                        how='inner',
+                                                        on='NRHPRangeBinID')
+
+        _nr_equip_filter = self.prod_equip_merge[['equipment_name',
+                                                  'equipment_horsepower']].drop_duplicates()
+
+        _nr_pop_info_filtered = _nr_pop_info.merge(_nr_equip_filter,
+                                                   how='inner',
+                                                   on='equipment_name')
+
+        # create horsepower filter based on comparing the equipment hp to hp
+        #  bins - this is to avoid multiple entries with different hp
+        # ranges for each piece of equipment
+        _hp_filter = ((_nr_pop_info_filtered.equipment_horsepower >=
+                       _nr_pop_info_filtered.hpMin) & (
+                _nr_pop_info_filtered.equipment_horsepower <=
+                _nr_pop_info_filtered.hpMax))
+
+        _nr_pop_info_filtered = _nr_pop_info_filtered[_hp_filter]
+
+        # merge the nr population info with equipment before calculating equipment
+        # population from actual activity hours and hours-per-year from nonroad
+        _nr_pop_equip_merge = self.prod_equip_merge.merge(_nr_pop_info_filtered,
+                                                      how='left',
+                                                      on=['equipment_name',
+                                                          'equipment_horsepower'])
+
+        # calculate the equipment population from the annual rate (from the
+        # equipment input data) and the hours used per year (from nonroad
+        # defaults)
+        _nr_pop_equip_merge.eval('equipment_population = total_annual_rate / '
+                                 'hoursUsedPerYear', inplace=True)
+
+        # sum equipment populations so there's only one population per
+        # equipment type
+        _nr_pop = _nr_pop_equip_merge.groupby(['state_abbreviation',
+                                               'feedstock',
+                                               'tillage_type',
+                                               'activity',
+                                               'NONROAD_fips',
+                                               'year',
+                                               'SCC',
+                                               'equipment_description',
+                                               'hpMin',
+                                               'hpMax',
+                                               'hpAvg',
+                                               'equipment_lifetime'],
+                                              as_index=False).sum()
+
+        # keep only the columns relevant to either the population file name
+        # or file contents
+        _nr_pop = _nr_pop[['state_abbreviation', 'feedstock',
+                           'tillage_type', 'activity', 'NONROAD_fips', 'year',
+                           'SCC', 'equipment_description', 'hpMin', 'hpMax',
+                           'hpAvg', 'equipment_lifetime',
+                           'equipment_population']]
+
+        ## use population info to construct population files
+
+        # set path to population file for this scenario
+        # project_path already contains the scenario name
+        _pop_dir = os.path.join(self.project_path, 'POP')
+
+        _opening_lines = """
+------------------------------------------------------------------------------
+  1 -   5   FIPS code
+  7 -  11   subregion code (used for subcounty estimates)
+ 13 -  16   year of population estimates
+ 18 -  27   SCC code (no globals accepted)
+ 29 -  68   equipment description (ignored)
+ 70 -  74   minimum HP range
+ 76 -  80   maximum HP range (ranges must match those internal to model)
+ 82 -  86   average HP in range (if blank model uses midpoint)
+ 88 -  92   expected useful life (in hours of use)
+ 93 - 102   flag for scrappage distribution curve (DEFAULT = standard curve)
+106 - 122   population estimate
+
+FIPS       Year  SCC        Equipment Description                    HPmn  HPmx HPavg  Life ScrapFlag     Population
+------------------------------------------------------------------------------
+/POPULATION/
+"""
+
+        # open, create and close all population files for a scenario
+        for i in np.arange(self.nr_files.shape[0]):
+
+            # create filter to pull out only the lines in _nr_pop that are
+            # relevant to this population file
+            _nr_pop_filter = (_nr_pop.state_abbreviation ==
+                              self.nr_files.state_abbreviation.iloc[i]) & (
+                    _nr_pop.feedstock == self.nr_files.feedstock.iloc[i])\
+                             & (_nr_pop.tillage_type ==
+                                self.nr_files.tillage_type.iloc[i]) & (
+                    _nr_pop.activity == self.nr_files.activity.iloc[i])
+
+            # subset _nr_pop
+            _nr_pop_sub = _nr_pop[_nr_pop_filter]
+
+            # get components of population file lines
+            _state = self.nr_files.state_abbreviation.iloc[i]
+            _feedstock = self.nr_files.feedstock.iloc[i]
+            _tillage_type = self.nr_files.tillage_type.iloc[i]
+            _activity = self.nr_files.activity.iloc[i]
+
+            # construct complete path to population file
+            _pop_path = os.path.join(_pop_dir,
+                                     self.nr_files.pop_file_names.iloc[
+                                         i] + '.pop')
+
+            # open, write and close population file
+            with open(_pop_path, 'w') as _pop_file:
+
+                # write the population file preamble to file
+                _pop_file.writelines(_opening_lines)
+
+                # apply the writing function over each row of the subsetted
+                # _nr_pop dataframe to write each line of the population file
+                _nr_pop_sub.apply(func=self._write_population_file_line,
+                                  axis=1, args=(_pop_file))
+
+                # write ending line
+                _pop_file.writelines('/END/')
+
+                # close population file
+                _pop_file.close()
 
 
 
+    def create_batch_files(self):
+        """
+        Creates all batch files by feedstock-tillage-activity combination
+        Creates the master batch file that calls all other batch files
+        :return: None
+        """
+
+        # specify directory where batch files are saved - same as location
+        # of the OPT subdirectories
+        _batch_path = os.path.join(self.project_path, 'OPT')
+
+        kvals = {}
+        kvals['nonroad_project_path'] = self.project_path
+        kvals['nonroad_exe_path'] = os.path.join(self.nonroad_path,
+                                                 self.nonroad_exe)
+
+        # create files and write the first line which is identical across
+        # all batch files except for the master file
+        for i in list(self.nr_files.out_opt_dir_names.drop_duplicates()):
+
+            # create the full path to the batch file
+            _batch_filepath = os.path.join(_batch_path, i + '.bat')
+
+            # pull out only the rows of nr_files that are relevant to this
+            # batch file
+            nr_files_sub = self.nr_files[self.nr_files.out_opt_dir_names == i]
+
+            # initialize the batch file
+            with open(_batch_filepath, 'w') as _batch_file:
+
+                # write the first line that sets the current director
+                _batch_file.writelines("""cd {nonroad_project_path}\n""".format(
+                    **kvals))
+
+                # loop through the subset of nr_files
+                for j in np.arange(nr_files_sub.shape[0]):
+
+                    # assemble the full filepath to each .opt file relevant
+                    # to this batch file
+                    kvals['opt_filepath'] = os.path.join(_batch_path,
+                                                         nr_files_sub.out_opt_dir_names.iloc[j],
+                                                         nr_files_sub.state_abbreviation.iloc[j] + '.opt')
+
+                    # write each line of the batch file
+                    _batch_file.writelines("""{nonroad_exe_path} {opt_filepath}\n""".format(**kvals))
+
+                # close the batch file
+                _batch_file.close()
+
+        # create the master batch file
+        # store in self for use in run method
+        self.master_batch_filepath = os.path.join(_batch_path,
+                                              self.model_run_title + '.bat')
+
+        # open the master batch file
+        with open(self.master_batch_filepath, 'w') as _master_batch_file:
+
+            # loop through every file in the _batch_path directory
+            for _file in os.listdir(_batch_path):
+
+                # add all batch files to the master batch file except for
+                # the master batch file itself
+                if _file.endswith('.bat') & ~_file.startswith(
+                        self.model_run_title):
+
+                    # get the complete filepath to the batch file
+                    kvals['batch_filename'] = os.path.join(_batch_path, _file)
+
+                    # write the batch file's line to the master bach file
+                    _master_batch_file.writelines("""CALL "{batch_filename}"\n""".format(**kvals))
+
+            # close file
+            _master_batch_file.close()
+
+    def postprocess(self):
+        """
+        Contains all postprocessing functions for NONROAD raw output
+        :return: None
+        """
+
+
+
+    def run_nonroad(self):
+        """
+        Calls all methods to setup and run NONROAD
+        :return: None
+        """
+
+        self.create_population_files()
+
+        self.create_allocate_files()
+
+        self.create_options_files()
+
+        self.create_batch_files()
+
+        p = Popen(self.master_batch_filepath)
+        p.wait()
+
+        self.postprocess()
+
+
+
+    def __enter__(self):
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+
+        # close connection to MOVES database
+        self.moves_con.close()
+
+        # process exceptions
+        if exc_type is not None:
+            LOGGER.exception('%s\n%s\n%s' % (exc_type, exc_val, exc_tb))
+            return False
+        else:
+            return self
