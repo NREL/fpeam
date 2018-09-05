@@ -20,14 +20,17 @@ class NONROAD(Module):
 
         # @TODO update to match the correct name in the config file
         self.model_run_title = config.get('scenario_name')
-        self.project_path = os.path.join(config.get('project_path'),
+        self.nonroad_path = config.get('nonroad_path')
+        self.nonroad_project_path = config.get('nonroad_project_path')
+        self.nonroad_exe = config.get('nonroad_exe')
+
+        self.project_path = os.path.join(config.get('nonroad_project_path'),
                                          self.model_run_title)
 
         # store nonroad parameters in self
         self.temp_min = config.get('nonroad_temp_min')
         self.temp_mean = config.get('nonroad_temp_mean')
         self.temp_max = config.get('nonroad_temp_max')
-        self.nonroad_path = config.get('nonroad_path')
         self.time_resource_name = config.get('time_resource_name')
         self.nonroad_feedstock_measure = config.get(
             'nonroad_feedstock_measure')
@@ -958,6 +961,87 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 _pop_file.close()
 
 
+
+    def create_batch_files(self):
+        """
+        Creates all batch files by feedstock-tillage-activity combination
+        Creates the master batch file that calls all other batch files
+        :return: None
+        """
+
+        # specify directory where batch files are saved - same as location
+        # of the OPT subdirectories
+        _batch_path = os.path.join(self.project_path, 'OPT')
+
+        kvals = {}
+        kvals['nonroad_project_path'] = self.project_path
+        kvals['nonroad_exe_path'] = os.path.join(self.nonroad_path,
+                                                 self.nonroad_exe)
+
+        # create files and write the first line which is identical across
+        # all batch files except for the master file
+        for i in list(self.nr_files.out_opt_dir_names.drop_duplicates()):
+
+            # create the full path to the batch file
+            _batch_filepath = os.path.join(_batch_path, i + '.bat')
+
+            # pull out only the rows of nr_files that are relevant to this
+            # batch file
+            nr_files_sub = self.nr_files[self.nr_files.out_opt_dir_names == i]
+
+            # initialize the batch file
+            with open(_batch_filepath, 'w') as _batch_file:
+
+                # write the first line that sets the current director
+                _batch_file.writelines("""cd {nonroad_project_path}\n""".format(
+                    **kvals))
+
+                # loop through the subset of nr_files
+                for j in np.arange(nr_files_sub.shape[0]):
+
+                    # assemble the full filepath to each .opt file relevant
+                    # to this batch file
+                    kvals['opt_filepath'] = os.path.join(_batch_path,
+                                                         nr_files_sub.out_opt_dir_names.iloc[j],
+                                                         nr_files_sub.state_abbreviation.iloc[j] + '.opt')
+
+                    # write each line of the batch file
+                    _batch_file.writelines("""{nonroad_exe_path} {opt_filepath}\n""".format(**kvals))
+
+                # close the batch file
+                _batch_file.close()
+
+        # create the master batch file
+        _master_batch_filepath = os.path.join(_batch_path,
+                                              self.model_run_title + '.bat')
+
+        # open the master batch file
+        with open(_master_batch_filepath, 'w') as _master_batch_file:
+
+            # loop through every file in the _batch_path directory
+            for _file in os.listdir(_batch_path):
+
+                # add all batch files to the master batch file except for
+                # the master batch file itself
+                if _file.endswith('.bat') & ~_file.startswith(
+                        self.model_run_title):
+
+                    # get the complete filepath to the batch file
+                    kvals['batch_filename'] = os.path.join(_batch_path, _file)
+
+                    # write the batch file's line to the master bach file
+                    _master_batch_file.writelines("""CALL "{batch_filename}"\n""".format(**kvals))
+
+            # close file
+            _master_batch_file.close()
+
+
+
+    def run_nonroad(self):
+        """
+        Calls all methods to setup and run NONROAD
+        :return: None
+        """
 
 
 
