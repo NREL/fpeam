@@ -1135,7 +1135,7 @@ class MOVES(Module):
         user input y/n: clear out old moves results
         postprocesses local copy to get rate per vehicle-mile by FIPS (saves
         this locally) and sends to routing for total emissions calculation
-        :return: None
+        :return: dataframe of postprocessed transportation emissions
         """
 
         LOGGER.info('Retrieving MOVES output')
@@ -1368,11 +1368,12 @@ class MOVES(Module):
                                         'pollutant_amount']],
                 ignore_index=True)
 
-        # @TODO convert pollutant amount from grams to ??
+        # @TODO convert pollutant amounts from grams to pounds
 
         # sum up by pollutant type for semi-final module output
         _transportation_emissions = _transportation_emissions.groupby(
-                ['region_production', 'state', 'year', 'tillage_type', 'feedstock',
+                ['region_production', 'state', 'year', 'tillage_type',
+                 'feedstock',
                  'pollutantID'], as_index=False).sum()
 
         return _transportation_emissions
@@ -1467,7 +1468,8 @@ class MOVES(Module):
              'feedstock_amount']].drop_duplicates()
 
         # rename the non-summed year column to maintain that identifier
-        self.prod_moves_runs.rename(index=str, columns={'year_y': 'year'}, inplace=True)
+        self.prod_moves_runs.rename(index=str, columns={'year_y': 'year'},
+                                    inplace=True)
 
         # @NOTE prod_moves_runs is being stored in self as a potential
         # output or check on functionality; it'll also be used in
@@ -1545,7 +1547,7 @@ class MOVES(Module):
                 os.system(command)
 
         # postprocess output - same regardless of cached status
-        self.postprocess()
+        self.transportation_emissions = self.postprocess()
 
     def __enter__(self):
 
