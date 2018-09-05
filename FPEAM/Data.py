@@ -91,12 +91,13 @@ class Equipment(Data):
                'equipment_horsepower': float,
                'resource': str,
                'rate': float,
-               'unit': str}
+               'unit_numerator': str,
+               'unit_denominator': str}
 
     INDEX_COLUMNS = ('equipment_group', 'feedstock', 'tillage_type', 'equipment_group',
                      'rotation_year', 'activity',
                      'equipment_name', 'equipment_horsepower',
-                     'resource', 'unit')
+                     'resource', 'unit_numerator', 'unit_denominator')
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Equipment, self).__init__(df=df, fpath=fpath, columns=columns)
