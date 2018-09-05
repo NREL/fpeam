@@ -382,7 +382,8 @@ class MOVES(Module):
                                                'year}.csv'.format(**kvals))
 
         # pull data from database and save in a csv
-        pd.read_sql(_fuelusagename_sql, self.moves_con).to.csv(self.fuelusage_filename)
+        pd.read_sql(_fuelusagename_sql, self.moves_con).to_csv(
+            self.fuelusage_filename)
 
         # export county-level meteorology data
         # need one for each FIPS
