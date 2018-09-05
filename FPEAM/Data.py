@@ -85,8 +85,7 @@ class Equipment(Data):
     COLUMNS = {'feedstock': str,
                'tillage_type': str,
                'equipment_group': str,
-               'budget_year': int,
-               'operation_unit': int,
+               'rotation_year': int,
                'activity': str,
                'equipment_name': str,
                'equipment_horsepower': float,
@@ -95,7 +94,8 @@ class Equipment(Data):
                'unit': str}
 
     INDEX_COLUMNS = ('equipment_group', 'feedstock', 'tillage_type', 'equipment_group',
-                     'budget_year', 'operation_unit', 'activity', 'equipment_name', 'equipment_horsepower',
+                     'rotation_year', 'activity',
+                     'equipment_name', 'equipment_horsepower',
                      'resource', 'unit')
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
