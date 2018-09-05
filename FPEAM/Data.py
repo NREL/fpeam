@@ -191,7 +191,7 @@ class MoistureContent(Data):
 class NONROADEquipment(Data):
 
     COLUMNS = {'equipment_name': str,
-               'nonroad_equipment_name': str,
+               'equipment_description': str,
                'nonroad_equipment_scc': str}
 
     INDEX_COLUMNS = ('equipment_name', )
