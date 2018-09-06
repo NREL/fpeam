@@ -311,12 +311,12 @@ class MOVES(Module):
                              'yearID': self.year,
                              'HPMSBaseYearVMT': self.vmt_short_haul})
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.vmt_filename = os.path.join(self.save_path_countyinputs,
                                          '{fips}_vehiclemiletraveled_{'
                                          'year}.csv'.format(**kvals))
 
-        # write vehicle miles travelec to file
+        # write vehicle miles traveled to file
         _vmt.to_csv(self.vmt_filename, index=False)
 
         # source type population (number of vehicles by vehicle type)
@@ -325,7 +325,7 @@ class MOVES(Module):
                                     'sourceTypeID': self.source_type_id,
                                     'sourceTypePopulation': self.pop_short_haul})
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.sourcetype_filename = os.path.join(self.save_path_countyinputs,
                                                 '{fips}_sourcetype_{'
                                                 'year}.csv'.format(**kvals))
@@ -357,7 +357,7 @@ class MOVES(Module):
                             WHERE {moves_database}.fuelformulation.fuelSubtypeID
                             IN {fuel_subtype_id};""".format(**kvals)
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.fuelformulation_filename = os.path.join(
                 self.save_path_countyinputs, '{fips}_fuelformulation_{'
                                              'year}.csv'.format(**kvals))
@@ -376,20 +376,21 @@ class MOVES(Module):
                             {moves_database}.fuelusagefraction.fuelSupplyFuelTypeID =
                             {fuel_supply_fuel_type_id};""".format(**kvals)
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.fuelusage_filename = os.path.join(self.save_path_countyinputs,
                                                '{fips}_fuelusagefraction_{'
                                                'year}.csv'.format(**kvals))
 
         # pull data from database and save in a csv
-        pd.read_sql(_fuelusagename_sql, self.moves_con).to.csv(self.fuelusage_filename)
+        pd.read_sql(_fuelusagename_sql, self.moves_con).to_csv(
+            self.fuelusage_filename)
 
         # export county-level meteorology data
         # need one for each FIPS
         _met_sql = """SELECT * FROM {moves_database}.zonemonthhour WHERE {
         moves_database}.zonemonthhour.zoneID = {zoneID}""".format(**kvals)
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.met_filename = os.path.join(self.save_path_countyinputs,
                                          '{fips}_met.csv'.format(**kvals))
 
@@ -1135,7 +1136,7 @@ class MOVES(Module):
         user input y/n: clear out old moves results
         postprocesses local copy to get rate per vehicle-mile by FIPS (saves
         this locally) and sends to routing for total emissions calculation
-        :return: None
+        :return: dataframe of postprocessed transportation emissions
         """
 
         LOGGER.info('Retrieving MOVES output')
@@ -1368,11 +1369,12 @@ class MOVES(Module):
                                         'pollutant_amount']],
                 ignore_index=True)
 
-        # @TODO convert pollutant amount from grams to ??
+        # @TODO convert pollutant amounts from grams to pounds
 
         # sum up by pollutant type for semi-final module output
         _transportation_emissions = _transportation_emissions.groupby(
-                ['region_production', 'state', 'year', 'tillage_type', 'feedstock',
+                ['region_production', 'state', 'year', 'tillage_type',
+                 'feedstock',
                  'pollutantID'], as_index=False).sum()
 
         return _transportation_emissions
@@ -1467,7 +1469,8 @@ class MOVES(Module):
              'feedstock_amount']].drop_duplicates()
 
         # rename the non-summed year column to maintain that identifier
-        self.prod_moves_runs.rename(index=str, columns={'year_y': 'year'}, inplace=True)
+        self.prod_moves_runs.rename(index=str, columns={'year_y': 'year'},
+                                    inplace=True)
 
         # @NOTE prod_moves_runs is being stored in self as a potential
         # output or check on functionality; it'll also be used in
@@ -1514,7 +1517,6 @@ class MOVES(Module):
 
                 # create batch files for importing and running MOVES
                 self.create_batch_files(fips=_fips)
-                batch_run_dict = None
 
                 # actually send the commands to import files into MOVES and
                 # then run MOVES
@@ -1541,11 +1543,11 @@ class MOVES(Module):
                           'gov.epa.otaq.moves.master.commandline.MOVESCommandLine' \
                           '-r {run_moves}'.format(
                            moves_folder=self.moves_path,
-                           run_moves=batch_run_dict[_fips])  # @TODO what's this
+                           run_moves=self.batchrun_filename)
                 os.system(command)
 
         # postprocess output - same regardless of cached status
-        self.postprocess()
+        self.transportation_emissions = self.postprocess()
 
     def __enter__(self):
 
