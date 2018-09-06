@@ -311,12 +311,12 @@ class MOVES(Module):
                              'yearID': self.year,
                              'HPMSBaseYearVMT': self.vmt_short_haul})
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.vmt_filename = os.path.join(self.save_path_countyinputs,
                                          '{fips}_vehiclemiletraveled_{'
                                          'year}.csv'.format(**kvals))
 
-        # write vehicle miles travelec to file
+        # write vehicle miles traveled to file
         _vmt.to_csv(self.vmt_filename, index=False)
 
         # source type population (number of vehicles by vehicle type)
@@ -325,7 +325,7 @@ class MOVES(Module):
                                     'sourceTypeID': self.source_type_id,
                                     'sourceTypePopulation': self.pop_short_haul})
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.sourcetype_filename = os.path.join(self.save_path_countyinputs,
                                                 '{fips}_sourcetype_{'
                                                 'year}.csv'.format(**kvals))
@@ -357,7 +357,7 @@ class MOVES(Module):
                             WHERE {moves_database}.fuelformulation.fuelSubtypeID
                             IN {fuel_subtype_id};""".format(**kvals)
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.fuelformulation_filename = os.path.join(
                 self.save_path_countyinputs, '{fips}_fuelformulation_{'
                                              'year}.csv'.format(**kvals))
@@ -376,7 +376,7 @@ class MOVES(Module):
                             {moves_database}.fuelusagefraction.fuelSupplyFuelTypeID =
                             {fuel_supply_fuel_type_id};""".format(**kvals)
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.fuelusage_filename = os.path.join(self.save_path_countyinputs,
                                                '{fips}_fuelusagefraction_{'
                                                'year}.csv'.format(**kvals))
@@ -390,7 +390,7 @@ class MOVES(Module):
         _met_sql = """SELECT * FROM {moves_database}.zonemonthhour WHERE {
         moves_database}.zonemonthhour.zoneID = {zoneID}""".format(**kvals)
 
-        # @NOTE the name is FIPS dependent, cannot be created in init
+        # this name is FIPS dependent, cannot be created in init
         self.met_filename = os.path.join(self.save_path_countyinputs,
                                          '{fips}_met.csv'.format(**kvals))
 
@@ -1517,7 +1517,6 @@ class MOVES(Module):
 
                 # create batch files for importing and running MOVES
                 self.create_batch_files(fips=_fips)
-                batch_run_dict = None
 
                 # actually send the commands to import files into MOVES and
                 # then run MOVES
@@ -1544,7 +1543,7 @@ class MOVES(Module):
                           'gov.epa.otaq.moves.master.commandline.MOVESCommandLine' \
                           '-r {run_moves}'.format(
                            moves_folder=self.moves_path,
-                           run_moves=batch_run_dict[_fips])  # @TODO what's this
+                           run_moves=self.batchrun_filename)
                 os.system(command)
 
         # postprocess output - same regardless of cached status
