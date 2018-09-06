@@ -81,8 +81,11 @@ class EmissionFactors(Module):
         _df.eval('pollutant_amount = overall_factor * feedstock_amount * rate', inplace=True)
 
         # clean up DataFrame
-        _df = _df[['row_id_prod', 'row_id_equip', 'resource',
-                   'resource_subtype', 'pollutant_amount']].set_index('row_id_prod', drop=True)
+        _df = _df[['region_production', 'feedstock',
+                   'tillage_type', 'activity', 'resource',
+                   'resource_subtype', 'pollutant',
+                   'pollutant_amount']].set_index(
+            'row_id_prod', drop=True)
 
         return _df
 

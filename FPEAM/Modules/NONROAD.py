@@ -38,8 +38,8 @@ class NONROAD(Module):
             'diesel_thc_voc_conversion')
         self.diesel_pm10topm25 = config.get('diesel_pm10topm25')
         self.time_resource_name = config.get('time_resource_name')
-        self.nonroad_feedstock_measure = config.get(
-            'nonroad_feedstock_measure')
+        self.feedstock_measure_type = config.get(
+            'feedstock_measure_type')
 
         # moves database parameters
         self.moves_database = config.get('moves_database')

@@ -1,5 +1,5 @@
 
-scenario_name = string(default='')
+scenario_name = string
 
 # modules to run
 modules = force_list

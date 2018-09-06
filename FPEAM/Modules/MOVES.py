@@ -50,10 +50,10 @@ class MOVES(Module):
         self.use_cached_results = config.get('use_cached_results')
 
         # scenario name
-        # @TODO update to match the correct name in the config file
         self.model_run_title = config.get('scenario_name')
 
-        # MOVES output database
+        # MOVES input and output databases - set names
+        self.moves_database = config.get('moves_database')
         self.moves_output_db = config.get('moves_output_db')
 
         # open connection to MOVES default database for input/output
@@ -101,9 +101,8 @@ class MOVES(Module):
             if not os.path.exists(_path):
                 os.makedirs(_path)
 
-        # input and output databases - set names
-        self.moves_database = config.get('moves_database')
-        self.moves_output_db = config.get('moves_output_db')
+        # user input - timespan for which MOVES is run
+        self.moves_timespan = config.get('moves_timespan')
 
         # parameters for generating XML runspec files for MOVES
         # month(s) for analysis
@@ -166,9 +165,6 @@ class MOVES(Module):
 
         # user input - fraction of VMT on each road type
         self.vmt_fraction = config.get('vmt_fraction')
-
-        # user input - timespan for which MOVES is run
-        self.moves_timespan = config.get('moves_timespan')
 
     @property
     def router(self):
@@ -235,7 +231,7 @@ class MOVES(Module):
                                                              self.fuel_fraction.__len__()),
                                    'modelYearID': np.repeat(range(1960, 2051), 2),
                                    'fuelTypeID': np.tile(range(1, 3),
-                                                         0.5 * self.fuel_fraction.__len__()),
+                                                         int(0.5 * self.fuel_fraction.__len__())),
                                    'engTechID': np.repeat(self.engine_tech,
                                                           self.fuel_fraction.__len__()),
                                    'fuelEngFraction': self.fuel_fraction})
@@ -270,7 +266,7 @@ class MOVES(Module):
         # construct dataframe of road type VMTs from config file input
         # store in self for later use in postprocessing
         self.roadtypevmt = pd.DataFrame({'sourceTypeID': np.repeat(self.source_type_id, 4),
-                                         'roadTypeID': range(1, 5),
+                                         'roadTypeID': range(2, 6),
                                          'roadTypeVMTFraction': self.vmt_fraction})
 
         # write to csv
