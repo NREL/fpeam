@@ -305,7 +305,8 @@ class MOVES(Module):
         # need one for each FIPS
         _vmt = pd.DataFrame({'HPMSVtypeID': self.hpmsv_type_id,
                              'yearID': self.year,
-                             'HPMSBaseYearVMT': self.vmt_short_haul})
+                             'HPMSBaseYearVMT': self.vmt_short_haul},
+                            index=['0'])
 
         # this name is FIPS dependent, cannot be created in init
         self.vmt_filename = os.path.join(self.save_path_countyinputs,
