@@ -24,9 +24,9 @@ if __name__ == '__main__':
     config_group.add_argument('--nonroad_config', type=str,
                               default=None,
                               help='NONROAD configuration options')
-    config_group.add_argument('--chemical_config', type=str,
+    config_group.add_argument('--emissionfactors_config', type=str,
                               default=None,
-                              help='chemical module configuration options')
+                              help='emission factors module configuration options')
     config_group.add_argument('--fugitivedust_config', type=str,
                               default=None,
                               help='fugitive dust module configuration options')
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     # load config options
     _config = IO.load_configs(args.moves_config,
                               args.nonroad_config,
-                              args.chemical_config,
+                              args.emissionfactors_config,
                               args.fugitivedust_config,
                               args.run_config)
 

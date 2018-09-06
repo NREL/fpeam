@@ -3,6 +3,7 @@ moves_by_crop = boolean
 
 feedstock_measure_type = string(default='harvested')
 
+
 moves_database = string
 moves_output_db = string
 moves_db_user = string
@@ -13,6 +14,9 @@ moves_path = string
 moves_datafiles_path = string
 mysql_binary = string
 mysqldump_binary = string
+
+transportation_graph = string(default='../data/inputs/transportation_graph.csv')
+county_node = string(default='../data/inputs/county_nodes.csv')
 
 vmt_short_haul = float
 

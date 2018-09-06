@@ -13,11 +13,9 @@ project_path = string
 # data paths
 equipment = string
 production = string
-emission_factor = string(default='../data/inputs/emission_factor.csv')
+emission_factor = string(default='../data/inputs/emission_factors.csv')
 resource_distribution = string(default='../data/inputs/resource_distribution.csv')
-fugitive_dust_emission_factor = string(default='../data/inputs/fugitive_dust_emission_factor.csv')
+fugitive_dust_emission_factor = string(default='../data/inputs/fugitive_dust_emission_factors.csv')
 moisture_content = string(default='../data/inputs/moisture_content.csv')
 nonroad_equipment = string(default='../data/inputs/nonroad_equipment.csv')
-scc_code = string(default='../data/inputs/scc_code.csv')
-transportation_graph = string(default='../data/inputs/transportation_graph.csv')
-county_node = string(default='../data/inputs/county_node.csv')
+scc_code = string(default='../data/inputs/scc_codes.csv')
