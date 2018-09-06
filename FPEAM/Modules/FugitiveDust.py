@@ -49,8 +49,9 @@ class FugitiveDust(Module):
         _df.eval('pollutant_amount = feedstock_amount * rate', inplace=True)
 
         # clean up DataFrame
-        # @TODO verify that these are the columns to return
-        _df = _df[['row_id', 'pollutant', 'pollutant_amount']].set_index('row_id', drop=True)
+        _df = _df[['region_production', 'feedstock',
+                   'tillage_type', 'pollutant',
+                   'pollutant_amount']].set_index('row_id', drop=True)
 
         return _df
 
