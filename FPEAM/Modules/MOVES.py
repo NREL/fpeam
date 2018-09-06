@@ -101,6 +101,9 @@ class MOVES(Module):
             if not os.path.exists(_path):
                 os.makedirs(_path)
 
+        # user input - timespan for which MOVES is run
+        self.moves_timespan = config.get('moves_timespan')
+        
         # parameters for generating XML runspec files for MOVES
         # month(s) for analysis
         self.mo = self.moves_timespan['mo']
@@ -162,9 +165,6 @@ class MOVES(Module):
 
         # user input - fraction of VMT on each road type
         self.vmt_fraction = config.get('vmt_fraction')
-
-        # user input - timespan for which MOVES is run
-        self.moves_timespan = config.get('moves_timespan')
 
     @property
     def router(self):
