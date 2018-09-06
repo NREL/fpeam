@@ -50,10 +50,10 @@ class MOVES(Module):
         self.use_cached_results = config.get('use_cached_results')
 
         # scenario name
-        # @TODO update to match the correct name in the config file
         self.model_run_title = config.get('scenario_name')
 
-        # MOVES output database
+        # MOVES input and output databases - set names
+        self.moves_database = config.get('moves_database')
         self.moves_output_db = config.get('moves_output_db')
 
         # open connection to MOVES default database for input/output
@@ -100,10 +100,6 @@ class MOVES(Module):
         for _path in _path_list:
             if not os.path.exists(_path):
                 os.makedirs(_path)
-
-        # input and output databases - set names
-        self.moves_database = config.get('moves_database')
-        self.moves_output_db = config.get('moves_output_db')
 
         # parameters for generating XML runspec files for MOVES
         # month(s) for analysis
