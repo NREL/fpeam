@@ -103,7 +103,7 @@ class MOVES(Module):
 
         # user input - timespan for which MOVES is run
         self.moves_timespan = config.get('moves_timespan')
-        
+
         # parameters for generating XML runspec files for MOVES
         # month(s) for analysis
         self.mo = self.moves_timespan['mo']
@@ -266,7 +266,7 @@ class MOVES(Module):
         # construct dataframe of road type VMTs from config file input
         # store in self for later use in postprocessing
         self.roadtypevmt = pd.DataFrame({'sourceTypeID': np.repeat(self.source_type_id, 4),
-                                         'roadTypeID': range(1, 5),
+                                         'roadTypeID': range(2, 6),
                                          'roadTypeVMTFraction': self.vmt_fraction})
 
         # write to csv
