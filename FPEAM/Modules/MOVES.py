@@ -1459,14 +1459,9 @@ class MOVES(Module):
              'region_production',
              'region_destination',
              'tillage_type',
-             'year_y',
              'feedstock',
              'feedstock_measure',
              'feedstock_amount']].drop_duplicates()
-
-        # rename the non-summed year column to maintain that identifier
-        self.prod_moves_runs.rename(index=str, columns={'year_y': 'year'},
-                                    inplace=True)
 
         # @NOTE prod_moves_runs is being stored in self as a potential
         # output or check on functionality; it'll also be used in
