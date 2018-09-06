@@ -231,7 +231,7 @@ class MOVES(Module):
                                                              self.fuel_fraction.__len__()),
                                    'modelYearID': np.repeat(range(1960, 2051), 2),
                                    'fuelTypeID': np.tile(range(1, 3),
-                                                         0.5 * self.fuel_fraction.__len__()),
+                                                         int(0.5 * self.fuel_fraction.__len__())),
                                    'engTechID': np.repeat(self.engine_tech,
                                                           self.fuel_fraction.__len__()),
                                    'fuelEngFraction': self.fuel_fraction})
