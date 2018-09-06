@@ -85,18 +85,19 @@ class Equipment(Data):
     COLUMNS = {'feedstock': str,
                'tillage_type': str,
                'equipment_group': str,
-               'budget_year': int,
-               'operation_unit': int,
+               'rotation_year': int,
                'activity': str,
                'equipment_name': str,
                'equipment_horsepower': float,
                'resource': str,
                'rate': float,
-               'unit': str}
+               'unit_numerator': str,
+               'unit_denominator': str}
 
     INDEX_COLUMNS = ('equipment_group', 'feedstock', 'tillage_type', 'equipment_group',
-                     'budget_year', 'operation_unit', 'activity', 'equipment_name', 'equipment_horsepower',
-                     'resource', 'unit')
+                     'rotation_year', 'activity',
+                     'equipment_name', 'equipment_horsepower',
+                     'resource', 'unit_numerator', 'unit_denominator')
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Equipment, self).__init__(df=df, fpath=fpath, columns=columns)
@@ -116,7 +117,8 @@ class Production(Data):
 
     # @TODO: moves_fips and nonroad_fips columns should be optional and backfilled with NaN if not present
 
-    INDEX_COLUMNS = ('production_region', 'feedstock', 'tillage_type', 'equipment_group')
+    INDEX_COLUMNS = ('region_production', 'feedstock', 'tillage_type',
+                     'equipment_group')
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Production, self).__init__(df=df, fpath=fpath, columns=columns)
@@ -189,7 +191,7 @@ class MoistureContent(Data):
 class NONROADEquipment(Data):
 
     COLUMNS = {'equipment_name': str,
-               'nonroad_equipment_name': str,
+               'equipment_description': str,
                'nonroad_equipment_scc': str}
 
     INDEX_COLUMNS = ('equipment_name', )
