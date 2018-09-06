@@ -43,7 +43,7 @@ class Router(object):
 
         _route = self.algorithm(self.Graph, _from_node, _to_node)
 
-        return _route
+        return _route  # {fips, vmt}
 
 
 if __name__ == '__main__':
