@@ -1482,11 +1482,11 @@ class MOVES(Module):
                 LOGGER.info('MOVES run already complete for fips: %s' % _fips)
 
             # create shortened list of fips to run through MOVES
-            _run_fips = [x for x in self.prod_moves_runs.MOVES_run_fips
+            _run_fips = [x for x in self.moves_run_list.MOVES_run_fips
                          if x not in _exclude_fips]
         else:
             # run all fips regardless of whether cached results exist or not
-            _run_fips = self.moves_run_list.MOVES_run_fips
+            _run_fips = list(self.moves_run_list.MOVES_run_fips)
 
         # only go through the setup and run steps if there are fips that
         # need to be run
