@@ -719,7 +719,6 @@ class MOVES(Module):
                                               self.parser),
                                     E.parts(E.anytable(E.tablename("agecategory"),
                                                        E.filename("")))),
-                            # @TODO have mode be set by user input?
                             mode="county")
             )
         )
@@ -727,7 +726,8 @@ class MOVES(Module):
         # Transform element tree to string and save to file
 
         # create string from element tree
-        stringout = etree.tostring(importfilestring, pretty_print=True, encoding='utf8')
+        stringout = etree.tostring(importfilestring, pretty_print=True,
+                                   encoding='utf8')
 
         # create import filename using FIPS code, crop, and scenario year
         _im_filename = os.path.join(self.save_path_importfiles,
@@ -735,9 +735,9 @@ class MOVES(Module):
                                             fips=fips, year=self.year))
 
         # save string to file
-        fileout = open(_im_filename, "w")
-        fileout.write(stringout)
-        fileout.close()
+        with open(_im_filename, 'wb') as _fileout:
+            _fileout.write(stringout)
+            _fileout.close()
 
     def create_xml_runspec(self, fips):
         """
