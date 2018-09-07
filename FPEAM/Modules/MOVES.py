@@ -416,10 +416,14 @@ class MOVES(Module):
         # create these files here since they were generated in a loop in
         # create_national_inputs - no stored filename
         # path to average speed distribution file (national inputs)
-        _avgspeeddist_filename = os.path.join(self.save_path_nationalinputs, 'avgspeeddistribution')
-        _month_vmt_filename = os.path.join(self.save_path_nationalinputs, 'monthvmtfraction')
-        _day_vmt_filename = os.path.join(self.save_path_nationalinputs, 'dayvmtfraction')
-        _hour_vmt_filename = os.path.join(self.save_path_nationalinputs, 'hourvmtfraction')
+        _avgspeeddist_filename = os.path.join(self.save_path_nationalinputs,
+                                              'avgspeeddistribution' + '.csv')
+        _month_vmt_filename = os.path.join(self.save_path_nationalinputs,
+                                           'monthvmtfraction' + '.csv')
+        _day_vmt_filename = os.path.join(self.save_path_nationalinputs,
+                                         'dayvmtfraction' + '.csv')
+        _hour_vmt_filename = os.path.join(self.save_path_nationalinputs,
+                                          'hourvmtfraction' + '.csv')
 
         # create XML for elements with CDATA
         self.internalcontrol = etree.XML(
