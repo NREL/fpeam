@@ -952,9 +952,9 @@ class MOVES(Module):
                                                  fips=fips, year=self.year))
 
         # save string to file
-        fileout = open(_runspec_filename, "w")
-        fileout.write(_stringout)
-        fileout.close()
+        with open(_runspec_filename, 'wb') as _fileout:
+            _fileout.write(_stringout)
+            _fileout.close()
 
     def create_batch_files(self, fips):
         """
