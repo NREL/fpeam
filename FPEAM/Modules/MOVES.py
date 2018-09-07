@@ -833,7 +833,7 @@ class MOVES(Module):
 
         # XML for timespan
         timespan = etree.Element("timespan")
-        
+
         # set year
         etree.SubElement(timespan, "year", key=self.year.__str__())
 
@@ -859,9 +859,9 @@ class MOVES(Module):
         # XML for vehicle type selections
         # combination short-haul truck
         vehicle_selection = etree.Element("onroadvehicleselection",
-                                          fueltypeid=self.fuel_supply_fuel_type_id)
+                                          fueltypeid=self.fuel_supply_fuel_type_id.__str__())
         vehicle_selection.set("fueltypedesc", "Diesel Fuel")
-        vehicle_selection.set("sourcetypeid", self.source_type_id)
+        vehicle_selection.set("sourcetypeid", self.source_type_id.__str__())
         vehicle_selection.set("sourcetypename", "Combination Short-haul Truck")
 
         # Create XML element tree for MOVES pollutant processes
