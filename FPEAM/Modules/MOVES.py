@@ -928,7 +928,7 @@ class MOVES(Module):
                     etree.Element("outputshidling", value="true"),
                     etree.Element("outputstarts", value="true"),
                     etree.Element("outputpopulation", value="true"),
-                    inputdatabase,
+                    scaleinput,
                     etree.Element("pmsize", value="0"),
                     outputfactors,
                     E.savedata(""),
@@ -936,7 +936,6 @@ class MOVES(Module):
                     gendata,
                     etree.SubElement(gendata, "donotperformfinalaggregation", selected="false"),
                     lookupflag,
-                    # @TODO check that this works
                     version=self.moves_version)
         )
 
