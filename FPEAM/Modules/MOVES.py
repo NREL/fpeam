@@ -515,9 +515,9 @@ class MOVES(Module):
         # combination short-haul truck
         # @TODO convert all of these to user inputs pulled from config
         vehicle_selection = etree.Element("onroadvehicleselection",
-                                          fueltypeid=self.fuel_supply_fuel_type_id)
+                                          fueltypeid=self.fuel_supply_fuel_type_id.__str__())
         vehicle_selection.set("fueltypedesc", "Diesel Fuel")
-        vehicle_selection.set("sourcetypeid", self.source_type_id)
+        vehicle_selection.set("sourcetypeid", self.source_type_id.__str__())
         vehicle_selection.set("sourcetypename", "Combination Short-haul Truck")
 
         # Create XML element tree for MOVES pollutant processes
