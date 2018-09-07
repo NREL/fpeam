@@ -346,7 +346,8 @@ class MOVES(Module):
                                                 'year}.csv'.format(**kvals))
 
         # pull data from database and save in a csv
-        pd.read_sql(_fuelsupply_sql, self.moves_con).to_csv(self.fuelsupply_filename)
+        pd.read_sql(_fuelsupply_sql, self.moves_con).to_csv(
+            self.fuelsupply_filename, index=False)
 
         # export county-level fuel formulation data
         # need one for each FIPS-year combination
@@ -361,7 +362,8 @@ class MOVES(Module):
 
         # pull data from database and save in a csv
         pd.read_sql(_fuelform_sql,
-                    self.moves_con).to_csv(self.fuelformulation_filename)
+                    self.moves_con).to_csv(self.fuelformulation_filename,
+                                           index=False)
 
         # export county-level fuel usage fraction data
         # need one for each FIPS-year combination
@@ -380,7 +382,7 @@ class MOVES(Module):
 
         # pull data from database and save in a csv
         pd.read_sql(_fuelusagename_sql, self.moves_con).to_csv(
-            self.fuelusage_filename)
+            self.fuelusage_filename, index=False)
 
         # export county-level meteorology data
         # need one for each FIPS
@@ -392,7 +394,8 @@ class MOVES(Module):
                                          '{fips}_met.csv'.format(**kvals))
 
         # pull data from database and save in a csv
-        pd.read_sql(_met_sql, self.moves_con).to_csv(self.met_filename)
+        pd.read_sql(_met_sql, self.moves_con).to_csv(self.met_filename,
+                                                     index=False)
 
     def create_xml_import(self, fips):
         """
