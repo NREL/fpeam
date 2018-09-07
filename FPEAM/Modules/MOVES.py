@@ -1471,7 +1471,7 @@ class MOVES(Module):
 
                 command = 'cd {moves_folder} & setenv.bat & ' \
                           'java -Xmx512M ' \
-                          'gov.epa.otaq.moves.master.commandline.MOVESCommandLine' \
+                          'gov.epa.otaq.moves.master.commandline.MOVESCommandLine ' \
                           '-r {run_moves}'.format(
                            moves_folder=self.moves_path,
                            run_moves=self.batchrun_filename)
