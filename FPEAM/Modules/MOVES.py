@@ -166,6 +166,78 @@ class MOVES(Module):
         # user input - fraction of VMT on each road type
         self.vmt_fraction = config.get('vmt_fraction')
 
+        # polname, polkey, procname, prockey and roaddict are used in
+        # generating the XML import and runspec files for MOVES
+
+        # dictionary of pollutant shorthand to MOVES name
+        self.polname = {"NH3": "Ammonia (NH3)",
+                        "CO": "Carbon Monoxide (CO)",
+                        "ECPM": "Composite - NonECPM",
+                        "Carbon": "Elemental Carbon",
+                        "H20": "H20 (aerosol)",
+                        "NMHC": "Non-Methane Hydrocarbons",
+                        "NOX": "Oxides of Nitrogen",
+                        "PM10": "Primary Exhaust PM10  - Total",
+                        "PM25": "Primary Exhaust PM2.5 - Total",
+                        "Spar": "Sulfur Particulate",
+                        "SO2": "Sulfur Dioxide (SO2)",
+                        "TEC": "Total Energy Consumption",
+                        "THC": "Total Gaseous Hydrocarbons",
+                        "VOC": "Volatile Organic Compounds"}
+
+        # dictionary of pollutant shorthand to MOVES pollutantid
+        self.polkey = {"NH3": "30",
+                       "CO": "2",
+                       "ECPM": "118",
+                       "Carbon": "112",
+                       "H20": "119",
+                       "NMHC": "79",
+                       "NOX": "3",
+                       "PM10": "100",
+                       "PM25": "110",
+                       "Spar": "115",
+                       "SO2": "31",
+                       "TEC": "91",
+                       "THC": "1",
+                       "VOC": "87"}
+
+        # dictionary of MOVES pollutant process numbers to MOVES pollutant process descriptions
+        self.procname = {"1": "Running Exhaust",
+                         "2": "Start Exhaust",
+                         "11": "Evap Permeation",
+                         "12": "Evap Fuel Vapor Venting",
+                         "13": "Evap Fuel Leaks",
+                         "15": "Crankcase Running Exhaust",
+                         "16": "Crankcase Start Exhaust",
+                         "17": "Crankcase Extended Idle Exhaust",
+                         "18": "Refueling Displacement Vapor Loss",
+                         "19": "Refueling Spillage Loss",
+                         "90": "Extended Idle Exhaust",
+                         "91": "Auxiliary Power Exhaust"}
+
+        # dictionary of shorthand pollutant names to applicable MOVES pollutant process numbers
+        self.prockey = {"NH3": ["1", "2", "15", "16", "17", "90", "91"],
+                        "CO": ["1", "2", "15", "16", "17", "90", "91"],
+                        "ECPM": ["1", "2", "90", "91"],
+                        "Carbon": ["1", "2", "90", "91"],
+                        "H20": ["1", "2", "90", "91"],
+                        "NMHC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
+                        "NOX": ["1", "2", "15", "16", "17", "90", "91"],
+                        "PM10": ["1", "2", "15", "16", "17", "90", "91"],
+                        "PM25": ["1", "2", "15", "16", "17", "90", "91"],
+                        "Spar": ["1", "2", "90", "91"],
+                        "SO2": ["1", "2", "15", "16", "17", "90", "91"],
+                        "TEC": ["1", "2", "90", "91"],
+                        "THC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
+                        "VOC": ["1", "2", "11", "12", "13", "15", "16", "17", "18", "19", "90", "91"]}
+
+        # dictionary for road types
+        self.roaddict = {"1": "Off-Network",
+                         "2": "Rural Restricted Access",
+                         "3": "Rural Unrestricted Access",
+                         "4": "Urban Restricted Access",
+                         "5": "Urban Unrestricted Access"}
+
     @property
     def router(self):
         return self._router
@@ -524,98 +596,29 @@ class MOVES(Module):
         # Currently includes: CO, NH3, PM10, PM2.5, SO2, NOX, VOC,
         # and prerequisites
 
-        # dictionary of pollutant shorthand to MOVES name
-        _polname = {"NH3": "Ammonia (NH3)",
-                    "CO": "Carbon Monoxide (CO)",
-                    "ECPM": "Composite - NonECPM",
-                    "Carbon": "Elemental Carbon",
-                    "H20": "H20 (aerosol)",
-                    "NMHC": "Non-Methane Hydrocarbons",
-                    "NOX": "Oxides of Nitrogen",
-                    "PM10": "Primary Exhaust PM10  - Total",
-                    "PM25": "Primary Exhaust PM2.5 - Total",
-                    "Spar": "Sulfur Particulate",
-                    "SO2": "Sulfur Dioxide (SO2)",
-                    "TEC": "Total Energy Consumption",
-                    "THC": "Total Gaseous Hydrocarbons",
-                    "VOC": "Volatile Organic Compounds"}
-
-        # dictionary of pollutant shorthand to MOVES pollutantid
-        _polkey = {"NH3": "30",
-                   "CO": "2",
-                   "ECPM": "118",
-                   "Carbon": "112",
-                   "H20": "119",
-                   "NMHC": "79",
-                   "NOX": "3",
-                   "PM10": "100",
-                   "PM25": "110",
-                   "Spar": "115",
-                   "SO2": "31",
-                   "TEC": "91",
-                   "THC": "1",
-                   "VOC": "87"}
-
-        # dictionary of MOVES pollutant process numbers to MOVES pollutant process descriptions
-        _procname = {"1": "Running Exhaust",
-                     "2": "Start Exhaust",
-                     "11": "Evap Permeation",
-                     "12": "Evap Fuel Vapor Venting",
-                     "13": "Evap Fuel Leaks",
-                     "15": "Crankcase Running Exhaust",
-                     "16": "Crankcase Start Exhaust",
-                     "17": "Crankcase Extended Idle Exhaust",
-                     "18": "Refueling Displacement Vapor Loss",
-                     "19": "Refueling Spillage Loss",
-                     "90": "Extended Idle Exhaust",
-                     "91": "Auxiliary Power Exhaust"}
-
-        # dictionary of shorthand pollutant names to applicable MOVES pollutant process numbers
-        _prockey = {"NH3": ["1", "2", "15", "16", "17", "90", "91"],
-                    "CO": ["1", "2", "15", "16", "17", "90", "91"],
-                    "ECPM": ["1", "2", "90", "91"],
-                    "Carbon": ["1", "2", "90", "91"],
-                    "H20": ["1", "2", "90", "91"],
-                    "NMHC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
-                    "NOX": ["1", "2", "15", "16", "17", "90", "91"],
-                    "PM10": ["1", "2", "15", "16", "17", "90", "91"],
-                    "PM25": ["1", "2", "15", "16", "17", "90", "91"],
-                    "Spar": ["1", "2", "90", "91"],
-                    "SO2": ["1", "2", "15", "16", "17", "90", "91"],
-                    "TEC": ["1", "2", "90", "91"],
-                    "THC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
-                    "VOC": ["1", "2", "11", "12", "13", "15", "16", "17", "18", "19", "90", "91"]}
-
         # XML for pollutant process associations
         # create element for pollutant process associations
         polproc = etree.Element("pollutantprocessassociations")
 
         # populate subelements for pollutant processes
         # loop through all pollutants
-        for _pol in _polname:
+        for _pol in self.polname:
             # loop through all processes associated with each pollutant
-            for _proc in _prockey[_pol]:
+            for _proc in self.prockey[_pol]:
                 pollutant = etree.SubElement(polproc,
                                              "pollutantprocessassociation",
-                                             pollutantkey=_polkey[_pol])
-                pollutant.set("pollutantname", _polname[_pol])
+                                             pollutantkey=self.polkey[_pol])
+                pollutant.set("pollutantname", self.polname[_pol])
                 pollutant.set("processkey", _proc)
-                pollutant.set("processname", _procname[_proc])
+                pollutant.set("processname", self.procname[_proc])
 
         # Create XML element tree for MOVES road types
 
-        # dictionary for road types
-        roaddict = {"1": "Off-Network",
-                    "2": "Rural Restricted Access",
-                    "3": "Rural Unrestricted Access",
-                    "4": "Urban Restricted Access",
-                    "5": "Urban Unrestricted Access"}
-
         # XML for road types
         roadtypes = etree.Element("roadtypes", {"separateramps": "false"})
-        for roads in roaddict:
+        for roads in self.roaddict:
             roadtype = etree.SubElement(roadtypes, "roadtype", roadtypeid=roads)
-            roadtype.set("roadtypename", roaddict[roads])
+            roadtype.set("roadtypename", self.roaddict[roads])
             roadtype.set("modelCombination", "M1")
 
         # Create XML element tree for MOVES input database information
@@ -863,98 +866,30 @@ class MOVES(Module):
         # Currently includes: CO, NH3, PM10, PM2.5, SO2, NOX, VOC,
         # and prerequisites
 
-        # dictionary of pollutant shorthand to MOVES name
-        _polname = {"NH3": "Ammonia (NH3)",
-                    "CO": "Carbon Monoxide (CO)",
-                    "ECPM": "Composite - NonECPM",
-                    "Carbon": "Elemental Carbon",
-                    "H20": "H20 (aerosol)",
-                    "NMHC": "Non-Methane Hydrocarbons",
-                    "NOX": "Oxides of Nitrogen",
-                    "PM10": "Primary Exhaust PM10  - Total",
-                    "PM25": "Primary Exhaust PM2.5 - Total",
-                    "Spar": "Sulfur Particulate",
-                    "SO2": "Sulfur Dioxide (SO2)",
-                    "TEC": "Total Energy Consumption",
-                    "THC": "Total Gaseous Hydrocarbons",
-                    "VOC": "Volatile Organic Compounds"}
-
-        # dictionary of pollutant shorthand to MOVES pollutantid
-        _polkey = {"NH3": "30",
-                   "CO": "2",
-                   "ECPM": "118",
-                   "Carbon": "112",
-                   "H20": "119",
-                   "NMHC": "79",
-                   "NOX": "3",
-                   "PM10": "100",
-                   "PM25": "110",
-                   "Spar": "115",
-                   "SO2": "31",
-                   "TEC": "91",
-                   "THC": "1",
-                   "VOC": "87"}
-
-        # dictionary of MOVES pollutant process numbers to MOVES pollutant
-        # process descriptions
-        _procname = {"1": "Running Exhaust",
-                     "2": "Start Exhaust",
-                     "11": "Evap Permeation",
-                     "12": "Evap Fuel Vapor Venting",
-                     "13": "Evap Fuel Leaks",
-                     "15": "Crankcase Running Exhaust",
-                     "16": "Crankcase Start Exhaust",
-                     "17": "Crankcase Extended Idle Exhaust",
-                     "18": "Refueling Displacement Vapor Loss",
-                     "19": "Refueling Spillage Loss",
-                     "90": "Extended Idle Exhaust",
-                     "91": "Auxiliary Power Exhaust"}
-
-        # dictionary of shorthand pollutant names to applicable MOVES
-        # pollutant process numbers
-        _prockey = {"NH3": ["1", "2", "15", "16", "17", "90", "91"],
-                    "CO": ["1", "2", "15", "16", "17", "90", "91"],
-                    "ECPM": ["1", "2", "90", "91"],
-                    "Carbon": ["1", "2", "90", "91"],
-                    "H20": ["1", "2", "90", "91"],
-                    "NMHC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
-                    "NOX": ["1", "2", "15", "16", "17", "90", "91"],
-                    "PM10": ["1", "2", "15", "16", "17", "90", "91"],
-                    "PM25": ["1", "2", "15", "16", "17", "90", "91"],
-                    "Spar": ["1", "2", "90", "91"],
-                    "SO2": ["1", "2", "15", "16", "17", "90", "91"],
-                    "TEC": ["1", "2", "90", "91"],
-                    "THC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
-                    "VOC": ["1", "2", "11", "12", "13", "15", "16", "17", "18", "19", "90", "91"]}
-
         # XML for pollutant process associations
         # create element for pollutant process associations
         polproc = etree.Element("pollutantprocessassociations")
 
         # populate subelements for pollutant processes
         # loop through all pollutants
-        for _pol in _polname:
+        for _pol in self.polname:
             # loop through all processes associated with each pollutant
-            for _proc in _prockey[_pol]:
+            for _proc in self.prockey[_pol]:
                 pollutant = etree.SubElement(polproc,
                                              "pollutantprocessassociation",
-                                             pollutantkey=_polkey[_pol])
-                pollutant.set("pollutantname", _polname[_pol])
+                                             pollutantkey=self.polkey[_pol])
+                pollutant.set("pollutantname", self.polname[_pol])
                 pollutant.set("processkey", _proc)
-                pollutant.set("processname", _procname[_proc])
+                pollutant.set("processname", self.procname[_proc])
 
         # Create XML element tree for MOVES road types
         # dictionary for road types
-        _roaddict = {"1": "Off-Network",
-                     "2": "Rural Restricted Access",
-                     "3": "Rural Unrestricted Access",
-                     "4": "Urban Restricted Access",
-                     "5": "Urban Unrestricted Access"}
+
         # XML for road types
         roadtypes = etree.Element("roadtypes", {"separateramps": "false"})
-        for _roads in _roaddict:
+        for _roads in self.roaddict:
             roadtype = etree.SubElement(roadtypes, "roadtype", roadtypeid=_roads)
-            roadtype.set("roadtypename", _roaddict[_roads])
+            roadtype.set("roadtypename", self.roaddict[_roads])
             roadtype.set("modelCombination", "M1")
 
         # Create XML element tree for extra database information (leave empty)
