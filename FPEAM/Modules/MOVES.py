@@ -238,6 +238,19 @@ class MOVES(Module):
                          "4": "Urban Restricted Access",
                          "5": "Urban Unrestricted Access"}
 
+        # create data frame for renaming pollutants during postprocessing
+        self.pollutant_names = pd.DataFrame({'pollutant': ['NH3', 'CO', 'ECPM',
+                                                       'Carbon', 'H2O',
+                                                       'NMHC', 'NOX',
+                                                       'PM10', 'PM25',
+                                                       'Spar', 'SO2', 'TEC',
+                                                       'THC', 'VOC'],
+                                             'pollutantID': [30, 2, 118,
+                                                      112, 119, 79,
+                                                      3, 100, 110,
+                                                      115, 31, 91,
+                                                      1, 87]})
+
     @property
     def router(self):
         return self._router
@@ -1187,15 +1200,17 @@ class MOVES(Module):
                                                   'pollutantID'],
                                                  as_index=False).sum()[['fips',
                                                                         'state',
-                                                                        'monthID',
-                                                                        'dayID',
                                                                         'pollutantID',
                                                                         'averageRatePerDistance']]
 
         # calculate final pollutant rates per distance
-        _avgRateDist = _join_dist_avgspd.sum()[['fips', 'state', 'monthID',
-                                                'dayID', 'pollutantID',
+        _avgRateDist = _join_dist_avgspd.sum()[['fips', 'state',
+                                                'pollutantID',
                                                 'averageRatePerDistance']]
+
+        # merge with the pollutant names dataframe
+        _avgRateDist = _avgRateDist.merge(self.pollutant_names, how='inner',
+                                          on='pollutantID')
 
         # merge the truck capacity numbers with the rate per distance merge
         # to prep for calculating number of trips
