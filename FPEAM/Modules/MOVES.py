@@ -968,7 +968,7 @@ class MOVES(Module):
         # scenario name
         kvals['title'] = self.model_run_title
         # timestamp of run
-        kvals['timestamp'] = time.strftime('_%b-%d-%Y_%H%M', time.localtime())
+        kvals['timestamp'] = time.strftime('%b-%d-%Y_%H%M', time.localtime())
         # FIPS code
         kvals['fips'] = fips
 
