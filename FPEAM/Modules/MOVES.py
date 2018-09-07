@@ -1071,7 +1071,6 @@ class MOVES(Module):
                                                       roadTypeID,
                                                       avgSpeedBinID,
                                                       ratePerDistance,
-                                                      state,
                                                       dist_table.fips
               FROM {moves_output_db}.rateperdistance AS dist_table
                 INNER JOIN (SELECT distinct dist.fips, MOVESRunID
@@ -1083,8 +1082,8 @@ class MOVES(Module):
                                   AND dist.fips = q.fips) runid_filter
                     ON dist_table.MOVESRunID =
                     runid_filter.MOVESRunID
-              WHERE dist_table.yearID = {year} AND dist_table.monthID = {
-              month} AND dist_table.dayID = {day};""".format(**kvals)
+              WHERE dist_table.yearID = {year} AND dist_table.monthID = {month}
+               AND dist_table.dayID = {day};""".format(**kvals)
 
         # read in all possibly relevant entries from the rate per distance
         # table
