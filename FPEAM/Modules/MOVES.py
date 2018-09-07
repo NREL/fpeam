@@ -320,7 +320,9 @@ class MOVES(Module):
         # need one for each fips
         _sourcetype = pd.DataFrame({'yearID': self.year,
                                     'sourceTypeID': self.source_type_id,
-                                    'sourceTypePopulation': self.pop_short_haul})
+                                    'sourceTypePopulation':
+                                        self.pop_short_haul},
+                                   index=['0'])
 
         # this name is FIPS dependent, cannot be created in init
         self.sourcetype_filename = os.path.join(self.save_path_countyinputs,
