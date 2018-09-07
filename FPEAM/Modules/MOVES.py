@@ -1123,12 +1123,13 @@ class MOVES(Module):
                     ON veh.MOVESRunID = q.max_id
                         AND veh.fips = q.fips) runid_filter
                 ON veh_table.MOVESRunID = runid_filter.MOVESRunID
-              WHERE dist_table.yearID = {year} AND dist_table.monthID = {
-              month} AND dist_table.dayID = {day};""".format(**kvals)
+              WHERE veh_table.yearID = {year} AND veh_table.monthID = {month} 
+              AND veh_table.dayID = {day};""".format(**kvals)
 
         _ratepervehicle_all = pd.read_sql(_ratepervehicle_table_sql, self.moves_con)
 
-        _ratepervehicle_filter = _ratepervehicle_all.fips.isin( self.moves_run_list.fips)
+        _ratepervehicle_filter = _ratepervehicle_all.fips.isin(
+            self.moves_run_list.MOVES_run_fips)
 
         _ratepervehicle = _ratepervehicle_all[_ratepervehicle_filter]
 
