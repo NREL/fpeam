@@ -1091,7 +1091,8 @@ class MOVES(Module):
 
         # create a filter for relevant rateperdistance rows based on which
         # fips in rateperdistance are equal to fips in the moves run list
-        _rateperdistance_filter = _rateperdistance_all.fips.isin( self.moves_run_list.fips)
+        _rateperdistance_filter = _rateperdistance_all.fips.isin(
+            self.moves_run_list.MOVES_run_fips)
 
         # filter down the large rateperdistance table into just the rows
         # that are relevant to this run
