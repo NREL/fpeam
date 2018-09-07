@@ -336,12 +336,10 @@ class MOVES(Module):
         # need one for each FIPS
         _fuelsupply_sql = """SELECT * FROM {moves_database}.fuelsupply
                             WHERE {moves_database}.fuelsupply.fuelRegionID =
-                            (SELECT DISTINCT regionID FROM {
-                            moves_database}.regioncounty WHERE countyID = '{
-                            countyID}' AND fuelYearID = '{year}')
-                            AND {moves_database}.fuelsupply.fuelYearID = '{
-                            year}'""".format(**kvals)
-
+                            (SELECT DISTINCT regionID FROM {moves_database}.regioncounty 
+                            WHERE countyID = '{countyID}' AND fuelYearID = '{year}')
+                            AND {moves_database}.fuelsupply.fuelYearID = '{year}'""".format(**kvals)
+        
         # save for later use in create_xml_imports
         self.fuelsupply_filename = os.path.join(self.save_path_countyinputs,
                                                 '{fips}_fuelsupply_{'
