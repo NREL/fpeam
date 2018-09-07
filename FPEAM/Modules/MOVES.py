@@ -733,12 +733,17 @@ class MOVES(Module):
                                    encoding='utf8')
 
         # create import filename using FIPS code, crop, and scenario year
-        _im_filename = os.path.join(self.save_path_importfiles,
+        self.xmlimport_filename = os.path.join(self.save_path_importfiles,
                                     '{fips}_import_{year}.mrs'.format(
                                             fips=fips, year=self.year))
 
+        # path for XML runspec files
+        self.runspec_filename = os.path.join(self.save_path_runspecfiles,
+                                             '{fips}_runspec_{year}.mrs'.format(
+                                                 **kvals))
+
         # save string to file
-        with open(_im_filename, 'wb') as _fileout:
+        with open(self.xmlimport_filename, 'wb') as _fileout:
             _fileout.write(stringout)
             _fileout.close()
 
@@ -946,78 +951,14 @@ class MOVES(Module):
                                     encoding='utf8')
 
         # create filename for runspec file using FIPS and scenario year
-        _runspec_filename = os.path.join(self.save_path_runspecfiles,
+        self.runspec_filename = os.path.join(self.save_path_runspecfiles,
                                          '{fips}_runspec_{year}.mrs'.format(
                                                  fips=fips, year=self.year))
 
         # save string to file
-        with open(_runspec_filename, 'wb') as _fileout:
+        with open(self.runspec_filename, 'wb') as _fileout:
             _fileout.write(_stringout)
             _fileout.close()
-
-    def create_batch_files(self, fips):
-        """
-        Create and save batch files for running MOVES
-        :return: None
-        """
-
-        # initialize kvals dictionary for string formatting
-        kvals = dict()
-        # scenario year
-        kvals['year'] = self.year
-        # scenario name
-        kvals['title'] = self.model_run_title
-        # timestamp of run
-        kvals['timestamp'] = time.strftime('%b-%d-%Y_%H%M', time.localtime())
-        # FIPS code
-        kvals['fips'] = fips
-
-        # @TODO: change filepath so these don't write to the MOVES root
-        # folder (should go to the scenario or project folder)
-
-        # path for batch import file
-        self.batchimport_filename = os.path.join(self.moves_path,
-                                                 'batch_import_FPEAM_{fips}_{year}_{'
-                                                 'title}_{timestamp}.bat'.format(**kvals))
-        # path for XML import files
-        self.xmlimport_filename = os.path.join(self.save_path_importfiles,
-                                               '{fips}_import_{year}.mrs'.format(**kvals))
-        # path for batch run file
-        self.batchrun_filename = os.path.join(self.moves_path,
-                                              'batch_run_FPEAM_{fips}_{year}_{title}_{'
-                                              'timestamp}.bat'.format(**kvals))
-        # path for XML runspec files
-        self.runspec_filename = os.path.join(self.save_path_runspecfiles,
-                                             '{fips}_runspec_{year}.mrs'.format(**kvals))
-
-        # Create batch file for importing data using MOVES County Data Manager
-
-        # append import files to batch import file
-        # @TODO: remove this echo and make a logger call
-        with open(self.batchimport_filename, 'a') as csvfile:
-            batchwriter = csv.writer(csvfile)
-            batchwriter.writerow([self.setenv_file])
-            batchwriter.writerow(['echo Running %s' % (os.path.join(
-                    self.save_path_importfiles,
-                    '{fips}_import_{year}.mrs'.format(fips=fips, year=self.year)))])
-            batchwriter.writerow([
-                'java -Xmx512M gov.epa.otaq.moves.master.commandline.MOVESCommandLine'
-                ' -i {importfile}'.format(importfile=self.xmlimport_filename)])
-
-        # Create batch file for running MOVES
-
-        # append import files to batch run file
-        with open(self.batchrun_filename, 'a') as csvfile:
-            batchwriter = csv.writer(csvfile)
-            batchwriter.writerow([self.setenv_file])
-            # @TODO: remove this echo and make a logger call
-            batchwriter.writerow(['echo Running %s' % (os.path.join(
-                    self.save_path_runspecfiles,
-                    '{fips}_runspec_{year}.mrs'.format(fips=fips, year=self.year)))])
-            batchwriter.writerow(['java -Xmx512M '
-                                  'gov.epa.otaq.moves.master.'
-                                  'commandline.MOVESCommandLine'
-                                  ' -r {runspecfile}'.format(runspecfile=self.runspec_filename)])
 
     def get_cached_results(self):
         """
@@ -1322,7 +1263,7 @@ class MOVES(Module):
         :return:
         """
 
-        # first, generate a list of FIPS-state combinations for which MOVES
+        # generate a list of FIPS-state combinations for which MOVES
         # will be run
 
         # add a column with the state code to the region-to-fips df
@@ -1446,16 +1387,14 @@ class MOVES(Module):
                 # create XML run spec files
                 self.create_xml_runspec(fips=_fips)
 
-                # create batch files for importing and running MOVES
-                self.create_batch_files(fips=_fips)
-
                 # actually send the commands to import files into MOVES and
                 # then run MOVES
 
                 # import MOVES data into datbase
-                LOGGER.debug('Importing MOVES files')
+                LOGGER.info('Importing MOVES files for fips: %s' % _fips)
+                LOGGER.info('Import file: %s' % self.xmlimport_filename)
 
-                # execute batch file and log output
+                # import data and log output
                 command = 'cd {moves_path} & setenv.bat & ' \
                           'java -Xmx512M ' \
                           'gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i {import_file}' \
@@ -1464,17 +1403,16 @@ class MOVES(Module):
 
                 os.system(command)
 
-                # execute batch file and log output
+                # execute MOVES and log output
                 LOGGER.info('Running MOVES for fips: %s' % _fips)
-                LOGGER.info('Batch file MOVES for importing data: %s' % (
-                    self.batchimport_filename,))
+                LOGGER.info('Runspec file: %s' % self.runspec_filename)
 
                 command = 'cd {moves_folder} & setenv.bat & ' \
                           'java -Xmx512M ' \
                           'gov.epa.otaq.moves.master.commandline.MOVESCommandLine ' \
                           '-r {run_moves}'.format(
                            moves_folder=self.moves_path,
-                           run_moves=self.batchrun_filename)
+                           run_moves=self.runspec_filename)
                 os.system(command)
 
         # postprocess output - same regardless of cached status
