@@ -1170,19 +1170,27 @@ class MOVES(Module):
                                                        'dayID',
                                                        'hourID'))
 
-        # calculate non-summed rate per distance and do a groupby to prepare
-        #  for summing rates per distance over pollutant processes, hours,
-        # speed bins, and road types to get one rate per
-        # fips-month-day-pollutant combo
+        # calculate non-summed rate per distance
         _join_dist_avgspd.eval('averageRatePerDistance = ratePerDistance * '
                                'avgSpeedFraction * '
-                               'vmt_fraction', inplace=True).groupby(['fips',
-                                                                      'state',
-                                                                      'yearID',
-                                                                      'monthID',
-                                                                      'dayID',
-                                                                      'pollutantID'],
-                                                                     as_index=False)
+                               'roadTypeVMTFraction', inplace=True)
+
+        # calculate final pollutant rates per distance by grouping and
+        # summing rates per distance over pollutant processes, hours,
+        # speed bins, and road types to get one rate per
+        # fips-month-day-pollutant combo
+        _avgRateDist = _join_dist_avgspd.groupby(['fips',
+                                                  'state',
+                                                  'yearID',
+                                                  'monthID',
+                                                  'dayID',
+                                                  'pollutantID'],
+                                                 as_index=False).sum()[['fips',
+                                                                        'state',
+                                                                        'monthID',
+                                                                        'dayID',
+                                                                        'pollutantID',
+                                                                        'averageRatePerDistance']]
 
         # calculate final pollutant rates per distance
         _avgRateDist = _join_dist_avgspd.sum()[['fips', 'state', 'monthID',
