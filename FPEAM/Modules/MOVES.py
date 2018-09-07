@@ -753,8 +753,8 @@ class MOVES(Module):
 
         # scenario ID for MOVES runs
         _scenid = "{fips}_{year}_{month}_{day}".format(fips=fips,
-                                                       day=self.d[0],
-                                                       month=self.mo[0],
+                                                       day=self.d,
+                                                       month=self.mo,
                                                        year=self.year)
 
         # Create XML element tree for elements with MOVES inputs with CDATA
