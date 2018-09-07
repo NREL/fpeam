@@ -491,23 +491,19 @@ class MOVES(Module):
         timespan = etree.Element("timespan")
 
         # set year
-        etree.SubElement(timespan, "year", key=self.year)
+        etree.SubElement(timespan, "year", key=self.year.__str__())
 
-        # loop through months
-        for months in self.mo:
-            etree.SubElement(timespan, "month", id=months)
+        # set month
+        etree.SubElement(timespan, "month", id=self.mo.__str__())
 
         # loop through days (2 = weekend; 5 = weekday)
-        for days in self.d:
-            etree.SubElement(timespan, "day", id=days)
+        etree.SubElement(timespan, "day", id=self.d.__str__())
 
         # loop through start hours
-        for hours in self.bhr:
-            etree.SubElement(timespan, "beginhour", id=hours)
+        etree.SubElement(timespan, "beginhour", id=self.bhr.__str__())
 
         # loop through end hours
-        for hours in self.ehr:
-            etree.SubElement(timespan, "endhour", id=hours)
+        etree.SubElement(timespan, "endhour", id=self.ehr.__str__())
 
         # aggregate at hourly level
         etree.SubElement(timespan, "aggregateBy", key="Hour")
