@@ -956,10 +956,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 # write ending line
                 _pop_file.writelines('/END/')
 
-                # close population file
-                _pop_file.close()
-
-
 
     def create_batch_files(self):
         """
