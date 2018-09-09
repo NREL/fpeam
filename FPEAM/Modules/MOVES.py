@@ -172,33 +172,19 @@ class MOVES(Module):
         # dictionary of pollutant shorthand to MOVES name
         self.polname = {"NH3": "Ammonia (NH3)",
                         "CO": "Carbon Monoxide (CO)",
-                        "ECPM": "Composite - NonECPM",
-                        "Carbon": "Elemental Carbon",
-                        "H20": "H20 (aerosol)",
-                        "NMHC": "Non-Methane Hydrocarbons",
                         "NOX": "Oxides of Nitrogen",
                         "PM10": "Primary Exhaust PM10  - Total",
                         "PM25": "Primary Exhaust PM2.5 - Total",
-                        "Spar": "Sulfur Particulate",
                         "SO2": "Sulfur Dioxide (SO2)",
-                        "TEC": "Total Energy Consumption",
-                        "THC": "Total Gaseous Hydrocarbons",
                         "VOC": "Volatile Organic Compounds"}
 
         # dictionary of pollutant shorthand to MOVES pollutantid
         self.polkey = {"NH3": "30",
                        "CO": "2",
-                       "ECPM": "118",
-                       "Carbon": "112",
-                       "H20": "119",
-                       "NMHC": "79",
                        "NOX": "3",
                        "PM10": "100",
                        "PM25": "110",
-                       "Spar": "115",
                        "SO2": "31",
-                       "TEC": "91",
-                       "THC": "1",
                        "VOC": "87"}
 
         # dictionary of MOVES pollutant process numbers to MOVES pollutant process descriptions
@@ -218,17 +204,10 @@ class MOVES(Module):
         # dictionary of shorthand pollutant names to applicable MOVES pollutant process numbers
         self.prockey = {"NH3": ["1", "2", "15", "16", "17", "90", "91"],
                         "CO": ["1", "2", "15", "16", "17", "90", "91"],
-                        "ECPM": ["1", "2", "90", "91"],
-                        "Carbon": ["1", "2", "90", "91"],
-                        "H20": ["1", "2", "90", "91"],
-                        "NMHC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
                         "NOX": ["1", "2", "15", "16", "17", "90", "91"],
                         "PM10": ["1", "2", "15", "16", "17", "90", "91"],
                         "PM25": ["1", "2", "15", "16", "17", "90", "91"],
-                        "Spar": ["1", "2", "90", "91"],
                         "SO2": ["1", "2", "15", "16", "17", "90", "91"],
-                        "TEC": ["1", "2", "90", "91"],
-                        "THC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
                         "VOC": ["1", "2", "11", "12", "13", "15", "16", "17", "18", "19", "90", "91"]}
 
         # dictionary for road types
@@ -239,17 +218,14 @@ class MOVES(Module):
                          "5": "Urban Unrestricted Access"}
 
         # create data frame for renaming pollutants during postprocessing
-        self.pollutant_names = pd.DataFrame({'pollutant': ['NH3', 'CO', 'ECPM',
-                                                       'Carbon', 'H2O',
-                                                       'NMHC', 'NOX',
-                                                       'PM10', 'PM25',
-                                                       'Spar', 'SO2', 'TEC',
-                                                       'THC', 'VOC'],
-                                             'pollutantID': [30, 2, 118,
-                                                      112, 119, 79,
-                                                      3, 100, 110,
-                                                      115, 31, 91,
-                                                      1, 87]})
+        self.pollutant_names = pd.DataFrame({'pollutant': ['NH3', 'CO',
+                                                           'NOX',
+                                                           'PM10', 'PM25',
+                                                           'SO2', 'VOC'],
+                                             'pollutantID': [30, 2,
+                                                             3,
+                                                             100, 110,
+                                                             31, 87]})
 
     @property
     def router(self):
