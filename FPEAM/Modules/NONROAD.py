@@ -272,17 +272,11 @@ population or land area.  The format is as follows.
         for i in np.arange(self.nr_files.shape[0]):
 
             # initialize file
-            _alo_file_path = open(os.path.join(self.project_path,
-                                               'ALLOCATE',
-                                               self.nr_files.alo_file_names.iloc[
-                                                   i] + '.alo'),
-                                  'w')
+            with open(os.path.join(self.project_path, 'ALLOCATE',
+                                   self.nr_files.alo_file_names.iloc[i] + '.alo'),
+                      'w') as _alo_file_path:
 
-
-            _alo_file_path.writelines(_preamble)
-
-
-            for i in np.arange(self.nr_files.shape[0]):
+                _alo_file_path.writelines(_preamble)
 
                 # pull out the production rows relvant to the file being generated
                 #  to get a list of FIPS - also filters by feedstock measure
@@ -351,7 +345,6 @@ population or land area.  The format is as follows.
 
                     _alo_file_path.writelines(_alo_line)
 
-
                 if self.forestry_feedstock_names is not None:
 
                     if  self.nr_files.feedstock.iloc[i] in \
@@ -377,9 +370,6 @@ population or land area.  The format is as follows.
 
                 # write final line of file
                 _alo_file_path.writelines('/END/')
-
-                # close file
-                _alo_file_path.close()
 
 
     def create_options_files(self):
