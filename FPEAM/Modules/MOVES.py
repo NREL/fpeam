@@ -39,6 +39,9 @@ class MOVES(Module):
         self._router = None
         self.router = router
 
+        # get dictionaries of conversion factors for use in postprocessing
+        self.conversion_factors = self._set_conversions()
+
         self.production = production
         self.year = year
         self.region_fips_map = region_moves_fips_map
@@ -1021,22 +1024,32 @@ class MOVES(Module):
         kvals['day'] = self.d
 
         # some minor changes to the SQL tables in _moves_table_list
-        # @TODO are these the tables that are continually added on to with
-        # repeated MOVES runs, and if so can this postprocessing step be
-        # revised and maybe made shorter?
+        _moves_cursor = self.moves_con.cursor()
+
         for _table in _moves_table_list:
-            LOGGER.debug('Adding fips column to {t}'.format(t=_table))
-            _add_fips_sql = """ALTER TABLE {moves_output_db}.{t} 
-                                ADD COLUMN fips char(5);""".format(t=_table, **kvals)
-            self.moves_cursor.execute(_add_fips_sql)
 
-            LOGGER.debug('Updating fips column to {t}'.format(t=_table))
-            _update_fips_sql = """UPDATE {moves_output_db}.{t} 
-                    SET fips = LEFT(MOVESScenarioID, 5);""".format(t=_table, **kvals)
-            self.moves_cursor.execute(_update_fips_sql)
+            # LOGGER.debug('Adding fips column to {t}'.format(t=_table))
+            _add_fips_sql = """ALTER TABLE {moves_output_db}.{t}
+                                ADD COLUMN fips char(5);""".format(t=_table,
+                                                                   **kvals)
 
-        # close cursor
-        self.moves_cursor.close()
+            # LOGGER.debug('Updating fips column to {t}'.format(t=_table))
+            _update_fips_sql = """UPDATE {moves_output_db}.{t}
+                    SET fips = LEFT(MOVESScenarioID, 5);""".format(t=_table,
+                                                                   **kvals)
+
+            # test if the table already has a fips column; if so, go to update
+            # table; if not, create the fips column
+            try:
+                _moves_cursor.execute(_add_fips_sql)
+
+            except pymysql.err.InternalError:
+                pass
+
+            _moves_cursor.execute(_update_fips_sql)
+
+        # close cursor after updating both tables
+        _moves_cursor.close()
 
         # pull in rows from the ratePerDistance table, subsetting to grab
         # only the most recent runs for each FIPS in the table
@@ -1199,25 +1212,44 @@ class MOVES(Module):
                 how='left',
                 on='feedstock')
 
-        # @TODO insert routing output in here
-        if self.router:
-            _vmt_by_county = self.router.get_route(from_fips=None, to_fips=None)
+        # get routing information between each unique region_production and
+        # region_destination pair
+        _routes = _run_emissions[['region_production',
+                                  'region_destination']].drop_duplicates()
 
-        _run_emissions['vmt'] = 1.0
+        if self.router:
+
+            for i in np.arange(_routes.shape[0]):
+                _vmt_by_county = self.router.get_route(
+                    from_fips=self.prod_moves_runs.region_production.iloc[i],
+                    to_fips=self.prod_moves_runs.region_destination.iloc[i])
+
+                _vmt_by_county['region_production'] = _routes.region_production.iloc[i]
+                _vmt_by_county['region_destination'] = _routes.region_destination.iloc[i]
+
+                _run_emissions = _run_emissions.merge(_vmt_by_county,
+                                                      how='left',
+                                                      on=['region_production',
+                                                          'region_destination'])
+
+        else:
+
+            _run_emissions['region_transportation'] = None
+            _run_emissions['vmt'] = self.vmt_short_haul
 
         # evaluate running emissions
-        _run_emissions.eval(
-                'pollutant_amount = averageRatePerDistance * vmt * '
-                'feedstock_amount / truck_capacity',
-                inplace=True)
+        _run_emissions.eval('pollutant_amount = averageRatePerDistance * vmt * feedstock_amount / truck_capacity',
+                            inplace=True)
 
         # start and hotelling emissions
         _avgRateVeh = _ratepervehicle.groupby(['fips', 'state', 'yearID',
                                                'monthID', 'dayID',
                                                'pollutantID'],
                                               as_index=False).sum(
-                inplace=True)[['fips', 'state', 'yearID', 'monthID', 'dayID',
-                               'pollutantID', 'ratePerVehicle']]
+            inplace=True)[['fips', 'state', 'pollutantID', 'ratePerVehicle']]
+
+        _avgRateVeh = _avgRateVeh.merge(self.pollutant_names, how='inner',
+                                        on='pollutantID')
 
         # merge raw moves output with production data and truck capacities
         _start_hotel_emissions = _avgRateVeh.merge(self.prod_moves_runs,
@@ -1225,9 +1257,9 @@ class MOVES(Module):
                                                    left_on=['fips', 'state'],
                                                    right_on=['MOVES_run_fips',
                                                              'MOVES_state']).merge(
-                self.truck_capacity[['feedstock', 'truck_capacity']],
-                how='left',
-                on='feedstock')
+            self.truck_capacity[['feedstock', 'truck_capacity']],
+            how='left',
+            on='feedstock')
 
         # calculate start and hotelling emissions
         _start_hotel_emissions.eval('pollutant_amount = ratePerVehicle * '
@@ -1235,24 +1267,34 @@ class MOVES(Module):
                                     inplace=True)
 
         # append the run emissions with the start and hotelling emissions
-        _transportation_emissions = _run_emissions[['region_production',
-                                                    'state', 'year',
-                                                    'tillage_type',
+        _transportation_emissions = pd.concat([_run_emissions[['region_production',
+                                                    'region_destination',
                                                     'feedstock',
-                                                    'pollutantID',
-                                                    'pollutant_amount']].append(
-                _start_hotel_emissions[['region_production', 'state', 'year',
-                                        'tillage_type', 'feedstock', 'pollutantID',
-                                        'pollutant_amount']],
-                ignore_index=True)
+                                                    'tillage_type',
+                                                    'region_transportation',
+                                                    'pollutant',
+                                                    'pollutant_amount']],
+                                               _start_hotel_emissions[['region_production',
+                                                                       'region_destination',
+                                                                       'feedstock',
+                                                                       'tillage_type',
+                                                                       'pollutant',
+                                                                       'pollutant_amount']]],
+                                              ignore_index=True)
 
-        # @TODO convert pollutant amounts from grams to pounds
+        # add module column
+        _transportation_emissions['module'] = 'transportation'
+
+        # convert pollutant amounts from grams (calculated by MOVES) to pounds
+        _transportation_emissions['pollutant_amount'] = \
+                            _transportation_emissions['pollutant_amount'] * \
+                            self.conversion_factors['gram']['pound']
 
         # sum up by pollutant type for semi-final module output
         _transportation_emissions = _transportation_emissions.groupby(
-                ['region_production', 'state', 'year', 'tillage_type',
-                 'feedstock',
-                 'pollutantID'], as_index=False).sum()
+                ['region_production', 'region_destination', 'feedstock',
+                 'tillage_type', 'region_transportation', 'pollutant'],
+            as_index=False).sum()
 
         return _transportation_emissions
 
