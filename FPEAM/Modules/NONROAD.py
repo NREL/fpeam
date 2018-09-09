@@ -41,6 +41,9 @@ class NONROAD(Module):
         self.feedstock_measure_type = config.get(
             'feedstock_measure_type')
 
+        # get dictionary of conversion factors
+        self.conversion_factors = self._set_conversions()
+
         # moves database parameters
         self.moves_database = config.get('moves_database')
 
@@ -94,7 +97,7 @@ class NONROAD(Module):
 
         # create filter to select only the feedstock measure used by NONROAD
         _prod_filter = self.production.feedstock_measure == \
-                       self.nonroad_feedstock_measure
+                       self.feedstock_measure_type
 
         # filter down production rows based on what feedstock measure is
         # used by NONROAD
