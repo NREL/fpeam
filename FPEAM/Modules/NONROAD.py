@@ -1028,9 +1028,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                     # write the batch file's line to the master bach file
                     _master_batch_file.writelines("""CALL "{batch_filename}"\n""".format(**kvals))
 
-            # close file
-            _master_batch_file.close()
-
 
     def postprocess(self):
         """
