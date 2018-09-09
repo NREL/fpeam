@@ -754,8 +754,6 @@ T4M       1.0       0.02247
                 _opt_file.writelines(_options_file_template.format(**kvals,
                                                                    **kvals_fips))
 
-                _opt_file.close()
-
 
     def _write_population_file_line(self, df, _pop_file):
         """
