@@ -1217,28 +1217,52 @@ class MOVES(Module):
         _routes = _run_emissions[['region_production',
                                   'region_destination']].drop_duplicates()
 
+        # if routing engine is specified, use it to get the route (fips and
+        # vmt) for each unique region_production and region_destination pair
         if self.router:
 
+            # initialize holder for all routes
+            _vmt_by_county_all_routes = pd.DataFrame()
+
+            # loop through all routes
             for i in np.arange(_routes.shape[0]):
+
+                # use the routing engine to get a route
                 _vmt_by_county = self.router.get_route(
                     from_fips=self.prod_moves_runs.region_production.iloc[i],
                     to_fips=self.prod_moves_runs.region_destination.iloc[i])
 
+                # add identifier columns for later merging with _run_emissions
                 _vmt_by_county['region_production'] = _routes.region_production.iloc[i]
                 _vmt_by_county['region_destination'] = _routes.region_destination.iloc[i]
 
-                _run_emissions = _run_emissions.merge(_vmt_by_county,
-                                                      how='left',
-                                                      on=['region_production',
-                                                          'region_destination'])
+                # either create the data frame to store all routes,
+                # or append the current route
+                if _vmt_by_county_all_routes.empty:
+                    _vmt_by_county_all_routes = _vmt_by_county
+
+                else:
+                    _vmt_by_county_all_routes = \
+                        _vmt_by_county_all_routes.append(_vmt_by_county,
+                                                         ignore_index=True,
+                                                         sort=True)
+
+            # after the loop through all routes is complete, merge the data
+            # frame containing all routes with _run_emissions
+            _run_emissions = _run_emissions.merge(_vmt_by_county_all_routes,
+                                                  how='left',
+                                                  on=['region_production',
+                                                      'region_destination'])
 
         else:
-
+            # if no routing engine is specified, use the user-specified vmt
+            # and fill the region_transportation column with blank cells
             _run_emissions['region_transportation'] = None
             _run_emissions['vmt'] = self.vmt_short_haul
 
         # evaluate running emissions
-        _run_emissions.eval('pollutant_amount = averageRatePerDistance * vmt * feedstock_amount / truck_capacity',
+        _run_emissions.eval('pollutant_amount = averageRatePerDistance * vmt *'
+                            ' feedstock_amount / truck_capacity',
                             inplace=True)
 
         # start and hotelling emissions
@@ -1252,7 +1276,7 @@ class MOVES(Module):
                                         on='pollutantID')
 
         # merge raw moves output with production data and truck capacities
-        _start_hotel_emissions = _avgRateVeh.merge(self.prod_moves_runs,
+        _start_hotel_emissions = _avgRateVeh.merge(self,prod_moves_runs,
                                                    how='left',
                                                    left_on=['fips', 'state'],
                                                    right_on=['MOVES_run_fips',
@@ -1268,32 +1292,33 @@ class MOVES(Module):
 
         # append the run emissions with the start and hotelling emissions
         _transportation_emissions = pd.concat([_run_emissions[['region_production',
-                                                    'region_destination',
-                                                    'feedstock',
-                                                    'tillage_type',
-                                                    'region_transportation',
-                                                    'pollutant',
-                                                    'pollutant_amount']],
+                                                               'region_destination',
+                                                               'feedstock',
+                                                               'tillage_type',
+                                                               'region_transportation',
+                                                               'pollutant',
+                                                               'pollutant_amount']],
                                                _start_hotel_emissions[['region_production',
                                                                        'region_destination',
                                                                        'feedstock',
                                                                        'tillage_type',
                                                                        'pollutant',
                                                                        'pollutant_amount']]],
-                                              ignore_index=True)
+                                              ignore_index=True, sort=True)
 
-        # add module column
-        _transportation_emissions['module'] = 'transportation'
+        # add activity and module columns
+        _transportation_emissions['activity'] = 'transportation'
+        _transportation_emissions['module'] = 'moves'
 
         # convert pollutant amounts from grams (calculated by MOVES) to pounds
         _transportation_emissions['pollutant_amount'] = \
-                            _transportation_emissions['pollutant_amount'] * \
-                            self.conversion_factors['gram']['pound']
+            _transportation_emissions['pollutant_amount'] * \
+            self.conversion_factors['gram']['pound']
 
-        # sum up by pollutant type for semi-final module output
+        # sum up by pollutant type for final module output
         _transportation_emissions = _transportation_emissions.groupby(
-                ['region_production', 'region_destination', 'feedstock',
-                 'tillage_type', 'region_transportation', 'pollutant'],
+            ['region_production', 'region_destination', 'feedstock',
+             'tillage_type', 'module', 'region_transportation', 'pollutant'],
             as_index=False).sum()
 
         return _transportation_emissions
