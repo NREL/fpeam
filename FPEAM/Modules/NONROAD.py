@@ -192,6 +192,9 @@ class NONROAD(Module):
         # population files
         self.nr_files['alo_file_names'] = self.nr_files['pop_file_names']
 
+        # create a column for message file names as well
+        self.nr_files['msg_file_names'] = self.nr_files['pop_file_names']
+
         # create a column of options and out directory names for later looping
         # the feedstock bit has to be in a separate column for the next
         # command to run
@@ -727,7 +730,7 @@ T4M       1.0       0.02247
             kvals_fips = {'state_fips': '{fips:0<5}'.format(fips=self.nr_files.state_fips.iloc[i]),
                           'MESSAGE': os.path.join(self.project_path,
                                                   'MESSAGES',
-                                                  self.nr_files.state_abbreviation.iloc[i] + '.msg'),
+                                                  self.nr_files.msg_file_names.iloc[i] + '.msg'),
                           'OUTPUT_DATA': os.path.join(self.project_path, 'OUT',
                                                       self.nr_files.out_opt_dir_names.iloc[i],
                                                       self.nr_files.state_abbreviation.iloc[i] + '.out'),
