@@ -770,7 +770,7 @@ T4M       1.0       0.02247
                  'min_hp': df.hpMin,
                  'max_hp': df.hpMax,
                  'avg_hp': df.hpAvg,
-                 'life': df.equipment_lifetime,
+                 'life': np.int(df.equipment_lifetime),
                  'flag': 'DEFAULT',
                  'pop': df.equipment_population}
 
