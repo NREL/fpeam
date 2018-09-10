@@ -724,23 +724,19 @@ T4M       1.0       0.02247
         # nr_files
         for i in np.arange(self.nr_files.shape[0]):
 
-            kvals_fips = {'state_fips': '{fips:0<5}'.format(
-                                    fips=self.nr_files.state_fips.iloc[i]),
+            kvals_fips = {'state_fips': '{fips:0<5}'.format(fips=self.nr_files.state_fips.iloc[i]),
                           'MESSAGE': os.path.join(self.project_path,
                                                   'MESSAGES',
-                              '%s.msg' % (self.nr_files.state_abbreviation.iloc[
-                                  i])),
+                                                  self.nr_files.state_abbreviation.iloc[i] + '.msg'),
                           'OUTPUT_DATA': os.path.join(self.project_path, 'OUT',
-                              '%s.out' % (self.nr_files.out_opt_dir_names.iloc[
-                                              i],)),
+                                                      self.nr_files.out_opt_dir_names.iloc[i],
+                                                      self.nr_files.state_abbreviation.iloc[i] + '.out'),
                           'Population_File': os.path.join(self.project_path,
-                                        'POP', '%s.pop' %
-                                          (self.nr_files.pop_file_names.iloc[
-                                              i])),
+                                                          'POP',
+                                                          self.nr_files.pop_file_names.iloc[i] + '.pop'),
                           'Harvested_acres': os.path.join(self.project_path,
-                                          'ALLOCATE', '%s.alo' %
-                                          (self.nr_files.alo_file_names.iloc[
-                                              i]))}
+                                                          'ALLOCATE',
+                                                          self.nr_files.alo_file_names.iloc[i] + '.alo')}
 
             # complete path to state OPT file including the subdirectory
             # name and the filename which is the state abbreviation
