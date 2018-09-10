@@ -1201,7 +1201,13 @@ class MOVES(Module):
 
         # merge the truck capacity numbers with the rate per distance merge
         # to prep for calculating number of trips
-        _run_emissions = _avgRateDist.merge(self.prod_moves_runs, how='left',
+        _run_emissions = _avgRateDist.merge(self.prod_moves_runs[['MOVES_run_fips',
+                                                     'state',
+                                                     'region_production',
+                                                     'region_destination',
+                                                     'feedstock',
+                                                     'tillage_type',
+                                                     'feedstock_amount']], how='left',
                                             left_on=['fips', 'state'],
                                             right_on=['MOVES_run_fips',
                                                       'state']).merge(
@@ -1220,7 +1226,8 @@ class MOVES(Module):
         _routes = _routes.merge(self.region_fips_map, how='left',
                                 left_on='region_production',
                                 right_on='region')
-        _routes.rename(index=str, columns={'fips': 'fips_production'})
+        _routes.rename(index=str, columns={'fips': 'fips_production'},
+                       inplace=True)
 
         _routes = _routes.merge(self.region_fips_map, how='left',
                                 left_on='region_destination',
@@ -1228,7 +1235,8 @@ class MOVES(Module):
                                             'region_destination',
                                             'fips_production',
                                             'fips']]
-        _routes.rename(index=str, columns={'fips': 'fips_destination'})
+        _routes.rename(index=str, columns={'fips': 'fips_destination'},
+                       inplace=True)
 
         # if routing engine is specified, use it to get the route (fips and
         # vmt) for each unique region_production and region_destination pair
