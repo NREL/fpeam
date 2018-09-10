@@ -89,6 +89,7 @@ class Module(object):
 
         _conversions['gram'] = dict()
         _conversions['gram']['pound'] = 0.002204623
+        _conversions['gram']['ton'] = 0.000001102
 
         return _conversions
 
