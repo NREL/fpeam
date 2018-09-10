@@ -1204,7 +1204,7 @@ class MOVES(Module):
         _run_emissions = _avgRateDist.merge(self.prod_moves_runs, how='left',
                                             left_on=['fips', 'state'],
                                             right_on=['MOVES_run_fips',
-                                                      'MOVES_run_state']).merge(
+                                                      'state']).merge(
                 self.truck_capacity[['feedstock',
                                      'truck_capacity']],
                 how='left',
@@ -1224,7 +1224,10 @@ class MOVES(Module):
 
         _routes = _routes.merge(self.region_fips_map, how='left',
                                 left_on='region_destination',
-                                right_on='region')
+                                right_on='region')[['region_production',
+                                            'region_destination',
+                                            'fips_production',
+                                            'fips']]
         _routes.rename(index=str, columns={'fips': 'fips_destination'})
 
         # if routing engine is specified, use it to get the route (fips and
