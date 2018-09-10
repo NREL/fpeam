@@ -1276,7 +1276,7 @@ class MOVES(Module):
                                         on='pollutantID')
 
         # merge raw moves output with production data and truck capacities
-        _start_hotel_emissions = _avgRateVeh.merge(self,prod_moves_runs,
+        _start_hotel_emissions = _avgRateVeh.merge(self.prod_moves_runs,
                                                    how='left',
                                                    left_on=['fips', 'state'],
                                                    right_on=['MOVES_run_fips',
