@@ -79,13 +79,17 @@ class Module(object):
         _conversions['tonne']['ton'] = 0.907018474   # 1 ton = 0.91 tonne  s
 
         _conversions['ton'] = dict()
-        _conversions['ton']['pounds'] = 1.0 / 2000.0  # 1 ton = 2000 lbs
+        _conversions['ton']['pound'] = 1.0 / 2000.0  # 1 ton = 2000 lbs
 
         _conversions['mile'] = dict()
         _conversions['mile']['kilometer'] = 1.60934
 
         _conversions['kilometer'] = dict()
         _conversions['kilometer']['mile'] = 0.621371
+
+        _conversions['gram'] = dict()
+        _conversions['gram']['pound'] = 0.002204623
+        _conversions['gram']['ton'] = 0.000001102
 
         return _conversions
 

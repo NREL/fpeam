@@ -41,6 +41,9 @@ class NONROAD(Module):
         self.feedstock_measure_type = config.get(
             'feedstock_measure_type')
 
+        # get dictionary of conversion factors
+        self.conversion_factors = self._set_conversions()
+
         # moves database parameters
         self.moves_database = config.get('moves_database')
 
@@ -94,7 +97,7 @@ class NONROAD(Module):
 
         # create filter to select only the feedstock measure used by NONROAD
         _prod_filter = self.production.feedstock_measure == \
-                       self.nonroad_feedstock_measure
+                       self.feedstock_measure_type
 
         # filter down production rows based on what feedstock measure is
         # used by NONROAD
@@ -189,6 +192,9 @@ class NONROAD(Module):
         # population files
         self.nr_files['alo_file_names'] = self.nr_files['pop_file_names']
 
+        # create a column for message file names as well
+        self.nr_files['msg_file_names'] = self.nr_files['pop_file_names']
+
         # create a column of options and out directory names for later looping
         # the feedstock bit has to be in a separate column for the next
         # command to run
@@ -269,17 +275,11 @@ population or land area.  The format is as follows.
         for i in np.arange(self.nr_files.shape[0]):
 
             # initialize file
-            _alo_file_path = open(os.path.join(self.project_path,
-                                               'ALLOCATE',
-                                               self.nr_files.alo_file_names.iloc[
-                                                   i] + '.alo'),
-                                  'w')
+            with open(os.path.join(self.project_path, 'ALLOCATE',
+                                   self.nr_files.alo_file_names.iloc[i] + '.alo'),
+                      'w') as _alo_file_path:
 
-
-            _alo_file_path.writelines(_preamble)
-
-
-            for i in np.arange(self.nr_files.shape[0]):
+                _alo_file_path.writelines(_preamble)
 
                 # pull out the production rows relvant to the file being generated
                 #  to get a list of FIPS - also filters by feedstock measure
@@ -348,7 +348,6 @@ population or land area.  The format is as follows.
 
                     _alo_file_path.writelines(_alo_line)
 
-
                 if self.forestry_feedstock_names is not None:
 
                     if  self.nr_files.feedstock.iloc[i] in \
@@ -374,9 +373,6 @@ population or land area.  The format is as follows.
 
                 # write final line of file
                 _alo_file_path.writelines('/END/')
-
-                # close file
-                _alo_file_path.close()
 
 
     def create_options_files(self):
@@ -731,23 +727,19 @@ T4M       1.0       0.02247
         # nr_files
         for i in np.arange(self.nr_files.shape[0]):
 
-            kvals_fips = {'state_fips': '{fips:0<5}'.format(
-                                    fips=self.nr_files.state_fips.iloc[i]),
+            kvals_fips = {'state_fips': '{fips:0<5}'.format(fips=self.nr_files.state_fips.iloc[i]),
                           'MESSAGE': os.path.join(self.project_path,
                                                   'MESSAGES',
-                              '%s.msg' % (self.nr_files.state_abbreviation.iloc[
-                                  i])),
+                                                  self.nr_files.msg_file_names.iloc[i] + '.msg'),
                           'OUTPUT_DATA': os.path.join(self.project_path, 'OUT',
-                              '%s.out' % (self.nr_files.out_opt_dir_names.iloc[
-                                              i],)),
+                                                      self.nr_files.out_opt_dir_names.iloc[i],
+                                                      self.nr_files.state_abbreviation.iloc[i] + '.out'),
                           'Population_File': os.path.join(self.project_path,
-                                        'POP', '%s.pop' %
-                                          (self.nr_files.pop_file_names.iloc[
-                                              i])),
+                                                          'POP',
+                                                          self.nr_files.pop_file_names.iloc[i] + '.pop'),
                           'Harvested_acres': os.path.join(self.project_path,
-                                          'ALLOCATE', '%s.alo' %
-                                          (self.nr_files.alo_file_names.iloc[
-                                              i]))}
+                                                          'ALLOCATE',
+                                                          self.nr_files.alo_file_names.iloc[i] + '.alo')}
 
             # complete path to state OPT file including the subdirectory
             # name and the filename which is the state abbreviation
@@ -760,8 +752,6 @@ T4M       1.0       0.02247
 
                 _opt_file.writelines(_options_file_template.format(**kvals,
                                                                    **kvals_fips))
-
-                _opt_file.close()
 
 
     def _write_population_file_line(self, df, _pop_file):
@@ -965,10 +955,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 # write ending line
                 _pop_file.writelines('/END/')
 
-                # close population file
-                _pop_file.close()
-
-
 
     def create_batch_files(self):
         """
@@ -1041,9 +1027,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                     # write the batch file's line to the master bach file
                     _master_batch_file.writelines("""CALL "{batch_filename}"\n""".format(**kvals))
 
-            # close file
-            _master_batch_file.close()
-
 
     def postprocess(self):
         """
@@ -1059,15 +1042,12 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
             # create complete filepath to nonroad .out file
             _nr_out_file = os.path.join(self.project_path, 'OUT',
-                                        self.nr_files.out_opt_dir_names.iloc[
-                                            i],
-                                        self.nr_files.state_abbreviation.iloc[
-                                            i] +
+                                        self.nr_files.out_opt_dir_names.iloc[i],
+                                        self.nr_files.state_abbreviation.iloc[i] +
                                         '.out')
 
             # check if the .out file exists - if so, read in the data
             if os.path.isfile(_nr_out_file):
-
                 # header specifies the file row that contains column names
                 # rows above the header are not read in
                 # usecols identifies the columns that are read in
@@ -1079,10 +1059,16 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                                            usecols=[0, 5, 6,
                                                     7, 9, 10, 19],
                                            names=['fips', 'thc', 'co',
-                                                  'nox', 'so2', 'pm', 'fuel'])
+                                                  'nox', 'so2', 'pm', 'fuel'],
+                                           dtype={'fips': np.str,
+                                                  'thc': np.float,
+                                                  'co': np.float,
+                                                  'nox': np.float,
+                                                  'so2': np.float,
+                                                  'pm': np.float,
+                                                  'fuel': np.float})
 
                 # add some id variable columns
-                _to_append['state_fips'] = self.nr_files.state_fips.iloc[i]
                 _to_append['feedstock'] = self.nr_files.feedstock.iloc[i]
                 _to_append['tillage_type'] = self.nr_files.tillage_type.iloc[i]
                 _to_append['activity'] = self.nr_files.activity.iloc[i]
@@ -1091,37 +1077,49 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 #  output dataframe
                 _nr_out = _nr_out.append(_to_append, ignore_index=True)
 
-        ## convert units and calculate NH3 emissions from fuel consumption
-
-        # @todo convert all pollutant units to pounds
+        # calculate voc emissions in (short) tons
         _nr_out['voc'] = _nr_out.thc * self.diesel_thc_voc_conversion
 
-        # @note nh3 emissions are in grams from this calculation
-        _nr_out['nh3'] = _nr_out.fuel * self.diesel_lhv * self.diesel_nh3_ef
+        # nh3 emissions are calculated as grams and converted to short tons
+        # to match the rest of the emissions
+        _nr_out['nh3'] = _nr_out.fuel * self.diesel_lhv * self.diesel_nh3_ef\
+                         * self.conversion_factors['gram']['ton']
 
+        # pm calculated by nonroad is pm10 - rename for clarity
+        _nr_out.rename(index=str, columns={'pm': 'pm10'}, inplace=True)
+
+        # calculate pm25 from pm10
         _nr_out['pm25'] = _nr_out.pm10 * self.diesel_pm10topm25
 
+        # remove columns that are no longer needed
         del _nr_out['thc'], _nr_out['fuel']
 
         # sum emissions over different equipment types or different horsepowers
-        _nr_out = _nr_out.groupby([['feedstock', 'state_fips', 'fips',
-                                    'tlilage_type', 'activity']],
+        _nr_out = _nr_out.groupby(['feedstock', 'fips',
+                                   'tillage_type', 'activity'],
                                   as_index=False).sum()
+
+        # use the nonroad fips-region map to get back to region_production
+        _nr_out = _nr_out.merge(self.region_nonroad_fips_map, how='inner',
+                                left_on='fips', right_on='NONROAD_fips')
 
         # melt the nonroad output to put pollutant names in one column and
         # pollutant amounts in a second column
-        _nr_out_melted = _nr_out.melt(id_vars=['feedstock', 'state_fips',
-                                               'fips', 'tillage_type',
+        _nr_out_melted = _nr_out.melt(id_vars=['feedstock',
+                                               'region_production',
+                                               'tillage_type',
                                                'activity'],
                                       value_vars=['co', 'nox', 'so2', 'pm10',
                                                   'pm25', 'voc', 'nh3'],
-                                      var_name='pollutantID',
+                                      var_name='pollutant',
                                       value_name='pollutant_amount')
 
-        # rename the state column to match output of other modules
-        _nr_out_melted.rename(index=str,
-                              columns={'state_fips': 'state'},
-                              inplace=True)
+        # nonroad emissions are calculated in short tons; convert to pounds
+        _nr_out_melted['pollutant_amount'] = _nr_out_melted['pollutant_amount'] * \
+                                             self.conversion_factors['ton']['pound']
+
+        # add module column
+        _nr_out_melted['module'] = 'nonroad'
 
         return _nr_out_melted
 
