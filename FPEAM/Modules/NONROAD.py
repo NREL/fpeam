@@ -1104,6 +1104,10 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         _nr_out = _nr_out.merge(self.region_fips_map, how='inner',
                                 on='fips')
 
+        # rename region column from region-fips map to region_production
+        _nr_out.rename(index=str, columns={'region': 'region_production'},
+                       inplace=True)
+
         # melt the nonroad output to put pollutant names in one column and
         # pollutant amounts in a second column
         _nr_out_melted = _nr_out.melt(id_vars=['feedstock',
