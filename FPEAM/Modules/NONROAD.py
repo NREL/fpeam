@@ -13,7 +13,7 @@ LOGGER = utils.logger(name=__name__)
 class NONROAD(Module):
     
     def __init__(self, config, production, equipment, year,
-                 region_nonroad_fips_map, nonroad_equipment,
+                 region_fips_map, nonroad_equipment,
                  state_fips_map, **kvals):
 
         # init parent
@@ -65,7 +65,7 @@ class NONROAD(Module):
         # mapping from the region_production column of production
         # to NONROAD fips values, used to derive state identifiers and run
         # scenario through NONROAD
-        self.region_nonroad_fips_map = region_nonroad_fips_map
+        self.region_nonroad_fips_map = region_fips_map
 
         # mapping from 2-digit state FIPS to two-character state name
         # abbreviations

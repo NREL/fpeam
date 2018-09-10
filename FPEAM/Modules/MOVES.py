@@ -20,13 +20,13 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, region_moves_fips_map, truck_capacity, year, router=None,
+    def __init__(self, config, production, region_fips_map, truck_capacity, year, router=None,
                  **kvals):
         """
 
         :param config:
         :param production:
-        :param region_moves_fips_map:
+        :param region_fips_map:
         :param truck_capacity:
         :param year:
         :param router:
@@ -44,7 +44,7 @@ class MOVES(Module):
 
         self.production = production
         self.year = year
-        self.region_fips_map = region_moves_fips_map
+        self.region_fips_map = region_fips_map
         self.feedstock_measure_type = config.get('feedstock_measure_type')
 
         # this is a DF read in from a csv file
