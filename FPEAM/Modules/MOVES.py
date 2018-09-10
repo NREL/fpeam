@@ -1214,7 +1214,7 @@ class MOVES(Module):
                 self.truck_capacity[['feedstock',
                                      'truck_capacity']],
                 how='left',
-                on='feedstock')[['feedstock', 'tillage_type',
+                on='feedstock')[['fips', 'feedstock', 'tillage_type',
                      'region_production', 'region_destination',
                      'feedstock_amount', 'pollutant',
                      'averageRatePerDistance', 'truck_capacity']]
