@@ -19,3 +19,5 @@ fugitive_dust_emission_factors = string(default='../data/inputs/fugitive_dust_em
 moisture_content = string(default='../data/inputs/moisture_content.csv')
 nonroad_equipment = string(default='../data/inputs/nonroad_equipment.csv')
 scc_codes = string(default='../data/inputs/scc_codes.csv')
+region_fips_maps = string(default='../data/inputs/region_fips_map.csv')
+truck_capacity = string(default='../data/inputs/truck_capacity.csv')
