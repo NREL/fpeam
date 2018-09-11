@@ -165,9 +165,6 @@ class MOVES(Module):
         # @NOTE possibly add to GUI as user input in the future
         self.fuel_supply_fuel_type_id = '2'
 
-        # user input - fuel fraction table
-        self.fuel_fraction = config.get('fuel_fraction')
-
         # user input - fraction of VMT on each road type
         self.vmt_fraction = config.get('vmt_fraction')
 
@@ -316,12 +313,15 @@ class MOVES(Module):
 
         # construct dataframe of road type VMTs from config file input
         # store in self for later use in postprocessing
-        self.roadtypevmt = pd.DataFrame({'sourceTypeID': np.repeat(self.source_type_id, 4),
-                                         'roadTypeID': range(2, 6),
-                                         'roadTypeVMTFraction': self.vmt_fraction})
+        self.roadtypevmt = pd.DataFrame.from_dict(self.vmt_fraction,
+                                                  orient='index',
+                                                  columns=['roadTypeVMTFraction'])
+        self.roadtypevmt['roadTypeID'] = self.roadtypevmt.index
+        self.roadtypevmt['sourceTypeID'] = np.repeat(self.source_type_id, 4)
 
-        # write to csv
-        self.roadtypevmt.to_csv(self.roadtypevmt_filename, sep=',', index=False)
+        # write roadtypevmt to csv
+        self.roadtypevmt.to_csv(self.roadtypevmt_filename, sep=',',
+                                index=False)
 
     def create_county_data(self, fips):
         """
