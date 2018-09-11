@@ -285,7 +285,7 @@ class MOVES(Module):
 
         # save alternative vehicle fuels and technology (avft) file to
         # national input file directory
-        self.avft.to_csv(self.avft_filename, sep=',')
+        self.avft.to_csv(self.avft_filename, sep=',', index=False)
 
         # default age distribution file creation
         # age distribution for user-specified source_type_id and year is pulled
