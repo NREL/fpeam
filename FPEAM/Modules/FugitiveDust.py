@@ -48,6 +48,9 @@ class FugitiveDust(Module):
         # calculate fugitive dust
         _df.eval('pollutant_amount = feedstock_amount * rate', inplace=True)
 
+        # add column to identify module
+        _df['module'] = 'fugitive dust'
+
         # clean up DataFrame
         _df = _df[['region_production', 'feedstock',
                    'tillage_type', 'pollutant',
