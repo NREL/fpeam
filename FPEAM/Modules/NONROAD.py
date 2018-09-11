@@ -13,7 +13,7 @@ LOGGER = utils.logger(name=__name__)
 class NONROAD(Module):
     
     def __init__(self, config, production, equipment, year,
-                 region_nonroad_fips_map, nonroad_equipment,
+                 region_fips_map, nonroad_equipment,
                  state_fips_map, **kvals):
 
         # init parent
@@ -65,7 +65,7 @@ class NONROAD(Module):
         # mapping from the region_production column of production
         # to NONROAD fips values, used to derive state identifiers and run
         # scenario through NONROAD
-        self.region_nonroad_fips_map = region_nonroad_fips_map
+        self.region_fips_map = region_fips_map
 
         # mapping from 2-digit state FIPS to two-character state name
         # abbreviations
@@ -82,12 +82,13 @@ class NONROAD(Module):
         self.production['year'] = self.year
 
         # merge production with the region_production-fips map for NONROAD fips
-        self.production = self.production.merge(self.region_nonroad_fips_map,
+        self.production = self.production.merge(self.region_fips_map,
                                                 how='inner',
-                                                on='region_production')
+                                                left_on='region_production',
+                                                right_on='region')
 
         # add column with state derived from NONROAD fips column
-        self.production['state_fips'] = self.production.NONROAD_fips.str.slice(
+        self.production['state_fips'] = self.production.fips.str.slice(
             stop=2)
 
         # merge with the state abbreviation df to have both state codes and
@@ -295,7 +296,7 @@ population or land area.  The format is as follows.
                 # filter down production and get the list of both fips and
                 # feedstock amounts (indicator values)
                 _indicator_list = self.prod_equip_merge[_prod_filter][[
-                    'NONROAD_fips',
+                    'fips',
                     'feedstock',
                     'feedstock_amount']].drop_duplicates()
 
@@ -308,7 +309,7 @@ population or land area.  The format is as follows.
 
                 # loop thru fips w/in each state-tillagetype-activity to create the
                 # indicator lines in the file
-                for _fips in list(_indicator_list.NONROAD_fips):
+                for _fips in list(_indicator_list.fips):
                     # calculate indicators by fips - harvested acres for all crop
                     # except for forest residues and forest whole trees; ??? for the
                     # two forest products
@@ -322,7 +323,7 @@ population or land area.  The format is as follows.
 
                             # calculate forestry indicator
                             _ind = _indicator_list.feedstock_amount[
-                                       _indicator_list.NONROAD_fips ==
+                                       _indicator_list.fips ==
                                        _fips].values[0] * 2000.0 / 30.0
 
                         else:
@@ -331,7 +332,7 @@ population or land area.  The format is as follows.
 
                             # calculate harvested acres indicator
                             _ind = _indicator_list.feedstock_amount[
-                                _indicator_list.NONROAD_fips ==
+                                _indicator_list.fips ==
                                 _fips].values[0]
 
                     else:
@@ -340,7 +341,7 @@ population or land area.  The format is as follows.
 
                         # calculate harvested acres indicator
                         _ind = _indicator_list.feedstock_amount[
-                            _indicator_list.NONROAD_fips == _fips].values[0]
+                            _indicator_list.fips == _fips].values[0]
 
 
                     _alo_line = """%s  %s      %s    %s\n""" % (
@@ -761,7 +762,7 @@ T4M       1.0       0.02247
         :return: None
         """
 
-        kvals = {'fips': df.NONROAD_fips,
+        kvals = {'fips': df.fips,
                  'sub_reg': '',
                  'year': self.year,
                  'scc_code': df.SCC,
@@ -769,7 +770,7 @@ T4M       1.0       0.02247
                  'min_hp': df.hpMin,
                  'max_hp': df.hpMax,
                  'avg_hp': df.hpAvg,
-                 'life': df.equipment_lifetime,
+                 'life': np.int(df.equipment_lifetime),
                  'flag': 'DEFAULT',
                  'pop': df.equipment_population}
 
@@ -872,7 +873,7 @@ T4M       1.0       0.02247
                                                'feedstock',
                                                'tillage_type',
                                                'activity',
-                                               'NONROAD_fips',
+                                               'fips',
                                                'year',
                                                'SCC',
                                                'equipment_description',
@@ -885,7 +886,7 @@ T4M       1.0       0.02247
         # keep only the columns relevant to either the population file name
         # or file contents
         _nr_pop = _nr_pop[['state_abbreviation', 'feedstock',
-                           'tillage_type', 'activity', 'NONROAD_fips', 'year',
+                           'tillage_type', 'activity', 'fips', 'year',
                            'SCC', 'equipment_description', 'hpMin', 'hpMax',
                            'hpAvg', 'equipment_lifetime',
                            'equipment_population']]
@@ -1100,8 +1101,12 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                                   as_index=False).sum()
 
         # use the nonroad fips-region map to get back to region_production
-        _nr_out = _nr_out.merge(self.region_nonroad_fips_map, how='inner',
-                                left_on='fips', right_on='NONROAD_fips')
+        _nr_out = _nr_out.merge(self.region_fips_map, how='inner',
+                                on='fips')
+
+        # rename region column from region-fips map to region_production
+        _nr_out.rename(index=str, columns={'region': 'region_production'},
+                       inplace=True)
 
         # melt the nonroad output to put pollutant names in one column and
         # pollutant amounts in a second column
