@@ -42,20 +42,20 @@ class FPEAM(object):
 
         # @TODO: not sure these should default to None, maybe better to break than silently load nothing
         self.emission_factors =\
-            Data.EmissionFactor(fpath=self.config.get('emission_factor', None))
+            Data.EmissionFactor(fpath=self.config.get('emission_factors', None))
         self.resource_distribution =\
             Data.ResourceDistribution(fpath=self.config.get('resource_distribution', None))
         self.fugitive_dust =\
-            Data.FugitiveDust(fpath=self.config.get('fugitive_dust_emission_factor', None))
+            Data.FugitiveDust(fpath=self.config.get('fugitive_dust_emission_factors', None))
         self.moisture_content =\
             Data.MoistureContent(fpath=self.config.get('moisture_content', None))
         self.nonroad_equipment =\
             Data.NONROADEquipment(fpath=self.config.get('nonroad_equipment', None))
-        self.ssc_codes = Data.SCCCodes(fpath=self.config.get('scc_code', None))
+        self.ssc_codes = Data.SCCCodes(fpath=self.config.get('scc_codes', None))
 
         self.transportation_graph =\
             Data.TransportationGraph(fpath=self.config.get('transportation_graph', None))
-        self.county_node = Data.CountyNode(fpath=self.config.get('county_node', None))
+        self.county_node = Data.CountyNode(fpath=self.config.get('county_nodes', None))
 
         self.router = Router(edges=self.transportation_graph, node_map=self.county_node)
 
