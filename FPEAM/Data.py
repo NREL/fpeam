@@ -234,3 +234,12 @@ class RegionFipsMap(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(RegionFipsMap, self).__init__(df=df, fpath=fpath, columns=columns)
 
+
+class TruckCapacity(Data):
+
+    COLUMN = {'feedstock': str,
+              'truck_capacity': float,
+              'unit_numerator': str,
+              'unit_denominator': str}
+
+    INDEX_COLUMNS = ('feedstock', )
