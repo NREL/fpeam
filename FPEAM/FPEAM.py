@@ -44,16 +44,16 @@ class FPEAM(object):
 
         # @TODO: not sure these should default to None, maybe better to break than silently load nothing. Would like a way to only load relevant data based on modules in run_config
         self.emission_factors =\
-            Data.EmissionFactor(fpath=self.config.get('emission_factor', None))
+            Data.EmissionFactor(fpath=self.config.get('emission_factors', None))
         self.resource_distribution =\
             Data.ResourceDistribution(fpath=self.config.get('resource_distribution', None))
         self.fugitive_dust =\
-            Data.FugitiveDust(fpath=self.config.get('fugitive_dust_emission_factor', None))
+            Data.FugitiveDust(fpath=self.config.get('fugitive_dust_emission_factors', None))
         self.moisture_content =\
             Data.MoistureContent(fpath=self.config.get('moisture_content', None))
         self.nonroad_equipment =\
             Data.NONROADEquipment(fpath=self.config.get('nonroad_equipment', None))
-        self.ssc_codes = Data.SCCCodes(fpath=self.config.get('scc_code', None))
+        self.ssc_codes = Data.SCCCodes(fpath=self.config.get('scc_codes', None))
 
         for _module in self.config.get('modules', None) or self.MODULES.keys():
             _config = self.config.get(_module, None) or \
