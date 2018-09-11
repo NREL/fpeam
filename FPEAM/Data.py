@@ -222,3 +222,15 @@ class CountyNode(Data):
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(CountyNode, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
+class RegionFipsMap(Data):
+
+    COLUMNS = {'region': str,
+               'fips': str}
+
+    INDEX_COLUMNS = ('region', )
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(RegionFipsMap, self).__init__(df=df, fpath=fpath, columns=columns)
+

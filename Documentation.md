@@ -2,9 +2,9 @@
 
 The Feedstock Production Emissions to Air Model (FPEAM) calculates spatially explicit inventories of criteria air pollutants and precursors generated from agricultural and tranportation activities associated with the production and supply of biomass feedstocks for renewable energy generation. FPEAM was originally developed to calculate air pollutants as part of the 2016 update to the Billion Ton Study (BTS). For this version of FPEAM, the code base has been substantially refactored and streamlined to provide increased flexibility around biomass production scenario definitions, including what activities and pollutants are included in the calculations and at what spatial scale. This document describes the FPEAM code base and default input files bundled with the beta model release.
 
-FPEAM calculations are organized into independent modules, listed in the first table below along with the activities and pollutants included by default in each module. The EmissionFactors module is unique in that it can be used to calculate any pollutant from any activity, if sufficient input data is provided. In particular, users have the option of using the EmissionFactors module to replace the MOVES and/or NONROAD modules with emissions factors for agricultural equipment and on-road vehicle use. The EmissionFactors module can also be used to calculate pollutants from additional activities, such as non-nitrogen fertilizer application.
+FPEAM calculations are organized into semi-independent modules, listed in the first table below along with the activities and pollutants included by default in each module. The EmissionFactors module is unique in that it can be used to calculate any pollutant from any activity, if sufficient input data is provided. In particular, users have the option of using the EmissionFactors module to replace the MOVES and/or NONROAD modules with emissions factors for agricultural equipment and on-road vehicle use. The EmissionFactors module can also be used to calculate pollutants from additional activities, such as non-nitrogen fertilizer application.
 
-A full list of the default pollutants calculated by FPEAM is listed in the second table below. Additional pollutants may also be calculated from user-provided input data using the EmissionFactors module.
+A full list of the default pollutants calculated by FPEAM is listed in the second table below. Additional pollutants may also be calculated from user-provided input data using the EmissionFactors module. At this stage of development calculating additional pollutants from either the NONROAD or MOVES modules is not allowed for in the model but this functionality can be added in the future if there is demand.
 
 The structure and function of each module, and the module-specific input data required to run each module, is described further in subsequent sections.
 
@@ -14,7 +14,7 @@ TABLE: Available FPEAM modules.
 | :----- | :-------------------: | :------------------ |
 | MOVES | All | Off-farm, on-road transportation of biomass to biorefineries |
 | NONROAD | All | On-farm use of agricultural equipment |
-| EmissionFactors | VOC, NH<sub>3</sub>, NO<sub>x</sub> | Nitrogen fertilizer application; pesticide and herbicide application |
+| EmissionFactors | VOC, NH<sub>3</sub>, NO<sub>x</sub>, others | Nitrogen fertilizer application; pesticide and herbicide application; other activities as data is available |
 | FugitiveDust | PM<sub>2.5</sub>, PM<sub>10</sub> | On-farm use of agricultural equipment |
 
 TABLE: Default list of pollutants calculated by FPEAM.
@@ -29,11 +29,11 @@ TABLE: Default list of pollutants calculated by FPEAM.
 | PM<sub>2.5</sub> | Criteria air pollutant |
 | PM<sub>10</sub> | Criteria air pollutant | 
 
-## General input data: Equipment use and agricultural activities
+## General input data: Equipment use
 
-The two input datasets described in this section are used by all FPEAM modules and provide the basic format for the FPEAM outputs. A default for each dataset described in this section is provided with the FPEAM code base and can be used to run the BTS feedstock production scenarios. Provided the data format is preserved, these datasets may be altered, expanded or replaced to run custom feedstock production scenarios.
+The equipment and production input datasets described in this section are used by all FPEAM modules and provide the basic format and identification variables for the FPEAM outputs. A default for each dataset described in this section is provided with the FPEAM code base and can be used to run the same feedstock production scenarios used in the BTS. Provided the data format is preserved, these datasets may be altered, expanded or replaced to run custom model scenarios.
 
-The equipment dataset defines the agricultural activities involved in feedstock production. In this dataset, 
+The equipment dataset defines the agricultural activities involved in feedstock production; columns in this dataset are defined in the table below. The equipment dataset defines the equipment used for each agricultural activity (in the default equipment dataset, activities consist of establishment, maintenance, harvest and loading, but additional or alternate activities may be specified as needed) as well as the resources consumed, such as fuel, time, fertilizer, and other agricultural chemicals. Resource rate (amount) units in the equipment dataset must correspond with the units in the feedstock production dataset discussed below, or an error will be given when the data is read into FPEAM. For each activity that involves agricultural equipment, the equipment name must be provided. These are user-defined names that can be matched to NONROAD equipment types during scenario definition or with a provided CSV file for batch runs.
 
 TABLE: List of columns and data types in equipment dataset.
 
@@ -44,19 +44,14 @@ TABLE: List of columns and data types in equipment dataset.
 | equipment_group | string | Region identifier |
 | rotation_year | integer | Year of crop rotation |
 | activity | string | Activity category |
-| equipment_name | string | Description of equipment used |
+| equipment_name | string | Description of equipment used, if any |
 | equipment_horsepower | integer | Horsepower (if applicable to equipment) |
 | resource | string | Resource used (each activity may have multiple resources associated with it) |
 | rate | float | Quantity of resource used |
 | unit_numerator | string | Numerator of resource rate unit |
 | unit_denominator | string | Denominator of resource rate unit |
 
-
-Budgets must be at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered (with the numbers stored as characters rather than integers) and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions.
-
-For each activity that involves agricultural equipment, the equipment name must be provided. These are user-defined names that can be matched to NONROAD equipment types during scenario definition or with a provided CSV file for batch runs.
-
-Columns with restricted values are: tillage_type, activity, resource and unit. The allowed values are listed in the table below. If input data is provided that contains non-allowed values in these columns, FPEAM will produce an error and the input data must be corrected before a scenario can be run.
+Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered (with the numbers stored as characters rather than integers) and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset, to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset; any equipment data without matching feedstock production data (or vice versa) will be excluded from FPEAM calculations.
 
 TABLE: Equipment data examples
 
@@ -76,13 +71,9 @@ Equipment data for whole trees and forest residues was obtained from the Forest 
 
 > the Forest Sustainable and Economic Analysis Model (ForSEAM) was originally constructed to estimate forest land production over time and its ability to produce not only traditional forest products, but also products to meet biomass feedstock demands through a cost minimization algorithm (He et al., 2014). The model has three components. The supply component includes general forest production activities for 305 production regions based on USDA’s agricultural supply districts. Each region has a set of production activities defined by the USFS. The Forest Product Demand Component is based on six USFS Scenarios with estimates developed by the US Forest Products Model. The sustainability component ensures that harvest in each region does not exceed annual growth, forest tracts are located within one-half mile of existing roads, and that current year forest attributes reflect previous years’ harvests and fuel removals. The model incorporates dynamic tracking of forest growth."
 
-Users may develop alternate feedstock production scenarios using POLYSYS and ForSEAM, or by directly making edits to the provided equipment data sets.
+## General input data: Feedstock production
 
-Values in the feedstock, tillage and equipment_group column must match to those provided in the equipment data file. Any production values without matching budgets, or vice versa, will not be included in FPEAM calculations.
-
-If values in the region column do not correspond to the Federal Information Processing Standards (FIPS) code (county identifiers) used in MOVES and NONROAD, an additional file giving the mapping of the region values to FIPS values must be provided. When running FPEAM interactively via the GUI, the user will be prompted to provide this file if necessary.
-
-*** Scenario name, year no longer in production dataset ***
+If values in the region_production column do not correspond to the Federal Information Processing Standards (FIPS) code (county identifiers) used in MOVES and NONROAD, an additional file giving the mapping of the region values to FIPS values must be provided. When running FPEAM interactively via the GUI, the user will be prompted to provide this file if necessary.
 
 TABLE: List of columns in production data set with data types and descriptions
 
@@ -96,16 +87,16 @@ TABLE: List of columns in production data set with data types and descriptions
 | feedstock_measure | string | Identifies the value in the feedstock_amount column | 
 | feedstock_amount | float | Feedstock amount defined by feedstock_measure, with units given by unit_numerator and unit_denominator |
 | unit_numerator | string | Numerator of feedstock_amount unit |
-| unit_denominator | string | Denominator of feedstock_amount unit |
+| unit_denominator | string | Denominator of feedstock_amount unit, if any |
 
 TABLE: Production data examples
 
 | feedstock | tillage_type | region_production | region_destination | equipment_group | feedstock_measure | feedstock_amount | unit_numerator | unit_denominator |
 | :--- | :------ | :----: | :------------: | :----------- | :---------: | ---- |
-| poplar | conventional tillage | 12067 | - | 13 | yield | 61.6 | dry short ton | acre |
-| poplar | conventional tillage | 12067 | - | 13 | produced | 113.7 | dry short ton  | - |
-| poplar | conventional tillage | 12067 | - | 13 | harvested | 1.87 | acre | - |
-| poplar | conventional tillage | 12067 | - | 13 | planted | 14.8 | acre | - |
+| poplar | conventional tillage | 12067 | 12039 | 13 | yield | 61.6 | dry short ton | acre |
+| poplar | conventional tillage | 12067 | 12039 | 13 | produced | 113.7 | dry short ton  |  |
+| poplar | conventional tillage | 12067 | 12039 | 13 | harvested | 1.87 | acre |  |
+| poplar | conventional tillage | 12067 | 12039 | 13 | planted | 14.8 | acre |  |
 
 
 Typical source of production data (POLYSYS and forSEAM)
@@ -150,9 +141,80 @@ TABLE: Bushel weight in dry short tons by feedstock.
 1. Murphy, William J. Tables for Weights and Measurements: Crops. University of Missouri Extension. Available at https://extension2.missouri.edu/G4020. Accessed May 25, 2018.
 2. U.S. Department of Agriculture, Office of Weights and Measures. Standard weight per bushel for agricultural commodities. Available at ftp://www.ilga.gov/JCAR/AdminCode/008/00800600ZZ9998bR.html Accessed May 25, 2018.
 
+TABLE: Loading equipment information 
+ equipment information for feedstock loading at farm gate
+ default budget does NOT include loading
+ process rate is in hours per dry ton
+ data for CS, WS, SG, CG from BT16; data for FR supplemented with
+ Leinonen, A. 2004. Harvesting Technology of Forest residues for fuel in the
+ USA and Finland. VTT Research Notes 2229. Helsinki, Finland: VTT Technical
+ Research Center of Finland.
+ [loading_equip]
+[[CS]]
+type = Tractor,
+fuel = diesel,
+power = 143,
+process_rate = 0.017361,
+
+[[WS]]
+type = Tractor,
+fuel = diesel,
+power = 143,
+process_rate = 0.017361,
+
+[[SG]]
+type = Tractor,
+fuel = diesel,
+power = 143,
+process_rate = 0.017361,
+
+[[SS]]
+type = Tractor,
+fuel = diesel,
+power = 450,
+process_rate = 0.050226017,
+
+[[CG]] --> note did not add to bts16_equipment b/c corn grain is not measured in dry tons
+type = Tractor,
+fuel = diesel,
+power = 143,
+process_rate = 0.017361,
+
+[[MS]]
+type = Tractor,
+fuel = diesel,
+power = 143,
+process_rate = 0.017361,
+
+TABLE: NONROAD equipment identifiers
+
+TABLE: Truck capacity for feedstock transportation
+
+TABLE: Map of state FIPS codes to two-letter state abbreviations
+
+TABLE: Map of region_production values to FIPS codes used in MOVES
+
+TABLE: Map of region_production values to FIPS codes used in NONROAD
+
+
+
+
 ## Output
 
 ### Structure of csv file
+
+TABLE: Columns in main FPEAM output
+| Column name | Data type | Description |
+| ----------- | --------- | ----------- |
+| feedstock | string | Name of feedstock produced or transported |
+| region_production | string | Region identifier where feedstock was harvested |
+| region_destination | string | Region identifier where feedstock was transported |
+| tillage_type | string | Type of tillage used to grow feedstock |
+| activity | string | Name of activity that produced the pollutant |
+| module | string | Name of module that calculated the pollutant amount in each row |
+| pollutant | string | Chemical abbreviation of pollutant produced |
+| region_transportation | string | Region identifier through which feedstock was transported (route) |
+| pollutant_amount | float | Amount of pollutant generated in pounds |
 
 ### Figures generated within the GUI
 
@@ -338,13 +400,12 @@ The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissio
 
 PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf) , which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf) . Users are able to use a different PM<sub>2.5</sub> fraction or alternative emissions factors by editing the input data.
 
-TABLE: List of columns and data types in equipment dataset.
+TABLE: List of columns and data types in fugitive dust emissions factors dataset.
 
 | Column name | Data type | Description |
 | :---------- | :-------: | :---------- |
 | feedstock	| string | Feedstock being grown |
-| tillage_type | string | Type of tillage practice |
-| source_category | string | Identifies harvest or non-harvest fugitive dust | 
+| tillage_type | string | Type of tillage practice | 
 | pollutant | string | Identifies if the rate is for PM10 or PM2.5 |
 | rate | float | Amount of fugitive dust generated per acre for the feedstock specified in an average year |
 | unit_numerator | string | Numerator of rate unit |

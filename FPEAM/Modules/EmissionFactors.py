@@ -80,6 +80,9 @@ class EmissionFactors(Module):
         # calculate emissions
         _df.eval('pollutant_amount = overall_factor * feedstock_amount * rate', inplace=True)
 
+        # add column to identify the module
+        _df['module'] = 'emission factors'
+
         # clean up DataFrame
         _df = _df[['region_production', 'feedstock',
                    'tillage_type', 'activity', 'resource',

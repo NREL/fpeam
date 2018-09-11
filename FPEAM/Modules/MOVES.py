@@ -1,6 +1,4 @@
-import csv
 import os
-import time
 
 import numpy as np
 import pandas as pd
@@ -20,13 +18,13 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, region_moves_fips_map, truck_capacity, year, router=None,
+    def __init__(self, config, production, region_fips_map, truck_capacity, year, router=None,
                  **kvals):
         """
 
         :param config:
         :param production:
-        :param region_moves_fips_map:
+        :param region_fips_map:
         :param truck_capacity:
         :param year:
         :param router:
@@ -44,7 +42,7 @@ class MOVES(Module):
 
         self.production = production
         self.year = year
-        self.region_fips_map = region_moves_fips_map
+        self.region_fips_map = region_fips_map
         self.feedstock_measure_type = config.get('feedstock_measure_type')
 
         # this is a DF read in from a csv file
@@ -1203,10 +1201,16 @@ class MOVES(Module):
 
         # merge the truck capacity numbers with the rate per distance merge
         # to prep for calculating number of trips
-        _run_emissions = _avgRateDist.merge(self.prod_moves_runs, how='left',
+        _run_emissions = _avgRateDist.merge(self.prod_moves_runs[['MOVES_run_fips',
+                                                     'state',
+                                                     'region_production',
+                                                     'region_destination',
+                                                     'feedstock',
+                                                     'tillage_type',
+                                                     'feedstock_amount']], how='left',
                                             left_on=['fips', 'state'],
                                             right_on=['MOVES_run_fips',
-                                                      'MOVES_state']).merge(
+                                                      'state']).merge(
                 self.truck_capacity[['feedstock',
                                      'truck_capacity']],
                 how='left',
@@ -1216,6 +1220,23 @@ class MOVES(Module):
         # region_destination pair
         _routes = _run_emissions[['region_production',
                                   'region_destination']].drop_duplicates()
+
+        # use the region-fips map to generate fips_production and
+        # fips_destination columns
+        _routes = _routes.merge(self.region_fips_map, how='left',
+                                left_on='region_production',
+                                right_on='region')
+        _routes.rename(index=str, columns={'fips': 'fips_production'},
+                       inplace=True)
+
+        _routes = _routes.merge(self.region_fips_map, how='left',
+                                left_on='region_destination',
+                                right_on='region')[['region_production',
+                                            'region_destination',
+                                            'fips_production',
+                                            'fips']]
+        _routes.rename(index=str, columns={'fips': 'fips_destination'},
+                       inplace=True)
 
         # if routing engine is specified, use it to get the route (fips and
         # vmt) for each unique region_production and region_destination pair
@@ -1228,9 +1249,8 @@ class MOVES(Module):
             for i in np.arange(_routes.shape[0]):
 
                 # use the routing engine to get a route
-                _vmt_by_county = self.router.get_route(
-                    from_fips=self.prod_moves_runs.region_production.iloc[i],
-                    to_fips=self.prod_moves_runs.region_destination.iloc[i])
+                _vmt_by_county = self.router.get_route(from_fips=_routes.fips_production.iloc[i],
+                                                       to_fips=_routes.fips_destination.iloc[i])
 
                 # add identifier columns for later merging with _run_emissions
                 _vmt_by_county['region_production'] = _routes.region_production.iloc[i]
@@ -1276,11 +1296,11 @@ class MOVES(Module):
                                         on='pollutantID')
 
         # merge raw moves output with production data and truck capacities
-        _start_hotel_emissions = _avgRateVeh.merge(self,prod_moves_runs,
+        _start_hotel_emissions = _avgRateVeh.merge(self.prod_moves_runs,
                                                    how='left',
                                                    left_on=['fips', 'state'],
                                                    right_on=['MOVES_run_fips',
-                                                             'MOVES_state']).merge(
+                                                             'state']).merge(
             self.truck_capacity[['feedstock', 'truck_capacity']],
             how='left',
             on='feedstock')
@@ -1334,76 +1354,74 @@ class MOVES(Module):
         # will be run
 
         # add a column with the state code to the region-to-fips df
-        self.region_fips_map['MOVES_state'] = \
-            self.region_fips_map.MOVES_fips.str[0:2]
+        self.region_fips_map['state'] = self.region_fips_map.fips.str[0:2]
 
         # merge the feedstock_measure_type rows from production with the
         # region-FIPS map
-        _prod_merge = self.production[
-            self.production.feedstock_measure ==
-            self.feedstock_measure_type].merge(
-                self.region_fips_map, on='region_production')
+        _prod_merge = self.production[self.production.feedstock_measure ==
+                                      self.feedstock_measure_type].merge(self.region_fips_map,
+                                                                         left_on='region_production',
+                                                                         right_on='region')
 
         # sum all feedstock production within each FIPS-year combo (also
         # grouping by state just pulls that column along, it doesn't change
         # the grouping)
         # this gets saved in self for use in postprocessing
-        _prod_by_fips_feed = _prod_merge.groupby(['MOVES_fips',
-                                                  'MOVES_state',
+        _prod_by_fips_feed = _prod_merge.groupby(['fips',
+                                                  'state',
                                                   'feedstock'],
                                                  as_index=False).sum()
 
         # within each FIPS-year-feedstock combo, find the highest
         # feedstock production
-        _max_amts_feed = _prod_by_fips_feed.groupby(['MOVES_state',
+        _max_amts_feed = _prod_by_fips_feed.groupby(['state',
                                                      'feedstock'],
                                                     as_index=False).max()
 
         if self.moves_state_level:
             # sum total feedstock production within each fips-state-year combo
-            _amts_by_fips = _prod_by_fips_feed.groupby(['MOVES_fips',
-                                                        'MOVES_state'],
+            _amts_by_fips = _prod_by_fips_feed.groupby(['fips',
+                                                        'state'],
                                                        as_index=False).sum()
 
             # locate the fips within each state with the highest total
             # feedstock production
-            _max_amts = _amts_by_fips.groupby(['MOVES_state'],
+            _max_amts = _amts_by_fips.groupby(['state'],
                                               as_index=False).max()
 
             # strip out duplicates (shouldn't be any) to create a list of
             # unique fips-state combos to run MOVES on
-            self.moves_run_list = _max_amts[['MOVES_fips',
-                                             'MOVES_state']].drop_duplicates()
+            self.moves_run_list = _max_amts[['fips',
+                                             'state']].drop_duplicates()
         elif self.moves_by_feedstock:
             # get a list of unique fips-state-year combos to run MOVES on
             # keep feedstock in there to match results from each MOVES run
             # to the correct set of feedstock production data
-            self.moves_run_list = _max_amts_feed[['MOVES_fips',
-                                                  'MOVES_state',
+            self.moves_run_list = _max_amts_feed[['fips',
+                                                  'state',
                                                   'feedstock']].drop_duplicates()
         else:
             # if neither moves_state_level nor moves_by_feedstock are True,
             # the fips-state-year combos to run MOVES on come straight from
             # the production data
-            self.moves_run_list = _prod_merge[['MOVES_fips',
-                                               'MOVES_state']].drop_duplicates()
+            self.moves_run_list = _prod_merge[['fips',
+                                               'state']].drop_duplicates()
 
         # rename the fips and state columns for easier merging with the
         # production df
         self.moves_run_list.rename(index=str,
-                                   columns={'MOVES_fips': 'MOVES_run_fips',
-                                            'MOVES_state': 'MOVES_run_state'},
+                                   columns={'fips': 'MOVES_run_fips',
+                                            'state': 'MOVES_run_state'},
                                    inplace=True)
 
         # merge production with moves run fips and states and save in self
         # for use in postprocessing
         self.prod_moves_runs = _prod_merge.merge(self.moves_run_list,
-                                                 left_on=('MOVES_state',),
-                                                 right_on=(
-                                                     'MOVES_run_state'))[
-            ['MOVES_fips',
+                                                 left_on=('state',),
+                                                 right_on=('MOVES_run_state'))[
+            ['fips',
              'MOVES_run_fips',
-             'MOVES_state',
+             'state',
              'region_production',
              'region_destination',
              'tillage_type',
