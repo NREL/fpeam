@@ -19,7 +19,6 @@ class NONROAD(Module):
         # init parent
         super(NONROAD, self).__init__(config=config)
 
-        # @TODO update to match the correct name in the config file
         self.model_run_title = config.get('scenario_name')
         self.nonroad_path = config.get('nonroad_path')
         self.nonroad_project_path = config.get('nonroad_project_path')
@@ -223,6 +222,58 @@ class NONROAD(Module):
                        os.path.join(self.project_path, 'FIGURES'),
                        os.path.join(self.project_path, 'QUERIES')]
 
+        # loop through all completely assembled filepaths and create a list
+        # of the ones that are more than 60 characters
+        _filepath_list = []
+
+        # go thru all directories and filenames to assemble complete path
+        for i in np.arange(self.nr_files.shape[0]):
+            # message files
+            _filepath_list.append(os.path.join(_nr_folders[1],
+                                               self.nr_files.msg_file_names.iloc[i] + '.msg'))
+            # allocate files
+            _filepath_list.append(os.path.join(_nr_folders[2],
+                                               self.nr_files.alo_file_names.iloc[i] +
+                                               '.alo'))
+            # population files
+            _filepath_list.append(os.path.join(_nr_folders[3],
+                                               self.nr_files.pop_file_names.iloc[i] +
+                                               '.pop'))
+            # options files
+            _filepath_list.append(os.path.join(_nr_folders[4],
+                                               self.nr_files.out_opt_dir_names.iloc[i],
+                                               self.nr_files.state_abbreviation.iloc[i] +
+                                               '.opt'))
+            # out files
+            _filepath_list.append(os.path.join(_nr_folders[5],
+                                               self.nr_files.out_opt_dir_names.iloc[i],
+                                               self.nr_files.state_abbreviation.iloc[i] +
+                                               '.out'))
+
+        # get length of each filepath in the list
+        _filepath_lengths = self._strlist_len(_filepath_list)
+
+        # find the locations of all filepaths greater than 60 characters
+        _failpath_locs = [i for i in _filepath_lengths if i > 60]
+
+        # get a list of just those filepaths which exceed 60 characters
+        _failpath_list = [_filepath_list[i] for i in _failpath_locs]
+
+        # check that that failpath list is empty (all filepaths are under
+        # the 60 character limit) - if not, record one error per too-long
+        # filepath
+        try:
+            assert _failpath_list.__len__() == 0
+
+        except AssertionError:
+            for i in _failpath_list:
+                LOGGER.Error('Filepath too long: %s' % i)
+
+            raise ValueError('Total filepath length for each NONROAD file '
+                             'cannot exceed 60 characters')
+
+        # if all filepaths are under the limit, proceed to creating
+        # directories and subdirectories for storing NONROAD files
         for _folder in _nr_folders:
             if not os.path.exists(_folder):
                 os.makedirs(_folder)
@@ -244,6 +295,13 @@ class NONROAD(Module):
                 os.makedirs(_opt_path)
 
 
+    def _strlist_len(self, stringlist):
+        """
+        get length of each string in list of strings
+        :param stringlist:
+        :return: list of string lengths
+        """
+        return [len(s) for s in stringlist]
 
     def create_allocate_files(self):
         """
