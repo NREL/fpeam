@@ -16,7 +16,7 @@ mysql_binary = string
 mysqldump_binary = string
 
 transportation_graph = string(default='../data/inputs/transportation_graph.csv')
-county_node = string(default='../data/inputs/county_nodes.csv')
+county_nodes = string(default='../data/inputs/county_nodes.csv')
 
 vmt_short_haul = float
 
