@@ -18,7 +18,8 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, region_fips_map, truck_capacity, year, router=None,
+    def __init__(self, config, production, region_fips_map, truck_capacity,
+                 year, router=None,
                  **kvals):
         """
 
@@ -81,6 +82,9 @@ class MOVES(Module):
         self.save_path_runspecfiles = os.path.join(self.moves_datafiles_path, 'run_specs')
         self.save_path_countyinputs = os.path.join(self.moves_datafiles_path, 'county_inputs')
         self.save_path_nationalinputs = os.path.join(self.moves_datafiles_path, 'national_inputs')
+
+        # store avft dataframe in self for later saving
+        self.avft = pd.read_csv(config.get('avft'), header=0)
 
         # additional input file paths
         self.avft_filename = os.path.join(self.save_path_nationalinputs, 'avft.csv')
@@ -282,24 +286,9 @@ class MOVES(Module):
                     self.save_path_nationalinputs, '%s.csv' % (kvals['table'],)),
                     index=False)
 
-        # alternative vehicle fuels and technology (avft) file creation
-        # output should contain 182 rows (same as number of elements in
-        # self.fuel_fraction)
-        # @NOTE HARDCODING ALERT
-        # @NOTE if source_type_id or engine_tech contain multiple elements,
-        # this code will not create a usable avft file
-        # @NOTE DO NOT CHANGE data frame column names
-        _avft_file = pd.DataFrame({'sourceTypeID': np.repeat(self.source_type_id,
-                                                             self.fuel_fraction.__len__()),
-                                   'modelYearID': np.repeat(range(1960, 2051), 2),
-                                   'fuelTypeID': np.tile(range(1, 3),
-                                                         int(0.5 * self.fuel_fraction.__len__())),
-                                   'engTechID': np.repeat(self.engine_tech,
-                                                          self.fuel_fraction.__len__()),
-                                   'fuelEngFraction': self.fuel_fraction})
-
-        # write to csv
-        _avft_file.to_csv(self.avft_filename, sep=',')
+        # save alternative vehicle fuels and technology (avft) file to
+        # national input file directory
+        self.avft.to_csv(self.avft_filename, sep=',')
 
         # default age distribution file creation
         # age distribution for user-specified source_type_id and year is pulled
