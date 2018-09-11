@@ -19,6 +19,10 @@ class NONROAD(Module):
         # init parent
         super(NONROAD, self).__init__(config=config)
 
+        # flag to encode feedstock, tillage type and activity names in all
+        # nonroad filepaths and names
+        self.encode_names = True
+
         self.model_run_title = config.get('scenario_name')
         self.nonroad_path = config.get('nonroad_path')
         self.nonroad_project_path = config.get('nonroad_project_path')
@@ -165,6 +169,38 @@ class NONROAD(Module):
                                    'average_rate',
                                    inplace=True)
 
+        # create single-character codes for feedstocks, tillage types and
+        # activities for use in nonroad file name creation
+        _feedstocks = self.prod_equip_merge.feedstock.unique()
+        _feedstocks.sort()
+        _feedstock_codes = pd.DataFrame({'feedstock': _feedstocks,
+                                         'feedstock_code': np.arange(
+                                             _feedstocks.__len__())})
+        _feedstock_codes['feedstock_code'] = 'f' + _feedstock_codes[
+            'feedstock_code'].map(str)
+        _feedstock_codes.to_csv(self.model_run_title + '_feedstock_codes.csv',
+                                index=False)
+
+        _tillage_types = self.prod_equip_merge.tillage_type.unique()
+        _tillage_types.sort()
+        _tillage_type_codes = pd.DataFrame({'tillage_type': _tillage_types,
+                                            'tillage_type_code': np.arange(
+                                                _tillage_types.__len__())})
+        _tillage_type_codes['tillage_type_code'] = 't' + _tillage_type_codes[
+            'tillage_type_code'].map(str)
+        _tillage_type_codes.to_csv(self.model_run_title + '_tillage_type_codes.csv',
+                                   index=False)
+
+        _activities = self.prod_equip_merge.activity.unique()
+        _activities.sort()
+        _activity_codes = pd.DataFrame({'activity': _activities,
+                                        'activity_code': np.arange(
+                                            _activities.__len__())})
+        _activity_codes['activity_code'] = 'a' + _activity_codes[
+            'activity_code'].map(str)
+        _activity_codes.to_csv(self.model_run_title + '_activity_codes.csv',
+                               index=False)
+
         # create list of unique state-feedstock-tillage type-activity
         # combinations - one population file, one allocation file and
         # one options sub-directory and one out sub-directory will be created
@@ -177,16 +213,24 @@ class NONROAD(Module):
                                                'tillage_type',
                                                'activity']].drop_duplicates()
 
+        # encode feedstock, tillage types and activities
+        self.nr_files = self.nr_files.merge(_feedstock_codes,
+                                            how='inner',
+                                            on='feedstock').merge(_tillage_type_codes,
+                                                                  how='inner',
+                                                                  on='tillage_type').merge(
+            _activity_codes, how='inner', on='activity')
+
         # do some assembly to create parseable filenames for each population
         #  file - .pop extension SHOULD NOT be included as it is tacked on
         # when the complete filepaths are created
         self.nr_files['pop_file_names'] = self.nr_files['state_abbreviation'].map(str) + \
-                                        '_' + \
-                                  [w.replace(' ', '') for w in self.nr_files[
-                                       'feedstock']] + '_' + \
-                                  self.nr_files['tillage_type'].str[:2] + \
                                           '_' + \
-                                  self.nr_files['activity'].str[:2]
+                                          self.nr_files['feedstock_code'].map(str) + \
+                                          '_' + \
+                                          self.nr_files['tillage_type_code'].map(str) + \
+                                          '_' + \
+                                          self.nr_files['activity_code'].map(str)
 
         # the filenames for the allocate files are the same as for the
         # population files
@@ -195,21 +239,15 @@ class NONROAD(Module):
         # create a column for message file names as well
         self.nr_files['msg_file_names'] = self.nr_files['pop_file_names']
 
-        # create a column of options and out directory names for later looping
-        # the feedstock bit has to be in a separate column for the next
-        # command to run
-        self.nr_files['feedstock_trim'] = [w.replace(' ', '') for w in
-                                           self.nr_files['feedstock']]
-
         # create the out and options subdirectory names - the OUT and OPT
         # names are identical so only one column is created
         # @note the first two characters of tillage type and activity are used
         #  to keep the OUT filenames under 25 characters total
-        self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_trim'] \
-                                     + \
-                                     '_' + \
-                                     self.nr_files['tillage_type'].str[:2] + \
-                                     '_' + self.nr_files['activity'].str[:2]
+        self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_code'].map(str) \
+                                             + '_' + \
+                                             self.nr_files['tillage_type_code'].map(str)\
+                                             + '_' + \
+                                             self.nr_files['activity_code'].map(str)
 
         # create dirs in the project path (which includes the scenario name)
         #  if the directories do not already exist
@@ -293,7 +331,6 @@ class NONROAD(Module):
 
             if not os.path.exists(_opt_path):
                 os.makedirs(_opt_path)
-
 
     def _strlist_len(self, stringlist):
         """
