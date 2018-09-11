@@ -54,6 +54,8 @@ class FPEAM(object):
         self.nonroad_equipment =\
             Data.NONROADEquipment(fpath=self.config.get('nonroad_equipment', None))
         self.ssc_codes = Data.SCCCodes(fpath=self.config.get('scc_codes', None))
+        self.region_fips_map = Data.RegionFipsMap(fpath=self.config.get('region_fips_map', None))
+        self.truck_capacity = Data.TruckCapacity(fpath=self.config.get('truck_capacity', None))
 
         for _module in self.config.get('modules', None) or self.MODULES.keys():
             _config = self.config.get(_module, None) or \
