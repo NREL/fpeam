@@ -189,8 +189,7 @@ class NONROAD(Module):
             _feedstock_codes = pd.DataFrame({'feedstock': _feedstocks,
                                              'feedstock_code': np.arange(
                                                  _feedstocks.__len__())})
-            _feedstock_codes['feedstock_code'] = 'f' + _feedstock_codes[
-                'feedstock_code'].map(str)
+            _feedstock_codes['feedstock_code'] = 'f' + _feedstock_codes['feedstock_code'].map(str)
             _feedstock_codes.to_csv(self.model_run_title + '_feedstock_codes.csv',
                                     index=False)
 
@@ -199,8 +198,7 @@ class NONROAD(Module):
             _tillage_type_codes = pd.DataFrame({'tillage_type': _tillage_types,
                                                 'tillage_type_code': np.arange(
                                                     _tillage_types.__len__())})
-            _tillage_type_codes['tillage_type_code'] = 't' + _tillage_type_codes[
-                'tillage_type_code'].map(str)
+            _tillage_type_codes['tillage_type_code'] = 't' + _tillage_type_codes['tillage_type_code'].map(str)
             _tillage_type_codes.to_csv(self.model_run_title + '_tillage_type_codes.csv',
                                        index=False)
 
@@ -209,8 +207,7 @@ class NONROAD(Module):
             _activity_codes = pd.DataFrame({'activity': _activities,
                                             'activity_code': np.arange(
                                                 _activities.__len__())})
-            _activity_codes['activity_code'] = 'a' + _activity_codes[
-                'activity_code'].map(str)
+            _activity_codes['activity_code'] = 'a' + _activity_codes['activity_code'].map(str)
             _activity_codes.to_csv(self.model_run_title + '_activity_codes.csv',
                                    index=False)
 
@@ -218,15 +215,13 @@ class NONROAD(Module):
             self.nr_files = self.nr_files.merge(_feedstock_codes,
                                                 how='inner',
                                                 on='feedstock').merge(
-                _tillage_type_codes, how='inner',
-                on='tillage_type').merge(
+                _tillage_type_codes, how='inner', on='tillage_type').merge(
                 _activity_codes, how='inner', on='activity')
 
             # do some assembly to create parseable filenames for each population
             #  file - .pop extension SHOULD NOT be included as it is tacked on
             # when the complete filepaths are created
-            self.nr_files['pop_file_names'] = self.nr_files[
-                                                  'state_abbreviation'].map(str) + \
+            self.nr_files['pop_file_names'] = self.nr_files['state_abbreviation'].map(str) + \
                                               '_' + \
                                               self.nr_files['feedstock_code'].map(str) + \
                                               '_' + \
@@ -236,12 +231,9 @@ class NONROAD(Module):
 
             # create the out and options subdirectory names - the OUT and OPT
             # names are identical so only one column is created
-            # @note the first two characters of tillage type and activity are used
-            #  to keep the OUT filenames under 25 characters total
             self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_code'].map(str) \
                                                  + '_' + \
-                                                 self.nr_files['tillage_type_code'].map(
-                                                     str) \
+                                                 self.nr_files['tillage_type_code'].map(str) \
                                                  + '_' + \
                                                  self.nr_files['activity_code'].map(str)
 
@@ -260,8 +252,6 @@ class NONROAD(Module):
 
             # create the out and options subdirectory names - the OUT and OPT
             # names are identical so only one column is created
-            # @note the first two characters of tillage type and activity are used
-            #  to keep the OUT filenames under 25 characters total
             self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock'].map(str) \
                                                  + '_' + \
                                                  self.nr_files['tillage_type'].map(str) \
@@ -294,7 +284,8 @@ class NONROAD(Module):
         for i in np.arange(self.nr_files.shape[0]):
             # message files
             _filepath_list.append(os.path.join(_nr_folders[1],
-                                               self.nr_files.msg_file_names.iloc[i] + '.msg'))
+                                               self.nr_files.msg_file_names.iloc[i] +
+                                               '.msg'))
             # allocate files
             _filepath_list.append(os.path.join(_nr_folders[2],
                                                self.nr_files.alo_file_names.iloc[i] +
