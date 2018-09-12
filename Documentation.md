@@ -1,6 +1,6 @@
 # Introduction
 
-The Feedstock Production Emissions to Air Model (FPEAM) calculates spatially explicit inventories of criteria air pollutants and precursors generated from agricultural and tranportation activities associated with the production and supply of biomass feedstocks for renewable energy generation. FPEAM was originally developed to calculate air pollutants as part of the 2016 update to the Billion Ton Study (BTS). For this version of FPEAM, the code base has been substantially refactored and streamlined to provide increased flexibility around biomass production scenario definitions, including what activities and pollutants are included in the calculations and at what spatial scale. This document describes the FPEAM code base and default input files bundled with the beta model release.
+The Feedstock Production Emissions to Air Model (FPEAM) calculates spatially explicit inventories of criteria air pollutants and precursors generated from agricultural and transportation activities associated with the production and supply of biomass feedstocks for renewable energy generation. FPEAM was originally developed to calculate air pollutants as part of the 2016 update to the Billion Ton Study (BTS). For this version of FPEAM, the code base has been substantially refactored and streamlined to provide increased flexibility around biomass production scenario definitions, including what activities and pollutants are included in the calculations and at what spatial scale. This document describes the FPEAM code base and default input files bundled with the beta model release.
 
 FPEAM calculations are organized into semi-independent modules, listed in the first table below along with the activities and pollutants included by default in each module. The EmissionFactors module is unique in that it can be used to calculate any pollutant from any activity, if sufficient input data is provided. In particular, users have the option of using the EmissionFactors module to replace the MOVES and/or NONROAD modules with emissions factors for agricultural equipment and on-road vehicle use. The EmissionFactors module can also be used to calculate pollutants from additional activities, such as non-nitrogen fertilizer application.
 
@@ -29,9 +29,11 @@ TABLE: Default list of pollutants calculated by FPEAM.
 | PM<sub>2.5</sub> | Criteria air pollutant |
 | PM<sub>10</sub> | Criteria air pollutant | 
 
-## General input data: Equipment use
+# Input and Output Data
 
-The equipment and production input datasets described in this section are used by all FPEAM modules and provide the basic format and identification variables for the FPEAM outputs. A default for each dataset described in this section is provided with the FPEAM code base and can be used to run the same feedstock production scenarios used in the BTS. Provided the data format is preserved, these datasets may be altered, expanded or replaced to run custom model scenarios.
+The equipment and feedstock production input datasets described in the next sections are used by all FPEAM modules and provide the basic format and identification variables for the FPEAM outputs. A default for each dataset described in this section is provided with the FPEAM code base and can be used to run feedstock production scenarios from the 2016 BTS update. Provided the data format is preserved, these datasets may be altered, expanded or replaced to run custom model scenarios. Additional input datasets are discussed in the following sections as well, and defaults are packaged with the FPEAM code.
+
+## Equipment use
 
 The equipment dataset defines the agricultural activities involved in feedstock production; columns in this dataset are defined in the table below. The equipment dataset defines the equipment used for each agricultural activity (in the default equipment dataset, activities consist of establishment, maintenance, harvest and loading, but additional or alternate activities may be specified as needed) as well as the resources consumed, such as fuel, time, fertilizer, and other agricultural chemicals. Resource rate (amount) units in the equipment dataset must correspond with the units in the feedstock production dataset discussed below, or an error will be given when the data is read into FPEAM. For each activity that involves agricultural equipment, the equipment name must be provided. These are user-defined names that can be matched to NONROAD equipment types during scenario definition or with a provided CSV file for batch runs.
 
@@ -69,18 +71,31 @@ The equipment data provided with the FPEAM release was obtained from the Policy 
 
 Equipment data for whole trees and forest residues was obtained from the Forest Sustainable and Economic Analysis Model (ForSEAM), "a national forest optimization model." Also from the [University of Tennessee's Bio-Based Energy Analysis Group](https://ag.tennessee.edu/arec/Pages/beag.aspx ):
 
-> the Forest Sustainable and Economic Analysis Model (ForSEAM) was originally constructed to estimate forest land production over time and its ability to produce not only traditional forest products, but also products to meet biomass feedstock demands through a cost minimization algorithm (He et al., 2014). The model has three components. The supply component includes general forest production activities for 305 production regions based on USDA’s agricultural supply districts. Each region has a set of production activities defined by the USFS. The Forest Product Demand Component is based on six USFS Scenarios with estimates developed by the US Forest Products Model. The sustainability component ensures that harvest in each region does not exceed annual growth, forest tracts are located within one-half mile of existing roads, and that current year forest attributes reflect previous years’ harvests and fuel removals. The model incorporates dynamic tracking of forest growth."
+> the Forest Sustainable and Economic Analysis Model (ForSEAM) was originally constructed to estimate forest land production over time and its ability to produce not only traditional forest products, but also products to meet biomass feedstock demands through a cost minimization algorithm (He et al., 2014). The model has three components. The supply component includes general forest production activities for 305 production regions based on USDA’s agricultural supply districts. Each region has a set of production activities defined by the USFS. The Forest Product Demand Component is based on six USFS Scenarios with estimates developed by the US Forest Products Model. The sustainability component ensures that harvest in each region does not exceed annual growth, forest tracts are located within one-half mile of existing roads, and that current year forest attributes reflect previous years’ harvests and fuel removals. The model incorporates dynamic tracking of forest growth.
 
-## General input data: Feedstock production
+The default equipment dataset did not originally include loading equipment; rates for this equipment were incorporated into the dataset separately and are shown in the table below.
 
-If values in the region_production column do not correspond to the Federal Information Processing Standards (FIPS) code (county identifiers) used in MOVES and NONROAD, an additional file giving the mapping of the region values to FIPS values must be provided. When running FPEAM interactively via the GUI, the user will be prompted to provide this file if necessary.
+TABLE: Loading equipment information source from BTS 2016. This data was added to the default equipment dataset packaged with the FPEAM code.
+ 
+| feedstock | equipment type | equipment horsepower | resource | rate | unit |
+| :-------- | :------------: | :------------------: | :------: | :--- | :--- |
+| corn stover | tractor | 143 | time | 0.017361 | hour/dry short ton |
+| wheat straw | tractor | 143 | time | 0.017361 | hour/dry short ton | 
+| switchgrass | tractor | 143 | time | 0.017361 | hour/dry short ton |
+| sorghum stubble | tractor | 450 | time | 0.050226017 | hour/dry short ton
+| corn grain | tractor | 143 | time | 0.017361 | hour/dry short ton |
+| miscanthus | tractor | 143 | time | 0.017361 | hour/dry short ton |
 
-TABLE: List of columns in production data set with data types and descriptions
+## Feedstock production
+
+The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by what agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, equipment_group (values must match those in the equipment dataset) and region_production, that indicate where feedstocks were produced. Region_production values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the region_production column are not FIPS codes, an additional input file giving the mapping of the region_production values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
+
+TABLE: List of columns in feedstock production data set with data types and descriptions
 
 | Column name | Data type | Description |
 | :---------- | :-------: | :---------- |
 | feedstock | string | Feedstock being grown; may be food crop, energy feedstock or residue |
-| tillage_type | string | Type of tillage pracice |
+| tillage_type | string | Type of tillage practice |
 | region_production | string | Identifies the region where the feedstock is grown |
 | region_destination | string | Identifies the region to which the harvested feedstock from this region_production is transported |
 | equipment_group | string | Region identifier; must match equipment_group values in equipment data set |
@@ -89,7 +104,7 @@ TABLE: List of columns in production data set with data types and descriptions
 | unit_numerator | string | Numerator of feedstock_amount unit |
 | unit_denominator | string | Denominator of feedstock_amount unit, if any |
 
-TABLE: Production data examples
+TABLE: Feedstock production data examples
 
 | feedstock | tillage_type | region_production | region_destination | equipment_group | feedstock_measure | feedstock_amount | unit_numerator | unit_denominator |
 | :--- | :------ | :----: | :------------: | :----------- | :---------: | ---- |
@@ -98,10 +113,9 @@ TABLE: Production data examples
 | poplar | conventional tillage | 12067 | 12039 | 13 | harvested | 1.87 | acre |  |
 | poplar | conventional tillage | 12067 | 12039 | 13 | planted | 14.8 | acre |  |
 
+<!-- Feedstock production datasets corresponding to the BTS can be downloaded from the [Bioenergy Knowledge Discovery Framework](https://bioenergykdf.net/bt16-download-tool/county?f%5B0%5D=year%3A%222030%22&f%5B1%5D=type%3A%22Energy%22); some rearranging is necessary to transform the dataset into the format required by FPEAM. -->
 
-Typical source of production data (POLYSYS and forSEAM)
-
-### Additional input data
+Any feedstock amounts in mass units should be in dry short tons in the input data. Thus the amounts of any feedstocks traditionally measured in other units such as bushels must be converted before the data is supplied to FPEAM. While this conversion is not done internally, the following tables of average feedstock moisture contents and bushel sizes are provided to users to assist in the units conversion.
 
 TABLE: Moisture content (mass fraction) at time of transport.
 
@@ -124,7 +138,6 @@ TABLE: Moisture content (mass fraction) at time of transport.
 | whole tree | 0.5 | Bouchard et al. (2012) |
 | willow | 0.1 | Estimated from Miao et al. (2011) |
 
-
 TABLE: Bushel weight in dry short tons by feedstock.
 
 | feedstock | dry short tons per bushel | source |
@@ -141,106 +154,82 @@ TABLE: Bushel weight in dry short tons by feedstock.
 1. Murphy, William J. Tables for Weights and Measurements: Crops. University of Missouri Extension. Available at https://extension2.missouri.edu/G4020. Accessed May 25, 2018.
 2. U.S. Department of Agriculture, Office of Weights and Measures. Standard weight per bushel for agricultural commodities. Available at ftp://www.ilga.gov/JCAR/AdminCode/008/00800600ZZ9998bR.html Accessed May 25, 2018.
 
-TABLE: Loading equipment information 
- equipment information for feedstock loading at farm gate
- default budget does NOT include loading
- process rate is in hours per dry ton
- data for CS, WS, SG, CG from BT16; data for FR supplemented with
- Leinonen, A. 2004. Harvesting Technology of Forest residues for fuel in the
- USA and Finland. VTT Research Notes 2229. Helsinki, Finland: VTT Technical
- Research Center of Finland.
- [loading_equip]
-[[CS]]
-type = Tractor,
-fuel = diesel,
-power = 143,
-process_rate = 0.017361,
+## Additional input datasets
 
-[[WS]]
-type = Tractor,
-fuel = diesel,
-power = 143,
-process_rate = 0.017361,
+Region_production and region_destination values in the feedstock production dataset must be mapped to FIPS codes for use in MOVES and NONROAD (region_production) and in the router module (region_production and region_destination). Only one mapping is provided, thus the region column in the mapping should contain all region_production and region_destination values found in the feedstock production dataset. Any production or destination regions for which a FIPS mapping is not provided will be excluded from FPEAM calculations and results. Currently the region-to-FIPS mapping must be one-to-one, meaning that each unique region_production and region_destination code must map to one unique FIPS. Mappings which are not one-to-one will produce an error when the data is read in and must be corrected before FPEAM is run. Further development can allow for many-to-one and one-to-many mappings, if there is demand. 
 
-[[SG]]
-type = Tractor,
-fuel = diesel,
-power = 143,
-process_rate = 0.017361,
+TABLE: List of columns, data types and descriptions in the map of region_production and region_destination values to FIPS codes
 
-[[SS]]
-type = Tractor,
-fuel = diesel,
-power = 450,
-process_rate = 0.050226017,
+| Column name | Data type | Description |
+| :---------- | :-------- | :---------- |
+| region | string | Contains all unique region_production and region_destination values from the feedstock production dataset |
+| fips | string (5 characters) | FIPS code uniquely corresponding to the region_production or region_destination value |
 
-[[CG]] --> note did not add to bts16_equipment b/c corn grain is not measured in dry tons
-type = Tractor,
-fuel = diesel,
-power = 143,
-process_rate = 0.017361,
-
-[[MS]]
-type = Tractor,
-fuel = diesel,
-power = 143,
-process_rate = 0.017361,
-
-TABLE: NONROAD equipment identifiers
-
-TABLE: Truck capacity for feedstock transportation
+A map of state FIPS codes (the first two characters of the five-digit county FIPS codes) to two-letter state abbreviations is also packaged with the FPEAM code. This mapping is used in the NONROAD module to create NONROAD input files corresponding to each state. Unlike other input data files provided with FPEAM, this file should not be altered by users.
 
 TABLE: Map of state FIPS codes to two-letter state abbreviations
 
-TABLE: Map of region_production values to FIPS codes used in MOVES
+| Column name | Data type | Description |
+| :---------- | :-------- | :---------- |
+| state_abbreviation | string | Two-character state name abbreviation |
+| state_fips | string | Two-digit state FIPS code, stored as string |
 
-TABLE: Map of region_production values to FIPS codes used in NONROAD
+## FPEAM Output
 
-
-
-
-## Output
-
-### Structure of csv file
+Raw output calculated by FPEAM is a data frame containing several identifier columns as well as pollutant names and amounts. The columns in this data frame are described in the table below. Not every module produces values for every identifier column - MOVES, for instance, does not work with resource subtypes, and Fugitive Dust does not have an activity associated with it - and so some identifier columns may be partially empty. However, every entry in the output data frame will have a feedstock, region_production, region_destination, tillage_type, module, pollutant and pollutant_amount.
 
 TABLE: Columns in main FPEAM output
+
 | Column name | Data type | Description |
 | ----------- | --------- | ----------- |
 | feedstock | string | Name of feedstock produced or transported |
 | region_production | string | Region identifier where feedstock was harvested |
 | region_destination | string | Region identifier where feedstock was transported |
 | tillage_type | string | Type of tillage used to grow feedstock |
-| activity | string | Name of activity that produced the pollutant |
+| activity | string | Name of activity that produced the pollutant, if any |
 | module | string | Name of module that calculated the pollutant amount in each row |
+| resource | string | Resource that caused pollutant emissions (for instance, time, fertilizer or diesel) |
+| resource_subtype | string | Resource subtype that caused pollutant emissions (for instance, specific fertilizer types) |
 | pollutant | string | Chemical abbreviation of pollutant produced |
 | region_transportation | string | Region identifier through which feedstock was transported (route) |
 | pollutant_amount | float | Amount of pollutant generated in pounds |
 
-### Figures generated within the GUI
+Once generated, the raw output data frame may be saved as a CSV file or stored in a SQL database for further postprocessing or visualization. 
 
 # MOVES Module
 
-TABLE: User options that determine if MOVES is run and at what level of detail.
+Emissions from biomass transportation are by default calculated using version 2014a of the EPA's Motor Vehicle Emission Simulator (MOVES) model. FPEAM uses a set of parameters listed below to determine at what level of detail MOVES is run, and emission rates from vehicle running and start and hotelling are combined with feedstock production data and truck capacity data to calculate total pollutant amounts.
+
+Currently MOVES can only be run by FIPS (counties), although development is planned to allow users to run MOVES on a project level, where a project may encompass part of a county or parts of several counties. The FIPS for which MOVES is run are determined from region_production values in the feedstock production set, which are mapped to FIPS using the user-provided region-to-FIPS map discussed in the previous section.
+
+MOVES can be run for all FIPS for which a mapping from region_production to FIPS was provided, or at two levels of aggregation: one FIPS per state based on which FIPS had the highest total feedstock production, or multiple FIPS per states based on which FIPS had the highest production of each feedstock. By default, MOVES is run once per state with FIPS selected based on highest total feedstock production. This aggregation is done by default to keep FPEAM run times reasonable; MOVES requires between 10 and 15 minutes to run each FIPS and can easily extend model run times into days.
+
+MOVES aggregation levels are set using the moves_by_state and moves_by_state_and_feedstock parameters, both Booleans that can be set either via the FPEAM GUI or in the moves.ini file. These parameters are mutually exclusive: at most one of them can be True. If neither moves_by_state nor moves_by_state_and_feedstock are True, then MOVES automatically runs every FIPS for which sufficient data is provided.
+
+TABLE: MOVES module user options
 
 | Parameter | Data Type | Default Value | Description |
-|-----------|-----------|---------------|-------------|
-| run_moves | Boolean | True | Flag that determines whether the MOVES module is run for a given scenario. If the MOVES module is not run, no emissions from off-farm biomass transportation will be included. |
-| state_level_moves | Boolean | True | Flag that determines whether the MOVES module is run for a given scenario. If the MOVES module is not run, no emissions from off-farm biomass transportation will be included. |
-| moves_by_crop | Boolean | False | Flag that determines for how many FIPS MOVES is run. If True, MOVES is run for the set of FIPS in each state with the highest feedstock production for each single feedstock in the equipment - for instance, MOVES will run for the FIPS with the most corn production, with the most switchgrass production, and so on. If False, MOVES is run for a single FIPS in each state, with the FIPS determined by highest total feedstock production across all feedstocks. |
+| :-------- | :-------- | :-----------  | :---------- |
+| moves_by_state | Boolean | True | Determines if MOVES is run once per state, based on the FIPS with the highest total feedstock production |
+| moves_by_state_and_feedstock | Boolean | False | Determines if MOVES is run for multiple FIPS in each state, based on which FIPS have the highest production of each feedstock type |
+| feedstock_measure_type | string | production | Determines which feedstock measure in the feedstock production dataset is used to calculate transportation emissions |
 
-TABLE: MOVES database connection parameters.
+Additional parameters are required by the MOVES module to establish a connection to the MOVES database and allow for the use of SQL statements. These parameters are listed in the table below.
+
+TABLE: MOVES database connection and software parameters.
 
 | Parameter | Data Type | Default Value | Description |
-|-----------|-----------|---------------|-------------|
-| moves_database | string | movesdb20151028 | The name of the default MOVES database created when MOVES is first installed on a computer. This value will vary depending on when MOVES was installed. |
-| moves_output_db | string | movesoutputdb | The name of the database to which MOVES saves results. This name is invariable and can be left at its default value. |
+| :-------- | :-------- | :------------ | :---------- |
+| moves_database | string | movesdb20161117 | The name of the default MOVES database created when MOVES is first installed on a computer. This value will vary depending on when MOVES was installed. |
+| moves_output_db | string | moves_output_db | The name of the database to which MOVES saves results. |
 | moves_db_user | string | moves | User name to access the MOVES databases. This value should be set by each user based on what was entered during MOVES installation. |
 | moves_db_pass | string | moves | Password to access the MOVES databases. This value should be set by each user based on what was entered during MOVES installation. |
 | moves_db_host | string | localhost | Name of the machine on which MOVES is installed. Provided a user is running MOVES on the same machine running FPEAM, this should remain at its default value.|
-
-MOVES can be run for one FIPS per state, for multiple FIPS per state, or for all FIPS for which a mapping from region_production to FIPS was provided. These are mutually exclusive options set by Booleans in the moves.ini file; at most one of these parameters can be true. If neither moves_by_state nor moves_by_state_and_feedstock are True, then MOVES automatically runs for every FIPS available. Caution: MOVES is time-consuming to run and can easily extend FPEAM run times to multiple days. Developers recommend that the number of FPIS for which MOVES is run during a scenario be kept in the low hundreds at most.
-
-The feedstock_measure_type argument fed into the MOVES module defines the crop measure used to determine which FIPS are run - if either moves_by_state or moves_by_state_and_feedstock are true.
+| moves_version | string | MOVES2014a-20161117 | Version of MOVES software with database version appended |
+| moves_path | string | Path to primary MOVES directory |
+| moves_datafiles_path | string | Path to MOVESdata directory |
+| mysql_binary | string | Path to mysql executable |
+| mysqldump_binary | string | Path to mysqldump executable |
 
 ## Advanced user options
 
@@ -253,8 +242,8 @@ TABLE: Transportation distance and transportation mode parameters.
 | vmt_short_haul | float | 100 | miles | Vehicle miles traveled by one truck on one biomass delivery trip. |
 | pop_short_haul | int | 1 | trucks | Number of trucks for which MOVES is run. |
 | truck_capacity | dictionary of floats | See table below | dry short tons/load | Amount of biomass that can be transported off-farm by one truck in one trip. |
-| vmt_fraction | dictionary of floats | See table below | unitless | Fraction of vehicle miles traveled spent on each of four types of roads. |
-| moves_timespan | dictionary of ints | See table below | unitless | Set of values defining the day and hours for which MOVES is run. | 
+| vmt_fraction | dictionary of floats | See VMT fraction table below | unitless | Fraction of vehicle miles traveled spent on each of four types of roads. |
+| moves_timespan | dictionary of ints | See MOVES timespan table below | unitless | Set of values defining the day and hours for which MOVES is run. | 
 
 TABLE: Default values of truck_capacity dictionary. Source: No source in BTS.
 
@@ -291,19 +280,25 @@ TABLE: Default specification for MOVES timespan. This timespan represents a typi
 
 ## Module structure and function
 
-
+Postprocessing
 
 ## Output
 
-Table of emission factors
+Table of pollutant amounts
 
-Postprocessing
+
 
 ## Additional development
 
 Currently, emissions from biomass transportation must be calculated via MOVES. It would be possible to implement an option within FPEAM that allows users to input their own set of emissions factors for transportation and use those factors in place of running MOVES.
 
 vmt_fraction could be updated to reflect 2015 or 2016 data.
+
+Allow for multiple vehicle, fuel and engine type selections
+
+Allow for user-specified pollutant calculations based on the full list of pollutants MOVES can calculate
+
+# Router Module
 
 # NONROAD Module
 
@@ -356,24 +351,24 @@ TABLE: Default emissions factors for NO (used as a proxy for NO<sub>x</sub>) and
  
 | resource | resource subtype           | pollutant      | emission_factor | unit_numerator | unit_denominator |
 | :------- | :------------------------- | :------------: | :-------------: | :--------: | :--------: |
-| nitrogen | anhydrous ammonia          | NO<sub>x</sub> | 0.79            | pound      | pound |
-| nitrogen | anhydrous ammonia          | NH<sub>3</sub> | 4.86            | pound      | pound |
-| nitrogen | ammonium nitrate (33.5% N) | NO<sub>x</sub> | 3.80            | pound      | pound |
-| nitrogen | ammonium nitrate (33.5% N) | NH<sub>3</sub> | 2.32            | pound      | pound |
-| nitrogen | ammonium sulfate           | NO<sub>x</sub> | 3.50            | pound      | pound |
-| nitrogen | ammonium sulfate           | NH<sub>3</sub> | 11.6            | pound      | pound |
-| nitrogen | urea (44 - 46% N)          | NO<sub>x</sub> | 0.90            | pound      | pound |
-| nitrogen | urea (44 - 46% N)          | NH<sub>3</sub> | 19.2            | pound      | pound |
-| nitrogen | nitrogen solutions         | NO<sub>x</sub> | 0.79            | pound      | pound |
-| nitrogen | nitrogen solutions         | NH<sub>3</sub> | 9.71            | pound      | pound |
-| herbicide | generic herbicide         | VOC            | 0.75            | pound      | pound |
-| insecticide | generic insecticide     | VOC            | 0.75            | pound      | pound |
+| nitrogen | anhydrous ammonia          | no<sub>x</sub> | 0.79            | pound      | pound |
+| nitrogen | anhydrous ammonia          | nh<sub>3</sub> | 4.86            | pound      | pound |
+| nitrogen | ammonium nitrate (33.5% N) | no<sub>x</sub> | 3.80            | pound      | pound |
+| nitrogen | ammonium nitrate (33.5% N) | nh<sub>3</sub> | 2.32            | pound      | pound |
+| nitrogen | ammonium sulfate           | no<sub>x</sub> | 3.50            | pound      | pound |
+| nitrogen | ammonium sulfate           | nh<sub>3</sub> | 11.6            | pound      | pound |
+| nitrogen | urea (44 - 46% N)          | no<sub>x</sub> | 0.90            | pound      | pound |
+| nitrogen | urea (44 - 46% N)          | nh<sub>3</sub> | 19.2            | pound      | pound |
+| nitrogen | nitrogen solutions         | no<sub>x</sub> | 0.79            | pound      | pound |
+| nitrogen | nitrogen solutions         | nh<sub>3</sub> | 9.71            | pound      | pound |
+| herbicide | generic herbicide         | voc            | 0.75            | pound      | pound |
+| insecticide | generic insecticide     | voc            | 0.75            | pound      | pound |
 
 VOC emission factors from application of herbicides and insecticides were calculated from the following equation: (Zhang et al., 2015):
 
 VOC (lb/acre/year) = R * I * ER * C<sub>VOC</sub>
 
-where R is the pesticide or herbicide application rate (lb/harvested acre/year), I is the amount of active ingredient per pound of pesticide or herbicide (lb active ingredient/lb chemical, assumed to be 1), ER is the evaporation rate (assumed to be 0.9 per EPA reccomendations from emmissions inventory improvement program guidance) and C<sub>VOC</sub> is the VOC content in the active ingredient (lb VOC/lb active ingredient, assumed to be 0.835 per Huntley 2015 revision of 2011 NEI technical support document).
+where R is the pesticide or herbicide application rate (lb/harvested acre/year), I is the amount of active ingredient per pound of pesticide or herbicide (lb active ingredient/lb chemical, assumed to be 1), ER is the evaporation rate (assumed to be 0.9 per EPA recommendations from emissions inventory improvement program guidance) and C<sub>VOC</sub> is the VOC content in the active ingredient (lb VOC/lb active ingredient, assumed to be 0.835 per Huntley 2015 revision of 2011 NEI technical support document).
 
 TABLE: The default resource subtype distribution data file defines the nitrogen fertilizer distribution among five common nitrogenous fertilizers and the distribution of herbicide and insecticide to generics. The nitrogen fertilizer distribution varies between feedstocks. The national average distribution from 2010 [(USDA)](https://www.ers.usda.gov/data-products/fertilizer-use-and-price.aspx#26720) is used for corn grain and stover, sorghum stubble, and wheat straw. The perennial feedstock distribution which consists of nitrogen solutions only is used for switchgrass, miscanthus and all forest products. (Turhollow, 2011, personal communication). Two example distributions are shown in the table.
 
@@ -393,6 +388,8 @@ TABLE: The default resource subtype distribution data file defines the nitrogen 
 | wheat | insecticide | generic insecticide | 1 |
 
 ## Output
+
+
 
 # Fugitive Dust Module
 
