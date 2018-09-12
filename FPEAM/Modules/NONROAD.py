@@ -19,6 +19,8 @@ class NONROAD(Module):
         # init parent
         super(NONROAD, self).__init__(config=config)
 
+        self.config = config
+
         # flag to encode feedstock, tillage type and activity names in all
         # nonroad filepaths and names
         self.encode_names = True
@@ -47,15 +49,15 @@ class NONROAD(Module):
         # get dictionary of conversion factors
         self.conversion_factors = self._set_conversions()
 
-        # moves database parameters
-        self.moves_database = config.get('moves_database')
+        # nonroad database parameters
+        self.nonroad_database = config.get('nonroad_database')
 
         # open connection to MOVES default database for input/output
-        self.moves_con = pymysql.connect(host=config.get('moves_db_host'),
-                                         user=config.get('moves_db_user'),
-                                         password=config.get('moves_db_pass'),
-                                         db=config.get('moves_database'),
-                                         local_infile=True)
+        self._conn = pymysql.connect(host=config.get('nonroad_db_host'),
+                                     user=config.get('nonroad_db_user'),
+                                     password=config.get('nonroad_db_pass'),
+                                     db=config.get('nonroad_database'),
+                                     local_infile=True)
 
         # store input arguments in self
         self.production = production
@@ -63,6 +65,7 @@ class NONROAD(Module):
 
         # dataframe of equipment names matching the names in the equipment
         # input df and SCC codes from nonroad
+        self._nonroad_equipment = None
         self.nonroad_equipment = nonroad_equipment
 
         # mapping from the region_production column of production
@@ -347,6 +350,24 @@ class NONROAD(Module):
 
             if not os.path.exists(_opt_path):
                 os.makedirs(_opt_path)
+
+    @property
+    def nonroad_equipment(self):
+        return self._nonroad_equipment
+
+    @nonroad_equipment.setter
+    def nonroad_equipment(self, value):
+
+        def _validate_hp_ranges():
+            _sql = "SELECT MIN(hpMin), MAX(hpMax) FROM nrsourceusetype source " \
+                   "JOIN nrhprangebin hpbin ON (source.NRHPRangeBinID = hpbin.NRHPRangeBinID);"
+
+            _valid_hp = pd.read_sql(sql=_sql, con=self._conn)
+
+        if _validate_hp_ranges():
+            self._nonroad_equipment = value
+        else:
+            raise ValueError('equipment group contains invalid HP ranges')
 
     def _strlist_len(self, stringlist):
         """
@@ -908,16 +929,16 @@ T4M       1.0       0.02247
 
         # assemble kvals for sql statement formatting
         kvals = {}
-        kvals['moves_database'] = self.moves_database
+        kvals['nonroad_database'] = self.nonroad_database
 
         # read in nrsourceusetype table to get the hp range IDs, hp averages,
         # and hours used per year (annual activity used to calculate
         # population) by SCC
         _nrsourceusetype_sql = """SELECT SCC, NRHPRangeBinID, 
             medianLifeFullLoad, hoursUsedPerYear, hpAvg
-            FROM {moves_database}.nrsourceusetype;""".format(**kvals)
+            FROM {nonroad_database}.nrsourceusetype;""".format(**kvals)
 
-        _nrsourceusetype = pd.read_sql(_nrsourceusetype_sql, self.moves_con)
+        _nrsourceusetype = pd.read_sql(_nrsourceusetype_sql, self._conn)
 
         # rename the equipment lifetime column
         _nrsourceusetype.rename(index=str,
@@ -935,9 +956,9 @@ T4M       1.0       0.02247
         # read in nrhprangebin that matches hp range IDs to hp min and max
         # values
         _nrhprangebin_sql = """SELECT NRHPRangeBinID, hpMin, hpMax
-                        FROM {moves_database}.nrhprangebin""".format(**kvals)
+                        FROM {nonroad_database}.nrhprangebin""".format(**kvals)
 
-        _nrhprangebin = pd.read_sql(_nrhprangebin_sql, self.moves_con)
+        _nrhprangebin = pd.read_sql(_nrhprangebin_sql, self._conn)
 
         # merge the nonroad_equipment, nrsourceusetype and nrhprangebin
         # together to generate a df of information needed in the population
@@ -1276,7 +1297,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
     def __exit__(self, exc_type, exc_val, exc_tb):
 
         # close connection to MOVES database
-        self.moves_con.close()
+        self._conn.close()
 
         # process exceptions
         if exc_type is not None:
