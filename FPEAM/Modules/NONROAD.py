@@ -19,7 +19,10 @@ class NONROAD(Module):
         # init parent
         super(NONROAD, self).__init__(config=config)
 
-        # @TODO update to match the correct name in the config file
+        # flag to encode feedstock, tillage type and activity names in all
+        # nonroad filepaths and names
+        self.encode_names = True
+
         self.model_run_title = config.get('scenario_name')
         self.nonroad_path = config.get('nonroad_path')
         self.nonroad_project_path = config.get('nonroad_project_path')
@@ -178,16 +181,82 @@ class NONROAD(Module):
                                                'tillage_type',
                                                'activity']].drop_duplicates()
 
-        # do some assembly to create parseable filenames for each population
-        #  file - .pop extension SHOULD NOT be included as it is tacked on
-        # when the complete filepaths are created
-        self.nr_files['pop_file_names'] = self.nr_files['state_abbreviation'].map(str) + \
-                                        '_' + \
-                                  [w.replace(' ', '') for w in self.nr_files[
-                                       'feedstock']] + '_' + \
-                                  self.nr_files['tillage_type'].str[:2] + \
-                                          '_' + \
-                                  self.nr_files['activity'].str[:2]
+        if self.encode_names:
+            # create single-character codes for feedstocks, tillage types and
+            # activities for use in nonroad file name creation
+            _feedstocks = self.prod_equip_merge.feedstock.unique()
+            _feedstocks.sort()
+            _feedstock_codes = pd.DataFrame({'feedstock': _feedstocks,
+                                             'feedstock_code': np.arange(
+                                                 _feedstocks.__len__())})
+            _feedstock_codes['feedstock_code'] = 'f' + _feedstock_codes['feedstock_code'].map(str)
+            _feedstock_codes.to_csv(self.model_run_title + '_feedstock_codes.csv',
+                                    index=False)
+
+            _tillage_types = self.prod_equip_merge.tillage_type.unique()
+            _tillage_types.sort()
+            _tillage_type_codes = pd.DataFrame({'tillage_type': _tillage_types,
+                                                'tillage_type_code': np.arange(
+                                                    _tillage_types.__len__())})
+            _tillage_type_codes['tillage_type_code'] = 't' + _tillage_type_codes['tillage_type_code'].map(str)
+            _tillage_type_codes.to_csv(self.model_run_title + '_tillage_type_codes.csv',
+                                       index=False)
+
+            _activities = self.prod_equip_merge.activity.unique()
+            _activities.sort()
+            _activity_codes = pd.DataFrame({'activity': _activities,
+                                            'activity_code': np.arange(
+                                                _activities.__len__())})
+            _activity_codes['activity_code'] = 'a' + _activity_codes['activity_code'].map(str)
+            _activity_codes.to_csv(self.model_run_title + '_activity_codes.csv',
+                                   index=False)
+
+            # encode feedstock, tillage types and activities
+            self.nr_files = self.nr_files.merge(_feedstock_codes,
+                                                how='inner',
+                                                on='feedstock').merge(
+                _tillage_type_codes, how='inner', on='tillage_type').merge(
+                _activity_codes, how='inner', on='activity')
+
+            # do some assembly to create parseable filenames for each population
+            #  file - .pop extension SHOULD NOT be included as it is tacked on
+            # when the complete filepaths are created
+            self.nr_files['pop_file_names'] = self.nr_files['state_abbreviation'].map(str) + \
+                                              '_' + \
+                                              self.nr_files['feedstock_code'].map(str) + \
+                                              '_' + \
+                                              self.nr_files['tillage_type_code'].map(str) + \
+                                              '_' + \
+                                              self.nr_files['activity_code'].map(str)
+
+            # create the out and options subdirectory names - the OUT and OPT
+            # names are identical so only one column is created
+            self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_code'].map(str) \
+                                                 + '_' + \
+                                                 self.nr_files['tillage_type_code'].map(str) \
+                                                 + '_' + \
+                                                 self.nr_files['activity_code'].map(str)
+
+        else:
+
+            # do some assembly to create parseable filenames for each population
+            #  file - .pop extension SHOULD NOT be included as it is tacked on
+            # when the complete filepaths are created
+            self.nr_files['pop_file_names'] = self.nr_files['state_abbreviation'].map(str) + \
+                                              '_' + \
+                                              self.nr_files['feedstock'].map(str) + \
+                                              '_' + \
+                                              self.nr_files['tillage_type'].map(str) + \
+                                              '_' + \
+                                              self.nr_files['activity'].map(str)
+
+            # create the out and options subdirectory names - the OUT and OPT
+            # names are identical so only one column is created
+            self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock'].map(str) \
+                                                 + '_' + \
+                                                 self.nr_files['tillage_type'].map(str) \
+                                                 + '_' + \
+                                                 self.nr_files['activity'].map(str)
 
         # the filenames for the allocate files are the same as for the
         # population files
@@ -195,22 +264,6 @@ class NONROAD(Module):
 
         # create a column for message file names as well
         self.nr_files['msg_file_names'] = self.nr_files['pop_file_names']
-
-        # create a column of options and out directory names for later looping
-        # the feedstock bit has to be in a separate column for the next
-        # command to run
-        self.nr_files['feedstock_trim'] = [w.replace(' ', '') for w in
-                                           self.nr_files['feedstock']]
-
-        # create the out and options subdirectory names - the OUT and OPT
-        # names are identical so only one column is created
-        # @note the first two characters of tillage type and activity are used
-        #  to keep the OUT filenames under 25 characters total
-        self.nr_files['out_opt_dir_names'] = self.nr_files['feedstock_trim'] \
-                                     + \
-                                     '_' + \
-                                     self.nr_files['tillage_type'].str[:2] + \
-                                     '_' + self.nr_files['activity'].str[:2]
 
         # create dirs in the project path (which includes the scenario name)
         #  if the directories do not already exist
@@ -223,6 +276,58 @@ class NONROAD(Module):
                        os.path.join(self.project_path, 'FIGURES'),
                        os.path.join(self.project_path, 'QUERIES')]
 
+        # loop through all completely assembled filepaths and create a list
+        # of the ones that are more than 60 characters
+        _filepath_list = np.array([])
+
+        # go thru all directories and filenames to assemble complete path
+        for i in np.arange(self.nr_files.shape[0]):
+            # message files
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[1],
+                                                    self.nr_files.msg_file_names.iloc[i] +
+                                                    '.msg'))
+            # allocate files
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[2],
+                                                    self.nr_files.alo_file_names.iloc[i] +
+                                                    '.alo'))
+            # population files
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[3],
+                                                    self.nr_files.pop_file_names.iloc[i] +
+                                                    '.pop'))
+            # options files
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[4],
+                                                    self.nr_files.out_opt_dir_names.iloc[i],
+                                                    self.nr_files.state_abbreviation.iloc[i] +
+                                                    '.opt'))
+            # out files
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[5],
+                                                    self.nr_files.out_opt_dir_names.iloc[i],
+                                                    self.nr_files.state_abbreviation.iloc[i] +
+                                                    '.out'))
+
+        # get a list of just those filepaths which exceed 60 characters
+        _failpath_list = np.array(_filepath_list)[np.array(self._strlist_len(_filepath_list)) > 60]
+
+        # check that that failpath list is empty (all filepaths are under
+        # the 60 character limit) - if not, record one error per too-long
+        # filepath
+        try:
+            assert _failpath_list.__len__() == 0
+
+        except AssertionError:
+            for i in _failpath_list:
+                LOGGER.Error('Filepath too long: %s' % i)
+
+            raise ValueError('Total filepath length for each NONROAD file '
+                             'cannot exceed 60 characters')
+
+        # if all filepaths are under the limit, proceed to creating
+        # directories and subdirectories for storing NONROAD files
         for _folder in _nr_folders:
             if not os.path.exists(_folder):
                 os.makedirs(_folder)
@@ -243,7 +348,13 @@ class NONROAD(Module):
             if not os.path.exists(_opt_path):
                 os.makedirs(_opt_path)
 
-
+    def _strlist_len(self, stringlist):
+        """
+        get length of each string in list of strings
+        :param stringlist:
+        :return: list of string lengths
+        """
+        return [len(s) for s in stringlist]
 
     def create_allocate_files(self):
         """
@@ -295,10 +406,14 @@ population or land area.  The format is as follows.
 
                 # filter down production and get the list of both fips and
                 # feedstock amounts (indicator values)
+                # the groupby and sum accounts for potentially multiple
+                # entries with different feedstock amounts but the same
+                # fips, from a one-to-many region-to-fips mapping
                 _indicator_list = self.prod_equip_merge[_prod_filter][[
                     'fips',
                     'feedstock',
-                    'feedstock_amount']].drop_duplicates()
+                    'feedstock_amount']].drop_duplicates().groupby(['fips',
+                                                                    'feedstock']).sum()
 
                 # write line with state indicator total
                 _ind_state_total = _indicator_list.feedstock_amount.sum()
@@ -869,6 +984,8 @@ T4M       1.0       0.02247
 
         # sum equipment populations so there's only one population per
         # equipment type
+        # this will also sum up entries with the same fips that result from
+        # a one-to-many region-to-fips mapping
         _nr_pop = _nr_pop_equip_merge.groupby(['state_abbreviation',
                                                'feedstock',
                                                'tillage_type',

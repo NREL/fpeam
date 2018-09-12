@@ -18,7 +18,8 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, region_fips_map, truck_capacity, year, router=None,
+    def __init__(self, config, production, region_fips_map, truck_capacity,
+                 year, router=None,
                  **kvals):
         """
 
@@ -81,6 +82,9 @@ class MOVES(Module):
         self.save_path_runspecfiles = os.path.join(self.moves_datafiles_path, 'run_specs')
         self.save_path_countyinputs = os.path.join(self.moves_datafiles_path, 'county_inputs')
         self.save_path_nationalinputs = os.path.join(self.moves_datafiles_path, 'national_inputs')
+
+        # store avft dataframe in self for later saving
+        self.avft = pd.read_csv(config.get('avft'), header=0)
 
         # additional input file paths
         self.avft_filename = os.path.join(self.save_path_nationalinputs, 'avft.csv')
@@ -161,16 +165,15 @@ class MOVES(Module):
         # @NOTE possibly add to GUI as user input in the future
         self.fuel_supply_fuel_type_id = '2'
 
-        # user input - fuel fraction table
-        self.fuel_fraction = config.get('fuel_fraction')
-
-        # user input - fraction of VMT on each road type
+        # user input - fraction of VMT on each road type (dictionary type)
         self.vmt_fraction = config.get('vmt_fraction')
 
         # polname, polkey, procname, prockey and roaddict are used in
         # generating the XML import and runspec files for MOVES
 
-        # dictionary of pollutant shorthand to MOVES name
+        # @todo polname, polkey, procname, prockey and pollutant_name could be
+        # converted to user inputs to allow for more or fewer pollutant
+        # calculations dictionary of pollutant shorthand to MOVES name
         self.polname = {"NH3": "Ammonia (NH3)",
                         "CO": "Carbon Monoxide (CO)",
                         "NOX": "Oxides of Nitrogen",
@@ -188,7 +191,8 @@ class MOVES(Module):
                        "SO2": "31",
                        "VOC": "87"}
 
-        # dictionary of MOVES pollutant process numbers to MOVES pollutant process descriptions
+        # dictionary of MOVES pollutant process numbers to MOVES pollutant
+        # process descriptions
         self.procname = {"1": "Running Exhaust",
                          "2": "Start Exhaust",
                          "11": "Evap Permeation",
@@ -202,7 +206,8 @@ class MOVES(Module):
                          "90": "Extended Idle Exhaust",
                          "91": "Auxiliary Power Exhaust"}
 
-        # dictionary of shorthand pollutant names to applicable MOVES pollutant process numbers
+        # dictionary of shorthand pollutant names to applicable MOVES
+        # pollutant process numbers
         self.prockey = {"NH3": ["1", "2", "15", "16", "17", "90", "91"],
                         "CO": ["1", "2", "15", "16", "17", "90", "91"],
                         "NOX": ["1", "2", "15", "16", "17", "90", "91"],
@@ -282,24 +287,9 @@ class MOVES(Module):
                     self.save_path_nationalinputs, '%s.csv' % (kvals['table'],)),
                     index=False)
 
-        # alternative vehicle fuels and technology (avft) file creation
-        # output should contain 182 rows (same as number of elements in
-        # self.fuel_fraction)
-        # @NOTE HARDCODING ALERT
-        # @NOTE if source_type_id or engine_tech contain multiple elements,
-        # this code will not create a usable avft file
-        # @NOTE DO NOT CHANGE data frame column names
-        _avft_file = pd.DataFrame({'sourceTypeID': np.repeat(self.source_type_id,
-                                                             self.fuel_fraction.__len__()),
-                                   'modelYearID': np.repeat(range(1960, 2051), 2),
-                                   'fuelTypeID': np.tile(range(1, 3),
-                                                         int(0.5 * self.fuel_fraction.__len__())),
-                                   'engTechID': np.repeat(self.engine_tech,
-                                                          self.fuel_fraction.__len__()),
-                                   'fuelEngFraction': self.fuel_fraction})
-
-        # write to csv
-        _avft_file.to_csv(self.avft_filename, sep=',')
+        # save alternative vehicle fuels and technology (avft) file to
+        # national input file directory
+        self.avft.to_csv(self.avft_filename, sep=',', index=False)
 
         # default age distribution file creation
         # age distribution for user-specified source_type_id and year is pulled
@@ -327,12 +317,15 @@ class MOVES(Module):
 
         # construct dataframe of road type VMTs from config file input
         # store in self for later use in postprocessing
-        self.roadtypevmt = pd.DataFrame({'sourceTypeID': np.repeat(self.source_type_id, 4),
-                                         'roadTypeID': range(2, 6),
-                                         'roadTypeVMTFraction': self.vmt_fraction})
+        self.roadtypevmt = pd.DataFrame.from_dict(self.vmt_fraction,
+                                                  orient='index',
+                                                  columns=['roadTypeVMTFraction'])
+        self.roadtypevmt['roadTypeID'] = self.roadtypevmt.index
+        self.roadtypevmt['sourceTypeID'] = np.repeat(self.source_type_id, 4)
 
-        # write to csv
-        self.roadtypevmt.to_csv(self.roadtypevmt_filename, sep=',', index=False)
+        # write roadtypevmt to csv
+        self.roadtypevmt.to_csv(self.roadtypevmt_filename, sep=',',
+                                index=False)
 
     def create_county_data(self, fips):
         """
