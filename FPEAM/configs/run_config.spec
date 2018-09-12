@@ -1,6 +1,8 @@
 
 scenario_name = string
 
+year = integer
+
 # modules to run
 modules = force_list
 
@@ -19,5 +21,6 @@ fugitive_dust_emission_factors = string(default='../data/inputs/fugitive_dust_em
 moisture_content = string(default='../data/inputs/moisture_content.csv')
 nonroad_equipment = string(default='../data/inputs/nonroad_equipment.csv')
 scc_codes = string(default='../data/inputs/scc_codes.csv')
-transportation_graph = string(default='../data/inputs/transportation_graph.csv')
-county_nodes = string(default='../data/inputs/county_nodes.csv')
+region_fips_map = string(default='../data/inputs/region_fips_map.csv')
+state_fips_map = string(default='../data/inputs/state_fips_map.csv')
+truck_capacity = string(default='../data/inputs/truck_capacity.csv')

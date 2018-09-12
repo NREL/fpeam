@@ -1,4 +1,4 @@
-"""Input and output helper utilties."""
+"""Input and output helper utilities."""
 
 import os
 from . import utils
@@ -38,6 +38,7 @@ def load_configs(*fpath):
             LOGGER.debug('importing config file: %s' % (os.path.abspath(_config_fpath), ))
             _config.merge(configobj.ConfigObj(_config_fpath))
         except (configobj.ConfigObjError, IOError):
+            LOGGER.exception('Fatal error in config file %s' % _config_fpath)
             raise
 
     return _config

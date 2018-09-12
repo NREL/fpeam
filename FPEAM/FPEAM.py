@@ -2,7 +2,7 @@ from collections import Iterable
 from . import Data
 from . import utils
 from . import Modules
-from .IO import CONFIG_FOLDER
+from .IO import (CONFIG_FOLDER, load_configs)
 from .Router import Router
 import os
 LOGGER = utils.logger(name=__name__)
@@ -12,8 +12,8 @@ class FPEAM(object):
     """Base class to hold shared information"""
 
     # @TODO: can't these be discovered via the Modules module?
-    MODULES = {'chemical': Modules.EmissionFactors,
-               'fugitive_dust': Modules.FugitiveDust,
+    MODULES = {'emissionfactors': Modules.EmissionFactors,
+               'fugitivedust': Modules.FugitiveDust,
                'MOVES': Modules.MOVES,
                'NONROAD': Modules.NONROAD}
 
@@ -35,41 +35,60 @@ class FPEAM(object):
         self._fugitive_dust = None
         self._moisture_content = None
 
+        self.router = None
+
         self.config = run_config
 
         self.equipment = Data.Equipment(fpath=self.config['equipment']).reset_index().rename({'index': 'row_id'}, axis=1)
         self.production = Data.Production(fpath=self.config['production']).reset_index().rename({'index': 'row_id'}, axis=1)
 
-        # @TODO: not sure these should default to None, maybe better to break than silently load nothing
+        # @TODO: not sure these should default to None, maybe better to break than silently load nothing. Would like a way to only load relevant data based on modules in run_config
         self.emission_factors =\
             Data.EmissionFactor(fpath=self.config.get('emission_factors', None))
         self.resource_distribution =\
             Data.ResourceDistribution(fpath=self.config.get('resource_distribution', None))
         self.fugitive_dust =\
             Data.FugitiveDust(fpath=self.config.get('fugitive_dust_emission_factors', None))
-        self.moisture_content =\
-            Data.MoistureContent(fpath=self.config.get('moisture_content', None))
         self.nonroad_equipment =\
             Data.NONROADEquipment(fpath=self.config.get('nonroad_equipment', None))
         self.ssc_codes = Data.SCCCodes(fpath=self.config.get('scc_codes', None))
+        self.region_fips_map = Data.RegionFipsMap(fpath=self.config.get('region_fips_map', None))
+        self.state_fips_map = Data.StateFipsMap(fpath=self.config.get('state_fips_map', None))  # @TODO: only NONRAOD uses this; move to nonroad module
+        self.truck_capacity = Data.TruckCapacity(fpath=self.config.get('truck_capacity', None))
 
-        self.transportation_graph =\
-            Data.TransportationGraph(fpath=self.config.get('transportation_graph', None))
-        self.county_node = Data.CountyNode(fpath=self.config.get('county_nodes', None))
+        for _module in self.config.get('modules', None) or self.MODULES.keys():
+            _config = self.config.get(_module, None) or \
+                      load_configs(os.path.join(CONFIG_FOLDER, '%s.ini' % _module.lower())
+                                   )[_module.lower()]
 
-        self.router = Router(edges=self.transportation_graph, node_map=self.county_node)
+            _config = utils.validate_config(config=_config
+                                            , spec=os.path.join(CONFIG_FOLDER
+                                                                , '%s.spec' % _module.lower())
+                                            )['config']
+            _config['scenario_name'] = self.config['scenario_name']
 
-        for _module in self.config['modules']:
+            if _module in ('MOVES', ):
+                LOGGER.info('Loading routing data; this may take a few minutes')
+                _transportation_graph = \
+                    Data.TransportationGraph(fpath=_config['transportation_graph'])
+                _county_nodes = Data.CountyNode(fpath=_config['county_nodes'])
+
+                self.router = Router(edges=_transportation_graph, node_map=_county_nodes)  # @TODO: takes ages to load
             try:
                 self.__setattr__(_module,
-                                 FPEAM.MODULES[_module](config=run_config.get(_module, None),
+                                 FPEAM.MODULES[_module](config=_config,
                                                         equipment=self.equipment,
                                                         production=self.production,
                                                         emission_factors=self.emission_factors,
-                                                        resource_distribution=self.resource_distribution,
-                                                        fugitive_dust=self.fugitive_dust,
-                                                        moisture_content=self.moisture_content,
-                                                        router=self.router))
+                                                        resource_distribution=
+                                                        self.resource_distribution,
+                                                        fugitive_dust_emission_factors=self.fugitive_dust,
+                                                        router=self.router,
+                                                        year=self.config['year'],
+                                                        region_fips_map=self.region_fips_map,
+                                                        state_fips_map=self.state_fips_map,
+                                                        truck_capacity=self.truck_capacity,
+                                                        nonroad_equipment=self.nonroad_equipment))
             except KeyError:
                 if _module not in FPEAM.MODULES.keys():
                     LOGGER.warning('invalid module name: {}.'
@@ -88,6 +107,7 @@ class FPEAM(object):
 
     @config.setter
     def config(self, value):
+
         _spec = os.path.join(CONFIG_FOLDER, 'run_config.spec')
         _config = utils.validate_config(config=value['run_config'], spec=_spec)
         if _config['extras']:

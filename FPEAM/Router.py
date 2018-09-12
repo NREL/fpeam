@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
 import networkx as nx
+import pandas as pd
 from networkx.algorithms.shortest_paths.weighted import bidirectional_dijkstra
 
 from FPEAM import utils
+
 LOGGER = utils.logger(name=__name__)
 
 
@@ -26,32 +27,55 @@ class Router(object):
         self.routes = None
         self.Graph = nx.Graph()
 
-        _ = list(map(lambda x: self.Graph.add_edge(**x), self.edges, ))
+        LOGGER.debug('loading routing graph')
+        _ = self.edges.apply(lambda x: self.Graph.add_edge(**x), axis=1)
 
-    def get_route(self, from_fips, to_fips):
+    def get_route(self, from_fips, to_fips, from_node=None, to_node=None):
         """
         Find route from <from_fips> to <to_fips>, if exists.
 
         :param from_fips: [str]
         :param to_fips: [str]
+        :param from_node: [int]
+        :param to_node: [int]
         :return: [DataFrame]
         """
 
-        _from_node = self.node_map[from_fips]
-        _to_node = self.node_map[to_fips]
+        if not from_node:
+            try:
+                from_node = self.node_map.loc[from_fips].node_id
+            except KeyError:
+                LOGGER.error('FIPS code %s not found in FIPS to node lookup' % (from_fips, ))
 
-        _route = self.algorithm(self.Graph, _from_node, _to_node)
+        if not to_node:
+            try:
+                to_node = self.node_map.loc[to_fips].node_id
+            except KeyError:
+                LOGGER.error('FIPS code %s not found in FIPS to node lookup' % (to_fips, ))
 
-        return _route
+        if not from_node and to_node:
+            raise ValueError('start or end node is undefined')
 
+        _path = self.algorithm(self.Graph, from_node, to_node)[1]
 
-if __name__ == '__main__':
-    # import sys
-    # sys.path.append('~/src/fpeam')
-    # import FPEAM
-    #
-    from FPEAM import Data
+        _route = pd.DataFrame(_path, columns=['start_node'], dtype=int)
+        _route['end_node'] = _route['start_node'].shift(-1)
+        _route = _route[:-1]
+        _route['end_node'] = _route['end_node'].astype(int)
 
-    r = Router(edges=Data.TransportationGraph(fpath='../data/inputs/transportation_graph.csv'),
-               node_map=Data.CountyNode(fpath='../data/inputs/counts_node.csv'))
-    r.get_route(from_fips='01001', to_fips='01003')
+        _edges = _route.apply(lambda x: self.Graph.get_edge_data(u=x.start_node,
+                                                                 v=x.end_node)['edge_id'], axis=1)
+
+        _summary = self.edges.loc[self.edges.edge_id.isin(_edges.values) &
+                                  ~self.edges.countyfp.isna() &
+                                  ~self.edges.statefp.isna()][['edge_id',
+                                                               'statefp',
+                                                               'countyfp',
+                                                               'weight']].groupby(['statefp',
+                                                                                   'countyfp'])\
+            .sum().reset_index()
+
+        _summary['fips'] = _summary['statefp'] + _summary['countyfp']
+        _summary['vmt'] = _summary['weight'] / 1000.0 * 0.621371
+
+        return _summary[['fips', 'vmt']]
