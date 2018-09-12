@@ -125,7 +125,7 @@ class MOVES(Module):
         # user input - get toggle for running moves by state-level fips
         # finds FIPS with highest total (summed across feedstocks)
         # production in each state, runs MOVES only for those FIPS (50 FIPS)
-        self.moves_state_level = config.get('state_level_moves')
+        self.moves_state_level = config.get('moves_by_state')
 
         # user input - get toggle for running moves by feedstock and state
         # finds FIPS with highest production by feedstock in each state,

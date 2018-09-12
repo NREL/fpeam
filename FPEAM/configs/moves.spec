@@ -1,6 +1,6 @@
 scenario_name = string
 
-state_level_moves = boolean
+moves_by_state = boolean
 moves_by_crop = boolean
 
 feedstock_measure_type = string(default='harvested')
