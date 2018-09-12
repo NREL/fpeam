@@ -165,13 +165,15 @@ class MOVES(Module):
         # @NOTE possibly add to GUI as user input in the future
         self.fuel_supply_fuel_type_id = '2'
 
-        # user input - fraction of VMT on each road type
+        # user input - fraction of VMT on each road type (dictionary type)
         self.vmt_fraction = config.get('vmt_fraction')
 
         # polname, polkey, procname, prockey and roaddict are used in
         # generating the XML import and runspec files for MOVES
 
-        # dictionary of pollutant shorthand to MOVES name
+        # @todo polname, polkey, procname, prockey and pollutant_name could be
+        # converted to user inputs to allow for more or fewer pollutant
+        # calculations dictionary of pollutant shorthand to MOVES name
         self.polname = {"NH3": "Ammonia (NH3)",
                         "CO": "Carbon Monoxide (CO)",
                         "NOX": "Oxides of Nitrogen",
@@ -189,7 +191,8 @@ class MOVES(Module):
                        "SO2": "31",
                        "VOC": "87"}
 
-        # dictionary of MOVES pollutant process numbers to MOVES pollutant process descriptions
+        # dictionary of MOVES pollutant process numbers to MOVES pollutant
+        # process descriptions
         self.procname = {"1": "Running Exhaust",
                          "2": "Start Exhaust",
                          "11": "Evap Permeation",
@@ -203,7 +206,8 @@ class MOVES(Module):
                          "90": "Extended Idle Exhaust",
                          "91": "Auxiliary Power Exhaust"}
 
-        # dictionary of shorthand pollutant names to applicable MOVES pollutant process numbers
+        # dictionary of shorthand pollutant names to applicable MOVES
+        # pollutant process numbers
         self.prockey = {"NH3": ["1", "2", "15", "16", "17", "90", "91"],
                         "CO": ["1", "2", "15", "16", "17", "90", "91"],
                         "NOX": ["1", "2", "15", "16", "17", "90", "91"],
