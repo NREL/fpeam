@@ -164,7 +164,7 @@ TABLE: User options that determine if MOVES is run and at what level of detail.
 |-----------|-----------|---------------|-------------|
 | run_moves | Boolean | True | Flag that determines whether the MOVES module is run for a given scenario. If the MOVES module is not run, no emissions from off-farm biomass transportation will be included. |
 | moves_by_state | Boolean | True | Flag that determines whether the MOVES module is run for a given scenario. If the MOVES module is not run, no emissions from off-farm biomass transportation will be included. |
-| moves_by_crop | Boolean | False | Flag that determines for how many FIPS MOVES is run. If True, MOVES is run for the set of FIPS in each state with the highest feedstock production for each single feedstock in the equipment - for instance, MOVES will run for the FIPS with the most corn production, with the most switchgrass production, and so on. If False, MOVES is run for a single FIPS in each state, with the FIPS determined by highest total feedstock production across all feedstocks. |
+| moves_by_state_and_feedstock | Boolean | False | Flag that determines for how many FIPS MOVES is run. If True, MOVES is run for the set of FIPS in each state with the highest feedstock production for each single feedstock in the equipment - for instance, MOVES will run for the FIPS with the most corn production, with the most switchgrass production, and so on. If False, MOVES is run for a single FIPS in each state, with the FIPS determined by highest total feedstock production across all feedstocks. |
 
 TABLE: MOVES database connection parameters.
 

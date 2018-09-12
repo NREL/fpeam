@@ -1,6 +1,6 @@
 [moves]
 state_level_moves = boolean
-moves_by_crop = boolean
+moves_by_state_and_feedstock = boolean
 
 moves_database = string
 moves_output_db = string
