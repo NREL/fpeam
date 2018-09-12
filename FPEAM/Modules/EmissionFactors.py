@@ -24,7 +24,6 @@ class EmissionFactors(Module):
         super(EmissionFactors, self).__init__(config=config)
 
         # init properties
-        self.emissions = []
         self.equipment = equipment
         self.production = production
 
@@ -47,10 +46,12 @@ class EmissionFactors(Module):
         _factors_merge.eval('overall_rate = distribution * rate', inplace=True)
 
         # sum emissions factors within unique combinations of
-        # feedstock-resource-pollutant to generate overall factors that will
-        #  convert resource mass to pollutant mass
+        # feedstock-activity-resource-pollutant to generate overall factors
+        # that will convert resource mass to pollutant mass
         self.overall_factors = _factors_merge.groupby(['feedstock',
+                                                       'activity',
                                                        'resource',
+                                                       'resource_subtype',
                                                        'pollutant'],
                                                       as_index=False).sum()
 
@@ -64,31 +65,34 @@ class EmissionFactors(Module):
 
         # create column selectors
         _idx = ['feedstock', 'tillage_type', 'equipment_group']
-        _prod_columns = ['row_id'] + _idx + ['feedstock_amount']
-        _equip_columns = ['row_id'] + _idx + ['rate']
-        _factors_columns = ['feedstock', 'resource', 'overall_rate',
-                            'pollutant']
+        _prod_columns = _idx + ['feedstock_production',
+                                'feedstock_destination',
+                                'feedstock_amount']
+        _equip_columns = _idx + ['rate', 'resource']
+        _factors_columns = ['feedstock', 'activity', 'resource',
+                            'resource_subtype', 'overall_rate', 'pollutant']
 
         # create row selectors
         _prod_rows = self.production.feedstock_measure == self.feedstock_measure_type
 
         # combine production and equipment and overall factors
-        _df = self.production[_prod_rows][_prod_columns]\
-            .merge(self.equipment[_equip_columns], on=_idx, suffixes=['_prod', '_equip'])\
+        _df = self.production[_prod_rows][_prod_columns].merge(self.equipment[_equip_columns],
+                                                               on=_idx,
+                                                               suffixes=['_prod', '_equip'])\
             .merge(self.overall_factors[_factors_columns], on=['feedstock', 'resource'])
 
         # calculate emissions
-        _df.eval('pollutant_amount = overall_factor * feedstock_amount * rate', inplace=True)
+        _df.eval('pollutant_amount = overall_rate * feedstock_amount * rate',
+                 inplace=True)
 
         # add column to identify the module
         _df['module'] = 'emission factors'
 
         # clean up DataFrame
-        _df = _df[['region_production', 'feedstock',
+        _df = _df[['region_production', 'region_destination', 'feedstock',
                    'tillage_type', 'activity', 'resource',
                    'resource_subtype', 'pollutant',
-                   'pollutant_amount']].set_index(
-            'row_id_prod', drop=True)
+                   'pollutant_amount']]
 
         return _df
 
