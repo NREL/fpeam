@@ -49,12 +49,11 @@ class FPEAM(object):
             Data.ResourceDistribution(fpath=self.config.get('resource_distribution', None))
         self.fugitive_dust =\
             Data.FugitiveDust(fpath=self.config.get('fugitive_dust_emission_factors', None))
-        self.moisture_content =\
-            Data.MoistureContent(fpath=self.config.get('moisture_content', None))
         self.nonroad_equipment =\
             Data.NONROADEquipment(fpath=self.config.get('nonroad_equipment', None))
         self.ssc_codes = Data.SCCCodes(fpath=self.config.get('scc_codes', None))
         self.region_fips_map = Data.RegionFipsMap(fpath=self.config.get('region_fips_map', None))
+        self.state_fips_map = Data.StateFipsMap(fpath=self.config.get('state_fips_map', None))  # @TODO: only NONRAOD uses this; move to nonroad module
         self.truck_capacity = Data.TruckCapacity(fpath=self.config.get('truck_capacity', None))
 
         for _module in self.config.get('modules', None) or self.MODULES.keys():
@@ -66,14 +65,15 @@ class FPEAM(object):
                                             , spec=os.path.join(CONFIG_FOLDER
                                                                 , '%s.spec' % _module.lower())
                                             )['config']
+            _config['scenario_name'] = self.config['scenario_name']
 
             if _module in ('MOVES', ):
                 LOGGER.info('Loading routing data; this may take a few minutes')
                 _transportation_graph = \
                     Data.TransportationGraph(fpath=_config['transportation_graph'])
-                _county_node = Data.CountyNode(fpath=_config['county_node'])
+                _county_nodes = Data.CountyNode(fpath=_config['county_nodes'])
 
-                self.router = Router(edges=_transportation_graph, node_map=_county_node)  # @TODO: takes ages to load
+                self.router = Router(edges=_transportation_graph, node_map=_county_nodes)  # @TODO: takes ages to load
             try:
                 self.__setattr__(_module,
                                  FPEAM.MODULES[_module](config=_config,
@@ -82,9 +82,13 @@ class FPEAM(object):
                                                         emission_factors=self.emission_factors,
                                                         resource_distribution=
                                                         self.resource_distribution,
-                                                        fugitive_dust=self.fugitive_dust,
-                                                        moisture_content=self.moisture_content,
-                                                        router=self.router))
+                                                        fugitive_dust_emission_factors=self.fugitive_dust,
+                                                        router=self.router,
+                                                        year=self.config['year'],
+                                                        region_fips_map=self.region_fips_map,
+                                                        state_fips_map=self.state_fips_map,
+                                                        truck_capacity=self.truck_capacity,
+                                                        nonroad_equipment=self.nonroad_equipment))
             except KeyError:
                 if _module not in FPEAM.MODULES.keys():
                     LOGGER.warning('invalid module name: {}.'
