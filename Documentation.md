@@ -198,13 +198,13 @@ Once generated, the raw output data frame may be saved as a CSV file or stored i
 
 # MOVES Module
 
-Emissions from biomass transportation are by default calculated using version 2014a of the EPA's Motor Vehicle Emission Simulator (MOVES) model. FPEAM uses a set of parameters listed below to determine at what level of detail MOVES is run, and emission rates from vehicle running and start and hotelling are combined with feedstock production data and truck capacity data to calculate total pollutant amounts.
+Emissions from feedstock transportation are by default calculated using version 2014a of the EPA's Motor Vehicle Emission Simulator (MOVES) model. FPEAM creates all required input files and runs MOVES in batch mode, using a set of parameters listed below to determine at what level of detail MOVES is run. Following the MOVES run(s), emission rates for vehicle operation and start and hotelling are postprocessed with feedstock production data, truck capacity data and feedstock transportation routes to calculate total pollutant amounts.
 
-Currently MOVES can only be run by FIPS (counties), although development is planned to allow users to run MOVES on a project level, where a project may encompass part of a county or parts of several counties. The FIPS for which MOVES is run are determined from region_production values in the feedstock production set, which are mapped to FIPS using the user-provided region-to-FIPS map discussed in the previous section.
+Currently the FPEAM MOVES module can only run MOVES at the FIPS (county) level, although development is planned to allow users to run MOVES on a project level, where a project may encompass part of a county or parts of several counties. The FIPS for which MOVES is run are determined from region_production values in the feedstock production set, which are mapped to FIPS using the user-provided region-to-FIPS map discussed in the previous section.
 
 MOVES can be run for all FIPS for which a mapping from region_production to FIPS was provided, or at two levels of aggregation: one FIPS per state based on which FIPS had the highest total feedstock production, or multiple FIPS per states based on which FIPS had the highest production of each feedstock. By default, MOVES is run once per state with FIPS selected based on highest total feedstock production. This aggregation is done by default to keep FPEAM run times reasonable; MOVES requires between 10 and 15 minutes to run each FIPS and can easily extend model run times into days.
 
-MOVES aggregation levels are set using the moves_by_state and moves_by_state_and_feedstock parameters, both Booleans that can be set either via the FPEAM GUI or in the moves.ini file. These parameters are mutually exclusive: at most one of them can be True. If neither moves_by_state nor moves_by_state_and_feedstock are True, then MOVES automatically runs every FIPS for which sufficient data is provided.
+MOVES aggregation levels are set using the moves_by_state and moves_by_state_and_feedstock parameters, both Booleans that can be set either via the FPEAM GUI or in the MOVES config file. These parameters are mutually exclusive: at most one of them can be True. If neither moves_by_state nor moves_by_state_and_feedstock are True, then MOVES automatically runs every FIPS for which sufficient data is provided.
 
 TABLE: MOVES module user options
 
@@ -226,26 +226,29 @@ TABLE: MOVES database connection and software parameters.
 | moves_db_pass | string | moves | Password to access the MOVES databases. This value should be set by each user based on what was entered during MOVES installation. |
 | moves_db_host | string | localhost | Name of the machine on which MOVES is installed. Provided a user is running MOVES on the same machine running FPEAM, this should remain at its default value.|
 | moves_version | string | MOVES2014a-20161117 | Version of MOVES software with database version appended |
-| moves_path | string | Path to primary MOVES directory |
+| moves_path | string | Path to primary MOVES2014a directory |
 | moves_datafiles_path | string | Path to MOVESdata directory |
 | mysql_binary | string | Path to mysql executable |
 | mysqldump_binary | string | Path to mysqldump executable |
 
-## Advanced user options
+Before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above)  using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the "General Output" screen, under "Output." Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.
 
-These options can be changed manually within the moves.ini file.
+## User options
+
+These options can be changed manually using the FPEAM GUI or directly in the MOVES config file.
 
 TABLE: Transportation distance and transportation mode parameters.
 
 | Parameter | Data Type | Default Value | Units | Description |
-|-----------|-----------|---------------|-------|-------------|
-| vmt_short_haul | float | 100 | miles | Vehicle miles traveled by one truck on one biomass delivery trip. |
+| :-------- | :-------- | :------------ | :---: |  :--------- |
+| vmt_short_haul | float | 100 | miles | Vehicle miles traveled by one truck, in one FIPS, on one feedstock transportation trip. |
 | pop_short_haul | int | 1 | trucks | Number of trucks for which MOVES is run. |
-| truck_capacity | dictionary of floats | See table below | dry short tons/load | Amount of biomass that can be transported off-farm by one truck in one trip. |
-| vmt_fraction | dictionary of floats | See VMT fraction table below | unitless | Fraction of vehicle miles traveled spent on each of four types of roads. |
+| hpmsv_type_id | int | 60 | - | sdfs |
+| source_type_id | int | 61 | - | asdfs |
+| vmt_fraction | dictionary of floats | See VMT fraction table below | unitless | Fraction of vehicle miles traveled on each of four types of roads. |
 | moves_timespan | dictionary of ints | See MOVES timespan table below | unitless | Set of values defining the day and hours for which MOVES is run. | 
 
-TABLE: Default values of truck_capacity dictionary. Source: No source in BTS.
+TABLE: Default truck capacities by feedstock. Source: BTS.
 
 | Feedstock | Vehicle capacity (dry short tons/load) |
 | :-------: | :----------------------------: |
@@ -257,7 +260,7 @@ TABLE: Default values of truck_capacity dictionary. Source: No source in BTS.
 | forest residues | 16.68 |
 | whole trees | 16.68 |
 
-Default VMT fraction values were calculated from Federal Highway Administration data on total vehicle miles traveled nationwide by combination trucks in 2006. The raw data is available from the [Federal Highway Administration](https://www.fhwa.dot.gov/policy/ohim/hs06/metric_tables.cfm) in the table "Vehicle distance of travel in kilometers and related data, by highway category and vehicle type." The VMT fraction representing vehicle idling (road type = 1) was assumed to be 0 due to lack of data.
+Default vehicle miles traveled (VMT) fractions were calculated from Federal Highway Administration data on total vehicle miles traveled nationwide by combination trucks in 2006. The raw data is available from the [Federal Highway Administration](https://www.fhwa.dot.gov/policy/ohim/hs06/metric_tables.cfm) in the table "Vehicle distance of travel in kilometers and related data, by highway category and vehicle type." The VMT fraction representing vehicle idling (road type = 1) was assumed to be 0 due to lack of data.
 
 TABLE: Default VMT fraction values. 
 
@@ -269,7 +272,7 @@ TABLE: Default VMT fraction values.
 | 4 | Urban restricted | 0.21 |
 | 5 | Urban unrestricted | 0.21 |
 
-TABLE: Default specification for MOVES timespan. This timespan represents a typical harvest day for most feedstocks.
+TABLE: Default MOVES timespan specification. This timespan represents a typical post-harvest day for most feedstocks.
 
 | Key | Key description | Allowed values | Default value | Default value description |
 | :-: | :-------------- | :------------: | :-----------: | :------------------------ |
@@ -280,56 +283,63 @@ TABLE: Default specification for MOVES timespan. This timespan represents a typi
 
 ## Module structure and function
 
-Postprocessing
-
-## Output
-
-Table of pollutant amounts
-
-
+The MOVES module creates all necessary input files to run MOVES and executes system commands to run MOVES. Raw output is saved to the MOVES output database specified by the user, and the postprocessing method within the MOVES module fetches the raw output and transforms the emission rates into total pollutant amounts.
 
 ## Additional development
 
-Currently, emissions from biomass transportation must be calculated via MOVES. It would be possible to implement an option within FPEAM that allows users to input their own set of emissions factors for transportation and use those factors in place of running MOVES.
+Allow for multiple vehicle, fuel and engine type selections, with selections possibly varying by feedstock or by region.
 
-vmt_fraction could be updated to reflect 2015 or 2016 data.
-
-Allow for multiple vehicle, fuel and engine type selections
-
-Allow for user-specified pollutant calculations based on the full list of pollutants MOVES can calculate
+Allow for users to select which pollutants to calculate from the full list of pollutants and pollutant processes included in MOVES.
 
 # Router Module
 
+The Router module is used within the MOVES module to obtain the routes taken by feedstock transportation vehicles and calculate the vehicle miles traveled by FIPS over each route. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the Router module is only used internally to FPEAM, there are no user options for running the router and no config file needs to be provided.
+
+Currently the Router module uses a graph of all known, publicly accessible roads in the contiguous U.S., obtained from the [Global Roads Open Access Data Sets](http://sedac.ciesin.columbia.edu/data/set/groads-global-roads-open-access-v1) (gROADS) v1. This graph does not contain transportation pathways such as rivers, canals and train tracks, and therefore limits the transportation modes that can be used in FPEAM to on-road vehicles such as trucks. Future FPEAM development will expand the available routes to include multiple route types and transportation modes. Dijkstra's algorithm is applied to find the shortest path from the biomass production region to the destination region (both mapped to FIPS as discussed previously), and the shortest path is used to obtain a list of FIPS through which the biomass is transported as well as the vehicle miles traveled within each FIPS.
+
 # NONROAD Module
 
-Calculate emissions from on-farm fuel combustion and equipment operation. Equipment types include tractors, combines, and trucks.
+NONROAD is a model for calculating emissions from off-road sources including logging, agricultural and other types of equipment. Although NONROAD is contained within MOVES 2014a, the required inputs, interface and outputs are sufficiently different from MOVES that a separate FPEAM module for setting up and running NONROAD was created. Unlike MOVES, NONROAD run times are on the order of seconds, and so NONROAD is run entirely at a FIPS level rather than at an aggregated level.
 
-## Advanced user options
+There are a variety of input files required to run NONROAD, many of which are nested several sub-directories deep. NONROAD requires that the complete file paths to all input files be 60 characters or less (although some file paths may extend to 80 characters, developers have chosen to limit input file paths to 60 characters for simplicity), and so to avoid file path length errors, NONROAD input files have coded names that indicate feedstock type, tillage type and activity. CSV files recording the encoded feedstock, tillage and activity names are saved automatically to the main FPEAM directory when the names are encoded, to allow users to review the input files if necessary.
 
-TABLE: NONROAD temperature range.
+## User options and input data
 
-|             | Temperature |
-| :---------- | :---------: |
-| Minimum     | 50.0 &deg;F |
-| Mean        | 60.0 &deg;F |
-| Maximum     | 68.8 &deg;F |
+User options within the NONROAD config file (also accessible via the GUI) consist of identifiers used to select which entries in the feedstock production and equipment datasets should be used in NONROAD runs, NONROAD temperature specifications and a set of multipliers used to calculate criteria air pollutants of interest from those returned by NONROAD. These options are listed in the table below with default values and descriptions.
 
-TABLE: Matching generic equipment types from the equipment to specific NONROAD equipment and fuel types.
+TABLE: NONROAD module user options
 
-| Equipment names | NONROAD equipment types | Source Characterization Code |
-| ---------------------- | ----------------------- | :------------------------ |
-| tractor | Dsl - Agricultural Tractors | |
-| combine | Dsl - Combines | |
-| chipper | Dsl - Chippers/Stump Grinders (com) | |
-| loader | Dsl - Forest Eqp - Feller/Bunch/Skidder | |
-| other_forest_eqp | Dsl - Forest Eqp - Feller/Bunch/Skidder | |
-| chain_saw | Lawn & Garden Equipment Chain Saws | |
-| crawler | Dsl - Crawler Tractors | |
+| Parameter | Data Type | Default Value | Units | Description |
+| :-------- | :-------- | :------------ | :---: |  :--------- |
+| feedstock_measure_type | string | harvested | Unitless | Type of feedstock measure used in NONROAD calculations - the units of this feedstock measure should be acreage |
+| time_resource_name | string | time | Name used in equipment dataset to identify time spent running agricultural equipment |
+| forestry_feedstock_names | list of strings | forest whole trees, forest residues | Names of forestry feedstocks in feedstock production and equipment datasets, if any |
+| nonroad_temp_min | float | 50.0 | &deg;F | Minimum temperature used by NONROAD |
+| nonroad_temp_mean | float | 60.0 | &deg;F | Mean temperature used by NONROAD |
+| nonroad_temp_max | float | 68.8 | &deg;F | Maximum temperature used by NONROAD |
+| diesel_lhv | float | 0.012845 | mmBTU/gallon | Lower heating value of diesel fuel |
+| diesel_nh3_ef | float | 0.68 | grams NH3/mmBTU diesel | NH3 emission factor for diesel fuel [1.] |
+| diesel_thc_voc_conversion | float | 1.053 | Unitless | Default total hydrocarbon (THC) to VOC conversion factor for diesel fuel [2.] |
+| diesel_pm10topm25 | float | 0.97 | Unitless | Default PM10 to PM2.5 conversion factor for diesel fuel [2.] |
+
+1. “Co-Benefits Risk Assessment (COBRA) Screening Model.” EPA, Climate and Energy
+Resources for State, Local, and Tribal Governments. https://www.epa.gov/statelocalclimate/co-benefits-risk-assessment-cobra-screening-model.
+2. EPA NONROAD Conversion Factors for Hydrocarbon Emission Components
+
+NONROAD identifies equipment based on Source Characterization Codes (SCCs) and equipment horsepower. In the default equipment data set, SCCs were not provided, so an additional input file mapping equipment names from the equipment dataset to equipment SCCs is supplied as well. A portion of this input file is given in the table below. SCCs for equipment types included in NONROAD but not used in the default equipment dataset may be found in Appendix B of the [NONROAD User Guide](https://www.epa.gov/moves/nonroad-model-nonroad-engines-equipment-and-vehicles#user%20guide).
+
+TABLE: Sample entries from the nonroad_equipment input dataset. Equipment descriptions in this file are added to NONROAD input files but are not necessary for NONROAD to run, thus the descriptions may be left blank if desired. 
+
+| Equipment name | Equipment description | Source Characterization Code (SCC) |
+| :------------- | :-------------------- | :--------------------------------: |
+| whole tree chipper (large) | Dsl - Chippers/Stump Grinders (com) | 2270004066 |
+| loader (2 row) | Dsl - Forest Eqp - Feller/Bunch/Skidder | 2270007015 |
+| combine (2wd) | Dsl - Combines | 2270005020 |
+| tractor 2wd 150 hp | Dsl - Agricultural Tractors | 2270005015 |
 
 ## Module structure and function
 
-## Output
-Table of total emissions for off-road equipment operation
+The NONROAD module has very similar functionality to the MOVES module; input files for running the model are created and saved, and system commands (saved as batch files in the NONROAD module) are used to call the external models. A separate postprocessing method for raw NONROAD output reads in the NONROAD output files, concatenates the output from various NONROAD runs together, and adds identifier columns.
 
 ## Additional development
 
@@ -387,13 +397,9 @@ TABLE: The default resource subtype distribution data file defines the nitrogen 
 | eucalyptus | herbicide | generic herbicide | 1 |
 | wheat | insecticide | generic insecticide | 1 |
 
-## Output
-
-
-
 # Fugitive Dust Module
 
-The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from biomass transportation is not calculated.
+The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from feedstock transportation is not calculated.
 
 PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf) , which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf) . Users are able to use a different PM<sub>2.5</sub> fraction or alternative emissions factors by editing the input data.
 
