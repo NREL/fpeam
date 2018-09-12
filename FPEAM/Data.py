@@ -1,6 +1,6 @@
 import pandas as pd
-from .IO import load
 
+from .IO import load
 from . import utils
 
 LOGGER = utils.logger(name=__name__)
@@ -31,7 +31,7 @@ class Data(pd.DataFrame):
             assert _valid is True
         except AssertionError:
             if df is not None or fpath is not None:
-                raise RuntimeError('{} failed validation: {}'.format(__name__, _valid))
+                raise RuntimeError('{} failed validation'.format(__name__, ))
             else:
                 pass
         # else:
@@ -177,17 +177,6 @@ class SCCCodes(Data):
         super(SCCCodes, self).__init__(df=df, fpath=fpath, columns=columns)
 
 
-class MoistureContent(Data):
-
-    COLUMNS = {'feedstock': str,
-               'moisture_content': str}
-
-    INDEX_COLUMNS = ('feedstock', )
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
-        super(MoistureContent, self).__init__(df=df, fpath=fpath, columns=columns)
-
-
 class NONROADEquipment(Data):
 
     COLUMNS = {'equipment_name': str,
@@ -203,6 +192,9 @@ class NONROADEquipment(Data):
 class TransportationGraph(Data):
 
     COLUMNS = {'edge_id': int,
+               'statefp': str,
+               'countyfp': str,
+               'road_class': float,
                'u_of_edge': int,
                'v_of_edge': int,
                'weight': float}
@@ -223,6 +215,9 @@ class CountyNode(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(CountyNode, self).__init__(df=df, fpath=fpath, columns=columns)
 
+        if 'fips' not in self.index.names:
+            self.set_index('fips', inplace=True)
+
 
 class RegionFipsMap(Data):
 
@@ -235,11 +230,39 @@ class RegionFipsMap(Data):
         super(RegionFipsMap, self).__init__(df=df, fpath=fpath, columns=columns)
 
 
+class StateFipsMap(Data):
+
+    COLUMNS = {'state_abbreviation': str,
+               'state_fips': str}
+
+    INDEX_COLUMNS = ('state_abbreviation', )
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(StateFipsMap, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
 class TruckCapacity(Data):
 
-    COLUMN = {'feedstock': str,
+    COLUMNS = {'feedstock': str,
               'truck_capacity': float,
               'unit_numerator': str,
               'unit_denominator': str}
 
     INDEX_COLUMNS = ('feedstock', )
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(TruckCapacity, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
+class AVFT(Data):
+
+    COLUMNS = {'sourceTypeID': int,
+               'modelYearID': int,
+               'fuelTypeID': int,
+               'engTechID': int,
+               'fuelEngFraction': float}
+
+    INDEX_COLUMNS = ('sourceTypeID', 'modelYearID', 'fuelTypeID', 'engTechID')
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(AVFT, self).__init__(df=df, fpath=fpath, columns=columns)
