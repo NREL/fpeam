@@ -229,6 +229,24 @@ class RegionFipsMap(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(RegionFipsMap, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    def validate(self):
+        try:
+            assert self.region.nunique() == self.fips.nunique()
+        except AssertionError:
+            _region_counts = self.region.value_counts()
+            _dup_regions = list(_region_counts.loc[_region_counts != 1].values)
+            if _dup_regions:
+                LOGGER.error('Duplicated region values in region_fips_map data: %s' % _dup_regions)
+
+            _fips_counts = self.fips.value_counts()
+            _dup_fips = list(_fips_counts.loc[_region_counts != 1].values)
+            if _dup_fips:
+                LOGGER.error('Duplicated FIPS values in region_fips_map data: %s' % _dup_fips)
+            raise ValueError('region_fips_map data must have only 1 '
+                             'FIPS per region and 1 region per FIPS')
+        else:
+            return True
+
 
 class StateFipsMap(Data):
 
@@ -244,9 +262,9 @@ class StateFipsMap(Data):
 class TruckCapacity(Data):
 
     COLUMNS = {'feedstock': str,
-              'truck_capacity': float,
-              'unit_numerator': str,
-              'unit_denominator': str}
+               'truck_capacity': float,
+               'unit_numerator': str,
+               'unit_denominator': str}
 
     INDEX_COLUMNS = ('feedstock', )
 
