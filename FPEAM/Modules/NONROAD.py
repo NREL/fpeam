@@ -278,41 +278,40 @@ class NONROAD(Module):
 
         # loop through all completely assembled filepaths and create a list
         # of the ones that are more than 60 characters
-        _filepath_list = []
+        _filepath_list = np.array([])
 
         # go thru all directories and filenames to assemble complete path
         for i in np.arange(self.nr_files.shape[0]):
             # message files
-            _filepath_list.append(os.path.join(_nr_folders[1],
-                                               self.nr_files.msg_file_names.iloc[i] +
-                                               '.msg'))
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[1],
+                                                    self.nr_files.msg_file_names.iloc[i] +
+                                                    '.msg'))
             # allocate files
-            _filepath_list.append(os.path.join(_nr_folders[2],
-                                               self.nr_files.alo_file_names.iloc[i] +
-                                               '.alo'))
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[2],
+                                                    self.nr_files.alo_file_names.iloc[i] +
+                                                    '.alo'))
             # population files
-            _filepath_list.append(os.path.join(_nr_folders[3],
-                                               self.nr_files.pop_file_names.iloc[i] +
-                                               '.pop'))
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[3],
+                                                    self.nr_files.pop_file_names.iloc[i] +
+                                                    '.pop'))
             # options files
-            _filepath_list.append(os.path.join(_nr_folders[4],
-                                               self.nr_files.out_opt_dir_names.iloc[i],
-                                               self.nr_files.state_abbreviation.iloc[i] +
-                                               '.opt'))
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[4],
+                                                    self.nr_files.out_opt_dir_names.iloc[i],
+                                                    self.nr_files.state_abbreviation.iloc[i] +
+                                                    '.opt'))
             # out files
-            _filepath_list.append(os.path.join(_nr_folders[5],
-                                               self.nr_files.out_opt_dir_names.iloc[i],
-                                               self.nr_files.state_abbreviation.iloc[i] +
-                                               '.out'))
-
-        # get length of each filepath in the list
-        _filepath_lengths = self._strlist_len(_filepath_list)
-
-        # find the locations of all filepaths greater than 60 characters
-        _failpath_locs = [i for i in _filepath_lengths if i > 60]
+            _filepath_list = np.append(_filepath_list,
+                                       os.path.join(_nr_folders[5],
+                                                    self.nr_files.out_opt_dir_names.iloc[i],
+                                                    self.nr_files.state_abbreviation.iloc[i] +
+                                                    '.out'))
 
         # get a list of just those filepaths which exceed 60 characters
-        _failpath_list = [_filepath_list[i] for i in _failpath_locs]
+        _failpath_list = np.array(_filepath_list)[np.array(self._strlist_len(_filepath_list)) > 60]
 
         # check that that failpath list is empty (all filepaths are under
         # the 60 character limit) - if not, record one error per too-long
