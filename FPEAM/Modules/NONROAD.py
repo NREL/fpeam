@@ -406,10 +406,14 @@ population or land area.  The format is as follows.
 
                 # filter down production and get the list of both fips and
                 # feedstock amounts (indicator values)
+                # the groupby and sum accounts for potentially multiple
+                # entries with different feedstock amounts but the same
+                # fips, from a one-to-many region-to-fips mapping
                 _indicator_list = self.prod_equip_merge[_prod_filter][[
                     'fips',
                     'feedstock',
-                    'feedstock_amount']].drop_duplicates()
+                    'feedstock_amount']].drop_duplicates().groupby(['fips',
+                                                                    'feedstock']).sum()
 
                 # write line with state indicator total
                 _ind_state_total = _indicator_list.feedstock_amount.sum()
@@ -980,6 +984,8 @@ T4M       1.0       0.02247
 
         # sum equipment populations so there's only one population per
         # equipment type
+        # this will also sum up entries with the same fips that result from
+        # a one-to-many region-to-fips mapping
         _nr_pop = _nr_pop_equip_merge.groupby(['state_abbreviation',
                                                'feedstock',
                                                'tillage_type',
