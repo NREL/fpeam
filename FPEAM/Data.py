@@ -169,7 +169,7 @@ class FugitiveDust(Data):
 class SCCCodes(Data):
 
     COLUMNS = {'name': str,
-               'scc': str}
+               'scc': int}
 
     INDEX_COLUMNS = ('name', )
 
@@ -181,7 +181,7 @@ class NONROADEquipment(Data):
 
     COLUMNS = {'equipment_name': str,
                'equipment_description': str,
-               'nonroad_equipment_scc': str}
+               'nonroad_equipment_scc': int}
 
     INDEX_COLUMNS = ('equipment_name', )
 
