@@ -9,7 +9,6 @@ nonroad_temp_max = float
 nonroad_temp_mean = float
 
 nonroad_database = string
-nonroad_output_db = string
 nonroad_db_user = string
 nonroad_db_pass = string
 nonroad_db_host = string
