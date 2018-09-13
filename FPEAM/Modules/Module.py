@@ -103,6 +103,8 @@ class Module(object):
         self.graph = None
         self.results = None
 
+    def postprocess(self):
+
     def save(self):
         """
         Save results.

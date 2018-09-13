@@ -1276,10 +1276,11 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         return _nr_out_melted
 
-    def run_nonroad(self):
+    def run(self):
         """
-        Calls all methods to setup and run NONROAD
-        :return: None
+        Calls all methods to setup and runs NONROAD.
+
+        :return:
         """
 
         self.create_population_files()
@@ -1294,7 +1295,22 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         p = Popen(self.master_batch_filepath)
         p.wait()
 
-        self.nonroad_emissions = self.postprocess()
+        _results = None
+        _status = self.status
+        e = None
+
+        try:
+            _results = self.postprocess()
+        except Exception as e:
+            LOGGER.exception(e)
+            _status = 'failed'
+        else:
+            _status = 'complete'
+        finally:
+            self.status = _status
+            self.results = _results
+            if e:
+                raise e
 
     def __enter__(self):
 

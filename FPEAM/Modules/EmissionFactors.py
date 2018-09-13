@@ -100,11 +100,12 @@ class EmissionFactors(Module):
         """
         Execute all calculations.
 
-        :return: [DataFrame] pollutant amounts
+        :return:
         """
 
         _results = None
         _status = self.status
+        e = None
 
         try:
             _results = self.get_emissions()
@@ -115,7 +116,9 @@ class EmissionFactors(Module):
             _status = 'complete'
         finally:
             self.status = _status
-            return _results
+            self.results = _results
+            if e:
+                raise e
 
     def summarize(self):
         pass

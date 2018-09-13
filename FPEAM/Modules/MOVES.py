@@ -59,15 +59,15 @@ class MOVES(Module):
         self.moves_output_db = config.get('moves_output_db')
 
         # open connection to MOVES default database for input/output
-        self.moves_con = pymysql.connect(host=config.get('moves_db_host'),
-                                         user=config.get('moves_db_user'),
-                                         password=config.get('moves_db_pass'),
-                                         db=config.get('moves_database'),
-                                         local_infile=True)
+        self._conn = pymysql.connect(host=config.get('moves_db_host'),
+                                     user=config.get('moves_db_user'),
+                                     password=config.get('moves_db_pass'),
+                                     db=config.get('moves_database'),
+                                     local_infile=True)
 
         # creates cursor for executing queries within the MOVES database (
         # not reading in data, altering tables
-        self.moves_cursor = self.moves_con.cursor()
+        self.moves_cursor = self._conn.cursor()
 
         # get version of MOVES for XML trees
         self.moves_version = config.get('moves_version')
@@ -283,7 +283,7 @@ class MOVES(Module):
                      sourceTypeID = {source_type_id};""".format(**kvals)
 
             # pull data from database and save in a csv
-            pd.read_sql(_table_sql, self.moves_con).to_csv(os.path.join(
+            pd.read_sql(_table_sql, self._conn).to_csv(os.path.join(
                     self.save_path_nationalinputs, '%s.csv' % (kvals['table'],)),
                     index=False)
 
@@ -306,7 +306,7 @@ class MOVES(Module):
                 'default-age-distribution-tool-moves%s.csv' % (self.year,))
 
         # pull data from database and save in a csv
-        pd.read_sql(_agedist_sql, self.moves_con).to_csv(self.agedistfilename, index=False)
+        pd.read_sql(_agedist_sql, self._conn).to_csv(self.agedistfilename, index=False)
 
         # create file for road type VMT fraction from user-specified VMT
         # fractions
@@ -401,7 +401,7 @@ class MOVES(Module):
                                                 'year}.csv'.format(**kvals))
 
         # pull data from database and save in a csv
-        pd.read_sql(_fuelsupply_sql, self.moves_con).to_csv(
+        pd.read_sql(_fuelsupply_sql, self._conn).to_csv(
             self.fuelsupply_filename, index=False)
 
         # export county-level fuel formulation data
@@ -417,8 +417,8 @@ class MOVES(Module):
 
         # pull data from database and save in a csv
         pd.read_sql(_fuelform_sql,
-                    self.moves_con).to_csv(self.fuelformulation_filename,
-                                           index=False)
+                    self._conn).to_csv(self.fuelformulation_filename,
+                                       index=False)
 
         # export county-level fuel usage fraction data
         # need one for each FIPS-year combination
@@ -436,7 +436,7 @@ class MOVES(Module):
                                                'year}.csv'.format(**kvals))
 
         # pull data from database and save in a csv
-        pd.read_sql(_fuelusagename_sql, self.moves_con).to_csv(
+        pd.read_sql(_fuelusagename_sql, self._conn).to_csv(
             self.fuelusage_filename, index=False)
 
         # export county-level meteorology data
@@ -449,8 +449,8 @@ class MOVES(Module):
                                          '{fips}_met.csv'.format(**kvals))
 
         # pull data from database and save in a csv
-        pd.read_sql(_met_sql, self.moves_con).to_csv(self.met_filename,
-                                                     index=False)
+        pd.read_sql(_met_sql, self._conn).to_csv(self.met_filename,
+                                                 index=False)
 
     def create_xml_import(self, fips):
         """
@@ -986,7 +986,7 @@ class MOVES(Module):
 
         # read in the table and get the list of unique fips for which
         # results already exist (takes year, month, day into account)
-        _fips_cached = pd.read_sql(_results_fips_sql, self.moves_con).fips.unique()
+        _fips_cached = pd.read_sql(_results_fips_sql, self._conn).fips.unique()
 
         return _fips_cached
 
@@ -1015,7 +1015,7 @@ class MOVES(Module):
         kvals['day'] = self.d
 
         # some minor changes to the SQL tables in _moves_table_list
-        _moves_cursor = self.moves_con.cursor()
+        _moves_cursor = self._conn.cursor()
 
         for _table in _moves_table_list:
 
@@ -1080,7 +1080,7 @@ class MOVES(Module):
 
         # read in all possibly relevant entries from the rate per distance
         # table
-        _rateperdistance_all = pd.read_sql(_rateperdistance_table_sql, self.moves_con)
+        _rateperdistance_all = pd.read_sql(_rateperdistance_table_sql, self._conn)
 
         # create a filter for relevant rateperdistance rows based on which
         # fips in rateperdistance are equal to fips in the moves run list
@@ -1119,7 +1119,7 @@ class MOVES(Module):
               WHERE veh_table.yearID = {year} AND veh_table.monthID = {month} 
               AND veh_table.dayID = {day};""".format(**kvals)
 
-        _ratepervehicle_all = pd.read_sql(_ratepervehicle_table_sql, self.moves_con)
+        _ratepervehicle_all = pd.read_sql(_ratepervehicle_table_sql, self._conn)
 
         _ratepervehicle_filter = _ratepervehicle_all.fips.isin(
             self.moves_run_list.MOVES_run_fips)
@@ -1151,7 +1151,7 @@ class MOVES(Module):
         # the VMT fraction table created during MOVES setup
         # @NOTE the roadTypeID column in roadtypevmt needs to be int64 type
         _averagespeed = pd.read_sql(_averagespeed_query,
-                                    self.moves_con).merge(self.roadtypevmt, on='roadTypeID')
+                                    self._conn).merge(self.roadtypevmt, on='roadTypeID')
 
         # Calculate total running emissions per trip (by pollutant)
         # Equal to sum(ratePerDistance * vmtfrac_in_speedbin[i] * vmt)
@@ -1493,8 +1493,23 @@ class MOVES(Module):
                            run_moves=self.runspec_filename)
                 os.system(command)
 
-        # postprocess output - same regardless of cached status
-        self.transportation_emissions = self.postprocess()
+        # postprocess output
+        _results = None
+        _status = self.status
+        e = None
+
+        try:
+            _results = self.postprocess()
+        except Exception as e:
+            LOGGER.exception(e)
+            _status = 'failed'
+        else:
+            _status = 'complete'
+        finally:
+            self.status = _status
+            self.results = _results
+            if e:
+                raise e
 
     def __enter__(self):
 
@@ -1503,7 +1518,7 @@ class MOVES(Module):
     def __exit__(self, exc_type, exc_val, exc_tb):
 
         # close connection to MOVES database
-        self.moves_con.close()
+        self._conn.close()
 
         # process exceptions
         if exc_type is not None:

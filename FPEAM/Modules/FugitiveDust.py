@@ -38,8 +38,7 @@ class FugitiveDust(Module):
         # define list of columns of interest in production
         _prod_columns = ['row_id'] + _idx + ['region_production', 'feedstock_amount']
 
-        # select only production rows corresponding to the user-defined crop
-        #  measure
+        # select only production rows corresponding to the user-defined crop measure
         _prod_rows = self.production.feedstock_measure == self.feedstock_measure_type
 
         # merge production with fugitive dust
@@ -62,11 +61,12 @@ class FugitiveDust(Module):
         """
         Execute all calculations.
 
-        :return: [DataFrame] fugitive dust amounts
+        :return:
         """
 
         _results = None
         _status = self.status
+        e = None
 
         try:
             _results = self.get_fugitivedust()
@@ -77,7 +77,9 @@ class FugitiveDust(Module):
             _status = 'complete'
         finally:
             self.status = _status
-            return _results
+            self.results = _results
+            if e:
+                raise e
 
     def summarize(self):
         pass
