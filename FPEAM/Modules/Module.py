@@ -105,14 +105,16 @@ class Module(object):
 
     def postprocess(self):
 
-    def save(self):
+    def save(self, fpath):
         """
-        Save results.
+        Save results as a CSV to <fpath>.
 
         :return: [bool] True on success
         """
 
-        raise NotImplementedError
+        self.results.to_csv(fpath)
+
+        return True
 
     def __enter__(self):
         return self
