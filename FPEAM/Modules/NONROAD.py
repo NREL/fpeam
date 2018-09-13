@@ -1,17 +1,18 @@
 import os
-import pymysql
-import pandas as pd
-import numpy as np
 from subprocess import Popen
 
-from .Module import Module
+import numpy as np
+import pandas as pd
+import pymysql
+
 from FPEAM import utils
+from .Module import Module
 
 LOGGER = utils.logger(name=__name__)
 
 
 class NONROAD(Module):
-    
+
     def __init__(self, config, production, equipment, year,
                  region_fips_map, nonroad_equipment,
                  state_fips_map, **kvals):
@@ -30,8 +31,7 @@ class NONROAD(Module):
         self.nonroad_project_path = config.get('nonroad_project_path')
         self.nonroad_exe = config.get('nonroad_exe')
 
-        self.project_path = os.path.join(config.get('nonroad_project_path'),
-                                         self.model_run_title)
+        self.project_path = os.path.join(config.get('nonroad_project_path'), self.model_run_title)
 
         # store nonroad parameters in self
         self.temp_min = config.get('nonroad_temp_min')
@@ -39,12 +39,10 @@ class NONROAD(Module):
         self.temp_max = config.get('nonroad_temp_max')
         self.diesel_lhv = config.get('diesel_lhv')
         self.diesel_nh3_ef = config.get('diesel_nh3_ef')
-        self.diesel_thc_voc_conversion = config.get(
-            'diesel_thc_voc_conversion')
+        self.diesel_thc_voc_conversion = config.get('diesel_thc_voc_conversion')
         self.diesel_pm10topm25 = config.get('diesel_pm10topm25')
         self.time_resource_name = config.get('time_resource_name')
-        self.feedstock_measure_type = config.get(
-            'feedstock_measure_type')
+        self.feedstock_measure_type = config.get('feedstock_measure_type')
 
         # get dictionary of conversion factors
         self.conversion_factors = self._set_conversions()
@@ -59,14 +57,14 @@ class NONROAD(Module):
                                      db=config.get('nonroad_database'),
                                      local_infile=True)
 
-        # store input arguments in self
-        self.production = production
-        self.equipment = equipment
-
         # dataframe of equipment names matching the names in the equipment
         # input df and SCC codes from nonroad
-        self._nonroad_equipment = None
         self.nonroad_equipment = nonroad_equipment
+
+        self._equipment = None
+        self.equipment = equipment
+
+        self.production = production
 
         # mapping from the region_production column of production
         # to NONROAD fips values, used to derive state identifiers and run
@@ -95,7 +93,7 @@ class NONROAD(Module):
 
         # add column with state derived from NONROAD fips column
         self.production['state_fips'] = self.production.fips.str.slice(
-            stop=2)
+                stop=2)
 
         # merge with the state abbreviation df to have both state codes and
         # state (character) abbreviations
@@ -111,7 +109,7 @@ class NONROAD(Module):
         self.production = self.production[_prod_filter]
 
         # create filter to select only the time resource entries from the
-        # equipment df
+        # equipment df  # @TODO: move this to initial equipment setting so validation only happens once
         _equip_filter = self.equipment.resource == self.time_resource_name
 
         self.equipment = self.equipment[_equip_filter]
@@ -129,15 +127,14 @@ class NONROAD(Module):
         # find the maximum rotation year within groups for calculating
         # average rates
         _max_year = self.equipment.groupby(['feedstock', 'tillage_type',
-                                             'equipment_group'],
-                                            as_index=False).max()[['feedstock',
-                                                                   'tillage_type',
-                                                                   'equipment_group',
-                                                                   'rotation_year']]
+                                            'equipment_group'],
+                                           as_index=False).max()[['feedstock',
+                                                                  'tillage_type',
+                                                                  'equipment_group',
+                                                                  'rotation_year']]
 
         # rename rotation year to max rotation year
-        _max_year.rename(index=str, columns={'rotation_year':
-                                                 'max_rotation_year'},
+        _max_year.rename(index=str, columns={'rotation_year': 'max_rotation_year'},
                          inplace=True)
 
         # rename rate column to total rate
@@ -162,10 +159,10 @@ class NONROAD(Module):
         # merge prod and the equip with average rates on feedstock, tillage
         # type and equipment group
         self.prod_equip_merge = self.production.merge(_equip_avg,
-                                                how='inner',
-                                                on=['feedstock',
-                                                    'tillage_type',
-                                                    'equipment_group'])
+                                                      how='inner',
+                                                      on=['feedstock',
+                                                          'tillage_type',
+                                                          'equipment_group'])
 
         # calculate total hours for each equipment type - activity type combo
         self.prod_equip_merge.eval('total_annual_rate = feedstock_amount * '
@@ -191,7 +188,7 @@ class NONROAD(Module):
             _feedstocks.sort()
             _feedstock_codes = pd.DataFrame({'feedstock': _feedstocks,
                                              'feedstock_code': np.arange(
-                                                 _feedstocks.__len__())})
+                                                     _feedstocks.__len__())})
             _feedstock_codes['feedstock_code'] = 'f' + _feedstock_codes['feedstock_code'].map(str)
             _feedstock_codes.to_csv(self.model_run_title + '_feedstock_codes.csv',
                                     index=False)
@@ -200,8 +197,9 @@ class NONROAD(Module):
             _tillage_types.sort()
             _tillage_type_codes = pd.DataFrame({'tillage_type': _tillage_types,
                                                 'tillage_type_code': np.arange(
-                                                    _tillage_types.__len__())})
-            _tillage_type_codes['tillage_type_code'] = 't' + _tillage_type_codes['tillage_type_code'].map(str)
+                                                        _tillage_types.__len__())})
+            _tillage_type_codes['tillage_type_code'] = 't' + _tillage_type_codes[
+                'tillage_type_code'].map(str)
             _tillage_type_codes.to_csv(self.model_run_title + '_tillage_type_codes.csv',
                                        index=False)
 
@@ -209,7 +207,7 @@ class NONROAD(Module):
             _activities.sort()
             _activity_codes = pd.DataFrame({'activity': _activities,
                                             'activity_code': np.arange(
-                                                _activities.__len__())})
+                                                    _activities.__len__())})
             _activity_codes['activity_code'] = 'a' + _activity_codes['activity_code'].map(str)
             _activity_codes.to_csv(self.model_run_title + '_activity_codes.csv',
                                    index=False)
@@ -218,8 +216,8 @@ class NONROAD(Module):
             self.nr_files = self.nr_files.merge(_feedstock_codes,
                                                 how='inner',
                                                 on='feedstock').merge(
-                _tillage_type_codes, how='inner', on='tillage_type').merge(
-                _activity_codes, how='inner', on='activity')
+                    _tillage_type_codes, how='inner', on='tillage_type').merge(
+                    _activity_codes, how='inner', on='activity')
 
             # do some assembly to create parseable filenames for each population
             #  file - .pop extension SHOULD NOT be included as it is tacked on
@@ -352,20 +350,39 @@ class NONROAD(Module):
                 os.makedirs(_opt_path)
 
     @property
-    def nonroad_equipment(self):
-        return self._nonroad_equipment
+    def equipment(self):
+        return self._equipment
 
-    @nonroad_equipment.setter
-    def nonroad_equipment(self, value):
+    @equipment.setter
+    def equipment(self, value):
 
         def _validate_hp_ranges():
-            _sql = "SELECT MIN(hpMin), MAX(hpMax) FROM nrsourceusetype source " \
-                   "JOIN nrhprangebin hpbin ON (source.NRHPRangeBinID = hpbin.NRHPRangeBinID);"
+            _sql = "SELECT CONVERT(SCC, CHAR) AS nonroad_equipment_scc," \
+                   " MIN(hpMin) AS hp_min," \
+                   " MAX(hpMax) AS hp_max" \
+                   " FROM nrsourceusetype source" \
+                   " JOIN nrhprangebin hpbin ON (source.NRHPRangeBinID = hpbin.NRHPRangeBinID)" \
+                   " GROUP BY SCC" \
+                   " ORDER BY SCC;"
 
-            _valid_hp = pd.read_sql(sql=_sql, con=self._conn)
+            _equip = value[['equipment_name', 'equipment_horsepower']]\
+                .drop_duplicates()\
+                .merge(self.nonroad_equipment[['equipment_name', 'nonroad_equipment_scc']]
+                       .drop_duplicates(), on='equipment_name')\
+                .merge(pd.read_sql(sql=_sql, con=self._conn), on='nonroad_equipment_scc')
+
+            _invalid = _equip[~_equip.equipment_horsepower.between(_equip.hp_min, _equip.hp_max)]
+
+            if not _invalid.empty:
+                for _row in [list(x) for x in set(tuple(x) for x in _invalid.values.tolist())]:
+                    LOGGER.error('{0} ({2}) horsepower must be between {3} and {4} (currently {1})'
+                                 .format(*_row))
+                return False
+            else:
+                return True
 
         if _validate_hp_ranges():
-            self._nonroad_equipment = value
+            self._equipment = value
         else:
             raise ValueError('equipment group contains invalid HP ranges')
 
@@ -479,15 +496,14 @@ population or land area.  The format is as follows.
                         _ind = _indicator_list.feedstock_amount[
                             _indicator_list.fips == _fips].values[0]
 
-
                     _alo_line = """%s  %s      %s    %s\n""" % (
-                        _ind_code,  _fips, self.year, _ind)
+                        _ind_code, _fips, self.year, _ind)
 
                     _alo_file_path.writelines(_alo_line)
 
                 if self.forestry_feedstock_names is not None:
 
-                    if  self.nr_files.feedstock.iloc[i] in \
+                    if self.nr_files.feedstock.iloc[i] in \
                             self.forestry_feedstock_names:
 
                         _ind_state_total = _ind_state_total * 2000.0 / 30.0
@@ -498,7 +514,7 @@ population or land area.  The format is as follows.
                     else:
 
                         _state_line = """FRM  %s000      %s    %s\n""" % (
-                           _state_code, self.year, _ind_state_total)
+                            _state_code, self.year, _ind_state_total)
 
                 else:
 
@@ -510,7 +526,6 @@ population or land area.  The format is as follows.
 
                 # write final line of file
                 _alo_file_path.writelines('/END/')
-
 
     def create_options_files(self):
         """
@@ -564,11 +579,11 @@ population or land area.  The format is as follows.
                                                 'emsfac', 'spillage.emf'),
                  'EMFAC_Diurnal': os.path.join(self.nonroad_path, 'data',
                                                'emsfac', 'evdiu.emf'),
-                 'EMFAC_Tank_Perm': os.path.join( self.nonroad_path, 'data',
-                                                  'emsfac', 'evtank.emf'),
-                 'EMFAC_Non_RM_Hose_Perm': os.path.join( self.nonroad_path,
-                                                         'data', 'emsfac',
-                                                         'evhose.emf'),
+                 'EMFAC_Tank_Perm': os.path.join(self.nonroad_path, 'data',
+                                                 'emsfac', 'evtank.emf'),
+                 'EMFAC_Non_RM_Hose_Perm': os.path.join(self.nonroad_path,
+                                                        'data', 'emsfac',
+                                                        'evhose.emf'),
                  'EMFAC_RM_Fill_Neck_Perm': os.path.join(self.nonroad_path,
                                                          'data', 'emsfac',
                                                          'evneck.emf'),
@@ -601,11 +616,11 @@ population or land area.  The format is as follows.
                                                        'data', 'detfac',
                                                        'evtank.det'),
                  'DETERIORATE_Non_RM_Hose_Perm': os.path.join(
-                     self.nonroad_path, 'data', 'detfac', 'evhose.det'),
+                         self.nonroad_path, 'data', 'detfac', 'evhose.det'),
                  'DETERIORATE_RM_Fill_Neck_Perm': os.path.join(
-                     self.nonroad_path, 'data', 'detfac', 'evneck.det'),
+                         self.nonroad_path, 'data', 'detfac', 'evneck.det'),
                  'DETERIORATE_RM_Supply_Return': os.path.join(
-                     self.nonroad_path, 'data', 'detfac', 'evsupret.det'),
+                         self.nonroad_path, 'data', 'detfac', 'evsupret.det'),
                  'DETERIORATE_RM_Vent_Perm': os.path.join(self.nonroad_path,
                                                           'data', 'detfac',
                                                           'evvent.det'),
@@ -863,20 +878,22 @@ T4M       1.0       0.02247
         # loop thru the feedstock-tillage-activity combinations stored in
         # nr_files
         for i in np.arange(self.nr_files.shape[0]):
-
             kvals_fips = {'state_fips': '{fips:0<5}'.format(fips=self.nr_files.state_fips.iloc[i]),
                           'MESSAGE': os.path.join(self.project_path,
                                                   'MESSAGES',
                                                   self.nr_files.msg_file_names.iloc[i] + '.msg'),
                           'OUTPUT_DATA': os.path.join(self.project_path, 'OUT',
                                                       self.nr_files.out_opt_dir_names.iloc[i],
-                                                      self.nr_files.state_abbreviation.iloc[i] + '.out'),
+                                                      self.nr_files.state_abbreviation.iloc[
+                                                          i] + '.out'),
                           'Population_File': os.path.join(self.project_path,
                                                           'POP',
-                                                          self.nr_files.pop_file_names.iloc[i] + '.pop'),
+                                                          self.nr_files.pop_file_names.iloc[
+                                                              i] + '.pop'),
                           'Harvested_acres': os.path.join(self.project_path,
                                                           'ALLOCATE',
-                                                          self.nr_files.alo_file_names.iloc[i] + '.alo')}
+                                                          self.nr_files.alo_file_names.iloc[
+                                                              i] + '.alo')}
 
             # complete path to state OPT file including the subdirectory
             # name and the filename which is the state abbreviation
@@ -884,12 +901,9 @@ T4M       1.0       0.02247
                              self.nr_files.out_opt_dir_names.iloc[i],
                              self.nr_files.state_abbreviation.iloc[i] + '.opt')
 
-
             with open(f, 'w') as _opt_file:
-
                 _opt_file.writelines(_options_file_template.format(**kvals,
                                                                    **kvals_fips))
-
 
     def _write_population_file_line(self, df, _pop_file):
         """
@@ -910,12 +924,12 @@ T4M       1.0       0.02247
                  'flag': 'DEFAULT',
                  'pop': df.equipment_population}
 
-        _string_to_write = '{fips:0>5} {sub_reg:>5} {year:>4} {scc_code:>10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5.1f} {life:>5} {flag:<10} {pop:>17.7f} \n'.format(**kvals)
+        _string_to_write = '{fips:0>5} {sub_reg:>5} {year:>4} {scc_code:>10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5.1f} {life:>5} {flag:<10} {pop:>17.7f} \n'.format(
+            **kvals)
 
         _pop_file.writelines(_string_to_write)
 
         return None
-
 
     def create_population_files(self):
         """
@@ -949,7 +963,7 @@ T4M       1.0       0.02247
         # filter down the nrsourceusetype table based on the list of
         # equipment in user-provided nonroad_equipment
         _scc_filter = _nrsourceusetype.SCC.isin(
-            self.nonroad_equipment.nonroad_equipment_scc)
+                self.nonroad_equipment.nonroad_equipment_scc)
 
         _nrsourceusetype_filtered = _nrsourceusetype[_scc_filter]
 
@@ -969,9 +983,9 @@ T4M       1.0       0.02247
                                                              how='inner',
                                                              left_on='nonroad_equipment_scc',
                                                              right_on='SCC').merge(
-                                                        _nrhprangebin,
-                                                        how='inner',
-                                                        on='NRHPRangeBinID')
+                _nrhprangebin,
+                how='inner',
+                on='NRHPRangeBinID')
 
         _nr_equip_filter = self.prod_equip_merge[['equipment_name',
                                                   'equipment_horsepower']].drop_duplicates()
@@ -985,17 +999,17 @@ T4M       1.0       0.02247
         # ranges for each piece of equipment
         _hp_filter = ((_nr_pop_info_filtered.equipment_horsepower >=
                        _nr_pop_info_filtered.hpMin) & (
-                _nr_pop_info_filtered.equipment_horsepower <=
-                _nr_pop_info_filtered.hpMax))
+                              _nr_pop_info_filtered.equipment_horsepower <=
+                              _nr_pop_info_filtered.hpMax))
 
         _nr_pop_info_filtered = _nr_pop_info_filtered[_hp_filter]
 
         # merge the nr population info with equipment before calculating equipment
         # population from actual activity hours and hours-per-year from nonroad
         _nr_pop_equip_merge = self.prod_equip_merge.merge(_nr_pop_info_filtered,
-                                                      how='left',
-                                                      on=['equipment_name',
-                                                          'equipment_horsepower'])
+                                                          how='left',
+                                                          on=['equipment_name',
+                                                              'equipment_horsepower'])
 
         # calculate the equipment population from the annual rate (from the
         # equipment input data) and the hours used per year (from nonroad
@@ -1056,15 +1070,14 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         # open, create and close all population files for a scenario
         for i in np.arange(self.nr_files.shape[0]):
-
             # create filter to pull out only the lines in _nr_pop that are
             # relevant to this population file
             _nr_pop_filter = (_nr_pop.state_abbreviation ==
                               self.nr_files.state_abbreviation.iloc[i]) & (
-                    _nr_pop.feedstock == self.nr_files.feedstock.iloc[i])\
+                                     _nr_pop.feedstock == self.nr_files.feedstock.iloc[i]) \
                              & (_nr_pop.tillage_type ==
                                 self.nr_files.tillage_type.iloc[i]) & (
-                    _nr_pop.activity == self.nr_files.activity.iloc[i])
+                                     _nr_pop.activity == self.nr_files.activity.iloc[i])
 
             # subset _nr_pop
             _nr_pop_sub = _nr_pop[_nr_pop_filter]
@@ -1082,7 +1095,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
             # open, write and close population file
             with open(_pop_path, 'w') as _pop_file:
-
                 # write the population file preamble to file
                 _pop_file.writelines(_opening_lines)
 
@@ -1093,7 +1105,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
                 # write ending line
                 _pop_file.writelines('/END/')
-
 
     def create_batch_files(self):
         """
@@ -1127,19 +1138,20 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
                 # write the first line that sets the current director
                 _batch_file.writelines("""cd {nonroad_project_path}\n""".format(
-                    **kvals))
+                        **kvals))
 
                 # loop through the subset of nr_files
                 for j in np.arange(nr_files_sub.shape[0]):
-
                     # assemble the full filepath to each .opt file relevant
                     # to this batch file
                     kvals['opt_filepath'] = os.path.join(_batch_path,
                                                          nr_files_sub.out_opt_dir_names.iloc[j],
-                                                         nr_files_sub.state_abbreviation.iloc[j] + '.opt')
+                                                         nr_files_sub.state_abbreviation.iloc[
+                                                             j] + '.opt')
 
                     # write each line of the batch file
-                    _batch_file.writelines("""{nonroad_exe_path} {opt_filepath}\n""".format(**kvals))
+                    _batch_file.writelines(
+                        """{nonroad_exe_path} {opt_filepath}\n""".format(**kvals))
 
                 # close the batch file
                 _batch_file.close()
@@ -1147,7 +1159,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         # create the master batch file
         # store in self for use in run method
         self.master_batch_filepath = os.path.join(_batch_path,
-                                              self.model_run_title + '.bat')
+                                                  self.model_run_title + '.bat')
 
         # open the master batch file
         with open(self.master_batch_filepath, 'w') as _master_batch_file:
@@ -1159,13 +1171,11 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 # the master batch file itself
                 if _file.endswith('.bat') & ~_file.startswith(
                         self.model_run_title):
-
                     # get the complete filepath to the batch file
                     kvals['batch_filename'] = os.path.join(_batch_path, _file)
 
                     # write the batch file's line to the master bach file
                     _master_batch_file.writelines("""CALL "{batch_filename}"\n""".format(**kvals))
-
 
     def postprocess(self):
         """
@@ -1221,7 +1231,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         # nh3 emissions are calculated as grams and converted to short tons
         # to match the rest of the emissions
-        _nr_out['nh3'] = _nr_out.fuel * self.diesel_lhv * self.diesel_nh3_ef\
+        _nr_out['nh3'] = _nr_out.fuel * self.diesel_lhv * self.diesel_nh3_ef \
                          * self.conversion_factors['gram']['ton']
 
         # pm calculated by nonroad is pm10 - rename for clarity
@@ -1266,7 +1276,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         return _nr_out_melted
 
-
     def run_nonroad(self):
         """
         Calls all methods to setup and run NONROAD
@@ -1287,12 +1296,9 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         self.nonroad_emissions = self.postprocess()
 
-
-
     def __enter__(self):
 
         return self
-
 
     def __exit__(self, exc_type, exc_val, exc_tb):
 
