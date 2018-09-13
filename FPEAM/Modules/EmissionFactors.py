@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from .Module import Module
 from .. import utils
 LOGGER = utils.logger(name=__name__)

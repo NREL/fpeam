@@ -1,7 +1,8 @@
 import os
-from FPEAM import (utils, IO)
+
 from configobj import (ConfigObj, ConfigObjError)
 
+from FPEAM import (utils, IO)
 
 LOGGER = utils.logger(name=__name__)
 

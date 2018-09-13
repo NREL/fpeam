@@ -1,9 +1,10 @@
 """Input and output helper utilities."""
 
 import os
-from . import utils
 
 import pandas as pd
+
+from . import utils
 
 CONFIG_FOLDER = os.path.join('..', 'configs')
 DATA_FOLDER = os.path.join('..', 'data')

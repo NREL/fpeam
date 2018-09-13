@@ -6,8 +6,8 @@ import pymysql
 from lxml import etree
 from lxml.builder import E
 
-from .Module import Module
 from FPEAM import utils
+from .Module import Module
 
 LOGGER = utils.logger(name=__name__)
 

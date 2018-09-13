@@ -1,10 +1,12 @@
+import os
 from collections import Iterable
+
 from . import Data
-from . import utils
 from . import Modules
+from . import utils
 from .IO import (CONFIG_FOLDER, load_configs)
 from .Router import Router
-import os
+
 LOGGER = utils.logger(name=__name__)
 
 
