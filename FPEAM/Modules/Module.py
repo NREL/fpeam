@@ -97,17 +97,23 @@ class Module(object):
         """
         Execute module.
 
-        :return: [bool] True on success
+        :return:
         """
+
         self.status = 'executed'
         self.graph = None
         self.results = None
 
     def postprocess(self):
+        """
+        Process intermediate results into final dataset.
+
+        :return:
+        """
 
     def save(self, fpath):
         """
-        Save results as a CSV to <fpath>.
+        Save results.
 
         :return: [bool] True on success
         """
