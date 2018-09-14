@@ -140,12 +140,13 @@ class ResourceDistribution(Data):
 class EmissionFactor(Data):
     COLUMNS = {'resource': str,
                'resource_subtype': str,
+               'activity': str,
                'pollutant': str,
                'rate': float,
                'unit_numerator': str,
                'unit_denominator': str,}
 
-    INDEX_COLUMNS = ('resource', 'resource_subtype', 'pollutant')
+    INDEX_COLUMNS = ('resource', 'resource_subtype', 'activity', 'pollutant')
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(EmissionFactor, self).__init__(df=df, fpath=fpath, columns=columns)
@@ -168,10 +169,10 @@ class FugitiveDust(Data):
 
 class SCCCodes(Data):
 
-    COLUMNS = {'name': str,
+    COLUMNS = {'resource_subtype': str,
                'scc': str}
 
-    INDEX_COLUMNS = ('name', )
+    INDEX_COLUMNS = ('resource_subtype', )
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(SCCCodes, self).__init__(df=df, fpath=fpath, columns=columns)
