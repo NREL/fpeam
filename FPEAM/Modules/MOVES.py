@@ -155,9 +155,8 @@ class MOVES(Module):
         # selection of fuels to run
         # 20 is conventional diesel and 21 is biodiesel
         # @NOTE possibly add to GUI as user input in the future
-        # the weird format is so it can be fed into a SQL query
         # can select additional fuel subtypes in list form
-        self.fuel_subtype_id = '(20, 21)'
+        self.fuel_subtype_id = (20, 21)
 
         # selection of fuel supply type
         # not sure what this means
@@ -350,7 +349,7 @@ class MOVES(Module):
         kvals['fips'] = fips
         kvals['year'] = self.year
         kvals['moves_database'] = self.moves_database
-        kvals['fuel_subtype_id'] = self.fuel_subtype_id
+        kvals['fuel_subtype_id'] = ', '.join(self.fuel_subtype_id)
         kvals['fuel_supply_fuel_type_id'] = self.fuel_supply_fuel_type_id
         kvals['countyID'] = str(int(fips))
         kvals['zoneID'] = str(int(fips)) + '0'
@@ -407,7 +406,7 @@ class MOVES(Module):
         # need one for each FIPS-year combination
         _fuelform_sql = """SELECT * FROM {moves_database}.fuelformulation
                             WHERE {moves_database}.fuelformulation.fuelSubtypeID
-                            IN {fuel_subtype_id};""".format(**kvals)
+                            IN ({fuel_subtype_id});""".format(**kvals)
 
         # this name is FIPS dependent, cannot be created in init
         self.fuelformulation_filename = os.path.join(
