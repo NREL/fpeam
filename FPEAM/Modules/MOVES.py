@@ -464,7 +464,7 @@ class MOVES(Module):
         kvals['year'] = self.year
 
         # set parser to leave CDATA sections in document
-        self.parser = etree.XMLParser(strip_cdata=False, recover=True)
+        _parser = etree.XMLParser(strip_cdata=False, recover=True)
 
         # create these files here since they were generated in a loop in
         # create_national_inputs - no stored filename
@@ -479,44 +479,44 @@ class MOVES(Module):
                 '<internalcontrolstrategy classname="gov.epa.otaq.moves.master.implementation.'
                 'ghg.internalcontrolstrategies.rateofprogress.RateOfProgressStrategy">'
                 '<![CDATA[useParameters	No]]></internalcontrolstrategy>',
-                self.parser)
+                _parser)
         self.agename = "<filename>{agedistfilename}</filename>".format(
                 agedistfilename=self.agedistfilename)
-        self.agefile = etree.XML(self.agename, self.parser)
+        self.agefile = etree.XML(self.agename, _parser)
         self.speedfile = etree.XML(
                 "<filename>{speedfilename}</filename>".format(
-                        speedfilename=_avgspeeddist_filename), self.parser)
+                        speedfilename=_avgspeeddist_filename), _parser)
         self.fuelsupfile = etree.XML(
                 "<filename>{fuelsupfilename}</filename>".format(
-                        fuelsupfilename=self.fuelsupply_filename), self.parser)
+                        fuelsupfilename=self.fuelsupply_filename), _parser)
         self.fuelformfile = etree.XML(
                 "<filename>{fuelformfilename}</filename>".format(
-                        fuelformfilename=self.fuelformulation_filename), self.parser)
+                        fuelformfilename=self.fuelformulation_filename), _parser)
         self.fuelusagefile = etree.XML(
                 "<filename>{fuelusagefilename}</filename>".format(
-                        fuelusagefilename=self.fuelusage_filename), self.parser)
+                        fuelusagefilename=self.fuelusage_filename), _parser)
         self.avftfile = etree.XML("<filename>{avftfilename}</filename>".format(
-                avftfilename=self.avft_filename), self.parser)
+                avftfilename=self.avft_filename), _parser)
         self.metfile = etree.XML("<filename>{metfilename}</filename>".format(
-                metfilename=self.met_filename), self.parser)
+                metfilename=self.met_filename), _parser)
         self.roadtypefile = etree.XML(
                 "<filename>{roadtypefilename}</filename>".format(
-                        roadtypefilename=self.roadtypevmt_filename), self.parser)
+                        roadtypefilename=self.roadtypevmt_filename), _parser)
         self.sourcetypefile = etree.XML(
                 "<filename>{sourcetypefilename}</filename>".format(
-                        sourcetypefilename=self.sourcetype_filename), self.parser)
+                        sourcetypefilename=self.sourcetype_filename), _parser)
         self.HPMSyearfile = etree.XML(
                 "<filename>{vmtfilename}</filename>".format(
-                        vmtfilename=self.vmt_filename), self.parser)
+                        vmtfilename=self.vmt_filename), _parser)
         self.monthVMTfile = etree.XML(
                 "<filename>{monthvmtfilename}</filename>".format(
-                        monthvmtfilename=_month_vmt_filename), self.parser)
+                        monthvmtfilename=_month_vmt_filename), _parser)
         self.dayVMTfile = etree.XML(
                 "<filename>{dayvmtfilename}</filename>".format(
-                        dayvmtfilename=_day_vmt_filename), self.parser)
+                        dayvmtfilename=_day_vmt_filename), _parser)
         self.hourVMTfile = etree.XML(
                 "<filename>{hourvmtfilename}</filename>".format(
-                        hourvmtfilename=_hour_vmt_filename), self.parser)
+                        hourvmtfilename=_hour_vmt_filename), _parser)
 
         # input database
         self.db_in = "fips_{fips}_{year}_in".format(fips=fips, year=self.year)
@@ -629,15 +629,15 @@ class MOVES(Module):
                             databasesel,
                             E.agedistribution(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(E.sourceTypeAgeDistribution(self.agefile))),
                             E.avgspeeddistribution(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(E.avgSpeedDistribution(self.speedfile))),
                             E.fuel(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(
                                             E.FuelSupply(self.fuelsupfile),
                                             E.FuelFormulation(self.fuelformfile),
@@ -646,23 +646,23 @@ class MOVES(Module):
                                     )),
                             E.zoneMonthHour(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(E.zonemonthhour(self.metfile))),
                             E.rampfraction(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(E.roadType(E.filename("")))),
                             E.roadtypedistribution(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(E.roadTypeDistribution(self.roadtypefile))),
                             E.sourcetypepopulation(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(E.sourceTypeYear(self.sourcetypefile))),
                             E.starts(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(
                                             E.startsPerDay(E.filename("")),
                                             E.startsHourFraction(E.filename("")),
@@ -673,7 +673,7 @@ class MOVES(Module):
                                     )),
                             E.vehicletypevmt(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(
                                             E.HPMSVtypeYear(self.HPMSyearfile),
                                             E.monthVMTFraction(self.monthVMTfile),
@@ -682,21 +682,21 @@ class MOVES(Module):
                                     )),
                             E.hotelling(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(
                                             E.hotellingActivityDistribution(E.filename("")),
                                             E.hotellingHours(E.filename("")))),
                             E.imcoverage(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(E.IMCoverage(E.filename("")))),
                             E.onroadretrofit(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(E.onRoadRetrofit(E.filename("")))),
                             E.generic(
                                     etree.XML('<description><![CDATA[]]></description>',
-                                              self.parser),
+                                              _parser),
                                     E.parts(E.anytable(E.tablename("agecategory"),
                                                        E.filename("")))),
                             mode="county")
