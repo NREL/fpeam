@@ -349,7 +349,7 @@ class MOVES(Module):
         kvals['fips'] = fips
         kvals['year'] = self.year
         kvals['moves_database'] = self.moves_database
-        kvals['fuel_subtype_id'] = ', '.join(self.fuel_subtype_id)
+        kvals['fuel_subtype_id'] = ', '.join([str(_) for _ in self.fuel_subtype_id])
         kvals['fuel_supply_fuel_type_id'] = self.fuel_supply_fuel_type_id
         kvals['countyID'] = str(int(fips))
         kvals['zoneID'] = str(int(fips)) + '0'
@@ -469,14 +469,10 @@ class MOVES(Module):
         # create these files here since they were generated in a loop in
         # create_national_inputs - no stored filename
         # path to average speed distribution file (national inputs)
-        _avgspeeddist_filename = os.path.join(self.save_path_nationalinputs,
-                                              'avgspeeddistribution' + '.csv')
-        _month_vmt_filename = os.path.join(self.save_path_nationalinputs,
-                                           'monthvmtfraction' + '.csv')
-        _day_vmt_filename = os.path.join(self.save_path_nationalinputs,
-                                         'dayvmtfraction' + '.csv')
-        _hour_vmt_filename = os.path.join(self.save_path_nationalinputs,
-                                          'hourvmtfraction' + '.csv')
+        _avgspeeddist_filename = os.path.join(self.save_path_nationalinputs, 'avgspeeddistribution.csv')
+        _month_vmt_filename = os.path.join(self.save_path_nationalinputs, 'monthvmtfraction.csv')
+        _day_vmt_filename = os.path.join(self.save_path_nationalinputs, 'dayvmtfraction.csv')
+        _hour_vmt_filename = os.path.join(self.save_path_nationalinputs, 'hourvmtfraction.csv')
 
         # create XML for elements with CDATA
         self.internalcontrol = etree.XML(
