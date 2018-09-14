@@ -106,16 +106,16 @@ class MOVES(Module):
 
         # parameters for generating XML runspec files for MOVES
         # month(s) for analysis
-        self.mo = self.moves_timespan['mo']
+        self.months = self.moves_timespan['months']
         # days(s) for analysis
-        self.d = self.moves_timespan['d']
+        self.days = self.moves_timespan['days']
         # beginning hour(s) for analysis
-        self.bhr = self.moves_timespan['bhr']
+        self.beginning_hours = self.moves_timespan['beginning_hours']
         # ending hour(s) for analysis
-        self.ehr = self.moves_timespan['ehr']
+        self.ending_hours = self.moves_timespan['ending_hours']
 
         # machine where MOVES output db lives
-        self.server = self.config.get('moves_db_host')
+        self.db_host = self.config.get('moves_db_host')
 
         # user input - get toggle for running moves by state-level fips
         # finds FIPS with highest total (summed across feedstocks)
@@ -130,7 +130,7 @@ class MOVES(Module):
 
         # user input - default values used for running MOVES, actual VMT
         #  used to compute total emission in postprocessing
-        self.vmt_short_haul = self.config.as_int('vmt_short_haul')
+        self.vmt_short_haul = self.as_int('vmt_short_haul')
 
         # user input - population of combination short-haul trucks (assume one
         # per trip and only run MOVES for single trip)
@@ -160,6 +160,7 @@ class MOVES(Module):
         self.fuel_supply_fuel_type_id = '2'
 
         # user input - fraction of VMT on each road type (dictionary type)
+        self._vmt_fraction = None
         self.vmt_fraction = self.config.get('vmt_fraction')
 
         # polname, polkey, procname, prockey and roaddict are used in
@@ -222,8 +223,7 @@ class MOVES(Module):
                                                            'NOX',
                                                            'PM10', 'PM25',
                                                            'SO2', 'VOC'],
-                                             'pollutantID': [30, 2,
-                                                             3,
+                                             'pollutantID': [30, 2, 3,
                                                              100, 110,
                                                              31, 87]})
 
@@ -241,7 +241,22 @@ class MOVES(Module):
         else:
             self._router = value
 
-    def create_national_data(self):
+    @property
+    def vmt_fraction(self):
+        return self._vmt_fraction
+
+    @vmt_fraction.setter
+    def vmt_fraction(self, value):
+
+        # verify complete distribution
+        try:
+            assert sum(value) == 1
+        except AssertionError:
+            raise ValueError('vmt_fraction must sum to 1.0')
+        else:
+            self._vmt_fraction = value
+
+    def _create_national_data(self):
         """
         Create national data for MOVES, including:
             Alternate Vehicle Fuels & Technologies (avft)
@@ -302,26 +317,23 @@ class MOVES(Module):
         # pull data from database and save in a csv
         pd.read_sql(_agedist_sql, self._conn).to_csv(self.agedistfilename, index=False)
 
-        # create file for road type VMT fraction from user-specified VMT
-        # fractions
-        # @NOTE the format of vmt_fraction might cause problems - consider
-        # switching to a list in the config file
-        # @NOTE DO NOT CHANGE data frame column names
-        self.roadtypevmt_filename = os.path.join(self.save_path_nationalinputs, 'roadtype.csv')
-
         # construct dataframe of road type VMTs from config file input
-        # store in self for later use in postprocessing
-        self.roadtypevmt = pd.DataFrame.from_dict(self.vmt_fraction,
+        _vmt_fraction = {2: self.vmt_fraction['rural_restricted'],
+                         3: self.vmt_fraction['rural_unrestricted'],
+                         4: self.vmt_fraction['urban_restricted'],
+                         5: self.vmt_fraction['urban_unrestricted']}
+
+        self.roadtypevmt = pd.DataFrame.from_dict(_vmt_fraction,
                                                   orient='index',
                                                   columns=['roadTypeVMTFraction'])
         self.roadtypevmt['roadTypeID'] = self.roadtypevmt.index
         self.roadtypevmt['sourceTypeID'] = np.repeat(self.source_type_id, 4)
 
         # write roadtypevmt to csv
-        self.roadtypevmt.to_csv(self.roadtypevmt_filename, sep=',',
-                                index=False)
+        self.roadtypevmt_filename = os.path.join(self.save_path_nationalinputs, 'roadtype.csv')
+        self.roadtypevmt.to_csv(self.roadtypevmt_filename, sep=',', index=False)
 
-    def create_county_data(self, fips):
+    def _create_county_data(self, fips):
         """
 
         Create county-level data for MOVES, including:
@@ -335,7 +347,7 @@ class MOVES(Module):
         County-level input files for MOVES that vary by FIPS, year,
         and feedstock
 
-        :return: None
+        :return:
         """
 
         LOGGER.debug('Creating county-level data files for MOVES')
@@ -446,7 +458,7 @@ class MOVES(Module):
         pd.read_sql(_met_sql, self._conn).to_csv(self.met_filename,
                                                  index=False)
 
-    def create_xml_import(self, fips):
+    def _create_xml_import(self, fips):
         """
 
         Create and save XML import files for running MOVES
@@ -519,8 +531,8 @@ class MOVES(Module):
         # scenario ID for MOVES runs
         # ends up in tables in the MOVES output database
         self.scenid = "{fips}_{year}_{month}_{day}".format(fips=fips,
-                                                           day=self.d,
-                                                           month=self.mo,
+                                                           day=self.days,
+                                                           month=self.months,
                                                            year=self.year)
 
         # Create XML element tree for geographic selection
@@ -539,16 +551,16 @@ class MOVES(Module):
         etree.SubElement(timespan, "year", key=self.year.__str__())
 
         # set month
-        etree.SubElement(timespan, "month", id=self.mo.__str__())
+        etree.SubElement(timespan, "month", id=self.months.__str__())
 
         # loop through days (2 = weekend; 5 = weekday)
-        etree.SubElement(timespan, "day", id=self.d.__str__())
+        etree.SubElement(timespan, "day", id=self.days.__str__())
 
         # loop through start hours
-        etree.SubElement(timespan, "beginhour", id=self.bhr.__str__())
+        etree.SubElement(timespan, "beginhour", id=self.beginning_hours.__str__())
 
         # loop through end hours
-        etree.SubElement(timespan, "endhour", id=self.ehr.__str__())
+        etree.SubElement(timespan, "endhour", id=self.ending_hours.__str__())
 
         # aggregate at hourly level
         etree.SubElement(timespan, "aggregateBy", key="Hour")
@@ -597,7 +609,7 @@ class MOVES(Module):
         # Create XML element tree for MOVES input database information
 
         # XML for database selection
-        databasesel = etree.Element("databaseselection", servername=self.server)
+        databasesel = etree.Element("databaseselection", servername=self.db_host)
         databasesel.set("databasename", self.db_in)
 
         # Create XML element tree for MOVES vehicle age distribution
@@ -720,7 +732,7 @@ class MOVES(Module):
             _fileout.write(stringout)
             _fileout.close()
 
-    def create_xml_runspec(self, fips):
+    def _create_xml_runspec(self, fips):
         """
         Create and save XML runspec files for running MOVES
         :return: None
@@ -731,8 +743,8 @@ class MOVES(Module):
 
         # scenario ID for MOVES runs
         _scenid = "{fips}_{year}_{month}_{day}".format(fips=fips,
-                                                       day=self.d,
-                                                       month=self.mo,
+                                                       day=self.days,
+                                                       month=self.months,
                                                        year=self.year)
 
         # Create XML element tree for elements with MOVES inputs with CDATA
@@ -769,12 +781,12 @@ class MOVES(Module):
         etree.SubElement(outputemissions, "regclassid", selected="false")
 
         # Create XML element tree for MOVES output database information
-        outputdatabase = etree.Element("outputdatabase", servername=self.server)
+        outputdatabase = etree.Element("outputdatabase", servername=self.db_host)
         outputdatabase.set("databasename", self.moves_output_db)
         outputdatabase.set("description", "")
 
         # Create XML element tree for MOVES input database information
-        scaleinput = etree.Element("scaleinputdatabase", servername=self.server)
+        scaleinput = etree.Element("scaleinputdatabase", servername=self.db_host)
         scaleinput.set("databasename", "fips_{fips}_{year}_in".format(fips=fips, year=self.year))
         scaleinput.set("description", "")
 
@@ -816,16 +828,16 @@ class MOVES(Module):
         etree.SubElement(timespan, "year", key=self.year.__str__())
 
         # loop through months
-        etree.SubElement(timespan, "month", id=self.mo.__str__())
+        etree.SubElement(timespan, "month", id=self.months.__str__())
 
         # loop through days (2 = weekend; 5 = weekday)
-        etree.SubElement(timespan, "day", id=self.d.__str__())
+        etree.SubElement(timespan, "day", id=self.days.__str__())
 
         # loop through start hours
-        etree.SubElement(timespan, "beginhour", id=self.bhr.__str__())
+        etree.SubElement(timespan, "beginhour", id=self.beginning_hours.__str__())
 
         # loop through end hours
-        etree.SubElement(timespan, "endhour", id=self.ehr.__str__())
+        etree.SubElement(timespan, "endhour", id=self.ending_hours.__str__())
 
         # aggregate at hourly level
         etree.SubElement(timespan, "aggregateBy", key="Hour")
@@ -933,7 +945,7 @@ class MOVES(Module):
             _fileout.write(_stringout)
             _fileout.close()
 
-    def get_cached_results(self):
+    def _get_cached_results(self):
         """
 
         :return: list of fips for which MOVES results already exist
@@ -943,8 +955,8 @@ class MOVES(Module):
         kvals = dict()
         kvals['moves_output_db'] = self.moves_output_db
         kvals['year'] = self.year
-        kvals['month'] = self.mo
-        kvals['day'] = self.d
+        kvals['month'] = self.months
+        kvals['day'] = self.days
 
         _results_fips_sql = """SELECT MOVESScenarioID,
                                                       dist_table.MOVESRunID,
@@ -1001,8 +1013,8 @@ class MOVES(Module):
         kvals['moves_output_db'] = self.moves_output_db
         kvals['source_type_id'] = self.source_type_id
         kvals['year'] = self.year
-        kvals['month'] = self.mo
-        kvals['day'] = self.d
+        kvals['month'] = self.months
+        kvals['day'] = self.days
 
         # some minor changes to the SQL tables in _moves_table_list
         _moves_cursor = self._conn.cursor()
@@ -1328,8 +1340,8 @@ class MOVES(Module):
 
     def run(self):
         """
-        Calls all necessary methods to do preprocessing, setup MOVES input
-        files, run MOVES via command line, and postprocess output
+        Prepare and execute MOVES.
+
         :return:
         """
 
@@ -1400,8 +1412,8 @@ class MOVES(Module):
         # merge production with moves run fips and states and save in self
         # for use in postprocessing
         self.prod_moves_runs = _prod_merge.merge(self.moves_run_list,
-                                                 left_on=('state',),
-                                                 right_on=('MOVES_run_state'))[
+                                                 left_on='state',
+                                                 right_on='MOVES_run_state')[
             ['fips',
              'MOVES_run_fips',
              'state',
@@ -1424,7 +1436,7 @@ class MOVES(Module):
             # @TODO implement: subset and redefine moves_run_list, 
             # excluding those fips for which results already exist
 
-            _exclude_fips = self.get_cached_results()
+            _exclude_fips = self._get_cached_results()
 
             for _fips in _exclude_fips:
                 # report that MOVES run already complete
@@ -1441,19 +1453,19 @@ class MOVES(Module):
         # need to be run
         if _run_fips.__len__() > 0:
             # create national datasets only once per FPEAM
-            self.create_national_data()
+            self._create_national_data()
 
             # loop thru rows of moves_run_list to generate input data files
             # for each FIPS
             for _fips in _run_fips:
                 # create county-level data files
-                self.create_county_data(fips=_fips)
+                self._create_county_data(fips=_fips)
 
                 # create XML import files
-                self.create_xml_import(fips=_fips)
+                self._create_xml_import(fips=_fips)
 
                 # create XML run spec files
-                self.create_xml_runspec(fips=_fips)
+                self._create_xml_runspec(fips=_fips)
 
                 # actually send the commands to import files into MOVES and
                 # then run MOVES
