@@ -35,34 +35,33 @@ class MOVES(Module):
         # init parent
         super(MOVES, self).__init__(config=config)
 
+        self.config = config
+
         self._router = None
         self.router = router
-
-        # get dictionaries of conversion factors for use in postprocessing
-        self.conversion_factors = self._set_conversions()
 
         self.production = production
         self.year = year
         self.region_fips_map = region_fips_map
-        self.feedstock_measure_type = config.get('feedstock_measure_type')
+        self.feedstock_measure_type = self.config.get('feedstock_measure_type')
 
         # this is a DF read in from a csv file
         self.truck_capacity = truck_capacity
 
-        self.use_cached_results = config.get('use_cached_results')
+        self.use_cached_results = self.config.get('use_cached_results')
 
         # scenario name
-        self.model_run_title = config.get('scenario_name')
+        self.model_run_title = self.config.get('scenario_name')
 
         # MOVES input and output databases - set names
-        self.moves_database = config.get('moves_database')
-        self.moves_output_db = config.get('moves_output_db')
+        self.moves_database = self.config.get('moves_database')
+        self.moves_output_db = self.config.get('moves_output_db')
 
         # open connection to MOVES default database for input/output
-        self._conn = pymysql.connect(host=config.get('moves_db_host'),
-                                     user=config.get('moves_db_user'),
-                                     password=config.get('moves_db_pass'),
-                                     db=config.get('moves_database'),
+        self._conn = pymysql.connect(host=self.config.get('moves_db_host'),
+                                     user=self.config.get('moves_db_user'),
+                                     password=self.config.get('moves_db_pass'),
+                                     db=self.config.get('moves_database'),
                                      local_infile=True)
 
         # creates cursor for executing queries within the MOVES database (
@@ -70,11 +69,11 @@ class MOVES(Module):
         self.moves_cursor = self._conn.cursor()
 
         # get version of MOVES for XML trees
-        self.moves_version = config.get('moves_version')
+        self.moves_version = self.config.get('moves_version')
 
         # input and output file directories - get paths from config
-        self.moves_path = config.get('moves_path')
-        self.moves_datafiles_path = config.get('moves_datafiles_path')
+        self.moves_path = self.config.get('moves_path')
+        self.moves_datafiles_path = self.config.get('moves_datafiles_path')
 
         # file-specific input directories - combine paths from config with
         # file-specific subdirectory names
@@ -84,7 +83,7 @@ class MOVES(Module):
         self.save_path_nationalinputs = os.path.join(self.moves_datafiles_path, 'national_inputs')
 
         # store avft dataframe in self for later saving
-        self.avft = pd.read_csv(config.get('avft'), header=0)
+        self.avft = pd.read_csv(self.config.get('avft'), header=0)
 
         # additional input file paths
         self.avft_filename = os.path.join(self.save_path_nationalinputs, 'avft.csv')
@@ -107,7 +106,7 @@ class MOVES(Module):
                 os.makedirs(_path)
 
         # user input - timespan for which MOVES is run
-        self.moves_timespan = config.get('moves_timespan')
+        self.moves_timespan = self.config.get('moves_timespan')
 
         # parameters for generating XML runspec files for MOVES
         # month(s) for analysis
@@ -120,32 +119,32 @@ class MOVES(Module):
         self.ehr = self.moves_timespan['ehr']
 
         # machine where MOVES output db lives
-        self.server = config.get('moves_db_host')
+        self.server = self.config.get('moves_db_host')
 
         # user input - get toggle for running moves by state-level fips
         # finds FIPS with highest total (summed across feedstocks)
         # production in each state, runs MOVES only for those FIPS (50 FIPS)
-        self.moves_state_level = config.get('moves_by_state')
+        self.moves_state_level = self.config.get('moves_by_state')
 
         # user input - get toggle for running moves by feedstock and state
         # finds FIPS with highest production by feedstock in each state,
         # runs MOVES only
         # for those FIPS (50 x nfeedstock FIPS)
-        self.moves_by_feedstock = config.get('moves_by_feedstock')
+        self.moves_by_feedstock = self.config.get('moves_by_feedstock')
 
         # user input - default values used for running MOVES, actual VMT
         #  used to compute total emission in postprocessing
-        self.vmt_short_haul = config.as_int('vmt_short_haul')
+        self.vmt_short_haul = self.config.as_int('vmt_short_haul')
 
         # user input - population of combination short-haul trucks (assume one
         # per trip and only run MOVES for single trip)
-        self.pop_short_haul = config.as_int('pop_short_haul')
+        self.pop_short_haul = self.config.as_int('pop_short_haul')
 
         # user input - type of vehicle used to transport biomass
-        self.hpmsv_type_id = config.get('hpmsv_type_id')
+        self.hpmsv_type_id = self.config.get('hpmsv_type_id')
 
         # user input - subtype of vehicle used to transport biomass
-        self.source_type_id = config.get('source_type_id')
+        self.source_type_id = self.config.get('source_type_id')
 
         # engine technology used in biomass transport vehicle
         # '1' means a conventional internal combustion engine
@@ -166,7 +165,7 @@ class MOVES(Module):
         self.fuel_supply_fuel_type_id = '2'
 
         # user input - fraction of VMT on each road type (dictionary type)
-        self.vmt_fraction = config.get('vmt_fraction')
+        self.vmt_fraction = self.config.get('vmt_fraction')
 
         # polname, polkey, procname, prockey and roaddict are used in
         # generating the XML import and runspec files for MOVES
