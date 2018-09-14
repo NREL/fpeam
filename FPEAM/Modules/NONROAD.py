@@ -26,35 +26,32 @@ class NONROAD(Module):
         # nonroad filepaths and names
         self.encode_names = True
 
-        self.model_run_title = config.get('scenario_name')
-        self.nonroad_path = config.get('nonroad_path')
-        self.nonroad_project_path = config.get('nonroad_project_path')
-        self.nonroad_exe = config.get('nonroad_exe')
+        self.model_run_title = self.config.get('scenario_name')
+        self.nonroad_path = self.config.get('nonroad_path')
+        self.nonroad_project_path = self.config.get('nonroad_project_path')
+        self.nonroad_exe = self.config.get('nonroad_exe')
 
-        self.project_path = os.path.join(config.get('nonroad_project_path'), self.model_run_title)
+        self.project_path = os.path.join(self.config.get('nonroad_project_path'), self.model_run_title)
 
         # store nonroad parameters in self
-        self.temp_min = config.get('nonroad_temp_min')
-        self.temp_mean = config.get('nonroad_temp_mean')
-        self.temp_max = config.get('nonroad_temp_max')
-        self.diesel_lhv = config.get('diesel_lhv')
-        self.diesel_nh3_ef = config.get('diesel_nh3_ef')
-        self.diesel_thc_voc_conversion = config.get('diesel_thc_voc_conversion')
-        self.diesel_pm10topm25 = config.get('diesel_pm10topm25')
-        self.time_resource_name = config.get('time_resource_name')
-        self.feedstock_measure_type = config.get('feedstock_measure_type')
-
-        # get dictionary of conversion factors
-        self.conversion_factors = self._set_conversions()
+        self.temp_min = self.config.get('nonroad_temp_min')
+        self.temp_mean = self.config.get('nonroad_temp_mean')
+        self.temp_max = self.config.get('nonroad_temp_max')
+        self.diesel_lhv = self.config.get('diesel_lhv')
+        self.diesel_nh3_ef = self.config.get('diesel_nh3_ef')
+        self.diesel_thc_voc_conversion = self.config.get('diesel_thc_voc_conversion')
+        self.diesel_pm10topm25 = self.config.get('diesel_pm10topm25')
+        self.time_resource_name = self.config.get('time_resource_name')
+        self.feedstock_measure_type = self.config.get('feedstock_measure_type')
 
         # nonroad database parameters
-        self.nonroad_database = config.get('nonroad_database')
+        self.nonroad_database = self.config.get('nonroad_database')
 
-        # open connection to MOVES default database for input/output
-        self._conn = pymysql.connect(host=config.get('nonroad_db_host'),
-                                     user=config.get('nonroad_db_user'),
-                                     password=config.get('nonroad_db_pass'),
-                                     db=config.get('nonroad_database'),
+        # open connection to NONROAD database for input/output
+        self._conn = pymysql.connect(host=self.config.get('nonroad_db_host'),
+                                     user=self.config.get('nonroad_db_user'),
+                                     password=self.config.get('nonroad_db_pass'),
+                                     db=self.config.get('nonroad_database'),
                                      local_infile=True)
 
         # dataframe of equipment names matching the names in the equipment
@@ -75,12 +72,12 @@ class NONROAD(Module):
         # abbreviations
         self.state_fips_map = state_fips_map
 
-        # scenario yaer
+        # scenario year
         self.year = year
 
         # list of feedstock names from equipment and production that
         # correspond to forestry products
-        self.forestry_feedstock_names = config.get('forestry_feedstock_names')
+        self.forestry_feedstock_names = self.config.get('forestry_feedstock_names')
 
         # add year as an extra column in production
         self.production['year'] = self.year
@@ -102,7 +99,7 @@ class NONROAD(Module):
 
         # create filter to select only the feedstock measure used by NONROAD
         _prod_filter = self.production.feedstock_measure == \
-                       self.feedstock_measure_type
+            self.feedstock_measure_type
 
         # filter down production rows based on what feedstock measure is
         # used by NONROAD
@@ -190,8 +187,8 @@ class NONROAD(Module):
                                              'feedstock_code': np.arange(
                                                      _feedstocks.__len__())})
             _feedstock_codes['feedstock_code'] = 'f' + _feedstock_codes['feedstock_code'].map(str)
-            _feedstock_codes.to_csv(self.model_run_title + '_feedstock_codes.csv',
-                                    index=False)
+            _feedstock_codes.to_csv(os.path.join(self.project_path, 'feedstock_codes.csv')
+                                    , index=False)
 
             _tillage_types = self.prod_equip_merge.tillage_type.unique()
             _tillage_types.sort()
@@ -200,7 +197,7 @@ class NONROAD(Module):
                                                         _tillage_types.__len__())})
             _tillage_type_codes['tillage_type_code'] = 't' + _tillage_type_codes[
                 'tillage_type_code'].map(str)
-            _tillage_type_codes.to_csv(self.model_run_title + '_tillage_type_codes.csv',
+            _tillage_type_codes.to_csv(os.path.join(self.project_path, 'tillage_type_codes.csv'),
                                        index=False)
 
             _activities = self.prod_equip_merge.activity.unique()
@@ -209,7 +206,7 @@ class NONROAD(Module):
                                             'activity_code': np.arange(
                                                     _activities.__len__())})
             _activity_codes['activity_code'] = 'a' + _activity_codes['activity_code'].map(str)
-            _activity_codes.to_csv(self.model_run_title + '_activity_codes.csv',
+            _activity_codes.to_csv(os.path.join(self.project_path, 'activity_codes.csv'),
                                    index=False)
 
             # encode feedstock, tillage types and activities
