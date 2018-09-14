@@ -64,10 +64,6 @@ class MOVES(Module):
                                      db=self.config.get('moves_database'),
                                      local_infile=True)
 
-        # creates cursor for executing queries within the MOVES database (
-        # not reading in data, altering tables
-        self.moves_cursor = self._conn.cursor()
-
         # get version of MOVES for XML trees
         self.moves_version = self.config.get('moves_version')
 
