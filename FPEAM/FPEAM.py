@@ -59,7 +59,7 @@ class FPEAM(object):
         self.truck_capacity = Data.TruckCapacity(fpath=self.config.get('truck_capacity', None))
 
         for _module in self.config.get('modules', None) or self.MODULES.keys():
-            _config = self.config.get(_module, None) or \
+            _config = run_config.get(_module.lower(), None) or \
                       load_configs(os.path.join(CONFIG_FOLDER, '%s.ini' % _module.lower())
                                    )[_module.lower()]
 
