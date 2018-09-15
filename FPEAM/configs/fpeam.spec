@@ -1,1 +1,4 @@
-state_fips_map = str(default='../data/inputs/state_fips_map.csv')
+
+## input data files
+moisture_content = string(default='../data/inputs/moisture_content.csv')
+scc_codes = string(default='../data/inputs/scc_codes.csv')

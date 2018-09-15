@@ -77,7 +77,7 @@ class Module(object):
         # @TODO: load from file so users can add additional conversions
         _conversions = dict()
         _conversions['tonne'] = dict()
-        _conversions['tonne']['ton'] = 0.907018474   # 1 ton = 0.91 tonne  s
+        _conversions['tonne']['ton'] = 0.907018474   # 1 ton = 0.91 tonnes
 
         _conversions['ton'] = dict()
         _conversions['ton']['pound'] = 1.0 / 2000.0  # 1 ton = 2000 lbs

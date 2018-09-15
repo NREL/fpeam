@@ -1,9 +1,16 @@
-feedstock_measure_type = string(default='harvested')
 
+
+# production table identifier (feedstock_measure in production data)
+feedstock_measure_type = string
+
+# percent VOC content (%)
 voc_content_percent = float(0, 1, default=0.834)
+
+# VOC evaporation rate (%)
 voc_evaporation_rate = float(default=0.9)
 
-fertilizer_distribution = string(default='../data/inputs/fertilizer_distribution.csv')
+# emission factors as lb pollutant per lb resource subtype
+emission_factors = filepath(default='../data/inputs/emission_factors.csv')
 
-emission_factors = string(default='../data/inputs/emission_factors.csv')
-resource_distribution = string(default='../data/inputs/resource_distribution.csv')
+# resource subtype distribution for all resources
+resource_distribution = filepath(default='../data/inputs/resource_distribution.csv')
