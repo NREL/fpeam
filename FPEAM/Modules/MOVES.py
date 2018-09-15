@@ -130,7 +130,7 @@ class MOVES(Module):
 
         # user input - default values used for running MOVES, actual VMT
         #  used to compute total emission in postprocessing
-        self.vmt_short_haul = self.as_int('vmt_short_haul')
+        self.vmt_short_haul = self.config.as_int('vmt_short_haul')
 
         # user input - population of combination short-haul trucks (assume one
         # per trip and only run MOVES for single trip)
