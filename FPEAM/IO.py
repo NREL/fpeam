@@ -13,7 +13,7 @@ LOGGER = utils.logger(name=__name__)
 
 def load_configs(*fpath):
     """
-    Load and validate config file(s).
+    Load config file(s).
 
     'local.ini' is always loaded last, unless supplied in <fpath>.
 
