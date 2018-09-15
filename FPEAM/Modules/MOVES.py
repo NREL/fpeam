@@ -35,8 +35,6 @@ class MOVES(Module):
         # init parent
         super(MOVES, self).__init__(config=config)
 
-        self.config = config
-
         self._router = None
         self.router = router
 
@@ -130,7 +128,7 @@ class MOVES(Module):
 
         # user input - default values used for running MOVES, actual VMT
         #  used to compute total emission in postprocessing
-        self.vmt_short_haul = self.as_int('vmt_short_haul')
+        self.vmt_short_haul = self.config.as_int('vmt_short_haul')
 
         # user input - population of combination short-haul trucks (assume one
         # per trip and only run MOVES for single trip)
@@ -250,7 +248,7 @@ class MOVES(Module):
 
         # verify complete distribution
         try:
-            assert sum(value) == 1
+            assert sum(value.values()) == 1
         except AssertionError:
             raise ValueError('vmt_fraction must sum to 1.0')
         else:
