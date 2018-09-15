@@ -20,8 +20,6 @@ class NONROAD(Module):
         # init parent
         super(NONROAD, self).__init__(config=config)
 
-        self.config = config
-
         # flag to encode feedstock, tillage type and activity names in all
         # nonroad filepaths and names
         self.encode_names = True
