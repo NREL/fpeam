@@ -33,18 +33,17 @@ source_type_id = integer(default=61)
 
 # fraction of VMT by road type
 [vmt_fraction]
-rural_restricted = float(default=0.30)
-rural_unrestricted = float(default=0.28)
-urban_restricted = float(default=0.21)
-urban_unrestricted = float(default=0.21)
+rural_restricted = float(min=0, max=1, default=0.30)
+rural_unrestricted = float(min=0, max=1, default=0.28)
+urban_restricted = float(min=0, max=1, default=0.21)
+urban_unrestricted = float(min=0, max=1, default=0.21)
 
 # Timespan for MOVES runs
 [moves_timespan]
-checkname(default=list('val1', 'val2', 'val3'))
-months = int(1, 12, default=list(10, ))
-days = int(1, 31, default=list(5, ))
-beginning_hours = int(1, 24, default=list(7, ))
-ending_hours = int(1, 24, default=list(18, ))
+months = int_list(1, 12, default=list(10, ))
+days = int_list(1, 31, default=list(5, ))
+beginning_hours = int_list(1, 24, default=list(7, ))
+ending_hours = int_list(1, 24, default=list(18, ))
 
 # MOVES pollutant dictionary (pollutant name to pollutant ID)
 [pollutant_dict]
