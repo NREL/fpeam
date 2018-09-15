@@ -2,6 +2,7 @@
 
 import logging
 
+from validate import (VdtTypeError, VdtValueError, ValidateError)
 
 LOGGER = logging.getLogger(name=__name__)
 
@@ -36,8 +37,10 @@ def validate_config(config, spec):
 
     _return = {'config': None, 'errors': {}, 'missing': [], 'extras': {}}
 
+    _validator = Validator()
+    _validator.functions['filepath'] = filepath
     _config = ConfigObj(config, configspec=spec, stringify=True)
-    _result = _config.validate(Validator(), preserve_errors=True)
+    _result = _config.validate(_validator, preserve_errors=True)
 
     # http://configobj.readthedocs.io/en/latest/configobj.html#flatten-errors
     for _entry in flatten_errors(_config, _result):
@@ -64,3 +67,39 @@ def validate_config(config, spec):
     _return['config'] = _config
 
     return _return
+
+
+def filepath(fpath):
+    """
+    Validate filepath <fpath> by asserting it exists.
+
+    :param fpath: [string]
+    :return: [bool] True on success
+    """
+
+    from os.path import (abspath, exists)
+    from pathlib import Path
+
+    LOGGER.debug('validating %s' % fpath)
+
+    try:
+        assert exists(str(fpath))
+    except ValueError:
+        raise VdtTypeError(value=fpath)
+    except AssertionError:
+        raise VdtPathDoesNotExist(value=fpath)
+    else:
+        return Path(abspath(fpath))  # @TODO: change this to pathlib
+
+
+class VdtPathDoesNotExist(VdtValueError):
+    """The value supplied is an invalid path."""
+
+    def __init__(self, value):
+        """
+        >>> raise VdtPathDoesNotExist('/not/a/path')
+        Traceback (most recent call last):
+        VdtValueTooSmallError: the value "/not/a/path" does not exist.
+        """
+
+        ValidateError.__init__(self, 'the path "%s" does not exist.' % (value,))
