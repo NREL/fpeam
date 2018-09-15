@@ -142,12 +142,6 @@ class MOVES(Module):
         # user input - subtype of vehicle used to transport biomass
         self.source_type_id = self.config.get('source_type_id')
 
-        # engine technology used in biomass transport vehicle
-        # '1' means a conventional internal combustion engine
-        # @NOTE possibly add to GUI as user input in the future
-        # Currently only ONE engine technology can be selected at a time
-        self.engine_tech = '1'
-
         # selection of fuels to run
         # 20 is conventional diesel and 21 is biodiesel
         # @NOTE possibly add to GUI as user input in the future
