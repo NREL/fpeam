@@ -1284,13 +1284,13 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         :return:
         """
 
-        self.create_population_files()
+        # self.create_population_files()  # @TODO: add logger output
 
-        self.create_allocate_files()
+        # self.create_allocate_files()  # @TODO: add logger output
 
-        self.create_options_files()
+        # self.create_options_files()  # @TODO: add logger output
 
-        self.create_batch_files()
+        self.create_batch_files()  # @TODO: add logger output
 
         # use Popen to run the master batch file
         p = Popen(self.master_batch_filepath)
