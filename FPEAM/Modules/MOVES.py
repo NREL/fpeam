@@ -341,7 +341,7 @@ class MOVES(Module):
             fuel usage fraction
             meteorology
 
-        County-level input files for MOVES that vary by FIPS
+        County-level input files for MOVES that vary by FIPS.
 
         :return:
         """
@@ -395,12 +395,11 @@ class MOVES(Module):
                             WHERE {moves_database}.fuelsupply.fuelRegionID =
                             (SELECT DISTINCT regionID FROM {moves_database}.regioncounty 
                             WHERE countyID = '{countyID}' AND fuelYearID = '{year}')
-                            AND {moves_database}.fuelsupply.fuelYearID = '{year}'""".format(**kvals)
+                            AND {moves_database}.fuelsupply.fuelYearID = '{year}';""".format(**kvals)
 
         # save for later use in create_xml_imports
         self.fuelsupply_filename = os.path.join(self.save_path_countyinputs,
-                                                '{fips}_fuelsupply_{'
-                                                'year}.csv'.format(**kvals))
+                                                '{fips}_fuelsupply_{year}.csv'.format(**kvals))
 
         # pull data from database and save in a csv
         pd.read_sql(_fuelsupply_sql, self._conn).to_csv(
@@ -1124,7 +1123,7 @@ class MOVES(Module):
 
         _ratepervehicle = _ratepervehicle_all[_ratepervehicle_filter]
 
-        LOGGER.debut('Postprocessing MOVES output')
+        LOGGER.debug('Postprocessing MOVES output')
 
         # add state column to both tables by pulling out first two digits of
         #  MOVESScenarioID
@@ -1434,10 +1433,11 @@ class MOVES(Module):
 
             _exclude_fips = self._get_cached_results()
 
-            for _fips in _exclude_fips:
-                # report that MOVES run already complete
-                LOGGER.info('MOVES run already complete for fips: %s' % _fips)
-
+            # report that MOVES run already complete
+            _kvals = {'h': self.config.get('moves_db_host'),
+                      'db': self.config.get('moves_database'),
+                      'f': _exclude_fips}
+            LOGGER.info('using cached results from %(h)s/%(db)s for FIPS: %(f)s)' % _kvals)
             # create shortened list of fips to run through MOVES
             _run_fips = [x for x in self.moves_run_list.MOVES_run_fips
                          if x not in _exclude_fips]
@@ -1451,7 +1451,7 @@ class MOVES(Module):
             # create national datasets only once per FPEAM
             self._create_national_data()
 
-            # loop thru rows of moves_run_list to generate input data files
+            # loop through rows of moves_run_list to generate input data files
             # for each FIPS
             for _fips in _run_fips:
                 # create county-level data files
@@ -1467,8 +1467,8 @@ class MOVES(Module):
                 # then run MOVES
 
                 # import MOVES data into datbase
-                LOGGER.info('Importing MOVES files for fips: %s' % _fips)
-                LOGGER.info('Import file: %s' % self.xmlimport_filename)
+                LOGGER.info('importing MOVES files for FIPS: %s' % _fips)
+                LOGGER.debug('import file: %s' % self.xmlimport_filename)
 
                 # import data and log output
                 command = 'cd {moves_path} & setenv.bat & ' \
@@ -1476,12 +1476,11 @@ class MOVES(Module):
                           'gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i {import_file}' \
                           ''.format(moves_path=self.moves_path,
                                     import_file=self.xmlimport_filename)
-
-                os.system(command)
+                os.system(command)  # @TODO: need to capture output, catch errors
 
                 # execute MOVES and log output
-                LOGGER.info('Running MOVES for fips: %s' % _fips)
-                LOGGER.info('Runspec file: %s' % self.runspec_filename)
+                LOGGER.info('running MOVES for FIPS: %s' % _fips)
+                LOGGER.debug('runspec file: %s' % self.runspec_filename)
 
                 command = 'cd {moves_folder} & setenv.bat & ' \
                           'java -Xmx512M ' \
@@ -1489,7 +1488,8 @@ class MOVES(Module):
                           '-r {run_moves}'.format(
                            moves_folder=self.moves_path,
                            run_moves=self.runspec_filename)
-                os.system(command)
+
+                os.system(command)  # @TODO: need to capture output, catch errors
 
         # postprocess output
         _results = None
