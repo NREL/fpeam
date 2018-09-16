@@ -5,6 +5,9 @@ scenario_name = string(default='')
 ## start year (equipment year #1)
 year = integer
 
+## NONROAD output folder
+nonroad_project_path = filepath
+
 
 ### input data options
 
@@ -15,13 +18,13 @@ feedstock_measure_type = string
 time_resource_name = string(default='time')
 
 ## forest feedstocks have different allocation indicators
-forestry_feedstock_names = str_list(default=list())
+forestry_feedstock_names = string_list(default=list())
 
 
 ### input data files
 
 ## production region to NONROAD FIPS mapping
-#region_fips_map = string(default='../data/inputs/region_fips_map.csv')
+region_fips_map = string(default='../data/inputs/region_fips_map.csv')
 
 ## state abbreviation to FIPS mapping
 state_fips_map = filepath(default='../data/inputs/state_fips_map.csv')
@@ -40,7 +43,6 @@ nonroad_db_host = string
 
 ### NONROAD application options
 nonroad_path = filepath
-nonroad_project_path = filepath
 nonroad_exe = string(default='NONROAD.exe')
 
 
