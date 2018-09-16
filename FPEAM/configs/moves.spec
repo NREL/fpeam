@@ -11,6 +11,9 @@ moves_by_state = boolean
 ## use a single representative county for each crop for all counties in each state
 moves_by_state_and_feedstock = boolean
 
+## use existing results in MOVES output database or run MOVES for all counties
+use_cached_results = boolean
+
 ## production table identifier (feedstock_measure in production data)
 feedstock_measure_type = string
 
