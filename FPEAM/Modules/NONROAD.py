@@ -453,7 +453,7 @@ population or land area.  The format is as follows.
                     'fips',
                     'feedstock',
                     'feedstock_amount']].drop_duplicates().groupby(['fips',
-                                                                    'feedstock']).sum()
+                                                                    'feedstock']).sum().reset_index(drop=False)
 
                 # write line with state indicator total
                 _ind_state_total = _indicator_list.feedstock_amount.sum()
@@ -464,7 +464,7 @@ population or land area.  The format is as follows.
 
                 # loop through fips w/in each state-tillagetype-activity to create the
                 # indicator lines in the file
-                for _fips in _indicator_list.index.unique(0).values:
+                for _fips in _indicator_list['fips'].unique():
                     # calculate indicators by fips - harvested acres for all crop
                     # except for forest residues and forest whole trees; ??? for the
                     # two forest products
@@ -477,9 +477,7 @@ population or land area.  The format is as follows.
                             _ind_code = 'LOG'
 
                             # calculate forestry indicator
-                            _ind = _indicator_list.feedstock_amount[
-                                       _indicator_list.fips ==
-                                       _fips].values[0] * 2000.0 / 30.0
+                            _ind = _indicator_list.feedstock_amount[_indicator_list.resetindex(drop=False)['fips'] == _fips].values[0] * 2000.0 / 30.0
 
                         else:
 
