@@ -464,7 +464,7 @@ population or land area.  The format is as follows.
 
                 # loop through fips w/in each state-tillagetype-activity to create the
                 # indicator lines in the file
-                for _fips in list(_indicator_list.fips):
+                for _fips in _indicator_list.index.unique(0).values:
                     # calculate indicators by fips - harvested acres for all crop
                     # except for forest residues and forest whole trees; ??? for the
                     # two forest products
