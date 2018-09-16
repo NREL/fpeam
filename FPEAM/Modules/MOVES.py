@@ -34,6 +34,9 @@ class MOVES(Module):
         self.production = production
         self.equipment = equipment
 
+        # create a dictionary of conversion factors for later use
+        self.conversion_factors = self._set_conversions()
+
         self._router = None
 
         _transportation_graph = TransportationGraph(fpath=self.config['transportation_graph'])
