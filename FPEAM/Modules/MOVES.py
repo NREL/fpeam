@@ -110,14 +110,10 @@ class MOVES(Module):
         self.moves_timespan = self.config.get('moves_timespan')
 
         # parameters for generating XML runspec files for MOVES
-        # month(s) for analysis
-        self.months = self.moves_timespan['months']
-        # days(s) for analysis
-        self.days = self.moves_timespan['days']
-        # beginning hour(s) for analysis
-        self.beginning_hours = self.moves_timespan['beginning_hours']
-        # ending hour(s) for analysis
-        self.ending_hours = self.moves_timespan['ending_hours']
+        self.month = self.moves_timespan['month']
+        self.day = self.moves_timespan['day']
+        self.beginning_hour = self.moves_timespan['beginning_hour']
+        self.ending_hour = self.moves_timespan['ending_hour']
 
         # machine where MOVES output db lives
         self.db_host = self.config.get('moves_db_host')
@@ -531,8 +527,8 @@ class MOVES(Module):
         # scenario ID for MOVES runs
         # ends up in tables in the MOVES output database
         self.scenid = "{fips}_{year}_{month}_{day}".format(fips=fips,
-                                                           day=self.days,
-                                                           month=self.months,
+                                                           day=self.day,
+                                                           month=self.month,
                                                            year=self.year)
 
         # Create XML element tree for geographic selection
@@ -551,16 +547,16 @@ class MOVES(Module):
         etree.SubElement(timespan, "year", key=self.year.__str__())
 
         # set month
-        etree.SubElement(timespan, "month", id=self.months.__str__())
+        etree.SubElement(timespan, "month", id=self.month.__str__())
 
         # loop through days (2 = weekend; 5 = weekday)
-        etree.SubElement(timespan, "day", id=self.days.__str__())
+        etree.SubElement(timespan, "day", id=self.day.__str__())
 
         # loop through start hours
-        etree.SubElement(timespan, "beginhour", id=self.beginning_hours.__str__())
+        etree.SubElement(timespan, "beginhour", id=self.beginning_hour.__str__())
 
         # loop through end hours
-        etree.SubElement(timespan, "endhour", id=self.ending_hours.__str__())
+        etree.SubElement(timespan, "endhour", id=self.ending_hour.__str__())
 
         # aggregate at hourly level
         etree.SubElement(timespan, "aggregateBy", key="Hour")
@@ -743,8 +739,8 @@ class MOVES(Module):
 
         # scenario ID for MOVES runs
         _scenid = "{fips}_{year}_{month}_{day}".format(fips=fips,
-                                                       day=self.days,
-                                                       month=self.months,
+                                                       day=self.day,
+                                                       month=self.month,
                                                        year=self.year)
 
         # Create XML element tree for elements with MOVES inputs with CDATA
@@ -828,16 +824,16 @@ class MOVES(Module):
         etree.SubElement(timespan, "year", key=self.year.__str__())
 
         # loop through months
-        etree.SubElement(timespan, "month", id=self.months.__str__())
+        etree.SubElement(timespan, "month", id=self.month.__str__())
 
         # loop through days (2 = weekend; 5 = weekday)
-        etree.SubElement(timespan, "day", id=self.days.__str__())
+        etree.SubElement(timespan, "day", id=self.day.__str__())
 
         # loop through start hours
-        etree.SubElement(timespan, "beginhour", id=self.beginning_hours.__str__())
+        etree.SubElement(timespan, "beginhour", id=self.beginning_hour.__str__())
 
         # loop through end hours
-        etree.SubElement(timespan, "endhour", id=self.ending_hours.__str__())
+        etree.SubElement(timespan, "endhour", id=self.ending_hour.__str__())
 
         # aggregate at hourly level
         etree.SubElement(timespan, "aggregateBy", key="Hour")
@@ -948,15 +944,15 @@ class MOVES(Module):
     def _get_cached_results(self):
         """
 
-        :return: list of fips for which MOVES results already exist
+        :return: list of FIPS for which MOVES results already exist
         """
 
         # initialize kvals dict for SQL statement formatting
         kvals = dict()
         kvals['moves_output_db'] = self.moves_output_db
         kvals['year'] = self.year
-        kvals['month'] = self.months
-        kvals['day'] = self.days
+        kvals['month'] = self.month
+        kvals['day'] = self.day
 
         _results_fips_sql = """SELECT MOVESScenarioID,
                                                       dist_table.MOVESRunID,
@@ -986,7 +982,7 @@ class MOVES(Module):
               WHERE dist_table.yearID = {year} AND dist_table.monthID = {month}
                AND dist_table.dayID = {day};""".format(**kvals)
 
-        # read in the table and get the list of unique fips for which
+        # read in the table and get the list of unique FIPS for which
         # results already exist (takes year, month, day into account)
         _fips_cached = pd.read_sql(_results_fips_sql, self._conn).fips.unique()
 
@@ -1013,8 +1009,8 @@ class MOVES(Module):
         kvals['moves_output_db'] = self.moves_output_db
         kvals['source_type_id'] = self.source_type_id
         kvals['year'] = self.year
-        kvals['month'] = self.months
-        kvals['day'] = self.days
+        kvals['month'] = self.month
+        kvals['day'] = self.day
 
         # some minor changes to the SQL tables in _moves_table_list
         _moves_cursor = self._conn.cursor()
