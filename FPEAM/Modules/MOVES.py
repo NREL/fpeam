@@ -124,7 +124,7 @@ class MOVES(Module):
         # finds FIPS with highest production by feedstock in each state,
         # runs MOVES only
         # for those FIPS (50 x nfeedstock FIPS)
-        self.moves_by_feedstock = self.config.get('moves_by_feedstock')
+        self.moves_by_state_and_feedstock = self.config.get('moves_by_state_and_feedstock')
 
         # user input - default values used for running MOVES, actual VMT
         #  used to compute total emission in postprocessing
@@ -1381,7 +1381,7 @@ class MOVES(Module):
             # unique fips-state combos to run MOVES on
             self.moves_run_list = _max_amts[['fips',
                                              'state']].drop_duplicates()
-        elif self.moves_by_feedstock:
+        elif self.moves_by_state_and_feedstock:
             # get a list of unique fips-state-year combos to run MOVES on
             # keep feedstock in there to match results from each MOVES run
             # to the correct set of feedstock production data
@@ -1389,7 +1389,7 @@ class MOVES(Module):
                                                   'state',
                                                   'feedstock']].drop_duplicates()
         else:
-            # if neither moves_state_level nor moves_by_feedstock are True,
+            # if neither moves_state_level nor moves_by_state_and_feedstock are True,
             # the fips-state-year combos to run MOVES on come straight from
             # the production data
             self.moves_run_list = _prod_merge[['fips',
