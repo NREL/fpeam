@@ -1,21 +1,18 @@
 from .Module import Module
 from .. import utils
+from ..Data import (EmissionFactor, ResourceDistribution)
+
 LOGGER = utils.logger(name=__name__)
 
 
 class EmissionFactors(Module):
     """Base class to manage execution of pollutants calculated from emission factors"""
 
-    def __init__(self, config, equipment, production, resource_distribution,
-                 emission_factors, **kvals):
+    def __init__(self, config, equipment, production):
         """
         :param config [ConfigObj] configuration options
         :param equipment: [DataFrame] equipment group
         :param production: [DataFrame] production values
-        :param resource_distribution: [DataFrame] Resource subtype distribution
-                                      (fraction, unit-less) by feedstock
-        :param emission_factors: [DataFrame] Emission factors for each
-                                 resource and resource subtype (lb pollutant/lb resource)
         """
 
         # init parent
@@ -26,10 +23,10 @@ class EmissionFactors(Module):
         self.production = production
 
         # Emissions factors, Units: lb pollutant/lb resource
-        self.emission_factors = emission_factors
+        self.emission_factors = EmissionFactor(fpath=self.config['emission_factors'])
 
         # Resource subtype distribution, Units: unit-less fraction
-        self.resource_distribution = resource_distribution
+        self.resource_distribution = ResourceDistribution(fpath=self.config['resource_distribution'])
 
         # Selector for the crop amount that scales emission factors
         self.feedstock_measure_type = config.get('feedstock_measure_type')

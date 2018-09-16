@@ -7,15 +7,20 @@ import pymysql
 
 from FPEAM import utils
 from .Module import Module
+from ..Data import (RegionFipsMap, StateFipsMap, NONROADEquipment)
 
 LOGGER = utils.logger(name=__name__)
 
 
 class NONROAD(Module):
 
-    def __init__(self, config, production, equipment, year,
-                 region_fips_map, nonroad_equipment,
-                 state_fips_map, **kvals):
+    def __init__(self, config, production, equipment):
+        """
+
+        :param config: [ConfigObj]
+        :param production: [DataFrame]
+        :param equipment:  [DataFrame]
+        """
 
         # init parent
         super(NONROAD, self).__init__(config=config)
@@ -54,7 +59,7 @@ class NONROAD(Module):
 
         # dataframe of equipment names matching the names in the equipment
         # input df and SCC codes from nonroad
-        self.nonroad_equipment = nonroad_equipment
+        self.nonroad_equipment = NONROADEquipment(fpath=self.config['nonroad_equipment'])
 
         self._equipment = None
         self.equipment = equipment
@@ -64,14 +69,14 @@ class NONROAD(Module):
         # mapping from the region_production column of production
         # to NONROAD fips values, used to derive state identifiers and run
         # scenario through NONROAD
-        self.region_fips_map = region_fips_map
+        self.region_fips_map = RegionFipsMap(fpath=self.config['region_fips_map'])
 
         # mapping from 2-digit state FIPS to two-character state name
         # abbreviations
-        self.state_fips_map = state_fips_map
+        self.state_fips_map = StateFipsMap(fpath=self.config['state_fips_map'])
 
         # scenario year
-        self.year = year
+        self.year = self.config['year']
 
         # list of feedstock names from equipment and production that
         # correspond to forestry products
@@ -92,7 +97,7 @@ class NONROAD(Module):
 
         # merge with the state abbreviation df to have both state codes and
         # state (character) abbreviations
-        self.production = self.production.merge(state_fips_map, how='inner',
+        self.production = self.production.merge(self.state_fips_map, how='inner',
                                                 on='state_fips')
 
         # create filter to select only the feedstock measure used by NONROAD

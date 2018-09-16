@@ -5,9 +5,6 @@ scenario_name = string
 ## project output directory
 project_path = filepath
 
-## start year (equipment year #1)
-year = integer
-
 ## modules to run
 modules = force_list(default=list('emissionfactors', 'MOVES', 'NONROAD', 'fugitivedust'))
 
