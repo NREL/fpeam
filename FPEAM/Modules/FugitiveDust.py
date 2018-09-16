@@ -20,7 +20,7 @@ class FugitiveDust(Module):
         self.production = production
         self.equipment = equipment
 
-        self.fugitive_dust = FugDust(fpath=self.config['fugitive_dust_emission_factors'])
+        self.fugitive_dust = FugDust(fpath=self.config['emission_factors'])
 
         self.feedstock_measure_type = self.config['feedstock_measure_type']
         
