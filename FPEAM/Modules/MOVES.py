@@ -118,7 +118,7 @@ class MOVES(Module):
         # user input - get toggle for running moves by state-level fips
         # finds FIPS with highest total (summed across feedstocks)
         # production in each state, runs MOVES only for those FIPS (50 FIPS)
-        self.moves_state_level = self.config.get('moves_by_state')
+        self.moves_by_state = self.config.get('moves_by_state')
 
         # user input - get toggle for running moves by feedstock and state
         # finds FIPS with highest production by feedstock in each state,
@@ -1366,7 +1366,7 @@ class MOVES(Module):
                                                      'feedstock'],
                                                     as_index=False).max()
 
-        if self.moves_state_level:
+        if self.moves_by_state:
             # sum total feedstock production within each fips-state-year combo
             _amts_by_fips = _prod_by_fips_feed.groupby(['fips',
                                                         'state'],
@@ -1389,7 +1389,7 @@ class MOVES(Module):
                                                   'state',
                                                   'feedstock']].drop_duplicates()
         else:
-            # if neither moves_state_level nor moves_by_state_and_feedstock are True,
+            # if neither moves_by_state nor moves_by_state_and_feedstock are True,
             # the fips-state-year combos to run MOVES on come straight from
             # the production data
             self.moves_run_list = _prod_merge[['fips',
