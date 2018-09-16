@@ -60,8 +60,8 @@ class EmissionFactors(Module):
 
         # create column selectors
         _idx = ['feedstock', 'tillage_type', 'equipment_group']
-        _prod_columns = _idx + ['feedstock_production',
-                                'feedstock_destination',
+        _prod_columns = _idx + ['region_production',
+                                'region_destination',
                                 'feedstock_amount']
         _equip_columns = _idx + ['rate', 'resource']
         _factors_columns = ['feedstock', 'activity', 'resource',
