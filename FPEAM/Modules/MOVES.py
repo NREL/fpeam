@@ -338,8 +338,7 @@ class MOVES(Module):
             fuel usage fraction
             meteorology
 
-        County-level input files for MOVES that vary by FIPS, year,
-        and feedstock
+        County-level input files for MOVES that vary by FIPS
 
         :return:
         """
