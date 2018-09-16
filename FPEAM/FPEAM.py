@@ -50,7 +50,7 @@ class FPEAM(object):
                                             , spec=os.path.join(CONFIG_FOLDER
                                                                 , '%s.spec' % _module.lower())
                                             )['config']
-            _config['scenario_name'] = _config.get('scenario_name', self.config['scenario_name'])
+            _config['scenario_name'] = _config.get('scenario_name', '').strip() or self.config['scenario_name']
 
             try:
                 self.__setattr__(_module,
