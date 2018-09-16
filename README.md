@@ -317,18 +317,19 @@ Currently the Router module uses a graph of all known, publicly accessible roads
 
 # NONROAD Module
 
-NONROAD is a model for calculating emissions from off-road sources including logging, agricultural and other types of equipment. Although NONROAD is contained within MOVES 2014a, the required inputs, interface and outputs are sufficiently different from MOVES that a separate FPEAM module for setting up and running NONROAD was created. Unlike MOVES, NONROAD run times are on the order of seconds, and so NONROAD is run entirely at a FIPS level rather than at an aggregated level.
-
-There are a variety of input files required to run NONROAD, many of which are nested several sub-directories deep. NONROAD requires that the complete file paths to all input files be 60 characters or less (although some file paths may extend to 80 characters, developers have chosen to limit input file paths to 60 characters for simplicity), and so to avoid file path length errors, NONROAD input files have coded names that indicate feedstock type, tillage type and activity. CSV files recording the encoded feedstock, tillage and activity names are saved automatically to the main FPEAM directory when the names are encoded, to allow users to review the input files if necessary.
+[NONROAD](https://www.epa.gov/moves/nonroad-model-nonroad-engines-equipment-and-vehicles) is a model for calculating emissions from off-road sources including logging, agricultural and other types of equipment. Although NONROAD is contained within MOVES 2014a, the required inputs, interface and outputs are sufficiently different from MOVES that a separate FPEAM module for setting up and running NONROAD was created. Unlike MOVES, NONROAD run times are on the order of seconds, and so NONROAD is run entirely at a FIPS level rather than at an aggregated level.
 
 ## User options and input data
 
 User options within the NONROAD config file (also accessible via the GUI) consist of identifiers used to select which entries in the feedstock production and equipment datasets should be used in NONROAD runs, NONROAD temperature specifications and a set of multipliers used to calculate criteria air pollutants of interest from those returned by NONROAD. These options are listed in the table below with default values and descriptions.
 
+There are a variety of input files required to run NONROAD, many of which are nested several sub-directories deep. NONROAD requires that the complete file paths to all input files be 60 characters or less (although some file paths may extend to 80 characters, developers have chosen to limit input file paths to 60 characters for simplicity), and so to avoid file path length errors, NONROAD input files have coded names that indicate feedstock type, tillage type and activity. CSV files recording the encoded feedstock, tillage and activity names are saved automatically to the main FPEAM directory when the names are encoded, to allow users to review the input files if necessary.
+
 TABLE: NONROAD module user options
 
 | Parameter | Data Type | Default Value | Units | Description |
 | :-------- | :-------- | :------------ | :---: |  :--------- |
+| encode_names | Boolean | True | Unitless | Save NONROAD input file names using coded or plaintext feedstock, tillage type and activity types |
 | feedstock_measure_type | string | harvested | Unitless | Type of feedstock measure used in NONROAD calculations - the units of this feedstock measure should be acreage |
 | time_resource_name | string | time | Unitless | Name used in equipment dataset to identify time spent running agricultural equipment |
 | forestry_feedstock_names | list of strings | forest whole trees, forest residues | Unitless | Names of forestry feedstocks in feedstock production and equipment datasets, if any |
@@ -357,9 +358,19 @@ TABLE: Sample entries from the nonroad_equipment input dataset. Equipment descri
 
 ## Module structure and function
 
-The NONROAD module has very similar functionality to the MOVES module; input files for running the model are created and saved, and system commands (saved as batch files in the NONROAD module) are used to call the external models. A separate postprocessing method for raw NONROAD output reads in the NONROAD output files, concatenates the output from various NONROAD runs together, and adds identifier columns.
+The NONROAD module has very similar functionality to the MOVES module; input files for running the model are created and saved, and batch files are used to run NONROAD on the input files. A separate postprocessing method for raw NONROAD output reads in the output files, concatenates the output from various runs together, and adds identifier columns.
+
+The input files NONROAD needs to run are allocate, population and options files, created respectively by the `create_allocate_files`, `create_population_files` and `create_options_files` methods. The allocate files contain indicators for each FIPS within a particular state that, if county-level input data is not provided, are used to allocate state-wide pollutants to the county level. When NONROAD is run via FPEAM, the county-level input data is always provided and so the allocate files are overruled; however, they must be provided for NONROAD to run. The population files are created from the equipment use dataset and information on annual equipment use in the default MOVES database. The `create_population_files` method calculates the number of each equipment type needed per NONROAD run and writes the population to file.
+
+Options files for NONROAD are similar to runspec files for MOVES. They contain specifications for the population and allocate files for a particular NONROAD run, default data, and FPEAM-scenario-specific information such as the year and temperature range. For every valid options file passed to NONROAD, one output file is generated.
+
+After the input files have been generated, the `create_batch_files` method creates batch files for every NONROAD run and master batch files for every state in which NONROAD will be run. The master batch file calls the batch files for the runs defined by the options file.
+
+The `run` method calls all other methods including the `postprocess` method. Postprocessing is different for NONROAD than for MOVES because NONROAD writes raw results to individual text files (one file per NONROAD run) with the extension .out. Postprocessing then involves gathering each .out file, extracting the FPEAM-relevant data, calculating a few pollutants that are not returned by NONROAD, and then concatenating and formatting the NONROAD results so they can be combined with the results of other modules.
 
 ## Additional development
+
+Allow for users to select which pollutants are returned by the postprocessing method.
 
 # EmissionFactors Module
 
