@@ -281,7 +281,7 @@ class NONROAD(Module):
         # of the ones that are more than 60 characters
         _filepath_list = np.array([])
 
-        # go thru all directories and filenames to assemble complete path
+        # go through all directories and file names to assemble complete paths
         for i in np.arange(self.nr_files.shape[0]):
             # message files
             _filepath_list = np.append(_filepath_list,
@@ -311,23 +311,23 @@ class NONROAD(Module):
                                                     self.nr_files.state_abbreviation.iloc[i] +
                                                     '.out'))
 
-        # get a list of just those filepaths which exceed 60 characters
+        # get a list of just those file paths which exceed 60 characters
         _failpath_list = np.array(_filepath_list)[np.array(self._strlist_len(_filepath_list)) > 60]
 
-        # check that that failpath list is empty (all filepaths are under
+        # check that that file path list is empty (all file paths are under
         # the 60 character limit) - if not, record one error per too-long
-        # filepath
+        # file path
         try:
             assert _failpath_list.__len__() == 0
 
         except AssertionError:
             for i in _failpath_list:
-                LOGGER.Error('Filepath too long: %s' % i)
+                LOGGER.error('Filepath too long: %s' % i)
 
-            raise ValueError('Total filepath length for each NONROAD file '
+            raise ValueError('Total file path length for each NONROAD file '
                              'cannot exceed 60 characters')
 
-        # if all filepaths are under the limit, proceed to creating
+        # if all file paths are under the limit, proceed to creating
         # directories and subdirectories for storing NONROAD files
         for _folder in _nr_folders:
             if not os.path.exists(_folder):
