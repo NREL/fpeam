@@ -251,13 +251,15 @@ class MOVES(Module):
     def _create_national_data(self):
         """
         Create national data for MOVES, including:
-            Alternate Vehicle Fuels & Technologies (avft)
             average speed distribution
             age distribution
             day VMT fraction
             month VMT fraction
             hour VMT fraction
             road type fraction
+
+        Saves user-created Alternate Vehicle Fuels & Technologies (avft)
+        file in correct directory
 
         This function only needs to be run once.
 
