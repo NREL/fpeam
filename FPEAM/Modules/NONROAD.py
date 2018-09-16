@@ -66,6 +66,9 @@ class NONROAD(Module):
 
         self.production = production
 
+        # create a dictionary of conversion factors for later use
+        self.conversion_factors = self._set_conversions()
+
         # mapping from the region_production column of production
         # to NONROAD fips values, used to derive state identifiers and run
         # scenario through NONROAD

@@ -47,7 +47,7 @@ TABLE: List of columns and data types in equipment dataset.
 | rotation_year | integer | Year of crop rotation |
 | activity | string | Activity category |
 | equipment_name | string | Description of equipment used, if any |
-| equipment_horsepower | integer | Horsepower (if applicable to equipment) |
+| equipment_horsepower | float | Horsepower (if applicable to equipment) |
 | resource | string | Resource used (each activity may have multiple resources associated with it) |
 | rate | float | Quantity of resource used |
 | unit_numerator | string | Numerator of resource rate unit |
@@ -283,13 +283,31 @@ TABLE: Default MOVES timespan specification. This timespan represents a typical 
 
 ## Module structure and function
 
-The MOVES module creates all necessary input files to run MOVES and executes system commands to run MOVES. Raw output is saved to the MOVES output database specified by the user, and the postprocessing method within the MOVES module fetches the raw output and transforms the emission rates into total pollutant amounts.
+The MOVES module performs all functions necessary to run MOVES for a single FPEAM scenario, including creating input data files, creating XML files for importing data and defining MOVES runs, executing MOVES, calling the router engine to find transportation routes, and postprocessing raw MOVES results into pollutant amounts by FIPS. 
+
+MOVES requires two types of input files: national files, which are used for all FIPS, and county files which vary by FIPS. The methods `_create_national_data` and `_create_county_data` create the national and county input files using data pulled from the default MOVES database and user input data and parameters. `_create_national_data` is run only once per FPEAM scenario (the files will change based on the scenario year and vehicle selection) while `_create_county_data` is run for every relevant FIPS. Both types of input files are saved to the MOVES data directory and currently are overwritten if a different data directory is not specified for each FPEAM scenario. National input files are named according to their contents, and county input files are further identified by the corresponding FIPS.
+
+The files that MOVES uses to find input data and execute runs are both XML files. One file controls the input data import and is created in the `_create_xml_import` method; the other file ("runspec") controls the MOVES run specifications and is created in the `_create_xml_runspec` method. Both methods are run once for every FIPS in an FPEAM scenario. The import and runspec file are saved in the MOVES data directory and named according to the corresponding FIPS and scenario year. Runspec and import files are overwritten if multiple FPEAM scenarios with the same FIPS and scenario year are run.
+
+After MOVES is run, the `postprocess` method is used to extract raw MOVES output from the MOVES output database and calculate emission rates per vehicle (for start and hotelling emissions) and per vehicle-mile (for transportation emissions). `postprocess` also calls the Router module to obtain vehicle miles traveled through each FIPS involved in a transportation routes. Output of the Router module is used with the emission rates per vehicle-mile to calculate total pollutants in every FIPS through which biomass is transported. The `postprocess` method is called only once per FPEAM scenario, and creates a data table of pollutants that is combined with the output from other modules to create the overall FPEAM results.
+
+Each of these methods is called by the `run` method, which also preprocesses a copy of the feedstock production dataset to determine for which FIPS MOVES should be run. User input parameters determine if MOVES is run once per state, several times per state, or for every FIPS in the input database, and are combined with the feedstock production dataset to pull out a list of FIPS to run MOVES on. `run` also calls the `_get_cached_results` method which checks the MOVES output database to determine if raw MOVES results already exist for any of the FIPS and years involved in an FPEAM scenario. Users can opt to use these cached results with the use_cached_results parameter or run MOVES for every FIPS regardless of whether results already exist.
 
 ## Additional development
 
+Create a new input file subdirectory for each uniquely named FPEAM scenario, to prevent files being overwritten.
+
+Use the Router module to generate a list of FIPS through which biomass is transported, and run MOVES for all of these FIPS or a user-determined subset.
+
 Allow for multiple vehicle, fuel and engine type selections, with selections possibly varying by feedstock or by region.
 
-Allow for users to select which pollutants to calculate from the full list of pollutants and pollutant processes included in MOVES.
+Allow for users to select which pollutants and pollutant processes to calculate from the full list of pollutants and pollutant processes included in MOVES.
+
+Allow for users to specify vmt_short_haul by FIPS, as an alternative to both the Router module and the flat VMT value.
+
+Allow users to specify non-default national and county scale data files as an alternative to pulling defaults from the MOVES database.
+
+Explore parallelization options for running MOVES to reduce total runtime and allow results to be calculated for all relevant FIPS.
 
 # Router Module
 
