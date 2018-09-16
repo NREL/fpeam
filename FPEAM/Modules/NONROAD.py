@@ -29,32 +29,32 @@ class NONROAD(Module):
         # nonroad filepaths and names
         self.encode_names = True
 
-        self.model_run_title = self.config.get('scenario_name')
-        self.nonroad_path = self.config.get('nonroad_path')
-        self.nonroad_project_path = self.config.get('nonroad_project_path')
-        self.nonroad_exe = self.config.get('nonroad_exe')
+        self.model_run_title = self.config['scenario_name']
+        self.nonroad_path = self.config['nonroad_path']
+        self.nonroad_project_path = self.config['nonroad_project_path']
+        self.nonroad_exe = self.config['nonroad_exe']
 
-        self.project_path = os.path.join(self.config.get('nonroad_project_path'), self.model_run_title)
+        self.project_path = os.path.join(self.config['nonroad_project_path'], self.model_run_title)
 
         # store nonroad parameters in self
-        self.temp_min = self.config.get('nonroad_temp_min')
-        self.temp_mean = self.config.get('nonroad_temp_mean')
-        self.temp_max = self.config.get('nonroad_temp_max')
-        self.diesel_lhv = self.config.get('diesel_lhv')
-        self.diesel_nh3_ef = self.config.get('diesel_nh3_ef')
-        self.diesel_thc_voc_conversion = self.config.get('diesel_thc_voc_conversion')
-        self.diesel_pm10topm25 = self.config.get('diesel_pm10topm25')
-        self.time_resource_name = self.config.get('time_resource_name')
-        self.feedstock_measure_type = self.config.get('feedstock_measure_type')
+        self.temp_min = self.config['nonroad_temp_min']
+        self.temp_mean = self.config['nonroad_temp_mean']
+        self.temp_max = self.config['nonroad_temp_max']
+        self.diesel_lhv = self.config['diesel_lhv']
+        self.diesel_nh3_ef = self.config['diesel_nh3_ef']
+        self.diesel_thc_voc_conversion = self.config['diesel_thc_voc_conversion']
+        self.diesel_pm10topm25 = self.config['diesel_pm10topm25']
+        self.time_resource_name = self.config['time_resource_name']
+        self.feedstock_measure_type = self.config['feedstock_measure_type']
 
         # nonroad database parameters
-        self.nonroad_database = self.config.get('nonroad_database')
+        self.nonroad_database = self.config['nonroad_database']
 
         # open connection to NONROAD database for input/output
-        self._conn = pymysql.connect(host=self.config.get('nonroad_db_host'),
-                                     user=self.config.get('nonroad_db_user'),
-                                     password=self.config.get('nonroad_db_pass'),
-                                     db=self.config.get('nonroad_database'),
+        self._conn = pymysql.connect(host=self.config['nonroad_db_host'],
+                                     user=self.config['nonroad_db_user'],
+                                     password=self.config['nonroad_db_pass'],
+                                     db=self.config['nonroad_database'],
                                      local_infile=True)
 
         # dataframe of equipment names matching the names in the equipment
@@ -95,8 +95,7 @@ class NONROAD(Module):
                                                 right_on='region')
 
         # add column with state derived from NONROAD fips column
-        self.production['state_fips'] = self.production.fips.str.slice(
-                stop=2)
+        self.production['state_fips'] = self.production.fips.str.slice(stop=2)
 
         # merge with the state abbreviation df to have both state codes and
         # state (character) abbreviations
@@ -423,7 +422,7 @@ population or land area.  The format is as follows.
 /INDICATORS/
 """
 
-        # loop thru state-tillagetype-activity to create files and write the
+        # loop through state-tillagetype-activity to create files and write the
         #  preamble
         for i in np.arange(self.nr_files.shape[0]):
 
@@ -434,7 +433,7 @@ population or land area.  The format is as follows.
 
                 _alo_file_path.writelines(_preamble)
 
-                # pull out the production rows relvant to the file being generated
+                # pull out the production rows relevant to the file being generated
                 #  to get a list of FIPS - also filters by feedstock measure
                 _prod_filter = (self.prod_equip_merge.state_abbreviation ==
                                 self.nr_files.state_abbreviation.iloc[i]) & \
@@ -463,7 +462,7 @@ population or land area.  The format is as follows.
                 #  file line
                 _state_code = self.nr_files.state_fips.iloc[i]
 
-                # loop thru fips w/in each state-tillagetype-activity to create the
+                # loop through fips w/in each state-tillagetype-activity to create the
                 # indicator lines in the file
                 for _fips in list(_indicator_list.fips):
                     # calculate indicators by fips - harvested acres for all crop
@@ -524,7 +523,7 @@ population or land area.  The format is as follows.
                     _state_line = """FRM  %s000      %s    %s\n""" % (
                         _state_code, self.year, _ind_state_total)
 
-                # write the state toatl line
+                # write the state total line
                 _alo_file_path.writelines(_state_line)
 
                 # write final line of file
@@ -878,7 +877,7 @@ T4M       1.0       0.02247
         # assemble id variable-specific kvals of file names and paths and
         # the state identifier
 
-        # loop thru the feedstock-tillage-activity combinations stored in
+        # loop through the feedstock-tillage-activity combinations stored in
         # nr_files
         for i in np.arange(self.nr_files.shape[0]):
             kvals_fips = {'state_fips': '{fips:0<5}'.format(fips=self.nr_files.state_fips.iloc[i]),
@@ -927,8 +926,9 @@ T4M       1.0       0.02247
                  'flag': 'DEFAULT',
                  'pop': df.equipment_population}
 
-        _string_to_write = '{fips:0>5} {sub_reg:>5} {year:>4} {scc_code:>10} {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5.1f} {life:>5} {flag:<10} {pop:>17.7f} \n'.format(
-            **kvals)
+        _string_to_write = '{fips:0>5} {sub_reg:>5} {year:>4} {scc_code:>10}' \
+                           ' {equip_desc:<40} {min_hp:>5} {max_hp:>5} {avg_hp:>5.1f}' \
+                           ' {life:>5} {flag:<10} {pop:>17.7f} \n'.format(**kvals)
 
         _pop_file.writelines(_string_to_write)
 
@@ -942,7 +942,7 @@ T4M       1.0       0.02247
         :return: None
         """
 
-        ## preprocess and merge equipment and production dfs
+        # preprocess and merge equipment and production dfs
 
         # assemble kvals for sql statement formatting
         kvals = {}
@@ -1046,7 +1046,7 @@ T4M       1.0       0.02247
                            'hpAvg', 'equipment_lifetime',
                            'equipment_population']]
 
-        ## use population info to construct population files
+        # use population info to construct population files
 
         # set path to population file for this scenario
         # project_path already contains the scenario name
@@ -1085,11 +1085,11 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
             # subset _nr_pop
             _nr_pop_sub = _nr_pop[_nr_pop_filter]
 
-            # get components of population file lines
-            _state = self.nr_files.state_abbreviation.iloc[i]
-            _feedstock = self.nr_files.feedstock.iloc[i]
-            _tillage_type = self.nr_files.tillage_type.iloc[i]
-            _activity = self.nr_files.activity.iloc[i]
+            # # get components of population file lines
+            # _state = self.nr_files.state_abbreviation.iloc[i]
+            # _feedstock = self.nr_files.feedstock.iloc[i]
+            # _tillage_type = self.nr_files.tillage_type.iloc[i]
+            # _activity = self.nr_files.activity.iloc[i]
 
             # construct complete path to population file
             _pop_path = os.path.join(_pop_dir,
@@ -1104,7 +1104,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 # apply the writing function over each row of the subsetted
                 # _nr_pop dataframe to write each line of the population file
                 _nr_pop_sub.apply(func=self._write_population_file_line,
-                                  axis=1, args=(_pop_file))
+                                  axis=1, args=(_pop_file, ))
 
                 # write ending line
                 _pop_file.writelines('/END/')
