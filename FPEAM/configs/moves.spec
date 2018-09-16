@@ -2,6 +2,7 @@
 # run identifier; defaults to FPEAM scenario name
 scenario_name = string(default='')
 
+
 ### MOVES execution options
 
 ## use a single representative county for all counties in each state
@@ -27,6 +28,9 @@ hpmsv_type_id = integer(default=60)
 
 ## specific vehicle type: short-haul combination truck
 source_type_id = integer(default=61)
+
+## start year (equipment year #1)
+year = integer
 
 
 ### MOVES database connection options
@@ -63,7 +67,7 @@ truck_capacity = filepath(default='../data/inputs/truck_capacity.csv')
 avft = filepath(default='../data/inputs/avft.csv')
 
 ## production region to MOVES FIPS mapping
-#region_fips_map = '../data/inputs/region_fips_map.csv'
+region_fips_map = filepath(default='../data/inputs/region_fips_map.csv')
 
 
 ### Moves input options

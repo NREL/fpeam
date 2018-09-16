@@ -8,6 +8,8 @@ from lxml.builder import E
 
 from FPEAM import utils
 from .Module import Module
+from ..Data import (RegionFipsMap, TruckCapacity, TransportationGraph, CountyNode)
+from ..Router import Router
 
 LOGGER = utils.logger(name=__name__)
 
@@ -18,33 +20,35 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, region_fips_map, truck_capacity,
-                 year, router=None,
-                 **kvals):
+    def __init__(self, config, production, equipment=None):
         """
 
-        :param config:
-        :param production:
-        :param region_fips_map:
-        :param truck_capacity:
-        :param year:
-        :param router:
-        :param kvals:
+        :param config: [ConfigObj]
+        :param production: [DataFrame]
+        :param equipment: [DataFrame]
         """
 
         # init parent
         super(MOVES, self).__init__(config=config)
 
-        self._router = None
-        self.router = router
-
         self.production = production
-        self.year = year
-        self.region_fips_map = region_fips_map
+        self.equipment = equipment
+
+        self._router = None
+
+        _transportation_graph = TransportationGraph(fpath=self.config['transportation_graph'])
+        _county_nodes = CountyNode(fpath=self.config['county_nodes'])
+
+        if not _transportation_graph.empty or not _county_nodes.empty:
+            LOGGER.info('Loading routing data; this may take a few minutes')
+            self.router = Router(edges=_transportation_graph, node_map=_county_nodes)  # @TODO: takes ages to load
+
+        self.year = self.config['year']
+        self.region_fips_map = RegionFipsMap(fpath=self.config['region_fips_map'])
         self.feedstock_measure_type = self.config.get('feedstock_measure_type')
 
         # this is a DF read in from a csv file
-        self.truck_capacity = truck_capacity
+        self.truck_capacity = TruckCapacity(fpath=self.config['truck_capacity'])
 
         self.use_cached_results = self.config.get('use_cached_results')
 
@@ -226,10 +230,10 @@ class MOVES(Module):
     @router.setter
     def router(self, value):
         try:
-            getattr(value, 'run')
+            getattr(value, 'get_route')
         except AttributeError:
             LOGGER.error('%s is not a valid routing engine. '
-                         'Method .get_route(node, node) is required' % value)
+                         'Method .get_route(FIPS, FIPS) is required' % value)
         else:
             self._router = value
 
