@@ -980,8 +980,8 @@ class MOVES(Module):
                                   AND dist.fips = q.fips) runid_filter
                     ON dist_table.MOVESRunID =
                     runid_filter.MOVESRunID
-              WHERE dist_table.yearID = {year} AND dist_table.monthID = {
-              month} AND dist_table.dayID = {day};""".format(**kvals)
+              WHERE dist_table.yearID = {year} AND dist_table.monthID = {month}
+               AND dist_table.dayID = {day};""".format(**kvals)
 
         # read in the table and get the list of unique fips for which
         # results already exist (takes year, month, day into account)
