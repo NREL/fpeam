@@ -195,7 +195,6 @@ class TransportationGraph(Data):
     COLUMNS = {'edge_id': int,
                'statefp': str,
                'countyfp': str,
-               'road_class': float,
                'u_of_edge': int,
                'v_of_edge': int,
                'weight': float}
