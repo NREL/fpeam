@@ -382,7 +382,7 @@ Apart from the emission factors input data, the only user parameter required by 
 
 | Parameter | Data Type | Default Value | Units | Description |
 | :-------- | :-------- | :------------ | :---: |  :--------- |
-| feedstock_measure_type | string | harvested | Unitless |
+| feedstock_measure_type | string | harvested | Unitless | Feedstock measure used to scale emission factors and calculate pollutant amounts |
 
 Default input data for the EmissionFactors module consists of two files, one providing the emission factors themselves and one providing (if necessary) additional details on the resources used in agriculture that cause the emissions. The default resource distribution file, a portion of which is shown in the first table below, specifies how much of each resource type such as nitrogen, herbicide and so on consists of various resource subtypes such as specific nitrogen fertilizers or herbicide brands. Currently the resource distribution table must be supplied for FPEAM to run correctly. However, users can include the resource subtypes directly in the equipment use dataset and populate the distribution column of the resource distribution file with the values 1 if desired.
 
@@ -430,9 +430,13 @@ where R is the pesticide or herbicide application rate (lb/harvested acre/year),
 
 # Fugitive Dust Module
 
-The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from feedstock transportation is not calculated.
+The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from feedstock transportation is not calculated due to a lack of spatially detailed road silt data, but this calculation may be added to FPEAM in the future if an adequate data source can be found.
 
-PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf) , which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf) . Users are able to use a different PM<sub>2.5</sub> fraction or alternative emissions factors by editing the input data.
+## User options and input data
+
+Like the EmissionFactors module, the only user input parameter for the FugitiveDust module is the feedstock_measure_type, which specifies the feedstock measure used to scale the fugitive dust emission factors and calculate total pollutant amounts.
+
+PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf), which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf). 
 
 TABLE: List of columns and data types in fugitive dust emissions factors dataset.
 
@@ -447,22 +451,15 @@ TABLE: List of columns and data types in fugitive dust emissions factors dataset
 
 TABLE: Fugitive dust input file example
 
-| feedstock | tillage_type | source_category | pollutant | rate | unit_numerator | unit_denominator |
-| :-------- | :----------- | :-------------- | :-------: | :--: | :--------- | :--------- |
-| sorghum stubble | conventional tillage | harvest | PM10 | 1.7 | pound | acre |
-| sorghum stubble | conventional tillage | harvest | PM25 | 0.34 | pound | acre |
-| sorghum stubble | conventional tillage | non-harvest | PM10 | 0 | pound | acre |
-| sorghum stubble | conventional tillage | non-harvest | PM25 | 0 | pound | acre |
+| feedstock | tillage_type | pollutant | rate | unit_numerator | unit_denominator |
+| :-------- | :----------- | :-------: | :--: | :--------- | :--------- |
+| sorghum stubble | conventional tillage | PM<sub>10</sub> | 1.7 | pound | acre |
+| sorghum stubble | conventional tillage | PM<sub>25</sub> | 0.34 | pound | acre |
+| sorghum stubble | conventional tillage | PM<sub>10</sub> | 0 | pound | acre |
+| sorghum stubble | conventional tillage | PM<sub>25</sub> | 0 | pound | acre |
 
+## Additional development
 
+Allow for county- or region-specific fugitive dust emission factors.
 
-## Advanced user options
-
-TABLE: Parameters controlling how biomass is transported on-farm from field to roadside.
-
-| Parameter | Data Type | Default Value | Units | Description |
-|-----------|-----------|---------------|-------|-------------|
-| onfarm_truck_capacity | float | 15 | dry short tons/load | Amount of biomass that can be transported on-farm by one truck in one trip. |
-| onfarm_default_distance | float | 1 | miles | Average distance that biomass is transported on-farm, from the field to the roadside. |
-
-## Output
+# Running FPEAM
