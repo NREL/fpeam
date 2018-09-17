@@ -174,6 +174,10 @@ TABLE: Map of state FIPS codes to two-letter state abbreviations
 | state_abbreviation | string | Two-character state name abbreviation |
 | state_fips | string | Two-digit state FIPS code, stored as string |
 
+## Additional user options
+
+Each module takes user input parameters from a config file with extension .ini. Parameters within these files may be changed directly in the .ini file or via the GUI. Most parameters have default values, which are set in the config specification files (.spec file extension) of the same name as the config file. Parameters with default values are commented out in the .ini files, which indicates the default values will be used in the FPEAM scenario. To change these parameters from their default values, un-comment the line where the parameter is defined and change the default value to the desired value.
+
 ## FPEAM Output
 
 Raw output calculated by FPEAM is a data frame containing several identifier columns as well as pollutant names and amounts. The columns in this data frame are described in the table below. Not every module produces values for every identifier column - MOVES, for instance, does not work with resource subtypes, and Fugitive Dust does not have an activity associated with it - and so some identifier columns may be partially empty. However, every entry in the output data frame will have a feedstock, region_production, region_destination, tillage_type, module, pollutant and pollutant_amount.
