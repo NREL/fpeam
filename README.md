@@ -374,40 +374,17 @@ Allow for users to select which pollutants are returned by the postprocessing me
 
 # EmissionFactors Module
 
-Input files: equipment, production, resource_distribution, emission_factors
+The EmissionFactors module was developed from a module in the previous version of FPEAM that calculated NO<sub>x</sub> and NH<sub>3</sub> emissions from nitrogen fertilizer application and VOC emissions from herbicide and insecticide application. Rather than limit the module functionality to these pollutants and pollutant causes, the EmissionFactors module was written to calculate any pollutant from any pollutant process if sufficient input data is provided. This flexibility allows users to model pollutants from other fertilizers and agricultural chemicals, and could allow EmissionFactors to replace MOVES and NONROAD in the calculation of agricultural equipment and transportation vehicle emissions, albeit with a loss in spatial detail.
 
-Other inputs: feedstock_measure_type
+## User options and input data
 
-Output files: None; calculates pollutants in each region-feedstock combination from resources and resource subtypes as defined by resource_distribution and emission_factors inputs
+Apart from the emission factors input data, the only user parameter required by EmissionFactors is the feedstock_measure_type which defines the feedstock measure used to calculate total pollutant amounts from emission factors.
 
-## Input file format
+| Parameter | Data Type | Default Value | Units | Description |
+| :-------- | :-------- | :------------ | :---: |  :--------- |
+| feedstock_measure_type | string | harvested | Unitless |
 
-The emission factors input files 
-
-## Default input data and sources
-
-TABLE: Default emissions factors for NO (used as a proxy for NO<sub>x</sub>) and NH<sub>3</sub> from nitrogen fertilizers and VOC from herbicides and insecticides. NO emission factors were obtained from FOA (2001) and GREET (ANL 2010). NH<sub>3</sub> factors were obtained from Goebes et al. 2003, Davidson et al. 2004 and the 17/14 ratio of NH<sub>3</sub> to N. See [Zhang et al. (2015)](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620) for additional information. Note that as of July 2, 2018 the Davidson et al. reference, the CMU Ammonia Model, Version 3.6 from The Environmental Institute at Carnegie Mellon University was not available online and source data could not be verified. 
- 
-| resource | resource subtype           | pollutant      | emission_factor | unit_numerator | unit_denominator |
-| :------- | :------------------------- | :------------: | :-------------: | :--------: | :--------: |
-| nitrogen | anhydrous ammonia          | no<sub>x</sub> | 0.79            | pound      | pound |
-| nitrogen | anhydrous ammonia          | nh<sub>3</sub> | 4.86            | pound      | pound |
-| nitrogen | ammonium nitrate (33.5% N) | no<sub>x</sub> | 3.80            | pound      | pound |
-| nitrogen | ammonium nitrate (33.5% N) | nh<sub>3</sub> | 2.32            | pound      | pound |
-| nitrogen | ammonium sulfate           | no<sub>x</sub> | 3.50            | pound      | pound |
-| nitrogen | ammonium sulfate           | nh<sub>3</sub> | 11.6            | pound      | pound |
-| nitrogen | urea (44 - 46% N)          | no<sub>x</sub> | 0.90            | pound      | pound |
-| nitrogen | urea (44 - 46% N)          | nh<sub>3</sub> | 19.2            | pound      | pound |
-| nitrogen | nitrogen solutions         | no<sub>x</sub> | 0.79            | pound      | pound |
-| nitrogen | nitrogen solutions         | nh<sub>3</sub> | 9.71            | pound      | pound |
-| herbicide | generic herbicide         | voc            | 0.75            | pound      | pound |
-| insecticide | generic insecticide     | voc            | 0.75            | pound      | pound |
-
-VOC emission factors from application of herbicides and insecticides were calculated from the following equation: (Zhang et al., 2015):
-
-VOC (lb/acre/year) = R * I * ER * C<sub>VOC</sub>
-
-where R is the pesticide or herbicide application rate (lb/harvested acre/year), I is the amount of active ingredient per pound of pesticide or herbicide (lb active ingredient/lb chemical, assumed to be 1), ER is the evaporation rate (assumed to be 0.9 per EPA recommendations from emissions inventory improvement program guidance) and C<sub>VOC</sub> is the VOC content in the active ingredient (lb VOC/lb active ingredient, assumed to be 0.835 per Huntley 2015 revision of 2011 NEI technical support document).
+Default input data for the EmissionFactors module consists of two files, one providing the emission factors themselves and one providing (if necessary) additional details on the resources used in agriculture that cause the emissions. The default resource distribution file, a portion of which is shown in the first table below, specifies how much of each resource type such as nitrogen, herbicide and so on consists of various resource subtypes such as specific nitrogen fertilizers or herbicide brands. Currently the resource distribution table must be supplied for FPEAM to run correctly. However, users can include the resource subtypes directly in the equipment use dataset and populate the distribution column of the resource distribution file with the values 1 if desired.
 
 TABLE: The default resource subtype distribution data file defines the nitrogen fertilizer distribution among five common nitrogenous fertilizers and the distribution of herbicide and insecticide to generics. The nitrogen fertilizer distribution varies between feedstocks. The national average distribution from 2010 [(USDA)](https://www.ers.usda.gov/data-products/fertilizer-use-and-price.aspx#26720) is used for corn grain and stover, sorghum stubble, and wheat straw. The perennial feedstock distribution which consists of nitrogen solutions only is used for switchgrass, miscanthus and all forest products. (Turhollow, 2011, personal communication). Two example distributions are shown in the table.
 
@@ -425,6 +402,31 @@ TABLE: The default resource subtype distribution data file defines the nitrogen 
 | switchgrass | nitrogen | nitrogen solutions | 1 |
 | eucalyptus | herbicide | generic herbicide | 1 |
 | wheat | insecticide | generic insecticide | 1 |
+
+Default emission factors themselves are provided for each relevant combination of resource subtype and pollutant, as demonstrated in the table below. The unit denominator (both unit columns refer to the emission factor) must match the resource unit from the equipment use dataset. For instance, if insecticide use is quantified as gallons per dry short ton of feedstock, the emission factor here must be in pounds of pollutant per gallon of insecticide. The activity column specifies which supply chain activity causes the resource use and thus the pollutant emissions.
+
+TABLE: Default emissions factors for NO (used as a proxy for NO<sub>x</sub>) and NH<sub>3</sub> from nitrogen fertilizers and VOC from herbicides and insecticides. NO emission factors were obtained from FOA (2001) and GREET (ANL 2010). NH<sub>3</sub> factors were obtained from Goebes et al. 2003, Davidson et al. 2004 and the 17/14 ratio of NH<sub>3</sub> to N. See [Zhang et al. (2015)](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620) for additional information. Note that as of July 2, 2018 the Davidson et al. reference, the CMU Ammonia Model, Version 3.6 from The Environmental Institute at Carnegie Mellon University was not available online and source data could not be verified. 
+ 
+| resource | resource subtype           | activity             | pollutant      | emission_factor | unit_numerator | unit_denominator |
+| :------- | :------------------------- | :------------------- | :------------: | :-------------: | :--------: | :--------: |
+| nitrogen | anhydrous ammonia          | chemical application | no<sub>x</sub> | 0.79            | pound      | pound |
+| nitrogen | anhydrous ammonia          | chemical application | nh<sub>3</sub> | 4.86            | pound      | pound |
+| nitrogen | ammonium nitrate (33.5% N) | chemical application | no<sub>x</sub> | 3.80            | pound      | pound |
+| nitrogen | ammonium nitrate (33.5% N) | chemical application | nh<sub>3</sub> | 2.32            | pound      | pound |
+| nitrogen | ammonium sulfate           | chemical application | no<sub>x</sub> | 3.50            | pound      | pound |
+| nitrogen | ammonium sulfate           | chemical application | nh<sub>3</sub> | 11.6            | pound      | pound |
+| nitrogen | urea (44 - 46% N)          | chemical application | no<sub>x</sub> | 0.90            | pound      | pound |
+| nitrogen | urea (44 - 46% N)          | chemical application | nh<sub>3</sub> | 19.2            | pound      | pound |
+| nitrogen | nitrogen solutions         | chemical application | no<sub>x</sub> | 0.79            | pound      | pound |
+| nitrogen | nitrogen solutions         | chemical application | nh<sub>3</sub> | 9.71            | pound      | pound |
+| herbicide | generic herbicide         | chemical application | voc            | 0.75            | pound      | pound |
+| insecticide | generic insecticide     | chemical application | voc            | 0.75            | pound      | pound |
+
+VOC emission factors from application of herbicides and insecticides were calculated from the following equation: (Zhang et al., 2015):
+
+VOC (lb/acre/year) = R * I * ER * C<sub>VOC</sub>
+
+where R is the pesticide or herbicide application rate (lb/harvested acre/year), I is the amount of active ingredient per pound of pesticide or herbicide (lb active ingredient/lb chemical, assumed to be 1), ER is the evaporation rate (assumed to be 0.9 per EPA recommendations from emissions inventory improvement program guidance) and C<sub>VOC</sub> is the VOC content in the active ingredient (lb VOC/lb active ingredient, assumed to be 0.835 per Huntley 2015 revision of 2011 NEI technical support document).
 
 # Fugitive Dust Module
 
