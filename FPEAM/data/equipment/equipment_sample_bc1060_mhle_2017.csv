@@ -1,0 +1,105 @@
+feedstock,tillage_type,equipment_group,rotation_year,activity,equipment_name,equipment_horsepower,resource,rate,unit_numerator,unit_denominator
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.107421875,hour,acre
+corn stover,conventional tillage,3,1,harvest,tractor 2wd 160 hp,160,time,0.103125,hour,acre
+corn grain,conventional tillage,3,1,maintenance,tractor 2wd 160 hp,160,time,0.087301587,hour,acre
+corn stover,conventional tillage,3,1,harvest,tractor 2wd 135 hp,135,time,0.121323529,hour,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.107421875,hour,acre
+corn stover,conventional tillage,3,1,harvest,tractor 2wd 135 hp,135,time,0.0859375,hour,acre
+corn grain,conventional tillage,3,1,harvest,combine with row header (2wd),390,time,0.218253968,hour,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.087301587,hour,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.087301587,hour,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.074660634,hour,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.261904762,hour,acre
+corn stover,no tillage,3,1,harvest,tractor 2wd 135 hp,135,time,0.0859375,hour,acre
+corn grain,no tillage,3,1,maintenance,tractor 2wd 160 hp,160,time,0.087301587,hour,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.087301587,hour,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.261904762,hour,acre
+corn stover,no tillage,3,1,harvest,tractor 2wd 160 hp,160,time,0.103125,hour,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.039053254,hour,acre
+corn grain,no tillage,3,1,harvest,combine with row header (2wd),390,time,0.218253968,hour,acre
+corn stover,no tillage,3,1,harvest,tractor 2wd 135 hp,135,time,0.121323529,hour,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.087301587,hour,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.7734375,gallon,acre
+corn stover,conventional tillage,3,1,harvest,tractor 2wd 160 hp,160,diesel,0.7425,gallon,acre
+corn grain,conventional tillage,3,1,maintenance,tractor 2wd 160 hp,160,diesel,0.628571429,gallon,acre
+corn stover,conventional tillage,3,1,harvest,tractor 2wd 135 hp,135,diesel,0.737040441,gallon,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.7734375,gallon,acre
+corn stover,conventional tillage,3,1,harvest,tractor 2wd 135 hp,135,diesel,0.522070313,gallon,acre
+corn grain,conventional tillage,3,1,harvest,combine with row header (2wd),390,diesel,3.830357143,gallon,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.628571429,gallon,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.628571429,gallon,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.537556561,gallon,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,1.885714286,gallon,acre
+corn stover,no tillage,3,1,harvest,tractor 2wd 135 hp,135,diesel,0.522070313,gallon,acre
+corn grain,no tillage,3,1,maintenance,tractor 2wd 160 hp,160,diesel,0.628571429,gallon,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.628571429,gallon,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,1.885714286,gallon,acre
+corn stover,no tillage,3,1,harvest,tractor 2wd 160 hp,160,diesel,0.7425,gallon,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.281183432,gallon,acre
+corn grain,no tillage,3,1,harvest,combine with row header (2wd),390,diesel,3.830357143,gallon,acre
+corn stover,no tillage,3,1,harvest,tractor 2wd 135 hp,135,diesel,0.737040441,gallon,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.628571429,gallon,acre
+corn grain,conventional tillage,3,1,harvest,single-axle truck (2 ton),250,diesel,3.382936508,gallon,acre
+corn grain,no tillage,3,1,harvest,single-axle truck (2 ton),250,diesel,3.382936508,gallon,acre
+corn grain,conventional tillage,3,1,maintenance,tractor 2wd 160 hp,160,nitrogen,26,pound,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,nitrogen,94,pound,acre
+corn grain,no tillage,3,1,maintenance,tractor 2wd 160 hp,160,nitrogen,94,pound,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,nitrogen,26,pound,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,p2o5,80,pound,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,p2o5,45,pound,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,k2o,45,pound,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,k2o,80,pound,acre
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,lime,500,pound,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,lime,500,pound,acre
+corn stover,conventional tillage,3,1,maintenance,,,nitrogen,14.8,pound,dry short ton
+corn stover,no tillage,3,1,maintenance,,,nitrogen,14.8,pound,dry short ton
+corn stover,conventional tillage,3,1,maintenance,,,p2o5,5.1,pound,dry short ton
+corn stover,no tillage,3,1,maintenance,,,p2o5,5.1,pound,dry short ton
+corn stover,conventional tillage,3,1,maintenance,,,k2o,27.2,pound,dry short ton
+corn stover,no tillage,3,1,maintenance,,,k2o,27.2,pound,dry short ton
+corn grain,conventional tillage,3,1,establishment,tractor 2wd 160 hp,160,herbicide,1.8,pound,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,herbicide,1.8,pound,acre
+corn grain,no tillage,3,1,establishment,tractor 2wd 160 hp,160,herbicide,0.625,pound,acre
+forest residues,no tillage,south,1,harvest,loader (medium),174,diesel,0.4134,gallon,dry short ton
+forest residues,no tillage,south,1,harvest,loader (large),174,diesel,0.2315,gallon,dry short ton
+forest residues,no tillage,south,1,harvest,whole tree chipper (medium),450,diesel,0.225,gallon,dry short ton
+forest residues,no tillage,south,1,harvest,whole tree chipper (large),750,diesel,0.2812,gallon,dry short ton
+forest residues,no tillage,south,1,harvest,loader (medium),174,time,0.081017581,hour,dry short ton
+forest residues,no tillage,south,1,harvest,loader (large),174,time,0.150534397,hour,dry short ton
+forest residues,no tillage,south,1,harvest,whole tree chipper (medium),450,time,0.032666928,hour,dry short ton
+forest residues,no tillage,south,1,harvest,whole tree chipper (large),750,time,0.024500196,hour,dry short ton
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.107421875,hour,acre
+corn stover,reduced tillage,3,1,harvest,tractor 2wd 160 hp,160,time,0.103125,hour,acre
+corn grain,reduced tillage,3,1,maintenance,tractor 2wd 160 hp,160,time,0.087301587,hour,acre
+corn stover,reduced tillage,3,1,harvest,tractor 2wd 135 hp,135,time,0.121323529,hour,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.107421875,hour,acre
+corn stover,reduced tillage,3,1,harvest,tractor 2wd 135 hp,135,time,0.0859375,hour,acre
+corn grain,reduced tillage,3,1,harvest,combine with row header (2wd),390,time,0.218253968,hour,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.087301587,hour,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.087301587,hour,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.074660634,hour,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,time,0.261904762,hour,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.7734375,gallon,acre
+corn stover,reduced tillage,3,1,harvest,tractor 2wd 160 hp,160,diesel,0.7425,gallon,acre
+corn grain,reduced tillage,3,1,maintenance,tractor 2wd 160 hp,160,diesel,0.628571429,gallon,acre
+corn stover,reduced tillage,3,1,harvest,tractor 2wd 135 hp,135,diesel,0.737040441,gallon,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.7734375,gallon,acre
+corn stover,reduced tillage,3,1,harvest,tractor 2wd 135 hp,135,diesel,0.522070313,gallon,acre
+corn grain,reduced tillage,3,1,harvest,combine with row header (2wd),390,diesel,3.830357143,gallon,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.628571429,gallon,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.628571429,gallon,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,0.537556561,gallon,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,diesel,1.885714286,gallon,acre
+corn grain,reduced tillage,3,1,harvest,single-axle truck (2 ton),250,diesel,3.382936508,gallon,acre
+corn grain,reduced tillage,3,1,maintenance,tractor 2wd 160 hp,160,nitrogen,26,pound,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,nitrogen,94,pound,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,p2o5,80,pound,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,k2o,45,pound,acre
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,lime,500,pound,acre
+corn stover,reduced tillage,3,1,maintenance,,,nitrogen,14.8,pound,dry short ton
+corn stover,reduced tillage,3,1,maintenance,,,p2o5,5.1,pound,dry short ton
+corn stover,reduced tillage,3,1,maintenance,,,k2o,27.2,pound,dry short ton
+corn grain,reduced tillage,3,1,establishment,tractor 2wd 160 hp,160,herbicide,1.8,pound,acre
+corn stover,conventional tillage,3,1,loading,tractor 2wd 143 hp,143,time,0.017361,hour,dry short ton
+corn stover,no tillage,3,1,loading,tractor 2wd 143 hp,143,time,0.017361,hour,dry short ton
+corn stover,reduced tillage,3,1,loading,tractor 2wd 143 hp,143,time,0.017361,hour,dry short ton

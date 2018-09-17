@@ -1,9 +1,6 @@
 # OS X files
 *.DS_Store
 
-# data
-*.csv
-
 # local config file
 **local.ini
 
