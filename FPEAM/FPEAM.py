@@ -1,6 +1,8 @@
 import os
 from collections import Iterable
 
+import pandas as pd
+
 from . import Data
 from . import Modules
 from . import utils
@@ -112,6 +114,21 @@ class FPEAM(object):
             _results[_module] = _module.status
 
         return _results
+
+    def merge(self, modules=None):
+        """
+        Merge result sets.
+
+        :param modules: [list] module classes with result property.\
+        :return: [DataFrame]
+        """
+
+        _df = pd.DataFrame()
+
+        for _module in modules or self._modules.values():
+            _df = _df.merge(_module.results)
+
+        return _df
 
     def summarize(self, modules):
 
