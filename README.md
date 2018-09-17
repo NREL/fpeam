@@ -317,18 +317,19 @@ Currently the Router module uses a graph of all known, publicly accessible roads
 
 # NONROAD Module
 
-NONROAD is a model for calculating emissions from off-road sources including logging, agricultural and other types of equipment. Although NONROAD is contained within MOVES 2014a, the required inputs, interface and outputs are sufficiently different from MOVES that a separate FPEAM module for setting up and running NONROAD was created. Unlike MOVES, NONROAD run times are on the order of seconds, and so NONROAD is run entirely at a FIPS level rather than at an aggregated level.
-
-There are a variety of input files required to run NONROAD, many of which are nested several sub-directories deep. NONROAD requires that the complete file paths to all input files be 60 characters or less (although some file paths may extend to 80 characters, developers have chosen to limit input file paths to 60 characters for simplicity), and so to avoid file path length errors, NONROAD input files have coded names that indicate feedstock type, tillage type and activity. CSV files recording the encoded feedstock, tillage and activity names are saved automatically to the main FPEAM directory when the names are encoded, to allow users to review the input files if necessary.
+[NONROAD](https://www.epa.gov/moves/nonroad-model-nonroad-engines-equipment-and-vehicles) is a model for calculating emissions from off-road sources including logging, agricultural and other types of equipment. Although NONROAD is contained within MOVES 2014a, the required inputs, interface and outputs are sufficiently different from MOVES that a separate FPEAM module for setting up and running NONROAD was created. Unlike MOVES, NONROAD run times are on the order of seconds, and so NONROAD is run entirely at a FIPS level rather than at an aggregated level.
 
 ## User options and input data
 
 User options within the NONROAD config file (also accessible via the GUI) consist of identifiers used to select which entries in the feedstock production and equipment datasets should be used in NONROAD runs, NONROAD temperature specifications and a set of multipliers used to calculate criteria air pollutants of interest from those returned by NONROAD. These options are listed in the table below with default values and descriptions.
 
+There are a variety of input files required to run NONROAD, many of which are nested several sub-directories deep. NONROAD requires that the complete file paths to all input files be 60 characters or less (although some file paths may extend to 80 characters, developers have chosen to limit input file paths to 60 characters for simplicity), and so to avoid file path length errors, NONROAD input files have coded names that indicate feedstock type, tillage type and activity. CSV files recording the encoded feedstock, tillage and activity names are saved automatically to the main FPEAM directory when the names are encoded, to allow users to review the input files if necessary.
+
 TABLE: NONROAD module user options
 
 | Parameter | Data Type | Default Value | Units | Description |
 | :-------- | :-------- | :------------ | :---: |  :--------- |
+| encode_names | Boolean | True | Unitless | Save NONROAD input file names using coded or plaintext feedstock, tillage type and activity types |
 | feedstock_measure_type | string | harvested | Unitless | Type of feedstock measure used in NONROAD calculations - the units of this feedstock measure should be acreage |
 | time_resource_name | string | time | Unitless | Name used in equipment dataset to identify time spent running agricultural equipment |
 | forestry_feedstock_names | list of strings | forest whole trees, forest residues | Unitless | Names of forestry feedstocks in feedstock production and equipment datasets, if any |
@@ -357,46 +358,33 @@ TABLE: Sample entries from the nonroad_equipment input dataset. Equipment descri
 
 ## Module structure and function
 
-The NONROAD module has very similar functionality to the MOVES module; input files for running the model are created and saved, and system commands (saved as batch files in the NONROAD module) are used to call the external models. A separate postprocessing method for raw NONROAD output reads in the NONROAD output files, concatenates the output from various NONROAD runs together, and adds identifier columns.
+The NONROAD module has very similar functionality to the MOVES module; input files for running the model are created and saved, and batch files are used to run NONROAD on the input files. A separate postprocessing method for raw NONROAD output reads in the output files, concatenates the output from various runs together, and adds identifier columns.
+
+The input files NONROAD needs to run are allocate, population and options files, created respectively by the `create_allocate_files`, `create_population_files` and `create_options_files` methods. The allocate files contain indicators for each FIPS within a particular state that, if county-level input data is not provided, are used to allocate state-wide pollutants to the county level. When NONROAD is run via FPEAM, the county-level input data is always provided and so the allocate files are overruled; however, they must be provided for NONROAD to run. The population files are created from the equipment use dataset and information on annual equipment use in the default MOVES database. The `create_population_files` method calculates the number of each equipment type needed per NONROAD run and writes the population to file.
+
+Options files for NONROAD are similar to runspec files for MOVES. They contain specifications for the population and allocate files for a particular NONROAD run, default data, and FPEAM-scenario-specific information such as the year and temperature range. For every valid options file passed to NONROAD, one output file is generated.
+
+After the input files have been generated, the `create_batch_files` method creates batch files for every NONROAD run and master batch files for every state in which NONROAD will be run. The master batch file calls the batch files for the runs defined by the options file.
+
+The `run` method calls all other methods including the `postprocess` method. Postprocessing is different for NONROAD than for MOVES because NONROAD writes raw results to individual text files (one file per NONROAD run) with the extension .out. Postprocessing then involves gathering each .out file, extracting the FPEAM-relevant data, calculating a few pollutants that are not returned by NONROAD, and then concatenating and formatting the NONROAD results so they can be combined with the results of other modules.
 
 ## Additional development
 
+Allow for users to select which pollutants are returned by the postprocessing method.
+
 # EmissionFactors Module
 
-Input files: equipment, production, resource_distribution, emission_factors
+The EmissionFactors module was developed from a module in the previous version of FPEAM that calculated NO<sub>x</sub> and NH<sub>3</sub> emissions from nitrogen fertilizer application and VOC emissions from herbicide and insecticide application. Rather than limit the module functionality to these pollutants and pollutant causes, the EmissionFactors module was written to calculate any pollutant from any pollutant process if sufficient input data is provided. This flexibility allows users to model pollutants from other fertilizers and agricultural chemicals, and could allow EmissionFactors to replace MOVES and NONROAD in the calculation of agricultural equipment and transportation vehicle emissions, albeit with a loss in spatial detail.
 
-Other inputs: feedstock_measure_type
+## User options and input data
 
-Output files: None; calculates pollutants in each region-feedstock combination from resources and resource subtypes as defined by resource_distribution and emission_factors inputs
+Apart from the emission factors input data, the only user parameter required by EmissionFactors is the feedstock_measure_type which defines the feedstock measure used to calculate total pollutant amounts from emission factors.
 
-## Input file format
+| Parameter | Data Type | Default Value | Units | Description |
+| :-------- | :-------- | :------------ | :---: |  :--------- |
+| feedstock_measure_type | string | harvested | Unitless | Feedstock measure used to scale emission factors and calculate pollutant amounts |
 
-The emission factors input files 
-
-## Default input data and sources
-
-TABLE: Default emissions factors for NO (used as a proxy for NO<sub>x</sub>) and NH<sub>3</sub> from nitrogen fertilizers and VOC from herbicides and insecticides. NO emission factors were obtained from FOA (2001) and GREET (ANL 2010). NH<sub>3</sub> factors were obtained from Goebes et al. 2003, Davidson et al. 2004 and the 17/14 ratio of NH<sub>3</sub> to N. See [Zhang et al. (2015)](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620) for additional information. Note that as of July 2, 2018 the Davidson et al. reference, the CMU Ammonia Model, Version 3.6 from The Environmental Institute at Carnegie Mellon University was not available online and source data could not be verified. 
- 
-| resource | resource subtype           | pollutant      | emission_factor | unit_numerator | unit_denominator |
-| :------- | :------------------------- | :------------: | :-------------: | :--------: | :--------: |
-| nitrogen | anhydrous ammonia          | no<sub>x</sub> | 0.79            | pound      | pound |
-| nitrogen | anhydrous ammonia          | nh<sub>3</sub> | 4.86            | pound      | pound |
-| nitrogen | ammonium nitrate (33.5% N) | no<sub>x</sub> | 3.80            | pound      | pound |
-| nitrogen | ammonium nitrate (33.5% N) | nh<sub>3</sub> | 2.32            | pound      | pound |
-| nitrogen | ammonium sulfate           | no<sub>x</sub> | 3.50            | pound      | pound |
-| nitrogen | ammonium sulfate           | nh<sub>3</sub> | 11.6            | pound      | pound |
-| nitrogen | urea (44 - 46% N)          | no<sub>x</sub> | 0.90            | pound      | pound |
-| nitrogen | urea (44 - 46% N)          | nh<sub>3</sub> | 19.2            | pound      | pound |
-| nitrogen | nitrogen solutions         | no<sub>x</sub> | 0.79            | pound      | pound |
-| nitrogen | nitrogen solutions         | nh<sub>3</sub> | 9.71            | pound      | pound |
-| herbicide | generic herbicide         | voc            | 0.75            | pound      | pound |
-| insecticide | generic insecticide     | voc            | 0.75            | pound      | pound |
-
-VOC emission factors from application of herbicides and insecticides were calculated from the following equation: (Zhang et al., 2015):
-
-VOC (lb/acre/year) = R * I * ER * C<sub>VOC</sub>
-
-where R is the pesticide or herbicide application rate (lb/harvested acre/year), I is the amount of active ingredient per pound of pesticide or herbicide (lb active ingredient/lb chemical, assumed to be 1), ER is the evaporation rate (assumed to be 0.9 per EPA recommendations from emissions inventory improvement program guidance) and C<sub>VOC</sub> is the VOC content in the active ingredient (lb VOC/lb active ingredient, assumed to be 0.835 per Huntley 2015 revision of 2011 NEI technical support document).
+Default input data for the EmissionFactors module consists of two files, one providing the emission factors themselves and one providing (if necessary) additional details on the resources used in agriculture that cause the emissions. The default resource distribution file, a portion of which is shown in the first table below, specifies how much of each resource type such as nitrogen, herbicide and so on consists of various resource subtypes such as specific nitrogen fertilizers or herbicide brands. Currently the resource distribution table must be supplied for FPEAM to run correctly. However, users can include the resource subtypes directly in the equipment use dataset and populate the distribution column of the resource distribution file with the values 1 if desired.
 
 TABLE: The default resource subtype distribution data file defines the nitrogen fertilizer distribution among five common nitrogenous fertilizers and the distribution of herbicide and insecticide to generics. The nitrogen fertilizer distribution varies between feedstocks. The national average distribution from 2010 [(USDA)](https://www.ers.usda.gov/data-products/fertilizer-use-and-price.aspx#26720) is used for corn grain and stover, sorghum stubble, and wheat straw. The perennial feedstock distribution which consists of nitrogen solutions only is used for switchgrass, miscanthus and all forest products. (Turhollow, 2011, personal communication). Two example distributions are shown in the table.
 
@@ -415,11 +403,40 @@ TABLE: The default resource subtype distribution data file defines the nitrogen 
 | eucalyptus | herbicide | generic herbicide | 1 |
 | wheat | insecticide | generic insecticide | 1 |
 
+Default emission factors themselves are provided for each relevant combination of resource subtype and pollutant, as demonstrated in the table below. The unit denominator (both unit columns refer to the emission factor) must match the resource unit from the equipment use dataset. For instance, if insecticide use is quantified as gallons per dry short ton of feedstock, the emission factor here must be in pounds of pollutant per gallon of insecticide. The activity column specifies which supply chain activity causes the resource use and thus the pollutant emissions.
+
+TABLE: Default emissions factors for NO (used as a proxy for NO<sub>x</sub>) and NH<sub>3</sub> from nitrogen fertilizers and VOC from herbicides and insecticides. NO emission factors were obtained from FOA (2001) and GREET (ANL 2010). NH<sub>3</sub> factors were obtained from Goebes et al. 2003, Davidson et al. 2004 and the 17/14 ratio of NH<sub>3</sub> to N. See [Zhang et al. (2015)](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620) for additional information. Note that as of July 2, 2018 the Davidson et al. reference, the CMU Ammonia Model, Version 3.6 from The Environmental Institute at Carnegie Mellon University was not available online and source data could not be verified. 
+ 
+| resource | resource subtype           | activity             | pollutant      | emission_factor | unit_numerator | unit_denominator |
+| :------- | :------------------------- | :------------------- | :------------: | :-------------: | :--------: | :--------: |
+| nitrogen | anhydrous ammonia          | chemical application | no<sub>x</sub> | 0.79            | pound      | pound |
+| nitrogen | anhydrous ammonia          | chemical application | nh<sub>3</sub> | 4.86            | pound      | pound |
+| nitrogen | ammonium nitrate (33.5% N) | chemical application | no<sub>x</sub> | 3.80            | pound      | pound |
+| nitrogen | ammonium nitrate (33.5% N) | chemical application | nh<sub>3</sub> | 2.32            | pound      | pound |
+| nitrogen | ammonium sulfate           | chemical application | no<sub>x</sub> | 3.50            | pound      | pound |
+| nitrogen | ammonium sulfate           | chemical application | nh<sub>3</sub> | 11.6            | pound      | pound |
+| nitrogen | urea (44 - 46% N)          | chemical application | no<sub>x</sub> | 0.90            | pound      | pound |
+| nitrogen | urea (44 - 46% N)          | chemical application | nh<sub>3</sub> | 19.2            | pound      | pound |
+| nitrogen | nitrogen solutions         | chemical application | no<sub>x</sub> | 0.79            | pound      | pound |
+| nitrogen | nitrogen solutions         | chemical application | nh<sub>3</sub> | 9.71            | pound      | pound |
+| herbicide | generic herbicide         | chemical application | voc            | 0.75            | pound      | pound |
+| insecticide | generic insecticide     | chemical application | voc            | 0.75            | pound      | pound |
+
+VOC emission factors from application of herbicides and insecticides were calculated from the following equation: (Zhang et al., 2015):
+
+VOC (lb/acre/year) = R * I * ER * C<sub>VOC</sub>
+
+where R is the pesticide or herbicide application rate (lb/harvested acre/year), I is the amount of active ingredient per pound of pesticide or herbicide (lb active ingredient/lb chemical, assumed to be 1), ER is the evaporation rate (assumed to be 0.9 per EPA recommendations from emissions inventory improvement program guidance) and C<sub>VOC</sub> is the VOC content in the active ingredient (lb VOC/lb active ingredient, assumed to be 0.835 per Huntley 2015 revision of 2011 NEI technical support document).
+
 # Fugitive Dust Module
 
-The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from feedstock transportation is not calculated.
+The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from feedstock transportation is not calculated due to a lack of spatially detailed road silt data, but this calculation may be added to FPEAM in the future if an adequate data source can be found.
 
-PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf) , which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf) . Users are able to use a different PM<sub>2.5</sub> fraction or alternative emissions factors by editing the input data.
+## User options and input data
+
+Like the EmissionFactors module, the only user input parameter for the FugitiveDust module is the feedstock_measure_type, which specifies the feedstock measure used to scale the fugitive dust emission factors and calculate total pollutant amounts.
+
+PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf), which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf). 
 
 TABLE: List of columns and data types in fugitive dust emissions factors dataset.
 
@@ -434,22 +451,15 @@ TABLE: List of columns and data types in fugitive dust emissions factors dataset
 
 TABLE: Fugitive dust input file example
 
-| feedstock | tillage_type | source_category | pollutant | rate | unit_numerator | unit_denominator |
-| :-------- | :----------- | :-------------- | :-------: | :--: | :--------- | :--------- |
-| sorghum stubble | conventional tillage | harvest | PM10 | 1.7 | pound | acre |
-| sorghum stubble | conventional tillage | harvest | PM25 | 0.34 | pound | acre |
-| sorghum stubble | conventional tillage | non-harvest | PM10 | 0 | pound | acre |
-| sorghum stubble | conventional tillage | non-harvest | PM25 | 0 | pound | acre |
+| feedstock | tillage_type | pollutant | rate | unit_numerator | unit_denominator |
+| :-------- | :----------- | :-------: | :--: | :--------- | :--------- |
+| sorghum stubble | conventional tillage | PM<sub>10</sub> | 1.7 | pound | acre |
+| sorghum stubble | conventional tillage | PM<sub>25</sub> | 0.34 | pound | acre |
+| sorghum stubble | conventional tillage | PM<sub>10</sub> | 0 | pound | acre |
+| sorghum stubble | conventional tillage | PM<sub>25</sub> | 0 | pound | acre |
 
+## Additional development
 
+Allow for county- or region-specific fugitive dust emission factors.
 
-## Advanced user options
-
-TABLE: Parameters controlling how biomass is transported on-farm from field to roadside.
-
-| Parameter | Data Type | Default Value | Units | Description |
-|-----------|-----------|---------------|-------|-------------|
-| onfarm_truck_capacity | float | 15 | dry short tons/load | Amount of biomass that can be transported on-farm by one truck in one trip. |
-| onfarm_default_distance | float | 1 | miles | Average distance that biomass is transported on-farm, from the field to the roadside. |
-
-## Output
+# Running FPEAM
