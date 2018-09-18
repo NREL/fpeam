@@ -27,7 +27,7 @@ class NONROAD(Module):
 
         # flag to encode feedstock, tillage type and activity names in all
         # nonroad filepaths and names
-        self.encode_names = True
+        self.encode_names = self.config['encode_names']
 
         self.model_run_title = self.config['scenario_name']
         self.nonroad_path = self.config['nonroad_path']
@@ -192,8 +192,6 @@ class NONROAD(Module):
                                              'feedstock_code': np.arange(
                                                      _feedstocks.__len__())})
             _feedstock_codes['feedstock_code'] = 'f' + _feedstock_codes['feedstock_code'].map(str)
-            _feedstock_codes.to_csv(os.path.join(self.project_path, 'feedstock_codes.csv')
-                                    , index=False)
 
             _tillage_types = self.prod_equip_merge.tillage_type.unique()
             _tillage_types.sort()
@@ -202,8 +200,6 @@ class NONROAD(Module):
                                                         _tillage_types.__len__())})
             _tillage_type_codes['tillage_type_code'] = 't' + _tillage_type_codes[
                 'tillage_type_code'].map(str)
-            _tillage_type_codes.to_csv(os.path.join(self.project_path, 'tillage_type_codes.csv'),
-                                       index=False)
 
             _activities = self.prod_equip_merge.activity.unique()
             _activities.sort()
@@ -211,8 +207,6 @@ class NONROAD(Module):
                                             'activity_code': np.arange(
                                                     _activities.__len__())})
             _activity_codes['activity_code'] = 'a' + _activity_codes['activity_code'].map(str)
-            _activity_codes.to_csv(os.path.join(self.project_path, 'activity_codes.csv'),
-                                   index=False)
 
             # encode feedstock, tillage types and activities
             self.nr_files = self.nr_files.merge(_feedstock_codes,
@@ -334,6 +328,18 @@ class NONROAD(Module):
         for _folder in _nr_folders:
             if not os.path.exists(_folder):
                 os.makedirs(_folder)
+
+        if self.encode_names:
+            # save files containing encoded feedstock, tillage type and activity
+            #  names
+            # these dfs are created above if self.encode_names is True
+            _feedstock_codes.to_csv(os.path.join(self.project_path, 'feedstock_codes.csv')
+                                    , index=False)
+            _tillage_type_codes.to_csv(os.path.join(self.project_path, 'tillage_type_codes.csv'),
+                                       index=False)
+            _activity_codes.to_csv(
+                os.path.join(self.project_path, 'activity_codes.csv'),
+                index=False)
 
         # create subdirectories in the OUT and OPT directories for each
         # feedstock-tillagetype-activity combination
@@ -477,7 +483,7 @@ population or land area.  The format is as follows.
                             _ind_code = 'LOG'
 
                             # calculate forestry indicator
-                            _ind = _indicator_list.feedstock_amount[_indicator_list.resetindex(drop=False)['fips'] == _fips].values[0] * 2000.0 / 30.0
+                            _ind = _indicator_list.feedstock_amount[_indicator_list['fips'] == _fips].values[0] * 2000.0 / 30.0
 
                         else:
 
@@ -1284,11 +1290,11 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         :return:
         """
 
-        # self.create_population_files()  # @TODO: add logger output
+        self.create_population_files()  # @TODO: add logger output
 
-        # self.create_allocate_files()  # @TODO: add logger output
+        self.create_allocate_files()  # @TODO: add logger output
 
-        # self.create_options_files()  # @TODO: add logger output
+        self.create_options_files()  # @TODO: add logger output
 
         self.create_batch_files()  # @TODO: add logger output
 

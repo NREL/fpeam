@@ -966,7 +966,6 @@ class MOVES(Module):
                                                       roadTypeID,
                                                       avgSpeedBinID,
                                                       ratePerDistance,
-                                                      state,
                                                       dist_table.fips
               FROM {moves_output_db}.rateperdistance AS dist_table
                 INNER JOIN (SELECT distinct dist.fips, MOVESRunID
