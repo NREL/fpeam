@@ -4,7 +4,10 @@ import argparse
 import logging
 import os
 
+os.sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+
 from FPEAM import (IO, FPEAM, utils)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
