@@ -1304,20 +1304,21 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         _results = None
         _status = self.status
-        e = None
+        _e = None
 
         try:
             _results = self.postprocess()
         except Exception as e:
-            LOGGER.exception(e)
+            _e = e
+            LOGGER.exception(_e)
             _status = 'failed'
         else:
             _status = 'complete'
         finally:
             self.status = _status
             self.results = _results
-            if e:
-                raise e
+            if _e:
+                raise _e
 
     def __enter__(self):
 

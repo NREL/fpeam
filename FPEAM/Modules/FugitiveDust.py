@@ -67,11 +67,12 @@ class FugitiveDust(Module):
 
         _results = None
         _status = self.status
-        e = None
+        _e = None
 
         try:
             _results = self.get_fugitivedust()
         except Exception as e:
+            _e = e
             LOGGER.exception(e)
             _status = 'failed'
         else:
@@ -79,8 +80,8 @@ class FugitiveDust(Module):
         finally:
             self.status = _status
             self.results = _results
-            if e:
-                raise e
+            if _e:
+                raise _e
 
     def summarize(self):
         pass
