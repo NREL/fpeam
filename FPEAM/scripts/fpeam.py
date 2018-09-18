@@ -15,9 +15,6 @@ if __name__ == '__main__':
     parser.add_argument('run_config', type=str, help='execution configuration')
 
     config_group = parser.add_argument_group('configuration files')
-    config_group.add_argument('--fpeam_config', type=str,
-                              default=None,
-                              help='FPEAM application configuration options')
     config_group.add_argument('--moves_config', type=str,
                               default=None,
                               help='MOVES model configuration options')
