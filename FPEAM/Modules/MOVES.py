@@ -1,5 +1,5 @@
 import os
-import pdb
+
 import numpy as np
 import pandas as pd
 import pymysql
@@ -1180,7 +1180,7 @@ class MOVES(Module):
                                                                         'state',
                                                                         'pollutantID',
                                                                         'averageRatePerDistance']]
-        pdb.set_trace()
+        
         # merge with the pollutant names dataframe
         _avgRateDist = _avgRateDist.merge(self.pollutant_names, how='inner',
                                           on='pollutantID')
