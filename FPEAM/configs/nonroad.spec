@@ -1,24 +1,24 @@
 
 ## run identifier; defaults to FPEAM scenario name
-scenario_name = string(default='')
+scenario_name = string(default='scenario')
 
 ## start year (equipment year #1)
-year = integer
+year = integer(default='2017')
 
 ## NONROAD output folder
-nonroad_project_path = filepath
+nonroad_project_path = filepath(default='C:\Nonroad')
 
 
 ### input data options
 
 ## production table row identifier (feedstock_measure in production data)
-feedstock_measure_type = string
+feedstock_measure_type = string(default='harvested')
 
 ## equipment table row identifier (resource in equipment data)
 time_resource_name = string(default='time')
 
 ## forest feedstocks have different allocation indicators
-forestry_feedstock_names = string_list(default=list())
+forestry_feedstock_names = string_list(default=list('forest residues', 'forest whole tree'))
 
 
 ### input data files
@@ -35,14 +35,14 @@ nonroad_equipment = string(default='../data/inputs/nonroad_equipment.csv')
 
 
 ### NONROAD database connection options
-nonroad_database = string
-nonroad_db_user = string
-nonroad_db_pass = string
-nonroad_db_host = string
+nonroad_database = string(default='movesdb20151028')
+nonroad_db_user = string(default='root')
+nonroad_db_pass = string(default='root')
+nonroad_db_host = string(default='localhost')
 
 
 ### NONROAD application options
-nonroad_path = filepath
+nonroad_path = filepath(default='C:\MOVES2014a\NONROAD\NR08a\')
 nonroad_exe = string(default='NONROAD.exe')
 
 
