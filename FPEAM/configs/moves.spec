@@ -1,21 +1,21 @@
 
 # run identifier; defaults to FPEAM scenario name
-scenario_name = string(default='')
+scenario_name = string(default='scenario')
 
 
 ### MOVES execution options
 
 ## use a single representative county for all counties in each state
-moves_by_state = boolean
+moves_by_state = boolean(default=True)
 
 ## use a single representative county for each crop for all counties in each state
-moves_by_state_and_feedstock = boolean
+moves_by_state_and_feedstock = boolean(default=False)
 
 ## use existing results in MOVES output database or run MOVES for all counties
-use_cached_results = boolean
+use_cached_results = boolean(default=True)
 
 ## production table identifier (feedstock_measure in production data)
-feedstock_measure_type = string
+feedstock_measure_type = string(default='production')
 
 ## annual vehicle miles traveled by combination short-haul trucks
 vmt_short_haul = float(default=100)
@@ -30,26 +30,26 @@ hpmsv_type_id = integer(default=60)
 source_type_id = integer(default=61)
 
 ## start year (equipment year #1)
-year = integer
+year = integer(default='2017')
 
 
 ### MOVES database connection options
-moves_db_host = string
-moves_db_user = string
-moves_db_pass = string
-moves_database = string
-moves_output_db = string
+moves_db_host = string(default='localhost')
+moves_db_user = string(default='root')
+moves_db_pass = string(default='root')
+moves_database = string(default='movesdb20151028')
+moves_output_db = string(default='moves_output_db')
 
 
 ### MOVES application options
-moves_version = string
-moves_path = filepath
-moves_datafiles_path = filepath
+moves_version = string(default='MOVES2014a-20151028')
+moves_path = filepath(default='C:\MOVES2014a')
+moves_datafiles_path = filepath(default='C:\MOVESdata')
 
 
 ### MySQL options
-mysql_binary = string
-mysqldump_binary = string
+mysql_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe')
+mysqldump_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe')
 
 
 ### input files
