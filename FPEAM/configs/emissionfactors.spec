@@ -1,7 +1,7 @@
 
 
 # production table identifier (feedstock_measure in production data)
-feedstock_measure_type = string
+feedstock_measure_type = string(default='harvested')
 
 # emission factors as lb pollutant per lb resource subtype
 emission_factors = filepath(default='../data/inputs/emission_factors.csv')
