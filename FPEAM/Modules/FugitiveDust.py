@@ -54,7 +54,7 @@ class FugitiveDust(Module):
         # clean up DataFrame
         _df = _df[['region_production', 'feedstock',
                    'tillage_type', 'pollutant',
-                   'pollutant_amount']].set_index('row_id', drop=True)
+                   'pollutant_amount']]
 
         return _df
 
