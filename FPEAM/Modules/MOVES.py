@@ -1180,7 +1180,7 @@ class MOVES(Module):
                                                                         'state',
                                                                         'pollutantID',
                                                                         'averageRatePerDistance']]
-        
+
         # merge with the pollutant names dataframe
         _avgRateDist = _avgRateDist.merge(self.pollutant_names, how='inner',
                                           on='pollutantID')
@@ -1282,7 +1282,14 @@ class MOVES(Module):
                                         on='pollutantID')
 
         # merge raw moves output with production data and truck capacities
-        _start_hotel_emissions = _avgRateVeh.merge(self.prod_moves_runs,
+        _start_hotel_emissions = _avgRateVeh.merge(self.prod_moves_runs[['MOVES_run_fips',
+                                                                         'state',
+                                                                         'region_production',
+                                                                         'region_destination',
+                                                                         'tillage_type',
+                                                                         'feedstock',
+                                                                         'feedstock_measure',
+                                                                         'feedstock_amount']],
                                                    how='left',
                                                    left_on=['fips', 'state'],
                                                    right_on=['MOVES_run_fips',
