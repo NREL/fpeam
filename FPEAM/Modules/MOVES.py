@@ -1087,7 +1087,8 @@ class MOVES(Module):
 
         # filter down the large rateperdistance table into just the rows
         # that are relevant to this run
-        _rateperdistance = _rateperdistance_all[_rateperdistance_filter]
+        _rateperdistance = _rateperdistance_all.loc[_rateperdistance_filter,
+                                                    _rateperdistance_all.columns]
 
         # pull in rows from the ratePerVehicle table, subsetting to grab
         # only the most recent runs for each FIPS in the able
@@ -1122,17 +1123,15 @@ class MOVES(Module):
         _ratepervehicle_filter = _ratepervehicle_all.fips.isin(
             self.moves_run_list.MOVES_run_fips)
 
-        _ratepervehicle = _ratepervehicle_all[_ratepervehicle_filter]
+        _ratepervehicle = _ratepervehicle_all.loc[_ratepervehicle_filter,
+                                                  _ratepervehicle_all.columns]
 
         LOGGER.debug('Postprocessing MOVES output')
 
         # add state column to both tables by pulling out first two digits of
         #  MOVESScenarioID
-        # do this in two steps to avoid a warning from pandas
-        _rateperdistance_state = _rateperdistance['fips'].str[:2]
-        _rateperdistance['state'] = _rateperdistance_state
-        _ratepervehicle_state = _ratepervehicle['fips'].str[:2]
-        _ratepervehicle['state'] = _ratepervehicle_state
+        _rateperdistance['state'] = _rateperdistance.loc[:, 'fips'].str[:2]
+        _ratepervehicle['state'] = _ratepervehicle.loc[:, 'fips'].str[:2]
 
         # create the average speed table that will be used in calculating
         # the average emissions rate per distance
