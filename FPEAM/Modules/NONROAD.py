@@ -330,6 +330,7 @@ class NONROAD(Module):
                 os.makedirs(_folder)
 
         if self.encode_names:
+            LOGGER.debug('saving encoded feedstock, tillage, and activity codes to %s' % self.project_path)
             # save files containing encoded feedstock, tillage type and activity
             #  names
             # these dfs are created above if self.encode_names is True
@@ -432,10 +433,11 @@ population or land area.  The format is as follows.
         #  preamble
         for i in np.arange(self.nr_files.shape[0]):
 
+            _fpath = os.path.join(self.project_path, 'ALLOCATE',
+                                   self.nr_files.alo_file_names.iloc[i] + '.alo')
+            LOGGER.debug('creating allocation file %s (%s/%s)' % (_fpath, 1, self.nr_files.shape[0]))
             # initialize file
-            with open(os.path.join(self.project_path, 'ALLOCATE',
-                                   self.nr_files.alo_file_names.iloc[i] + '.alo'),
-                      'w') as _alo_file_path:
+            with open(_fpath, 'w') as _alo_file_path:
 
                 _alo_file_path.writelines(_preamble)
 
@@ -906,6 +908,7 @@ T4M       1.0       0.02247
             f = os.path.join(self.project_path, 'OPT',
                              self.nr_files.out_opt_dir_names.iloc[i],
                              self.nr_files.state_abbreviation.iloc[i] + '.opt')
+            LOGGER.debug('creating option file %s (%s/%s)' % (f, i, self.nr_files.shape[0]))
 
             with open(f, 'w') as _opt_file:
                 _opt_file.writelines(_options_file_template.format(**kvals,
@@ -1077,6 +1080,12 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         # open, create and close all population files for a scenario
         for i in np.arange(self.nr_files.shape[0]):
+            # construct complete path to population file
+            _pop_path = os.path.join(_pop_dir,
+                                     self.nr_files.pop_file_names.iloc[
+                                         i] + '.pop')
+
+            LOGGER.debug('creating %s population file (%s/%s)' % (_pop_path, i, self.nr_files.shape[0]))
             # create filter to pull out only the lines in _nr_pop that are
             # relevant to this population file
             _nr_pop_filter = (_nr_pop.state_abbreviation ==
@@ -1094,11 +1103,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
             # _feedstock = self.nr_files.feedstock.iloc[i]
             # _tillage_type = self.nr_files.tillage_type.iloc[i]
             # _activity = self.nr_files.activity.iloc[i]
-
-            # construct complete path to population file
-            _pop_path = os.path.join(_pop_dir,
-                                     self.nr_files.pop_file_names.iloc[
-                                         i] + '.pop')
 
             # open, write and close population file
             with open(_pop_path, 'w') as _pop_file:
@@ -1119,7 +1123,6 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         Creates the master batch file that calls all other batch files
         :return: None
         """
-
         # specify directory where batch files are saved - same as location
         # of the OPT subdirectories
         _batch_path = os.path.join(self.project_path, 'OPT')
@@ -1132,7 +1135,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         # create files and write the first line which is identical across
         # all batch files except for the master file
         for i in list(self.nr_files.out_opt_dir_names.drop_duplicates()):
-
+            LOGGER.debug('creating %s batch file' % i)
             # create the full path to the batch file
             _batch_filepath = os.path.join(_batch_path, i + '.bat')
 
@@ -1164,6 +1167,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 _batch_file.close()
 
         # create the master batch file
+        LOGGER.debug('creating master batch file')
         # store in self for use in run method
         self.master_batch_filepath = os.path.join(_batch_path,
                                                   self.model_run_title + '.bat')
@@ -1290,15 +1294,20 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         :return:
         """
 
+        LOGGER.info('creating NONROAD population files')
         self.create_population_files()  # @TODO: add logger output
 
+        LOGGER.info('creating NONROAD allocation files')
         self.create_allocate_files()  # @TODO: add logger output
 
+        LOGGER.info('creating NONROAD option files')
         self.create_options_files()  # @TODO: add logger output
 
+        LOGGER.info('creating NONROAD batch files')
         self.create_batch_files()  # @TODO: add logger output
 
         # use Popen to run the master batch file
+        LOGGER.info('executing NONROAD')
         p = Popen(self.master_batch_filepath)
         p.wait()
 
@@ -1307,6 +1316,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         _e = None
 
         try:
+            LOGGER.info('calculating emissions')
             _results = self.postprocess()
         except Exception as e:
             _e = e
@@ -1317,6 +1327,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         finally:
             self.status = _status
             self.results = _results
+            LOGGER.info('NONROAD complete: %s' % self.status)
             if _e:
                 raise _e
 
