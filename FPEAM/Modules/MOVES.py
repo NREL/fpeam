@@ -1,5 +1,5 @@
 import os
-
+import pdb
 import numpy as np
 import pandas as pd
 import pymysql
@@ -53,6 +53,8 @@ class MOVES(Module):
         # this is a DF read in from a csv file
         self.truck_capacity = TruckCapacity(fpath=self.config['truck_capacity'])
 
+        # boolean controlling whether available results are used from the
+        # moves output database
         self.use_cached_results = self.config.get('use_cached_results')
 
         # scenario name
@@ -157,6 +159,18 @@ class MOVES(Module):
         # user input - fraction of VMT on each road type (dictionary type)
         self._vmt_fraction = None
         self.vmt_fraction = self.config.get('vmt_fraction')
+
+        # construct dataframe of road type VMTs from config file input
+        _vmt_fraction = {2: self.vmt_fraction['rural_restricted'],
+                         3: self.vmt_fraction['rural_unrestricted'],
+                         4: self.vmt_fraction['urban_restricted'],
+                         5: self.vmt_fraction['urban_unrestricted']}
+
+        self.roadtypevmt = pd.DataFrame.from_dict(_vmt_fraction,
+                                                  orient='index',
+                                                  columns=['roadTypeVMTFraction'])
+        self.roadtypevmt['roadTypeID'] = self.roadtypevmt.index
+        self.roadtypevmt['sourceTypeID'] = np.repeat(self.source_type_id, 4)
 
         # polname, polkey, procname, prockey and roaddict are used in
         # generating the XML import and runspec files for MOVES
@@ -314,19 +328,7 @@ class MOVES(Module):
         # pull data from database and save in a csv
         pd.read_sql(_agedist_sql, self._conn).to_csv(self.agedistfilename, index=False)
 
-        # construct dataframe of road type VMTs from config file input
-        _vmt_fraction = {2: self.vmt_fraction['rural_restricted'],
-                         3: self.vmt_fraction['rural_unrestricted'],
-                         4: self.vmt_fraction['urban_restricted'],
-                         5: self.vmt_fraction['urban_unrestricted']}
-
-        self.roadtypevmt = pd.DataFrame.from_dict(_vmt_fraction,
-                                                  orient='index',
-                                                  columns=['roadTypeVMTFraction'])
-        self.roadtypevmt['roadTypeID'] = self.roadtypevmt.index
-        self.roadtypevmt['sourceTypeID'] = np.repeat(self.source_type_id, 4)
-
-        # write roadtypevmt to csv
+        # write roadtypevmt (constructed in int) to csv
         self.roadtypevmt_filename = os.path.join(self.save_path_nationalinputs, 'roadtype.csv')
         self.roadtypevmt.to_csv(self.roadtypevmt_filename, sep=',', index=False)
 
@@ -1178,12 +1180,7 @@ class MOVES(Module):
                                                                         'state',
                                                                         'pollutantID',
                                                                         'averageRatePerDistance']]
-
-        # calculate final pollutant rates per distance
-        _avgRateDist = _join_dist_avgspd.sum()[['fips', 'state',
-                                                'pollutantID',
-                                                'averageRatePerDistance']]
-
+        pdb.set_trace()
         # merge with the pollutant names dataframe
         _avgRateDist = _avgRateDist.merge(self.pollutant_names, how='inner',
                                           on='pollutantID')
