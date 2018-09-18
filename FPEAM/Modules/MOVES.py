@@ -249,17 +249,20 @@ class MOVES(Module):
                          "5": "Urban Unrestricted Access"}
 
         # create data frame for renaming pollutants during postprocessing
-        self.pollutant_names = pd.DataFrame({'pollutant': ['NH3', 'CO', 'ECPM',
-                                                       'Carbon', 'H2O',
-                                                       'NMHC', 'NOX',
-                                                       'PM10', 'PM25',
-                                                       'Spar', 'SO2', 'TEC',
-                                                       'THC', 'VOC'],
-                                             'pollutantID': [30, 2, 118,
-                                                      112, 119, 79,
-                                                      3, 100, 110,
-                                                      115, 31, 91,
-                                                      1, 87]})
+        self.pollutant_names = pd.DataFrame({'pollutant': ['NH3',
+                                                           'CO',
+                                                           'NOX',
+                                                           'PM10',
+                                                           'PM25',
+                                                           'SO2',
+                                                           'VOC'],
+                                             'pollutantID': [30,
+                                                             2,
+                                                             3,
+                                                             100,
+                                                             110,
+                                                             31,
+                                                             87]})
 
     @property
     def router(self):
