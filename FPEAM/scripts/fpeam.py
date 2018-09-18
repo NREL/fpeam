@@ -64,5 +64,7 @@ if __name__ == '__main__':
 
     _results = _fpeam.run()
 
+    _merged_results = _fpeam.merge()
+
     for _result in _results:
         _logger.info(_result)
