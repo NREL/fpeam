@@ -483,7 +483,7 @@ Save file as moves.ini
 ```
 [moves]
 ## run identifier; defaults to FPEAM scenario name
-#scenario_name = ''
+#scenario_name = 'scenario'
 
 
 ### MOVES execution options
@@ -498,7 +498,7 @@ Save file as moves.ini
 #use_cached_results = True
 
 ## production table identifier (feedstock_measure in production data)
-feedstock_measure_type = 'production'
+#feedstock_measure_type = 'production'
 
 ## annual vehicle miles traveled by combination short-haul trucks
 #vmt_short_haul = 100
@@ -577,7 +577,7 @@ Save file as nonroad.ini
 ```
 [nonroad]
 ## run identifier; defaults to FPEAM scenario name
-#scenario_name = ''
+#scenario_name = 'scenario'
 
 ## start year (equipment year #1)
 #year = 2017
@@ -586,7 +586,7 @@ Save file as nonroad.ini
 ### input data options
 
 ## production table row identifier (feedstock_measure in production data)
-feedstock_measure_type = 'harvested'
+#feedstock_measure_type = 'harvested'
 
 ## equipment table row identifier (resource in equipment data)
 #time_resource_name = 'time'
@@ -608,10 +608,10 @@ feedstock_measure_type = 'harvested'
 
 
 ### NONROAD database connection options
-#nonroad_database = ''
-#nonroad_db_user = ''
-#nonroad_db_pass = ''
-#nonroad_db_host = ''
+#nonroad_database = 'movesdb10282017'
+#nonroad_db_user = 'root'
+#nonroad_db_pass = 'root'
+#nonroad_db_host = 'localhost'
 
 
 ### NONROAD application options
@@ -662,7 +662,7 @@ Save file as emissionfactors.ini
 [emissionfactors]
 
 ## production table identifier (feedstock_measure in production data)
-feedstock_measure_type = 'harvested'
+#feedstock_measure_type = 'harvested'
 
 ## emission factors as lb pollutant per lb resource subtype
 #emission_factors = '../data/inputs/emission_factors.csv'
@@ -696,14 +696,18 @@ production = '../data/production/prod_2015_bc1060.csv'
 
 ## Command line syntax
 
-FPEAM can be called directly from the command line using the fpeam.py (all lower case) file. Running FPEAM this way requires passing in the run_config.ini file.
+FPEAM can be called directly from the command line using the fpeam.py (all lower case) file. Running FPEAM this way requires passing in the run_config.ini file. Config files for each module can also be passed in but are not required. The default values defined in the .spec files will be used if no module-specific config files are given. If module-specific config files are used, the complete file path to the config file location must be specified.
 
-The syntax to run FPEAM via command line is:
+The syntax to run FPEAM via command line without any module-specific config files is:
 
 ```
-[insert syntax here]
+python fpeam.py path/to/run_config.ini
 ```
 
+This command must be executed in the directory where fpeam.py is located. On a Windows machine, use `cd` to change the current working directory.
 
-## Graphical user interface (GUI)
+If FPEAM is run with one or more module-specific config files, the syntax expands with the full filepaths to these config files and flags that indicate which config file is being specified. For instance, running FPEAM with all four module-specific config files would look like:
 
+```
+python fpeam.py path/to/run_config.ini --emissionfactors_config path/to/emissionfactors.ini --moves_config path/to/moves.ini --nonroad_config path/to/nonroad.ini --fugitivedust_config path/to/fugitivedust.ini
+```
