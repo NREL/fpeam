@@ -75,7 +75,7 @@ class Router(object):
                                                                                    'countyfp'])\
             .sum().reset_index()
 
-        _summary['fips'] = _summary['statefp'] + _summary['countyfp']
+        _summary['region_transportation'] = _summary['statefp'] + _summary['countyfp']
         _summary['vmt'] = _summary['weight'] / 1000.0 * 0.621371
 
-        return _summary[['fips', 'vmt']]
+        return _summary[['region_transportation', 'vmt']]

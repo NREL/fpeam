@@ -1128,8 +1128,11 @@ class MOVES(Module):
 
         # add state column to both tables by pulling out first two digits of
         #  MOVESScenarioID
-        _rateperdistance['state'] = _rateperdistance.fips.str.slice(stop=2)
-        _ratepervehicle['state'] = _ratepervehicle.fips.str.slice(stop=2)
+        # do this in two steps to avoid a warning from pandas
+        _rateperdistance_state = _rateperdistance['fips'].str[:2]
+        _rateperdistance['state'] = _rateperdistance_state
+        _ratepervehicle_state = _ratepervehicle['fips'].str[:2]
+        _ratepervehicle['state'] = _ratepervehicle_state
 
         # create the average speed table that will be used in calculating
         # the average emissions rate per distance
@@ -1180,7 +1183,7 @@ class MOVES(Module):
                                                                         'state',
                                                                         'pollutantID',
                                                                         'averageRatePerDistance']]
-        
+
         # merge with the pollutant names dataframe
         _avgRateDist = _avgRateDist.merge(self.pollutant_names, how='inner',
                                           on='pollutantID')
@@ -1282,7 +1285,14 @@ class MOVES(Module):
                                         on='pollutantID')
 
         # merge raw moves output with production data and truck capacities
-        _start_hotel_emissions = _avgRateVeh.merge(self.prod_moves_runs,
+        _start_hotel_emissions = _avgRateVeh.merge(self.prod_moves_runs[['MOVES_run_fips',
+                                                                         'state',
+                                                                         'region_production',
+                                                                         'region_destination',
+                                                                         'tillage_type',
+                                                                         'feedstock',
+                                                                         'feedstock_measure',
+                                                                         'feedstock_amount']],
                                                    how='left',
                                                    left_on=['fips', 'state'],
                                                    right_on=['MOVES_run_fips',
