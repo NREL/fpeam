@@ -1126,8 +1126,8 @@ class MOVES(Module):
 
         # add state column to both tables by pulling out first two digits of
         #  MOVESScenarioID
-        _rateperdistance['state'] = _rateperdistance.MOVESScenarioID.str.slice(stop=2)
-        _ratepervehicle['state'] = _ratepervehicle.MOVESScenarioID.str.slice(stop=2)
+        _rateperdistance['state'] = _rateperdistance.fips.str.slice(stop=2)
+        _ratepervehicle['state'] = _ratepervehicle.fips.str.slice(stop=2)
 
         # create the average speed table that will be used in calculating
         # the average emissions rate per distance
@@ -1500,13 +1500,13 @@ class MOVES(Module):
         except Exception as e:
             LOGGER.exception(e)
             _status = 'failed'
+            raise e
         else:
             _status = 'complete'
         finally:
             self.status = _status
             self.results = _results
-            if e:
-                raise e
+
 
     def __enter__(self):
 
