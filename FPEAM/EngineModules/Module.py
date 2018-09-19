@@ -19,7 +19,7 @@ class Module(object):
         self.__name__ = self.__module__.split('.')[-1].lower()
 
         self._config = None
-        self._configspec = '%s.spec' % os.path.join(IO.CONFIG_FOLDER, self.__name__)
+        self._configspec = resource_filename('FPEAM', '%s/%s.spec' % (IO.CONFIG_FOLDER, self.__name__))
 
         self.config = config
 
