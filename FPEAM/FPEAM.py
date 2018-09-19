@@ -36,10 +36,10 @@ class FPEAM(object):
         self._fertilizer_distribution = None
         self._fugitive_dust = None
 
-        # @TODO: load and validate fpeam.ini; currently only run_config gets checked and loaded
-        self.config = run_config
         self.router = None
 
+        # @TODO: load and validate fpeam.ini; currently only run_config gets checked and loaded
+        self.config = run_config
         self.equipment = Data.Equipment(fpath=self.config['equipment']).reset_index().rename({'index': 'row_id'}, axis=1)
         self.production = Data.Production(fpath=self.config['production']).reset_index().rename({'index': 'row_id'}, axis=1)
 
@@ -47,11 +47,6 @@ class FPEAM(object):
             _config = run_config.get(_module.lower(), None) or \
                       load_configs(resource_filename('FPEAM', '%s/%s.ini' % (CONFIG_FOLDER, _module.lower()))
                                    )[_module.lower()]
-
-            _config = utils.validate_config(config=_config
-                                            , spec=resource_filename('FPEAM'
-                                                                   , '%s/%s.spec' % (CONFIG_FOLDER, _module.lower()))
-                                            )['config']
             _config['scenario_name'] = _config.get('scenario_name', '').strip() or self.config['scenario_name']
 
             try:
