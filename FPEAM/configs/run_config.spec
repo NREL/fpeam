@@ -13,5 +13,5 @@ logger_level = option(CRITICAL, ERROR, WARNING, INFO, DEBUG, UNSET, default=INFO
 
 
 ## data paths
-equipment = filepath(default='../data/equipment/bts16_equipment.csv')
-production = filepath(default='../data/production/prod_2015_bc1060.csv')
+equipment = filepath(default='')
+production = filepath(default='')
