@@ -132,12 +132,64 @@ class FPEAM(object):
 
         return _df
 
-    def summarize(self, modules):
+    def summarize(self):
+        """
+        summarization method called on the results dataframe created by the
+        collect method
 
-        for _module in modules or self._modules.values():
-            LOGGER.debug('summarizing %s' % _module)
+        :param modules:
+        :return:
+        """
+        LOGGER.info('summarizing results')
 
-        raise NotImplementedError
+        # feedstock-tillage type-region_production
+        _summarize_by_region_production = self.results.groupby(['feedstock',
+                                                                'tillage_type',
+                                                                'region_production',
+                                                                'pollutant'],
+                                                               as_index=False).sum()
+
+        if 'region_transportation' in self.results.columns:
+            # feedstock-tillage type-region_transportation
+            _summarize_by_region_transportation = self.results.groupby(['feedstock',
+                                                                        'tillage_type',
+                                                                        'region_transportation',
+                                                                        'pollutant'], as_index=False).sum()
+            _summarize_by_region_transportation[['feedstock', 'tillage_type',
+                                                 'region_transportation',
+                                                 'pollutant',
+                                                 'pollutant_amount']].to_csv(
+                os.path.join(self.config['project_path'],
+                             '%s' %
+                             self.config['scenario_name'] +\
+                             '_transportation_emissions_by_region.csv'),
+                index=False)
+
+        else:
+            LOGGER.info('could not summarize by transportation region')
+
+        # feedstock-tillage type-module
+        _summarize_by_module = self.results.groupby(['feedstock',
+                                                     'tillage_type',
+                                                     'module',
+                                                     'pollutant'],
+                                                    as_index=False).sum()
+
+        _summarize_by_region_production[['feedstock', 'tillage_type',
+                                         'region_production', 'pollutant',
+                                         'pollutant_amount']].to_csv(
+            os.path.join(self.config['project_path'],
+                         '%s' %
+                         self.config['scenario_name'] +\
+                         '_total_emissions_by_production_region.csv'),
+            index=False)
+
+        _summarize_by_module[['feedstock', 'tillage_type', 'module',
+                              'pollutant', 'pollutant_amount']].to_csv(
+            os.path.join(self.config['project_path'],
+                         '%s' %
+                         self.config['scenario_name'] +\
+                         '_total_emissions_by_module.csv'), index=False)
 
     def plot(self, modules):
         for _module in modules or self._modules.values():
