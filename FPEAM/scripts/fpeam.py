@@ -61,8 +61,11 @@ def main():
     _fpeam = FPEAM(run_config=_config)
 
     _fpeam.run()
-    _fpeam.results.to_csv(os.path.join(_config['project_path'],
-                                       '%s.csv' % _config['scenario_name']), index=False)
+
+    _fpeam.results.to_csv(os.path.join(_fpeam.config['project_path'],
+                                       '%s.csv' %
+                                       _fpeam.config['scenario_name']),
+                          index=False)
 
 
 if __name__ == '__main__':
