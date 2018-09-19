@@ -39,8 +39,6 @@ def validate_config(config, spec):
 
     _validator = Validator()
     _validator.functions['filepath'] = filepath
-    import pdb
-    pdb.set_trace()
     _config = ConfigObj(config, configspec=spec, stringify=True)
     _result = _config.validate(_validator, preserve_errors=True)
 
@@ -79,22 +77,24 @@ def filepath(fpath):
     :return: [bool] True on success
     """
 
-    from os.path import (abspath, exists)
+    from os.path import exists
     from pathlib import Path
     from pkg_resources import resource_filename
 
     LOGGER.debug('validating %s' % fpath)
-    if fpath.startswith('..'):
-        fpath = fpath[3:]#.replace('../', '')
+    if str(fpath).startswith('..'):
+        fpath = fpath[3:]
+
+    _fpath = resource_filename('FPEAM', fpath)
 
     try:
-        assert exists(resource_filename('FPEAM', fpath.replace('\\', '/')))
+        assert exists(_fpath)
     except ValueError:
         raise VdtTypeError(value=fpath)
     except AssertionError:
         raise VdtPathDoesNotExist(value=fpath)
     else:
-        return Path(abspath(fpath))
+        return Path(_fpath)
 
 
 class VdtPathDoesNotExist(VdtValueError):
