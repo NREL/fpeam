@@ -113,9 +113,10 @@ class FPEAM(object):
             # @TODO: add results/status details
             _results[_module] = _module.status
 
-        return _results
+        self.results = self.collect(modules)
 
-    def merge(self, modules=None):
+
+    def collect(self, modules=None):
         """
         Merge result sets.
 
@@ -125,8 +126,14 @@ class FPEAM(object):
 
         _df = pd.DataFrame()
 
+        # loop thru all modules being run and stack the data frames
+        # containing output from each module
+        # this will add empty values if a data frame is missing a column,
+        # which does happend for some id variables from some modules
         for _module in modules or self._modules.values():
-            _df = _df.merge(_module.results)
+            _df = _df.append(_module.results,
+                             ignore_index=True,
+                             sort=False)
 
         return _df
 
@@ -140,18 +147,6 @@ class FPEAM(object):
     def plot(self, modules):
         for _module in modules or self._modules.values():
             LOGGER.debug('plotting %s' % _module)
-
-        raise NotImplementedError
-
-    def to_csv(self, modules):
-        for _module in modules or self._modules.values():
-            LOGGER.debug('exporting %s' % _module)
-
-        raise NotImplementedError
-
-    def to_sql(self, modules):
-        for _module in modules or self._modules.values():
-            LOGGER.debug('exporting %s' % _module)
 
         raise NotImplementedError
 
