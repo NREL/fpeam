@@ -435,7 +435,7 @@ population or land area.  The format is as follows.
 
             _fpath = os.path.join(self.project_path, 'ALLOCATE',
                                    self.nr_files.alo_file_names.iloc[i] + '.alo')
-            LOGGER.debug('creating allocation file %s (%s/%s)' % (_fpath, 1, self.nr_files.shape[0]))
+            LOGGER.debug('creating allocation file %s (%s/%s)' % (_fpath, i, self.nr_files.shape[0]))
             # initialize file
             with open(_fpath, 'w') as _alo_file_path:
 
