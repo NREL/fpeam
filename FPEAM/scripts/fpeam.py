@@ -61,10 +61,16 @@ def main():
 
     _fpeam.run()
 
+    # save the raw results to the project path folder specified in run_config
     _fpeam.results.to_csv(os.path.join(_fpeam.config['project_path'],
-                                       '%s.csv' %
-                                       _fpeam.config['scenario_name']),
+                                       '%s' %
+                                       _fpeam.config['scenario_name'] +
+                                       '_raw.csv'),
                           index=False)
+
+    # save several summarized results files also to the project path folder
+    # specified in run_config
+    _fpeam.summarize()
 
 
 if __name__ == '__main__':
