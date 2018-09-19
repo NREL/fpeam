@@ -29,7 +29,7 @@ class EmissionFactors(Module):
         self.resource_distribution = ResourceDistribution(fpath=self.config['resource_distribution'])
 
         # Selector for the crop amount that scales emission factors
-        self.feedstock_measure_type = config.get('feedstock_measure_type')
+        self.feedstock_measure_type = self.config['feedstock_measure_type']
 
         # merge emissions factors and resource subtype distribution
         # dataframes by matching resource and resource subtype
