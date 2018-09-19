@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+from datetime import datetime
 
 from FPEAM import (IO, FPEAM, utils)
 
@@ -31,25 +32,23 @@ def main():
 
     run_group = parser.add_argument_group('run options')
     run_group.add_argument('-v', dest='verbose', action='store_true',
-                           help='print messages')
+                           help='print more messages')
+    run_group.add_argument('--l', '--log', dest='log', type=str,
+                           default=os.path.abspath(os.path.join(os.path.curdir,
+                                                                'fpeam_%s.log' %
+                                                                (datetime.now().strftime('%Y%m%d_%H%M')))),
+                           help='log file path (default: %(default)s')
 
     args = parser.parse_args()
-
-    # validate file paths
-    for _arg in [arg[1] for arg in args._get_kwargs()]:
-        if isinstance(_arg, str):
-            try:
-                assert os.path.exists(_arg)
-            except AssertionError:
-                raise RuntimeError(
-                    '{} does not exist; verify path'.format(os.path.abspath(_arg)))
 
     # create shared logger
     _logger = utils.logger(name=__name__)
     if args.verbose:
         logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
                                                   ' [%(filename)s:%(module)s.'
-                                                  '%(funcName)s.%(lineno)d] %(message)s')
+                                                  '%(funcName)s.%(lineno)d] %(message)s',
+                            filename=args.log,
+                            filemode='w')
 
     # load config options
     _config = IO.load_configs(args.moves_config,
