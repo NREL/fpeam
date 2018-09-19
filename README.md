@@ -466,19 +466,17 @@ Allow for county- or region-specific fugitive dust emission factors.
 
 ## Defining and using config files
 
-Each module can take user-defined input parameters from a module-specific config file with the same name as the module and file extension .ini. Because these parameters are scenario-specific, config files are not packaged with the code base; however, file templates are provided in the next section. All parameters that can be set via config file have default values defined in the config specification files (.spec file extension) of the same name as the config file. The specification files are required for running FPEAM and are packaged with the code base.
+Each module can take user-defined input parameters from a module-specific config file with file extension .ini. Because these parameters are scenario-specific, only empty config files are packaged with the code base. Config file templates are provided in the next section and can be used to develop scenario-specific configs. All parameters that can be set via config file have default values defined in the config specification files (.spec file extension) of the same name as the module to which the specification file applies. The specification files are required for running FPEAM and are packaged with the code base.
 
-All parameter definitions in the template config files are commented out, indicating that the default values from the specification files will be used in running FPEAM. To change these parameters from their default values, uncomment the line where the parameter is defined and change the default value to the desired value. Then, in order to use the custom parameter definitions, the full file path to the custom config file must be specified when FPEAM is run.
+All parameter definitions in the template config files below are commented out, indicating that the default values from the specification files will be used in running FPEAM. To change these parameters from their default values, uncomment the line where the parameter is defined and change the default value to the desired value. Then, in order to use the custom parameter definitions, the full file path to the custom config file must be specified when FPEAM is run.
 
-An additional config file, run_config.ini, that defines the FPEAM scenario must also be specified in order to run FPEAM. Because the values in this file will be user- and machine-specific, and will vary according to the FPEAM scenario definition, this file is not supplied with the code base. Instead, a file template is provided below. 
+An additional config file, the run config, that defines the FPEAM scenario must also be specified in order to run FPEAM. Because the values in this file will be user- and machine-specific, and will vary according to the FPEAM scenario definition, this file is not supplied with the code base. Instead, a file template is provided below. 
 
 ## Config file templates
 
 To create a config file and edit parameter definitions, copy and paste the template into a text file and save as [modulename].ini, then uncomment the parameters to be defined and edit the values as necessary. 
 
-### moves
-
-Save file as moves.ini
+### MOVES config
 
 ```
 [moves]
@@ -570,9 +568,7 @@ Save file as moves.ini
 #ending_hour = 18
 ```
 
-### nonroad
-
-Save file as nonroad.ini
+### NONROAD config
 
 ```
 [nonroad]
@@ -640,9 +636,7 @@ Save file as nonroad.ini
 #diesel_pm10topm25 = float(default=0.97)
 ```
 
-### fugitivedust
-
-Save file as fugitivedust.ini
+### FugitiveDust config
 
 ```
 [fugitivedust]
@@ -654,9 +648,7 @@ Save file as fugitivedust.ini
 #emission_factors ='../data/inputs/fugitive_dust_emission_factors.csv'
 ```
 
-### emissionfactors
-
-Save file as emissionfactors.ini
+### EmissionFactors config
 
 ```
 [emissionfactors]
@@ -671,9 +663,8 @@ Save file as emissionfactors.ini
 #resource_distribution = '../data/inputs/resource_distribution.csv'
 ```
 
-### run_config
+### Run_config
 
-Save file as run_config.ini
 
 ```
 [run_config]
