@@ -1,10 +1,10 @@
 import os
 from collections import Iterable
-
+from pkg_resources import resource_filename
 import pandas as pd
 
 from . import Data
-from . import Modules
+from FPEAM import EngineModules
 from . import utils
 from .IO import (CONFIG_FOLDER, load_configs)
 
@@ -15,10 +15,10 @@ class FPEAM(object):
     """Base class to hold shared information"""
 
     # @TODO: can't these be discovered via the Modules module?
-    MODULES = {'emissionfactors': Modules.EmissionFactors,
-               'fugitivedust': Modules.FugitiveDust,
-               'MOVES': Modules.MOVES,
-               'NONROAD': Modules.NONROAD}
+    MODULES = {'emissionfactors': EngineModules.EmissionFactors,
+               'fugitivedust': EngineModules.FugitiveDust,
+               'MOVES': EngineModules.MOVES,
+               'NONROAD': EngineModules.NONROAD}
 
     def __init__(self, run_config):
 
@@ -45,12 +45,12 @@ class FPEAM(object):
 
         for _module in self.config.get('modules', None) or self.MODULES.keys():
             _config = run_config.get(_module.lower(), None) or \
-                      load_configs(os.path.join(CONFIG_FOLDER, '%s.ini' % _module.lower())
+                      load_configs(resource_filename('FPEAM', '%s/%s.ini' % (CONFIG_FOLDER, _module.lower()))
                                    )[_module.lower()]
 
             _config = utils.validate_config(config=_config
-                                            , spec=os.path.join(CONFIG_FOLDER
-                                                                , '%s.spec' % _module.lower())
+                                            , spec=resource_filename('FPEAM'
+                                                                   , '%s/%s.spec' % (CONFIG_FOLDER, _module.lower()))
                                             )['config']
             _config['scenario_name'] = _config.get('scenario_name', '').strip() or self.config['scenario_name']
 
@@ -78,7 +78,7 @@ class FPEAM(object):
     @config.setter
     def config(self, value):
 
-        _spec = os.path.join(CONFIG_FOLDER, 'run_config.spec')
+        _spec = resource_filename('FPEAM', '%s/run_config.spec' % (CONFIG_FOLDER, ))
         _config = utils.validate_config(config=value['run_config'], spec=_spec)
         if _config['extras']:
             LOGGER.warning('extra values: %s' % (_config['extras'], ))

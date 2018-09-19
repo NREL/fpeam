@@ -1,5 +1,5 @@
 import os
-
+from pkg_resources import resource_filename
 from configobj import (ConfigObj, ConfigObjError)
 
 from FPEAM import (utils, IO)
@@ -45,7 +45,7 @@ class Module(object):
             raise
 
         # merge incoming config with default values
-        _config = ConfigObj('%s.ini' % os.path.join(IO.CONFIG_FOLDER, self.__name__))[self.__name__]
+        _config = ConfigObj(resource_filename('FPEAM', '%s/%s.ini' % (IO.CONFIG_FOLDER, self.__name__)))[self.__name__]
         _config.merge(value)
         LOGGER.debug('%s _config: %s' % (self.__name__, _config))
 

@@ -1,13 +1,15 @@
 """Input and output helper utilities."""
 
 import os
+from pkg_resources import resource_filename
 
 import pandas as pd
 
 from . import utils
 
-CONFIG_FOLDER = os.path.join('..', 'configs')
-DATA_FOLDER = os.path.join('..', 'data')
+CONFIG_FOLDER = 'configs'
+DATA_FOLDER = 'data'
+
 LOGGER = utils.logger(name=__name__)
 
 
@@ -26,7 +28,7 @@ def load_configs(*fpath):
     fpath = list(fpath)
 
     # add local config if available
-    _local_fpath = os.path.join(CONFIG_FOLDER, 'local.ini')
+    _local_fpath = resource_filename('FPEAM', '%s/local.ini' % CONFIG_FOLDER)
     if os.path.exists(_local_fpath) and _local_fpath not in fpath:
         fpath.append(_local_fpath)
 
@@ -70,8 +72,6 @@ def load(fpath, columns, memory_map=True, header=0, **kwargs):
             _df_columns = Counter(_df.columns)
             _cols = list(set(columns.keys()) - set(_df_columns))
             raise ValueError('%(f)s missing columns: %(cols)s' % (dict(f=fpath, cols=_cols)))
-        # elif e.__str__.startswith('ValueError: could not convert'):
-        #     raise e
         else:
             raise e
     else:

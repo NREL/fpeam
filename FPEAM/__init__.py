@@ -4,7 +4,9 @@ from . import Data
 from . import Figures
 from . import IO
 from . import Interfaces
-from . import Modules
+# from .FPEAM import Modules
+# from . import Modules
+from . import EngineModules
 from . import utils
 from .FPEAM import FPEAM
 

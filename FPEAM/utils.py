@@ -39,6 +39,8 @@ def validate_config(config, spec):
 
     _validator = Validator()
     _validator.functions['filepath'] = filepath
+    import pdb
+    pdb.set_trace()
     _config = ConfigObj(config, configspec=spec, stringify=True)
     _result = _config.validate(_validator, preserve_errors=True)
 
@@ -79,17 +81,20 @@ def filepath(fpath):
 
     from os.path import (abspath, exists)
     from pathlib import Path
+    from pkg_resources import resource_filename
 
     LOGGER.debug('validating %s' % fpath)
+    if fpath.startswith('..'):
+        fpath = fpath[3:]#.replace('../', '')
 
     try:
-        assert exists(str(fpath))
+        assert exists(resource_filename('FPEAM', fpath.replace('\\', '/')))
     except ValueError:
         raise VdtTypeError(value=fpath)
     except AssertionError:
         raise VdtPathDoesNotExist(value=fpath)
     else:
-        return Path(abspath(fpath))  # @TODO: change this to pathlib
+        return Path(abspath(fpath))
 
 
 class VdtPathDoesNotExist(VdtValueError):
@@ -99,7 +104,7 @@ class VdtPathDoesNotExist(VdtValueError):
         """
         >>> raise VdtPathDoesNotExist('/not/a/path')
         Traceback (most recent call last):
-        VdtValueTooSmallError: the value "/not/a/path" does not exist.
+        VdtValueTooSmallError: the value "/not/a/path" does not exist
         """
 
-        ValidateError.__init__(self, 'the path "%s" does not exist.' % (value,))
+        ValidateError.__init__(self, 'the path "%s" does not exist' % (value, ))
