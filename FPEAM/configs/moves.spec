@@ -1,6 +1,6 @@
 
 # run identifier; defaults to FPEAM scenario name
-scenario_name = string(default='scenario')
+scenario_name = string(default='')
 
 
 ### MOVES execution options
