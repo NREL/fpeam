@@ -1361,7 +1361,8 @@ class MOVES(Module):
         # sum up by pollutant type for final module output
         _transportation_emissions = _transportation_emissions.groupby(
             ['region_production', 'region_destination', 'feedstock',
-             'tillage_type', 'module', 'region_transportation', 'pollutant'],
+             'tillage_type', 'module', 'activity', 'region_transportation',
+             'pollutant'],
             as_index=False).sum()
 
         return _transportation_emissions
