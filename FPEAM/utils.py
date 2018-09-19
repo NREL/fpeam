@@ -39,8 +39,6 @@ def validate_config(config, spec):
 
     _validator = Validator()
     _validator.functions['filepath'] = filepath
-    import pdb
-    pdb.set_trace()
     _config = ConfigObj(config, configspec=spec, stringify=True)
     _result = _config.validate(_validator, preserve_errors=True)
 
