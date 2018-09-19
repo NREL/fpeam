@@ -53,7 +53,7 @@ class FugitiveDust(Module):
 
         # clean up DataFrame
         _df = _df[['region_production', 'feedstock',
-                   'tillage_type', 'pollutant',
+                   'tillage_type', 'module', 'pollutant',
                    'pollutant_amount']]
 
         return _df

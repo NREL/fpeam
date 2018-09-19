@@ -85,7 +85,7 @@ class EmissionFactors(Module):
 
         # clean up DataFrame
         _df = _df[['region_production', 'region_destination', 'feedstock',
-                   'tillage_type', 'activity', 'resource',
+                   'tillage_type', 'module', 'activity', 'resource',
                    'resource_subtype', 'pollutant',
                    'pollutant_amount']]
 
