@@ -1,6 +1,6 @@
 
 ## run identifier; defaults to FPEAM scenario name
-scenario_name = string(default='scenario')
+scenario_name = string(default='')
 
 ## start year (equipment year #1)
 year = integer(default='2017')
