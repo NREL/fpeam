@@ -921,13 +921,20 @@ T4M       1.0       0.02247
         :return: None
         """
 
+        # check that hpMax will not exceed the character limit, and round to
+        #  avoid decimal places if so
+        if df.hpMax.__str__().__len__() > 5:
+            hpMax_trim = np.int(df.hpMax)
+        else:
+            hpMax_trim = df.hpMax
+
         kvals = {'fips': df.fips,
                  'sub_reg': '',
                  'year': self.year,
                  'scc_code': df.SCC,
                  'equip_desc': df.equipment_description,
                  'min_hp': df.hpMin,
-                 'max_hp': df.hpMax,
+                 'max_hp': hpMax_trim,
                  'avg_hp': df.hpAvg,
                  'life': np.int(df.equipment_lifetime),
                  'flag': 'DEFAULT',
