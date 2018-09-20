@@ -635,13 +635,13 @@ To create a config file and edit parameter definitions, copy and paste the templ
 #diesel_lhv = 0.12845
 
 # nh3 emission factor for diesel fuel (grams NH3/mmBTU diesel)
-#diesel_nh3_ef = float(default=0.68)
+#diesel_nh3_ef = 0.68
 
 ## VOC conversion factor
-#diesel_thc_voc_conversion = float(default=1.053)
+#diesel_thc_voc_conversion = 1.053
 
 ## pm10 to PM2.5 conversion factor
-#diesel_pm10topm25 = float(default=0.97)
+#diesel_pm10topm25 = 0.97
 ```
 
 ### FugitiveDust config
