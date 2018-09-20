@@ -464,6 +464,14 @@ Allow for county- or region-specific fugitive dust emission factors.
 
 # Running FPEAM
 
+## Installing the FPEAM module
+
+Open either a Windows Command Prompt or an Anaconda Prompt and navigate to the outer FPEAM directory `fpeam` using cd. Then enter:
+
+`pip install -e .`
+
+This will install FPEAM on your computer as a Python module and allow you to use the command `fpeam` to run a scenario.
+
 ## Defining and using config files
 
 Each module can take user-defined input parameters from a module-specific config file with file extension .ini. Because these parameters are scenario-specific, only empty config files are packaged with the code base. Config file templates are provided in the next section and can be used to develop scenario-specific configs. All parameters that can be set via config file have default values defined in the config specification files (.spec file extension) of the same name as the module to which the specification file applies. The specification files are required for running FPEAM and are packaged with the code base.
@@ -692,7 +700,7 @@ FPEAM can be called directly from the command line using the fpeam.py (all lower
 The syntax to run FPEAM via command line without any module-specific config files is:
 
 ```
-python fpeam.py path/to/run_config.ini
+fpeam path/to/run_config.ini
 ```
 
 This command must be executed in the directory where fpeam.py is located. On a Windows machine, use `cd` to change the current working directory.
@@ -700,5 +708,5 @@ This command must be executed in the directory where fpeam.py is located. On a W
 If FPEAM is run with one or more module-specific config files, the syntax expands with the full filepaths to these config files and flags that indicate which config file is being specified. For instance, running FPEAM with all four module-specific config files would look like:
 
 ```
-python fpeam.py path/to/run_config.ini --emissionfactors_config path/to/emissionfactors.ini --moves_config path/to/moves.ini --nonroad_config path/to/nonroad.ini --fugitivedust_config path/to/fugitivedust.ini
+fpeam path/to/run_config.ini --emissionfactors_config path/to/emissionfactors.ini --moves_config path/to/moves.ini --nonroad_config path/to/nonroad.ini --fugitivedust_config path/to/fugitivedust.ini
 ```
