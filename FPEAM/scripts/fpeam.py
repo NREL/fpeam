@@ -43,12 +43,24 @@ def main():
 
     # create shared logger
     _logger = utils.logger(name=__name__)
+    logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
+                                              ' [%(filename)s:%(module)s.'
+                                              '%(funcName)s.%(lineno)d] %(message)s',
+                        filename=args.log,
+                        filemode='w')
+
+    console = logging.StreamHandler()
+    # define a Handler which writes INFO messages or higher to the sys.stderr
+    console.setLevel(logging.INFO)
+    # set a format which is simpler for console use
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    # tell the handler to use this format
+    console.setFormatter(formatter)
+    # add the handler to the root logger
+    _logger.addHandler(console)
+
     if args.verbose:
-        logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
-                                                  ' [%(filename)s:%(module)s.'
-                                                  '%(funcName)s.%(lineno)d] %(message)s',
-                            filename=args.log,
-                            filemode='w')
+        console.setLevel(logging.DEBUG)
 
     # load config options
     _config = IO.load_configs(args.moves_config,
