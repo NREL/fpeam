@@ -1349,6 +1349,11 @@ class MOVES(Module):
                                                                        'pollutant_amount']]],
                                               ignore_index=True, sort=True)
 
+        # converts pollutant names to all lower case to match the output of
+        # other modules
+        _transportation_emissions['pollutant'] = _transportation_emissions[
+            'pollutant'].str.lower()
+
         # add activity and module columns
         _transportation_emissions['activity'] = 'transportation'
         _transportation_emissions['module'] = 'moves'
