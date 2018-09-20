@@ -73,7 +73,8 @@ class Module(object):
             LOGGER.debug('validated %s config' % (self.__name__, ))
             self._config = _config['config']
 
-    def _set_conversions(self):
+    @staticmethod
+    def _set_conversions():
         # @TODO: load from file so users can add additional conversions
         _conversions = dict()
         _conversions['tonne'] = dict()
