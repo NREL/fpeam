@@ -703,7 +703,7 @@ The syntax to run FPEAM via command line without any module-specific config file
 fpeam path/to/run_config.ini
 ```
 
-This command must be executed in the directory where fpeam.py is located. On a Windows machine, use `cd` to change the current working directory.
+This command can be executed in any directory, including the one containing the config files. On a Windows machine, use `cd` to change the current working directory.
 
 If FPEAM is run with one or more module-specific config files, the syntax expands with the full filepaths to these config files and flags that indicate which config file is being specified. For instance, running FPEAM with all four module-specific config files would look like:
 
