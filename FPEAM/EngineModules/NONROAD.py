@@ -392,7 +392,7 @@ class NONROAD(Module):
             raise ValueError('equipment group contains invalid HP ranges')
 
     @staticmethod
-    def _strlist_len(self, stringlist):
+    def _strlist_len(stringlist):
         """
         get length of each string in list of strings
         :param stringlist:
