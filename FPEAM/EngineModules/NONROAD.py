@@ -1,4 +1,5 @@
 import os
+import shutil
 from subprocess import Popen
 
 import numpy as np
@@ -326,8 +327,9 @@ class NONROAD(Module):
         # if all file paths are under the limit, proceed to creating
         # directories and subdirectories for storing NONROAD files
         for _folder in _nr_folders:
-            if not os.path.exists(_folder):
-                os.makedirs(_folder)
+            if os.path.exists(_folder):
+                shutil.rmtree(_folder)
+            os.makedirs(_folder)
 
         if self.encode_names:
             LOGGER.debug('saving encoded feedstock, tillage, and activity codes to %s' % self.project_path)
@@ -344,19 +346,13 @@ class NONROAD(Module):
 
         # create subdirectories in the OUT and OPT directories for each
         # feedstock-tillagetype-activity combination
-        for _dir in list(self.nr_files.out_opt_dir_names):
 
-            _out_path = os.path.join(self.project_path, 'OUT',
-                                     _dir)
-
-            _opt_path = os.path.join(self.project_path, 'OPT',
-                                     _dir)
-
-            if not os.path.exists(_out_path):
-                os.makedirs(_out_path)
-
-            if not os.path.exists(_opt_path):
-                os.makedirs(_opt_path)
+        for _f in ('OUT', 'OPT'):
+            for _dir in list(self.nr_files.out_opt_dir_names):
+                _fpath = os.path.join(self.project_path, _f, _dir)
+                if os.path.exists(_fpath):
+                    shutil.rmtree(_fpath)
+                os.makedirs(_fpath)
 
     @property
     def equipment(self):
@@ -395,6 +391,7 @@ class NONROAD(Module):
         else:
             raise ValueError('equipment group contains invalid HP ranges')
 
+    @staticmethod
     def _strlist_len(self, stringlist):
         """
         get length of each string in list of strings
