@@ -1134,11 +1134,11 @@ class MOVES(Module):
                                                 modelYearID,
                                                 ratePerVehicle,
                                                 veh_table.fips
-        FROM  moves_output_db.ratepervehicle AS veh_table
+        FROM  {moves_output_db}.ratepervehicle AS veh_table
             INNER JOIN (SELECT distinct veh.fips, MOVESRunID
-                        FROM moves_output_db.ratepervehicle veh
+                        FROM {moves_output_db}.ratepervehicle veh
             INNER JOIN (SELECT fips, MAX(MOVESRunID) AS max_id
-                        FROM moves_output_db.ratepervehicle
+                        FROM {moves_output_db}.ratepervehicle
                         GROUP BY fips) q
                     ON veh.MOVESRunID = q.max_id
                         AND veh.fips = q.fips) runid_filter
