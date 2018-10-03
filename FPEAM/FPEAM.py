@@ -14,6 +14,8 @@ LOGGER = utils.logger(name=__name__)
 class FPEAM(object):
     """Base class to hold shared information"""
 
+    __version__ = '2.0.1-beta'
+
     # @TODO: can't these be discovered via the Modules module?
     MODULES = {'emissionfactors': EngineModules.EmissionFactors,
                'fugitivedust': EngineModules.FugitiveDust,
