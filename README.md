@@ -231,7 +231,11 @@ TABLE: MOVES database connection and software parameters.
 | mysql_binary | string | C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe | Path to mysql executable |
 | mysqldump_binary | string | C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe | Path to mysqldump executable |
 
-Before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above)  using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the "General Output" screen, under "Output." Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.
+## MOVES installation and setup
+
+During the MOVES installation process, users will need to select a folder in which MOVES is installed. By default, MOVES is installed to `C:\Users\Public\EPA\MOVES\MOVES2014a`, but the length of this file path causes problems when setting up and running NONROAD in batch mode (the NONROAD model is contained within MOVES). Users should instead install MOVES to a directory contained directly within the `C:` drive, such as `C:\MOVES2014a`. The exact directory name should be specified in the MOVES and NONROAD config files using the `moves_path` and `nonroad_path` parameters. Config files are discussed further below.
+
+After installing MOVES and before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above)  using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the "General Output" screen, under "Output." Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.
 
 ## User options
 
@@ -482,7 +486,7 @@ An additional config file, the run config, that defines the FPEAM scenario must 
 
 ## Config file templates
 
-To create a config file and edit parameter definitions, copy and paste the template into a text file and save as [modulename].ini, then uncomment the parameters to be defined and edit the values as necessary. 
+To create a config file and edit parameter definitions, copy and paste the template into a text file and save with the .ini file extension (config file names can be arbitrary, but it may be helpful to include the corresponding module name in the config file name), then uncomment the parameters to be defined and edit the values as necessary. Unused parameter values can also be deleted from the config file. A list of suggested parameters to define is included with each config file template; these parameters are either necessary for FPEAM to function on specific machines or are commonly used in defining biomass production scenarios. The suggested parameters are listed assuming that users are either using the default FPEAM input datasets as-is or are using custom data with the same identifier variables (for instance, `feedstock_measure` and `forestry_feedstock_names`) as in the default datasets.
 
 ### MOVES config
 
@@ -576,6 +580,9 @@ To create a config file and edit parameter definitions, copy and paste the templ
 #ending_hour = 18
 ```
 
+Suggested parameters to define in the MOVES config file are `scenario_name`, `year`, `moves_database`, `moves_output_db`, `moves_path` and `moves_datafiles_path`. `scenario_name` identifies the biomass production scenario being run, and it is recommended that every unique scenario have a unique `scenario_name` to avoid overwriting results from previous scenarios. The `year` parameter defines the harvest and transportation year for the scenario. The remaining parameters specify where MOVES is installed (`moves_path`), where input files are saved during batch runs (`moves_datafiles_path`) and which default and output databases should be used in the scenario (`moves_database` and `moves_output_db`).
+
+
 ### NONROAD config
 
 ```
@@ -644,6 +651,8 @@ To create a config file and edit parameter definitions, copy and paste the templ
 #diesel_pm10topm25 = 0.97
 ```
 
+Suggested parameters to define in the config file are `scenario_name`, `year`, `nonroad_database`, `nonroad_path`, and `nonroad_project_path`. The `scenario_name` and `year` values should match the ones in the MOVES config file, if MOVES is also being run in the scenario, and the `nonroad_database` value should also be the same as the `moves_database`, again if MOVES is also included in the scenario. `nonroad_path` will depend on the MOVES installation path, and `nonroad_project_path` is a user-created directory containing NONROAD input files. `nonroad_project_path` should be a short directory path, with as few subdirectories as possible, to avoid errors when running NONROAD in batch mode.
+
 ### FugitiveDust config
 
 ```
@@ -655,6 +664,8 @@ To create a config file and edit parameter definitions, copy and paste the templ
 ## pollutant emission factors for resources
 #emission_factors ='../data/inputs/fugitive_dust_emission_factors.csv'
 ```
+
+Neither parameter needs to be set in the `FugitiveDust` config file to run FPEAM using the default input data.
 
 ### EmissionFactors config
 
@@ -671,8 +682,9 @@ To create a config file and edit parameter definitions, copy and paste the templ
 #resource_distribution = '../data/inputs/resource_distribution.csv'
 ```
 
-### Run_config
+None of the parameters need to be set in the `EmissionFactors` config file to run FPEAM using the default input data.
 
+### Run_config
 
 ```
 [run_config]
@@ -692,6 +704,8 @@ logger_level = DEBUG
 equipment = '../data/equipment/bts16_equipment.csv'
 production = '../data/production/prod_2015_bc1060.csv'
 ```
+
+In the `run_config` file, `scenario_name` (matching the values in the MOVES and NONROAD config files if MOVES and NONROAD are part of the scenario) and `project_path` should be specified for every scenario run. `modules` only needs to be specified if one or more modules are being excluded from the scenario, or if a module is being re-run for a scenario.
 
 ## Command line syntax
 
