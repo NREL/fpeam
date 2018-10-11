@@ -55,6 +55,8 @@ TABLE: List of columns and data types in equipment dataset.
 
 Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered (with the numbers stored as characters rather than integers) and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset, to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset; any equipment data without matching feedstock production data (or vice versa) will be excluded from FPEAM calculations.
 
+The `rotation_year` column in the equipment dataset refers to the year in a multi-year crop rotation, for instance for a perennial cropping system such as switchgrass. `rotation_year` should not contain calendar years but rather integers greater than or equal to 1. The calendar year in which the rotation begins is defined using the `year` parameter in the MOVES and/or NONROAD config files, discussed further below. This `year` parameter specifies the calendar year in which biomass is grown, harvested and transported in a scenario.
+
 <!-- TABLE: Equipment data examples
 
 | feedstock | tillage_type | equipment_group | rotation_year | activity | equipment_name | equipment_horsepower | resource | rate | unit_numerator | unit_denominator |
@@ -89,6 +91,8 @@ TABLE: Loading equipment information source from BTS 2016. This data was added t
 ## Feedstock production
 
 The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by what agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, equipment_group (values must match those in the equipment dataset) and region_production, that indicate where feedstocks were produced. Region_production values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the region_production column are not FIPS codes, an additional input file giving the mapping of the region_production values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
+
+The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the `year` parameter in the MOVES and/or NONROAD config files, discussed further below.
 
 TABLE: List of columns in feedstock production data set with data types and descriptions
 
