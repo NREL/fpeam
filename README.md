@@ -660,7 +660,7 @@ Suggested parameters to define in the MOVES config file are `scenario_name`, `ye
 
 ### NONROAD application options
 #nonroad_path = 'C:\MOVES2014a\NONROAD\NR08a\'
-#nonroad_project_path = 'C:\Nonroad'
+#nonroad_datafiles_path = 'C:\Nonroad'
 #nonroad_exe = 'NONROAD.exe'
 
 
@@ -684,7 +684,7 @@ Suggested parameters to define in the MOVES config file are `scenario_name`, `ye
 #diesel_pm10topm25 = 0.97
 ```
 
-Suggested parameters to define in the config file are `scenario_name`, `year`, `nonroad_database`, `nonroad_path`, and `nonroad_project_path`. The `scenario_name` and `year` values should match the ones in the MOVES config file, if MOVES is also being run in the scenario, and the `nonroad_database` value should also be the same as the `moves_database`, again if MOVES is also included in the scenario. `nonroad_path` will depend on the MOVES installation path, and `nonroad_project_path` is a user-created directory containing NONROAD input files. `nonroad_project_path` should be a short directory path, with as few subdirectories as possible, to avoid errors when running NONROAD in batch mode.
+Suggested parameters to define in the config file are `scenario_name`, `year`, `nonroad_database`, `nonroad_path`, and `nonroad_datafiles_path`. The `scenario_name` and `year` values should match the ones in the MOVES config file, if MOVES is also being run in the scenario, and the `nonroad_database` value should also be the same as the `moves_database`, again if MOVES is also included in the scenario. `nonroad_path` will depend on the MOVES installation path, and `nonroad_datafiles_path` is a user-created directory containing NONROAD input files. `nonroad_datafiles_path` should be a short directory path, with as few subdirectories as possible, to avoid errors when running NONROAD in batch mode.
 
 ### FugitiveDust config
 
