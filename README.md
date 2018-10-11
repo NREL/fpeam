@@ -470,9 +470,38 @@ TABLE: Fugitive dust input file example
 
 Allow for county- or region-specific fugitive dust emission factors.
 
-# Running FPEAM
+# Installing and Running FPEAM
 
-## Installing the FPEAM module
+## Pre-installation requirements
+
+Due to its dependence on MOVES, FPEAM can currently be installed and run only on Windows machines. Development is in progress to run MOVES and FPEAM on Linux systems. Additional software requirements are as follows:
+
+* Windows 7+
+* Python 3.6+
+	* Recommended installation is via [Anaconda](http://docs.anaconda.com/anaconda/install/windows/)
+* Python modules - install the most recent full release
+	* [numpy](https://www.scipy.org/scipylib/download.html)
+	* [pandas](http://pandas.pydata.org/pandas-docs/stable/install.html)
+	* [pymysql](https://pymysql.readthedocs.io/en/latest/user/installation.html)
+	* [configobj](https://configobj.readthedocs.io/en/latest/configobj.html#downloading)
+	* [networkx](https://networkx.github.io/documentation/stable/install.html)
+	* [lxml](https://lxml.de/installation.html)
+* [MOVES2014a](https://www.epa.gov/moves/moves-versions-limited-current-use#downloading-2014a)
+	* Change the default install path as described in the MOVES Module section
+* Install MOVES software dependencies as prompted during the installation process	
+	* Java Runtime Environment 7+ (link provided during MOVES installation)
+	* MySQL Server 5.5+ (link provided during MOVES installation)
+		* MySQL may require installing the [Microsoft Visual C++ 2015 Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
+		* Make a note of the root password set during the MySQL Server installation process. This password will be needed to run the NONROAD module.
+
+The following software is highly recommended for ease of use but not required to run FPEAM:
+
+* MySQL Workbench - can be installed at the same time as MySQL Server
+* [PyCharm](https://www.jetbrains.com/pycharm/download/#section=windows) (Community edition) - integrated development environment for Python
+
+After installing Python, add the directory where python.exe exists to the PATH environment variable. Do this by going to Control Panel, then System, then Edit environmental variables, and adding the python path to the PATH variable. Test that this was successful by opening a Windows command line, typing `python` and pressing Enter. This should start python within the terminal.
+
+## Installing FPEAM
 
 Open either a Windows Command Prompt or an Anaconda Prompt and navigate to the outer FPEAM directory `fpeam` using cd. Then enter:
 
