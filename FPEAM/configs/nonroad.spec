@@ -6,7 +6,7 @@ scenario_name = string(default='')
 year = integer(default='2017')
 
 ## NONROAD output folder
-nonroad_project_path = filepath(default='C:\Nonroad')
+nonroad_datafiles_path = filepath(default='C:\Nonroad')
 
 # encode feedstock, tillage type and activity names
 encode_names = boolean(default=True)
