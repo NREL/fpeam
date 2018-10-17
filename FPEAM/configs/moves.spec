@@ -37,7 +37,7 @@ year = integer(default='2017')
 moves_db_host = string(default='localhost')
 moves_db_user = string(default='root')
 moves_db_pass = string(default='root')
-moves_database = string(default='movesdb20151028')
+moves_database = string(default='movesdb20161117')
 moves_output_db = string(default='moves_output_db')
 
 
