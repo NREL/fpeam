@@ -45,9 +45,15 @@ moves_output_db = string(default='moves_output_db')
 
 
 ### MOVES application options
+
+## the moves version used only for human reference; it's ignored by MOVES
 moves_version = string(default='MOVES2014a-20151028')
-moves_path = filepath(default='C:\MOVES2014a')
+
+## this directory contains all input files created for MOVES runs
 moves_datafiles_path = filepath(default='C:\MOVESdata')
+
+## use this path to specify which version of MOVES should be run
+moves_path = filepath(default='C:\MOVES2014a')
 
 
 ### MySQL options
