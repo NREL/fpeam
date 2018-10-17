@@ -17,7 +17,10 @@ use_cached_results = boolean(default=True)
 ## production table identifier (feedstock_measure in production data)
 feedstock_measure_type = string(default='production')
 
-## annual vehicle miles traveled by combination short-haul trucks
+## use the router engine to calculate vmt by county 
+use_router_engine = boolean(default=True)
+
+## if router is not used, assume 100 vmt per biomass production county
 vmt_short_haul = float(default=100)
 
 ## population of combination short-haul trucks per trip
