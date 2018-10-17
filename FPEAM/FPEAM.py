@@ -151,12 +151,32 @@ class FPEAM(object):
                                                                 'pollutant'],
                                                                as_index=False).sum()
 
+        _summarize_by_region_production['unit_numerator'] = 'lb pollutant'
+        _summarize_by_region_production['unit_denominator'] = 'county-year'
+
+        _summarize_by_region_production[['feedstock', 'tillage_type',
+                                         'region_production', 'pollutant',
+                                         'pollutant_amount',
+                                         'unit_numerator',
+                                         'unit_denominator']].to_csv(
+            os.path.join(self.config['project_path'],
+                         '%s' %
+                         self.config['scenario_name'] +\
+                         '_total_emissions_by_production_region.csv'),
+            index=False)
+
         if 'region_transportation' in self.results.columns:
             # feedstock-tillage type-region_transportation
             _summarize_by_region_transportation = self.results.groupby(['feedstock',
                                                                         'tillage_type',
                                                                         'region_transportation',
                                                                         'pollutant'], as_index=False).sum()
+
+            _summarize_by_region_transportation['unit_numerator'] = 'lb ' \
+                                                                    'pollutant'
+            _summarize_by_region_transportation['unit_denominator'] = \
+                'transportation county-year'
+
             _summarize_by_region_transportation[['feedstock', 'tillage_type',
                                                  'region_transportation',
                                                  'pollutant',
@@ -177,14 +197,8 @@ class FPEAM(object):
                                                      'pollutant'],
                                                     as_index=False).sum()
 
-        _summarize_by_region_production[['feedstock', 'tillage_type',
-                                         'region_production', 'pollutant',
-                                         'pollutant_amount']].to_csv(
-            os.path.join(self.config['project_path'],
-                         '%s' %
-                         self.config['scenario_name'] +\
-                         '_total_emissions_by_production_region.csv'),
-            index=False)
+        _summarize_by_module['unit_numerator'] = 'lb pollutant'
+        _summarize_by_module['unit_denominator'] = 'county-year'
 
         _summarize_by_module[['feedstock', 'tillage_type', 'module',
                               'pollutant', 'pollutant_amount']].to_csv(
