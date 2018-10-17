@@ -216,6 +216,8 @@ TABLE: MOVES module user options
 
 Additional parameters are required by the MOVES module to establish a connection to the MOVES database and allow for the use of SQL statements. These parameters are listed in the table below.
 
+Users with multiple versions of MOVES installed on their computer can specify which version of MOVES should be run by FPEAM with the moves_path parameter in the table below.
+
 TABLE: MOVES database connection and software parameters.
 
 | Parameter | Data Type | Default Value | Description |
@@ -226,7 +228,7 @@ TABLE: MOVES database connection and software parameters.
 | moves_db_pass | string | moves | Password to access the MOVES databases. This value should be set by each user based on what was entered during MOVES installation. |
 | moves_db_host | string | localhost | Name of the machine on which MOVES is installed. Provided a user is running MOVES on the same machine running FPEAM, this should remain at its default value.|
 | moves_version | string | MOVES2014a-20161117 | Version of MOVES software with database version appended |
-| moves_path | string | C:\MOVES2014a | Path to primary MOVES2014a directory |
+| moves_path | string | C:\MOVES2014a | Path to directory where MOVES is installed |
 | moves_datafiles_path | string | C:\MOVESdata | Path to MOVESdata directory |
 | mysql_binary | string | C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe | Path to mysql executable |
 | mysqldump_binary | string | C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe | Path to mysqldump executable |
