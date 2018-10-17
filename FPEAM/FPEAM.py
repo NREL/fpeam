@@ -132,6 +132,9 @@ class FPEAM(object):
                              ignore_index=True,
                              sort=False)
 
+        _df['unit_numerator'] = 'lb pollutant'
+        _df['unit_denominator'] = 'county-year'
+
         return _df
 
     def summarize(self):
