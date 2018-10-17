@@ -42,6 +42,10 @@ class MOVES(Module):
         _transportation_graph = TransportationGraph(fpath=self.config['transportation_graph'])
         _county_nodes = CountyNode(fpath=self.config['county_nodes'])
 
+        # boolean controlling whether or not the router engine is used to
+        # calculate vmt
+        self.use_router_engine = self.config.get('use_router_engine')
+
         if not _transportation_graph.empty or not _county_nodes.empty:
             LOGGER.info('Loading routing data; this may take a few minutes')
             self.router = Router(edges=_transportation_graph, node_map=_county_nodes)  # @TODO: takes ages to load
@@ -1256,7 +1260,7 @@ class MOVES(Module):
 
         # if routing engine is specified, use it to get the route (fips and
         # vmt) for each unique region_production and region_destination pair
-        if self.router:
+        if self.use_router_engine:
 
             # initialize holder for all routes
             _vmt_by_county_all_routes = pd.DataFrame()
@@ -1291,8 +1295,9 @@ class MOVES(Module):
                                                       'region_destination'])
 
         else:
-            # if no routing engine is specified, use the user-specified vmt
-            # and fill the region_transportation column with blank cells
+            # if user has specified not to use the router engine, use the
+            # user-specified vmt and fill the region_transportation column 
+            # with blank cells
             _run_emissions['region_transportation'] = None
             _run_emissions['vmt'] = self.vmt_short_haul
 
