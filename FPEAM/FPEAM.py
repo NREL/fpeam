@@ -125,6 +125,12 @@ class FPEAM(object):
         _df_modules = pd.DataFrame()
         _prod = self.production
 
+        # subset the feedstock production df by which feedstock measures
+        # will be used in normalizing pollutant amounts
+        # @TODO turn this into user input via a config file
+        _prod_row_filter = (_prod['feedstock_measure'] == 'harvested') | (
+                _prod['feedstock_measure'] == 'production')
+
         # delete the columns from prod that don't need to be merged into
         # results
         del _prod['region_destination'], _prod['equipment_group'], \
@@ -151,8 +157,10 @@ class FPEAM(object):
         _df_modules['unit_denominator'] = 'county-year'
 
         # merge the module results with the production df
-        _df = _df_modules.merge(_prod, on=('feedstock', 'tillage_type',
-                                           'region_production'))
+        _df = _df_modules.merge(_prod[_prod_row_filter],
+                                on=('feedstock',
+                                    'tillage_type',
+                                    'region_production'))
 
         return _df
 
