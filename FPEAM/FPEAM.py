@@ -115,25 +115,44 @@ class FPEAM(object):
 
     def collect(self, modules=None):
         """
-        Merge result sets.
+        Assemble the full set of results from each module's results and
+        merge with the production data to allow for normalizing
 
         :param modules: [list] module classes with result property.\
         :return: [DataFrame]
         """
 
-        _df = pd.DataFrame()
+        _df_modules = pd.DataFrame()
+        _prod = self.production
+
+        # delete the columns from prod that don't need to be merged into
+        # results
+        del _prod['region_destination'], _prod['equipment_group'], \
+            _prod['row_id']
+
+        # rename the feedstock production units columns to avoid confusion
+        # with the pollutant units columns in the results
+        _prod.rename(index=str, columns={'unit_numerator':
+                                             'feedstock_unit_numerator',
+                                         'unit_denominator':
+                                             'feedstock_unit_denominator'},
+                     inplace=True)
 
         # loop thru all modules being run and stack the data frames
         # containing output from each module
         # this will add empty values if a data frame is missing a column,
         # which does happend for some id variables from some modules
         for _module in modules or self._modules.values():
-            _df = _df.append(_module.results,
-                             ignore_index=True,
-                             sort=False)
+            _df_modules = _df_modules.append(_module.results,
+                                             ignore_index=True,
+                                             sort=False)
 
-        _df['unit_numerator'] = 'lb pollutant'
-        _df['unit_denominator'] = 'county-year'
+        _df_modules['unit_numerator'] = 'lb pollutant'
+        _df_modules['unit_denominator'] = 'county-year'
+
+        # merge the module results with the production df
+        _df = _df_modules.merge(_prod, on=('feedstock', 'tillage_type',
+                                           'region_production'))
 
         return _df
 
