@@ -128,8 +128,8 @@ class FPEAM(object):
         # subset the feedstock production df by which feedstock measures
         # will be used in normalizing pollutant amounts
         # @TODO turn this into user input via a config file
-        _prod_row_filter = (_prod['feedstock_measure'] == 'harvested') | (
-                _prod['feedstock_measure'] == 'production')
+        _prod_row_filter = _prod['feedstock_measure'].isin(['harvested',
+                                                            'production']).values
 
         # delete the columns from prod that don't need to be merged into
         # results
@@ -144,6 +144,8 @@ class FPEAM(object):
                                              'feedstock_unit_denominator'},
                      inplace=True)
 
+        _prod_filtered = _prod[_prod_row_filter]
+
         # loop thru all modules being run and stack the data frames
         # containing output from each module
         # this will add empty values if a data frame is missing a column,
@@ -157,7 +159,7 @@ class FPEAM(object):
         _df_modules['unit_denominator'] = 'county-year'
 
         # merge the module results with the production df
-        _df = _df_modules.merge(_prod[_prod_row_filter],
+        _df = _df_modules.merge(_prod_filtered,
                                 on=('feedstock',
                                     'tillage_type',
                                     'region_production'))
@@ -194,6 +196,40 @@ class FPEAM(object):
                          self.config['scenario_name'] +\
                          '_total_emissions_by_production_region.csv'),
             index=False)
+
+        # feedstock-tillage type-region_production
+        _results_to_normalize = self.results
+
+        # calculate raw normalized pollutant amounts
+        _results_to_normalize.eval('normalized_pollutant_amount = '
+                                   'pollutant_amount / feedstock_amount',
+                                   inplace=True)
+
+        # add unit columns for normalized pollutant amounts
+        _results_to_normalize['normalized_pollutant_unit_numerator'] = \
+            _results_to_normalize['unit_numerator']
+        _results_to_normalize['normalized_pollutant_unit_denominator'] = \
+            _results_to_normalize['feedstock_unit_numerator']
+
+        # sum normalized pollutant amounts over modules and activities
+        _results_normalized = _results_to_normalize.groupby(['feedstock',
+                                                             'feedstock_measure',
+                                                             'tillage_type',
+                                                             'region_production',
+                                                             'feedstock_amount',
+                                                             'feedstock_unit_numerator',
+                                                             'pollutant',
+                                                             'unit_numerator',
+                                                             'normalized_pollutant_unit_numerator',
+                                                             'normalized_pollutant_unit_denominator'],
+                                                            as_index=False).sum()
+
+        # save to csv
+        _results_normalized.to_csv(os.path.join(self.config['project_path'],
+                                                '%s' % self.config[
+                                                    'scenario_name'] +
+                                                '_normalized_total_emissions_by_production_region.csv'),
+                                   index=False)
 
         if 'region_transportation' in self.results.columns:
             # feedstock-tillage type-region_transportation
