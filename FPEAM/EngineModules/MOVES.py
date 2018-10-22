@@ -1734,6 +1734,9 @@ class MOVES(Module):
         :return:
         """
 
+        # create output database
+        self._create_output_database()
+
         # generate a list of FIPS-state combinations for which MOVES
         # will be run
 
