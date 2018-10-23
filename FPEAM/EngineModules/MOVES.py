@@ -135,6 +135,16 @@ class MOVES(Module):
         # for those FIPS (50 x nfeedstock FIPS)
         self.moves_by_state_and_feedstock = self.config.get('moves_by_state_and_feedstock')
 
+        # @todo should this be in the Data script under a validation method?
+        try:
+            assert not (self.moves_by_state + self.moves_by_state_and_feedstock > 1)
+        except AssertionError:
+            LOGGER.error('At most one of moves_by_state and '
+                         'moves_by_state_and_feedstock can be True')
+            raise RuntimeError('moves_by_state and '
+                               'moves_by_state_and_feedstock cannot both be '
+                               'True')
+
         # user input - default values used for running MOVES, actual VMT
         #  used to compute total emission in postprocessing
         self.vmt_short_haul = self.config.as_int('vmt_short_haul')
