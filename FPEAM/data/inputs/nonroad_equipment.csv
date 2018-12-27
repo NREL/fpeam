@@ -68,3 +68,7 @@ tractor 4wd 290 hp,Dsl - Agricultural Tractors,2270005015
 whole tree chipper (large),Dsl - Chippers/Stump Grinders (com),2270004066
 whole tree chipper (medium),Dsl - Chippers/Stump Grinders (com),2270004066
 windrower-swather,Dsl  - Swathers,2270005045
+irrigation pump gasoline,Gas - Irrigation Pump,2265005060
+irrigation pump diesel,Dsl - Irrigation Pump,2270005060
+irrigation pump lpg,Lpg - Irrigation Pump,2267005060
+irrigation pump cng,Cng - Irrigation Pump,2268005060
