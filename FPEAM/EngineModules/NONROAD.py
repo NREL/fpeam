@@ -751,17 +751,7 @@ appear in the output data file.  If the packet is
 not found, the model will process all source
 categories in the population files.
 ------------------------------------------------------
-/SOURCE CATEGORY/
-                   :2260005000
-                   :2265005000
-                   :2267005000
-                   :2268005000
-                   :2270005000
-                   :2270007015
-                   :2270002069
-                   :2270004066
-                   :2270004020
-/END/
+
 
 ------------------------------------------------------
 /RUNFILES/
