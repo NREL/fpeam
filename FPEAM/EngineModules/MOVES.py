@@ -1662,8 +1662,12 @@ class MOVES(Module):
             _run_emissions['vmt'] = self.vmt_short_haul
 
         # evaluate running emissions
+        # number of trips between farm and biorefinery is feedstock_amount /
+        # truck_capacity
+        # 2N - 1 accounts for backhauling trips. The last trip from farm to
+        # biorefinery has no backhauling, hence the - 1.
         _run_emissions.eval('pollutant_amount = averageRatePerDistance * vmt *'
-                            ' feedstock_amount / truck_capacity',
+                            ' (2 * feedstock_amount / truck_capacity - 1)',
                             inplace=True)
 
         # start and hotelling emissions
@@ -1693,9 +1697,12 @@ class MOVES(Module):
             how='left',
             on='feedstock')
 
-        # calculate start and hotelling emissions
+        # calculate start and hotelling emissions accounting for backhauling
+        # trips including backhauling is 2N - 1 where N is the number of
+        # trips from farm to biorefinery
         _start_hotel_emissions.eval('pollutant_amount = ratePerVehicle * '
-                                    'feedstock_amount / truck_capacity',
+                                    '(2 * feedstock_amount / truck_capacity '
+                                    '- 1)',
                                     inplace=True)
 
         # append the run emissions with the start and hotelling emissions
