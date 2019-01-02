@@ -1,0 +1,5 @@
+[pydocstyle]
+ignore = D105, D202, D211, D212
+add_select = D213
+match = *.py
+
