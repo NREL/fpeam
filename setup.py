@@ -35,10 +35,11 @@ setup(
     author_email='dylan.hettinger@nrel.gov; rebecca.hanes@nrel.gov',
     url='https://github.com/NREL/fpeam',
     packages=find_packages('src'),
-    package_dir={'fpeam': 'src'},
+    package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
-    package_data={'fpeam': ['FPEAM/data/*']},
+    package_data={'fpeam': ['src/FPEAM/data/*']},
     include_package_data=True,
+    python_requires='>=3.5',
     zip_safe=True,
     classifiers=[
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -48,9 +49,6 @@ setup(
         'Natural Language :: English',
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
