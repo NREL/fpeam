@@ -24,7 +24,7 @@ def read(*names, **kwargs):
 
 setup(
     name='FPEAM',
-    version='2.0.2b0git a',
+    version='2.0.2b0',
     license='BSD 2-Clause License',
     description='Feedstock Production Emissions to Air Model',
     long_description='%s\n%s' % (
@@ -37,7 +37,7 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
-    package_data={'fpeam': ['src/FPEAM/data/*']},
+    package_data={'FPEAM': ['src/FPEAM/data/*']},
     include_package_data=True,
     python_requires='>=3.5',
     zip_safe=True,
