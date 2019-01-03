@@ -1,31 +1,31 @@
 state_fips,feedstock,equipment_name,irrigation_water_source,acreage_fraction,hp,resource,rate,unit_numerator,unit_denominator
-1,corn grain,irrigation gasoline,wells,0,40.98613393,time,7.193178808,hours,acre
-1,corn grain,irrigation diesel,wells,0.245633054,57.18995432,time,7.193178808,hours,acre
-1,corn grain,irrigation lpg,wells,0,40.98613393,time,7.193178808,hours,acre
-1,corn grain,irrigation natgas,wells,0.001036943,40.98613393,time,7.193178808,hours,acre
-1,corn grain,irrigation electricity,wells,0.244869487,37.8333544,time,7.193178808,hours,acre
-2,corn grain,,wells,,,time,,hours,acre
-4,corn grain,irrigation gasoline,wells,0.082105531,144.3253154,time,21.51566257,hours,acre
-4,corn grain,irrigation diesel,wells,0.023406401,201.384161,time,21.51566257,hours,acre
-4,corn grain,irrigation lpg,wells,0.082105531,144.3253154,time,21.51566257,hours,acre
-4,corn grain,irrigation natgas,wells,0.026553628,144.3253154,time,21.51566257,hours,acre
-4,corn grain,irrigation electricity,wells,0.340777427,133.223368,time,21.51566257,hours,acre
-5,corn grain,irrigation gasoline,wells,0.006992274,134.4451448,time,4.784889868,hours,acre
-5,corn grain,irrigation diesel,wells,0.440627678,187.5978764,time,4.784889868,hours,acre
-5,corn grain,irrigation lpg,wells,0.007826031,134.4451448,time,4.784889868,hours,acre
-5,corn grain,irrigation natgas,wells,0.015686025,134.4451448,time,4.784889868,hours,acre
-5,corn grain,irrigation electricity,wells,0.388798533,124.1032106,time,4.784889868,hours,acre
-6,corn grain,irrigation gasoline,wells,2.15E-06,103.5167078,time,21.56366912,hours,acre
-6,corn grain,irrigation diesel,wells,0.072430139,144.4419179,time,21.56366912,hours,acre
-6,corn grain,irrigation lpg,wells,0.003564486,103.5167078,time,21.56366912,hours,acre
-6,corn grain,irrigation natgas,wells,0.003437548,103.5167078,time,21.56366912,hours,acre
-6,corn grain,irrigation electricity,wells,0.466821225,95.55388414,time,21.56366912,hours,acre
-8,corn grain,irrigation gasoline,wells,0.365842074,106.8125701,time,10.51132258,hours,acre
-8,corn grain,irrigation diesel,wells,0.01231932,149.0407956,time,10.51132258,hours,acre
-8,corn grain,irrigation lpg,wells,0,106.8125701,time,10.51132258,hours,acre
-8,corn grain,irrigation natgas,wells,0.029055532,106.8125701,time,10.51132258,hours,acre
-8,corn grain,irrigation electricity,wells,0.394785029,98.5962186,time,10.51132258,hours,acre
-9,corn grain,,wells,,,time,,hours,acre
+01,corn grain,irrigation gasoline,wells,0,40.98613393,time,7.193178808,hours,acre
+01,corn grain,irrigation diesel,wells,0.245633054,57.18995432,time,7.193178808,hours,acre
+01,corn grain,irrigation lpg,wells,0,40.98613393,time,7.193178808,hours,acre
+01,corn grain,irrigation natgas,wells,0.001036943,40.98613393,time,7.193178808,hours,acre
+01,corn grain,irrigation electricity,wells,0.244869487,37.8333544,time,7.193178808,hours,acre
+02,corn grain,,wells,,,time,,hours,acre
+04,corn grain,irrigation gasoline,wells,0.082105531,144.3253154,time,21.51566257,hours,acre
+04,corn grain,irrigation diesel,wells,0.023406401,201.384161,time,21.51566257,hours,acre
+04,corn grain,irrigation lpg,wells,0.082105531,144.3253154,time,21.51566257,hours,acre
+04,corn grain,irrigation natgas,wells,0.026553628,144.3253154,time,21.51566257,hours,acre
+04,corn grain,irrigation electricity,wells,0.340777427,133.223368,time,21.51566257,hours,acre
+05,corn grain,irrigation gasoline,wells,0.006992274,134.4451448,time,4.784889868,hours,acre
+05,corn grain,irrigation diesel,wells,0.440627678,187.5978764,time,4.784889868,hours,acre
+05,corn grain,irrigation lpg,wells,0.007826031,134.4451448,time,4.784889868,hours,acre
+05,corn grain,irrigation natgas,wells,0.015686025,134.4451448,time,4.784889868,hours,acre
+05,corn grain,irrigation electricity,wells,0.388798533,124.1032106,time,4.784889868,hours,acre
+06,corn grain,irrigation gasoline,wells,2.15E-06,103.5167078,time,21.56366912,hours,acre
+06,corn grain,irrigation diesel,wells,0.072430139,144.4419179,time,21.56366912,hours,acre
+06,corn grain,irrigation lpg,wells,0.003564486,103.5167078,time,21.56366912,hours,acre
+06,corn grain,irrigation natgas,wells,0.003437548,103.5167078,time,21.56366912,hours,acre
+06,corn grain,irrigation electricity,wells,0.466821225,95.55388414,time,21.56366912,hours,acre
+08,corn grain,irrigation gasoline,wells,0.365842074,106.8125701,time,10.51132258,hours,acre
+08,corn grain,irrigation diesel,wells,0.01231932,149.0407956,time,10.51132258,hours,acre
+08,corn grain,irrigation lpg,wells,0,106.8125701,time,10.51132258,hours,acre
+08,corn grain,irrigation natgas,wells,0.029055532,106.8125701,time,10.51132258,hours,acre
+08,corn grain,irrigation electricity,wells,0.394785029,98.5962186,time,10.51132258,hours,acre
+09,corn grain,,wells,,,time,,hours,acre
 10,corn grain,irrigation gasoline,wells,0.012111484,68.64912233,time,5.147725118,hours,acre
 10,corn grain,irrigation diesel,wells,0.495695316,95.78947302,time,5.147725118,hours,acre
 10,corn grain,irrigation lpg,wells,0.007072901,68.64912233,time,5.147725118,hours,acre
