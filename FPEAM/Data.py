@@ -194,7 +194,7 @@ class Irrigation(Data):
 
     COLUMNS = {'state_fips': str,
                'feedstock': str,
-               'nonroad_equipment_scc': str,
+               'equipment_name': str,
                'irrigation_water_source': str,
                'acreage_fraction': float,
                'hp': float,
