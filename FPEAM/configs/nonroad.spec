@@ -34,6 +34,8 @@ state_fips_map = filepath(default='../data/inputs/state_fips_map.csv')
 ## equipment name to NONROAD equipment name and SCC mapping
 nonroad_equipment = filepath(default='../data/inputs/nonroad_equipment.csv')
 
+## irrigation dataset
+irrigation = filpath(default='../data/inputs/irrigation.csv')
 
 
 ### NONROAD database connection options
