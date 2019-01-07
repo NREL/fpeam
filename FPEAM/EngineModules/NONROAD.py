@@ -47,6 +47,7 @@ class NONROAD(Module):
         self.diesel_pm10topm25 = self.config['diesel_pm10topm25']
         self.time_resource_name = self.config['time_resource_name']
         self.feedstock_measure_type = self.config['feedstock_measure_type']
+        self.irrigation_feedstock_measure_type = self.config['irrigation_feedstock_measure_type']
 
         # nonroad database parameters
         self.nonroad_database = self.config['nonroad_database']
@@ -91,6 +92,9 @@ class NONROAD(Module):
         # correspond to forestry products
         self.forestry_feedstock_names = self.config.get('forestry_feedstock_names')
 
+        # list of irrigated feedstocks
+        self.irrigated_feedstock_names = self.config.get('irrigated_feedstock_names')
+
         # merge production with the region_production-fips map for NONROAD fips
         self.production = self.production.merge(self.region_fips_map,
                                                 how='inner',
@@ -103,9 +107,9 @@ class NONROAD(Module):
         # create filter to pull out only entries relevant to calculating
         # irrigation activity
         # create filter to select only the feedstock measure used by NONROAD
-        # @todo the feedstock type and feedstock measure should be user input
-        _prod_irr_filter = (self.production.feedstock == "corn grain") & (
-                self.production.feedstock_measure == "planted")
+        _prod_irr_filter = (self.production.feedstock.isin(self.irrigated_feedstock_names)) &\
+                           (self.production.feedstock_measure ==
+                            self.irrigation_feedstock_measure_type)
 
         # in irrigation, sum both acreage_fraction and rate by unique combinations
         # of equipment_name [which includes fuel type] and equipment_horsepower
