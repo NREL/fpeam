@@ -192,18 +192,19 @@ class NONROADEquipment(Data):
 
 class Irrigation(Data):
 
-    COLUMNS = {'state_fips': str,
-               'feedstock': str,
+    COLUMNS = {'feedstock': str,
+               'state_fips': str,
+               'activity': str,
                'equipment_name': str,
+               'equipment_horsepower': float,
                'irrigation_water_source': str,
                'acreage_fraction': float,
-               'hp': float,
                'resource': str,
                'rate': float,
                'unit_numerator': str,
                'unit_denominator': str}
 
-    INDEX_COLUMNS = {'state_fips', 'feedstock'}
+    INDEX_COLUMNS = {'feedstock', 'state_fips'}
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Irrigation, self).__init__(df=df, fpath=fpath, columns=columns)
