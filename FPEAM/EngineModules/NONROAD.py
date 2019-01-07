@@ -8,14 +8,14 @@ import pymysql
 
 from FPEAM import utils
 from .Module import Module
-from ..Data import (RegionFipsMap, StateFipsMap, NONROADEquipment)
+from ..Data import (RegionFipsMap, StateFipsMap, NONROADEquipment, Irrigation)
 
 LOGGER = utils.logger(name=__name__)
 
 
 class NONROAD(Module):
 
-    def __init__(self, config, production, equipment, irrigation):
+    def __init__(self, config, production, equipment):
         """
 
         :param config: [ConfigObj]
@@ -62,12 +62,12 @@ class NONROAD(Module):
         # input df and SCC codes from nonroad
         self.nonroad_equipment = NONROADEquipment(fpath=self.config['nonroad_equipment'])
 
+        self.irrigation = Irrigation(fpath=self.config['irrigation'])
+
         self._equipment = None
         self.equipment = equipment
 
         self.production = production
-
-        self.irrigation = irrigation
 
         # create a dictionary of conversion factors for later use
         self.conversion_factors = self._set_conversions()
@@ -84,6 +84,9 @@ class NONROAD(Module):
         # scenario year
         self.year = self.config['year']
 
+        # add year as an extra column in production
+        self.production['year'] = self.year
+
         # list of feedstock names from equipment and production that
         # correspond to forestry products
         self.forestry_feedstock_names = self.config.get('forestry_feedstock_names')
@@ -93,6 +96,9 @@ class NONROAD(Module):
                                                 how='inner',
                                                 left_on='region_production',
                                                 right_on='region')
+
+        # add column with state derived from NONROAD fips column to production
+        self.production['state_fips'] = self.production.fips.str.slice(stop=2)
 
         # create filter to pull out only entries relevant to calculating
         # irrigation activity
@@ -124,11 +130,6 @@ class NONROAD(Module):
                                                             on=['feedstock',
                                                                 'state_fips'])
 
-        # merge with the state abbreviation df to have both state codes and
-        # state (character) abbreviations
-        _prod_irr = _prod_irr.merge(self.state_fips_map, how='inner',
-                                    on='state_fips')
-
         # calculate the total annual rate for irrigation (hours/acre)
         _prod_irr.eval('total_annual_rate = acreage_fraction * rate * '
                        'feedstock_amount', inplace=True)
@@ -140,21 +141,22 @@ class NONROAD(Module):
         # apply missing data filter
         _prod_irr = _prod_irr[_prod_irr_filter_na]
 
+        # merge with the state abbreviation df to have both state codes and
+        # state (character) abbreviations
+        _prod_irr = _prod_irr.merge(self.state_fips_map, how='inner',
+                                    on='state_fips')
+
         # remove the acreage_fraction column so it doesn't get carried along
         # into the production-equipment merged df
         del _prod_irr['acreage_fraction']
 
-        # add column with state derived from NONROAD fips column to production
-        self.production['state_fips'] = self.production.fips.str.slice(stop=2)
-
         # merge with the state abbreviation df to have both state codes and
-        # state (character) abbreviations
+        # state (character) abbreviations - this needs to be done twice b/c
+        # two copies of production are being merged, one with irrigation and
+        # one with equipment
         self.production = self.production.merge(self.state_fips_map,
                                                 how='inner',
                                                 on='state_fips')
-
-        # add year as an extra column in production
-        self.production['year'] = self.year
 
         # create filter to select only the feedstock measure used by NONROAD
         _prod_filter = self.production.feedstock_measure == \
@@ -230,7 +232,7 @@ class NONROAD(Module):
         self.prod_equip_merge = self.prod_equip_merge.append(_prod_irr,
                                                              ignore_index=True,
                                                              sort=True)
-        
+
         # create list of unique state-feedstock-tillage type-activity
         # combinations - one population file, one allocation file and
         # one options sub-directory and one out sub-directory will be created
@@ -263,6 +265,7 @@ class NONROAD(Module):
 
             _activities = self.prod_equip_merge.activity.unique()
             _activities.sort()
+
             _activity_codes = pd.DataFrame({'activity': _activities,
                                             'activity_code': np.arange(
                                                     _activities.__len__())})
