@@ -16,12 +16,17 @@ encode_names = boolean(default=True)
 ## production table row identifier (feedstock_measure in production data)
 feedstock_measure_type = string(default='harvested')
 
+## production table row identifier for irrigation activity calculation
+irrigation_feedstock_measure_type = string(default='planted')
+
 ## equipment table row identifier (resource in equipment data)
 time_resource_name = string(default='time')
 
 ## forest feedstocks have different allocation indicators
 forestry_feedstock_names = string_list(default=list('forest residues', 'forest whole tree'))
 
+## list of irrigated feedstocks
+irrigated_feedstock_names = string_list(default=list('corn grain'))
 
 ### input data files
 
