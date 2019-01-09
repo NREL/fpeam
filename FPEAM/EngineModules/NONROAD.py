@@ -32,10 +32,10 @@ class NONROAD(Module):
 
         self.model_run_title = self.config['scenario_name']
         self.nonroad_path = self.config['nonroad_path']
-        self.nonroad_project_path = self.config['nonroad_project_path']
+        self.nonroad_datafiles_path = self.config['nonroad_datafiles_path']
         self.nonroad_exe = self.config['nonroad_exe']
 
-        self.project_path = os.path.join(self.config['nonroad_project_path'], self.model_run_title)
+        self.project_path = os.path.join(self.config['nonroad_datafiles_path'], self.model_run_title)
 
         # store nonroad parameters in self
         self.temp_min = self.config['nonroad_temp_min']
@@ -1132,7 +1132,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
         _batch_path = os.path.join(self.project_path, 'OPT')
 
         kvals = {}
-        kvals['nonroad_project_path'] = self.project_path
+        kvals['nonroad_datafiles_path'] = self.project_path
         kvals['nonroad_exe_path'] = os.path.join(self.nonroad_path,
                                                  self.nonroad_exe)
 
@@ -1151,7 +1151,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
             with open(_batch_filepath, 'w') as _batch_file:
 
                 # write the first line that sets the current director
-                _batch_file.writelines("""cd {nonroad_project_path}\n""".format(
+                _batch_file.writelines("""cd {nonroad_datafiles_path}\n""".format(
                         **kvals))
 
                 # loop through the subset of nr_files

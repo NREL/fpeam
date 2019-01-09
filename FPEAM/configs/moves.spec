@@ -17,7 +17,10 @@ use_cached_results = boolean(default=True)
 ## production table identifier (feedstock_measure in production data)
 feedstock_measure_type = string(default='production')
 
-## annual vehicle miles traveled by combination short-haul trucks
+## use the router engine to calculate vmt by county 
+use_router_engine = boolean(default=True)
+
+## if router is not used, assume 100 vmt per biomass production county
 vmt_short_haul = float(default=100)
 
 ## population of combination short-haul trucks per trip
@@ -37,14 +40,20 @@ year = integer(default='2017')
 moves_db_host = string(default='localhost')
 moves_db_user = string(default='root')
 moves_db_pass = string(default='root')
-moves_database = string(default='movesdb20151028')
+moves_database = string(default='movesdb20161117')
 moves_output_db = string(default='moves_output_db')
 
 
 ### MOVES application options
+
+## the moves version used only for human reference; it's ignored by MOVES
 moves_version = string(default='MOVES2014a-20151028')
-moves_path = filepath(default='C:\MOVES2014a')
+
+## this directory contains all input files created for MOVES runs
 moves_datafiles_path = filepath(default='C:\MOVESdata')
+
+## use this path to specify which version of MOVES should be run
+moves_path = filepath(default='C:\MOVES2014a')
 
 
 ### MySQL options

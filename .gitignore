@@ -67,9 +67,6 @@ target/
 
 .idea/
 
-# HTML documentation files
-*.html
-
 # irrigation .py files
 IrrigationAcres.py
 LoadIrrigationData.py
