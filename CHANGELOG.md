@@ -1,3 +1,8 @@
+2018-01-09 (v2.1.0)
+-------------------
+* adds irrigation calculations and input data
+* includes backhaul emissions
+
 
 2016-09-31 (v1.0.0)
 -------------------
