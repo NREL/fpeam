@@ -1,6 +1,7 @@
 2018-01-09 (v2.1.0)
 -------------------
 * adds irrigation calculations and input data
+* removes source category packet from NONROAD options file template
 * includes backhaul emissions
 
 
