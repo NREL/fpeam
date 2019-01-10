@@ -1657,8 +1657,8 @@ class MOVES(Module):
         else:
             # if user has specified not to use the router engine, use the
             # user-specified vmt and fill the region_transportation column 
-            # with blank cells
-            _run_emissions['region_transportation'] = None
+            # with values from the region_production column
+            _run_emissions['region_transportation'] = _run_emissions['region_production']
             _run_emissions['vmt'] = self.vmt_short_haul
 
         # evaluate running emissions
