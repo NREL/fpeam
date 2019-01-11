@@ -15,3 +15,4 @@ logger_level = option(CRITICAL, ERROR, WARNING, INFO, DEBUG, UNSET, default=INFO
 ## data paths
 equipment = filepath(default='')
 production = filepath(default='')
+feedstock_loss_factors = filepath(default='')
