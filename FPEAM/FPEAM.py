@@ -44,6 +44,7 @@ class FPEAM(object):
         self.config = run_config
         self.equipment = Data.Equipment(fpath=self.config['equipment']).reset_index().rename({'index': 'row_id'}, axis=1)
         self.production = Data.Production(fpath=self.config['production']).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.feedstocklossfactors = Data.FeedstockLossFactors(fpath=self.config['feedstock_loss_factors']).reset_index().rename({'index': 'row_id'}, axis=1)
 
         for _module in self.config.get('modules', None) or self.MODULES.keys():
             _config = run_config.get(_module.lower(), None) or \
