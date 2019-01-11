@@ -35,6 +35,9 @@ source_type_id = integer(default=61)
 ## start year (equipment year #1)
 year = integer(default='2017')
 
+## feedstock loss factor dataset
+feedstock_loss_factors = filepath(default='')
+
 
 ### MOVES database connection options
 moves_db_host = string(default='localhost')
