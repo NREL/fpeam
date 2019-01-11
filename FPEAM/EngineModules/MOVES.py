@@ -33,6 +33,7 @@ class MOVES(Module):
 
         self.production = production
         self.equipment = equipment
+        self.feedstock_loss_factors = self.config.get('feedstock_loss_factors')
 
         # create a dictionary of conversion factors for later use
         self.conversion_factors = self._set_conversions()
