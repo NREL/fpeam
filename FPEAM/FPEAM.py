@@ -134,11 +134,23 @@ class FPEAM(object):
         _loss_factors.eval('dry_matter_remaining = 1 - dry_matter_loss',
                            inplace=True)
 
+        # calculate separate data frame including only loss factors associated
+        # with on-farm activities
+        _loss_factors_farmgate = _loss_factors[_loss_factors.supply_chain_stage.isin(['harvest',
+                                                                                      'field treatment',
+                                                                                      'field drying',
+                                                                                      'on farm transport'])]
+
         # calculate total remaining fraction by feedstock by multiplying
         # the remaining fractions
         _loss_factors = _loss_factors.groupby(['feedstock'],
                                               as_index=False).prod()[['feedstock',
                                                                       'dry_matter_remaining']]
+
+        # calculate total remaining fraction at farm gate
+        _loss_factors_farmgate = _loss_factors_farmgate.groupby(['feedstock'],
+                                                                as_index=False).prod()[['feedstock',
+                                                                                        'dry_matter_remaining']]
 
         # subset the feedstock production df by which feedstock measures
         # will be used in normalizing pollutant amounts
@@ -165,23 +177,30 @@ class FPEAM(object):
         # create a copy of prod to which the feedstock loss factors will be
         # applied to calculate the 'delivered' feesdtock measure type
         _prod_losses = _prod_filtered[_prod_filtered.feedstock_measure == 'production']
+        _prod_losses_farmgate = _prod_losses
 
-        # merge with the loss factor dataframe
+        # merge with the loss factor dataframes
         _prod_losses = _prod_losses.merge(_loss_factors, on='feedstock')
+        _prod_losses_farmgate = _prod_losses_farmgate.merge(_loss_factors_farmgate,
+                                                            on='feedstock')
 
-        # recalculate the feedstock amount to account for losses
+        # recalculate the feedstock amounts to account for losses
         _prod_losses['feedstock_amount'] = _prod_losses.feedstock_amount *\
                                            _prod_losses.dry_matter_remaining
+        _prod_losses_farmgate['feedstock_amount'] = _prod_losses_farmgate.feedstock_amount *\
+                                                    _prod_losses_farmgate.dry_matter_remaining
 
-        # change the feedstock measure column to reflect the new feedstock
-        # amount
+        # change the feedstock measure columns to reflect the new feedstock
+        # amounts
         _prod_losses['feedstock_measure'] = 'delivered'
+        _prod_losses_farmgate['feedstock_measure'] = 'at farm gate'
 
-        # remove the now extraneous loss factor column
-        del _prod_losses['dry_matter_remaining']
+        # remove the now extraneous loss factor columns
+        del _prod_losses['dry_matter_remaining'], _prod_losses_farmgate['dry_matter_remaining']
 
-        # tack on the delivered feedstock dataframe to the filtered one
+        # tack on the delivered feedstock dataframes to the filtered one
         _prod_filtered.append(_prod_losses, inplace=True)
+        _prod_filtered.append(_prod_losses_farmgate, inplace=True)
 
         # loop thru all modules being run and stack the data frames
         # containing output from each module
