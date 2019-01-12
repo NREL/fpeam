@@ -44,7 +44,7 @@ class FPEAM(object):
         self.config = run_config
         self.equipment = Data.Equipment(fpath=self.config['equipment']).reset_index().rename({'index': 'row_id'}, axis=1)
         self.production = Data.Production(fpath=self.config['production']).reset_index().rename({'index': 'row_id'}, axis=1)
-        self.feedstocklossfactors = Data.FeedstockLossFactors(fpath=self.config['feedstock_loss_factors']).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.feedstock_loss_factors = Data.FeedstockLossFactors(fpath=self.config['feedstock_loss_factors']).reset_index().rename({'index': 'row_id'}, axis=1)
 
         for _module in self.config.get('modules', None) or self.MODULES.keys():
             _config = run_config.get(_module.lower(), None) or \
@@ -126,9 +126,24 @@ class FPEAM(object):
         _df_modules = pd.DataFrame()
         _prod = self.production
 
+        # preprocess the feedstock loss factor dataset to obtain factors
+        # that can be used to calculate delivered feedstock amounts
+        _loss_factors = self.feedstock_loss_factors
+
+        # turn the loss factors into remaining fraction
+        _loss_factors.eval('dry_matter_remaining = 1 - dry_matter_loss',
+                           inplace=True)
+
+        # calculate total remaining fraction by feedstock by multiplying
+        # the remaining fractions
+        _loss_factors = _loss_factors.groupby(['feedstock'],
+                                              as_index=False).prod()[['feedstock',
+                                                                      'dry_matter_remaining']]
+
         # subset the feedstock production df by which feedstock measures
         # will be used in normalizing pollutant amounts
         # @TODO turn this into user input via a config file
+        # @todo check that the measures used here match the ones used in individual modules
         _prod_row_filter = _prod['feedstock_measure'].isin(['harvested',
                                                             'production']).values
 
@@ -146,6 +161,27 @@ class FPEAM(object):
                      inplace=True)
 
         _prod_filtered = _prod[_prod_row_filter]
+
+        # create a copy of prod to which the feedstock loss factors will be
+        # applied to calculate the 'delivered' feesdtock measure type
+        _prod_losses = _prod_filtered[_prod_filtered.feedstock_measure == 'production']
+
+        # merge with the loss factor dataframe
+        _prod_losses = _prod_losses.merge(_loss_factors, on='feedstock')
+
+        # recalculate the feedstock amount to account for losses
+        _prod_losses['feedstock_amount'] = _prod_losses.feedstock_amount *\
+                                           _prod_losses.dry_matter_remaining
+
+        # change the feedstock measure column to reflect the new feedstock
+        # amount
+        _prod_losses['feedstock_measure'] = 'delivered'
+
+        # remove the now extraneous loss factor column
+        del _prod_losses['dry_matter_remaining']
+
+        # tack on the delivered feedstock dataframe to the filtered one
+        _prod_filtered.append(_prod_losses, inplace=True)
 
         # loop thru all modules being run and stack the data frames
         # containing output from each module
