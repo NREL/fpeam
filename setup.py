@@ -24,20 +24,25 @@ def read(*names, **kwargs):
 
 setup(
     name='FPEAM',
-    version='2.0.2b0',
+    version='2.1.2b0',
     license='BSD 2-Clause License',
     description='Feedstock Production Emissions to Air Model',
     long_description='%s\n%s' % (
         re.compile('^.. start-badges.*^.. end-badges', re.M | re.S).sub('', read('README.md')),
         re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.md'))
     ),
-    author='Dylan Hettinger, Rebecca Hanes, Annika Eberle',
+    author='Dylan Hettinger, Rebecca Hanes',
     author_email='dylan.hettinger@nrel.gov; rebecca.hanes@nrel.gov',
     url='https://github.com/NREL/fpeam',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
-    package_data={'FPEAM': ['src/FPEAM/data/*']},
+    package_data={'FPEAM': ['data/equipment/*.csv',
+                            'data/inputs/*.csv',
+                            'data/outputs/*.csv',
+                            'data/production/*.csv',
+                            'configs/*.spec',
+                            'configs/*.ini']},
     include_package_data=True,
     python_requires='>=3.5',
     zip_safe=True,
