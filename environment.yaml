@@ -1,6 +1,8 @@
 name: fpeam
 dependencies:
-- pandas
 - configobj
-- python=3.5+
+- lxml
 - networkx
+- pandas
+- pymysql
+- python>=3.5

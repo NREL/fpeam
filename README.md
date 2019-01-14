@@ -55,6 +55,8 @@ TABLE: List of columns and data types in equipment dataset.
 
 Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered (with the numbers stored as characters rather than integers) and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset, to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset; any equipment data without matching feedstock production data (or vice versa) will be excluded from FPEAM calculations.
 
+The `rotation_year` column in the equipment dataset refers to the year in a multi-year crop rotation, for instance for a perennial cropping system such as switchgrass. `rotation_year` should not contain calendar years but rather integers greater than or equal to 1. The calendar year in which the rotation begins is defined using the `year` parameter in the MOVES and/or NONROAD config files, discussed further below. This `year` parameter specifies the calendar year in which biomass is grown, harvested and transported in a scenario.
+
 <!-- TABLE: Equipment data examples
 
 | feedstock | tillage_type | equipment_group | rotation_year | activity | equipment_name | equipment_horsepower | resource | rate | unit_numerator | unit_denominator |
@@ -89,6 +91,8 @@ TABLE: Loading equipment information source from BTS 2016. This data was added t
 ## Feedstock production
 
 The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by what agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, equipment_group (values must match those in the equipment dataset) and region_production, that indicate where feedstocks were produced. Region_production values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the region_production column are not FIPS codes, an additional input file giving the mapping of the region_production values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
+
+The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the `year` parameter in the MOVES and/or NONROAD config files, discussed further below.
 
 TABLE: List of columns in feedstock production data set with data types and descriptions
 
@@ -233,7 +237,11 @@ TABLE: MOVES database connection and software parameters.
 | mysql_binary | string | C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe | Path to mysql executable |
 | mysqldump_binary | string | C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe | Path to mysqldump executable |
 
-Before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above)  using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the "General Output" screen, under "Output." Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.
+## MOVES installation and setup
+
+During the MOVES installation process, users will need to select a folder in which MOVES is installed. By default, MOVES is installed to `C:\Users\Public\EPA\MOVES\MOVES2014a`, but the length of this file path causes problems when setting up and running NONROAD in batch mode (the NONROAD model is contained within MOVES). Users should instead install MOVES to a directory contained directly within the `C:` drive, such as `C:\MOVES2014a`. The exact directory name should be specified in the MOVES and NONROAD config files using the `moves_path` and `nonroad_path` parameters. Config files are discussed further below.
+
+After installing MOVES and before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above)  using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the "General Output" screen, under "Output." Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.
 
 ## User options
 
@@ -464,9 +472,38 @@ TABLE: Fugitive dust input file example
 
 Allow for county- or region-specific fugitive dust emission factors.
 
-# Running FPEAM
+# Installing and Running FPEAM
 
-## Installing the FPEAM module
+## Pre-installation requirements
+
+Due to its dependence on MOVES, FPEAM can currently be installed and run only on Windows machines. Development is in progress to run MOVES and FPEAM on Linux systems. Additional software requirements are as follows:
+
+* Windows 7+
+* Python 3.6+
+	* Recommended installation is via [Anaconda](http://docs.anaconda.com/anaconda/install/windows/)
+* Python modules - install the most recent full release
+	* [numpy](https://www.scipy.org/scipylib/download.html)
+	* [pandas](http://pandas.pydata.org/pandas-docs/stable/install.html)
+	* [pymysql](https://pymysql.readthedocs.io/en/latest/user/installation.html)
+	* [configobj](https://configobj.readthedocs.io/en/latest/configobj.html#downloading)
+	* [networkx](https://networkx.github.io/documentation/stable/install.html)
+	* [lxml](https://lxml.de/installation.html)
+* [MOVES2014a](https://www.epa.gov/moves/moves-versions-limited-current-use#downloading-2014a)
+	* Change the default install path as described in the MOVES Module section
+* Install MOVES software dependencies as prompted during the installation process	
+	* Java Runtime Environment 7+ (link provided during MOVES installation)
+	* MySQL Server 5.5+ (link provided during MOVES installation)
+		* MySQL may require installing the [Microsoft Visual C++ 2015 Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
+		* Make a note of the root password set during the MySQL Server installation process. This password will be needed to run the NONROAD module.
+
+The following software is highly recommended for ease of use but not required to run FPEAM:
+
+* MySQL Workbench - can be installed at the same time as MySQL Server
+* [PyCharm](https://www.jetbrains.com/pycharm/download/#section=windows) (Community edition) - integrated development environment for Python
+
+After installing Python, add the directory where python.exe exists to the PATH environment variable. Do this by going to Control Panel, then System, then Edit environmental variables, and adding the python path to the PATH variable. Test that this was successful by opening a Windows command line, typing `python` and pressing Enter. This should start python within the terminal.
+
+## Installing FPEAM
 
 Open either a Windows Command Prompt or an Anaconda Prompt and navigate to the outer FPEAM directory `fpeam` using cd. Then enter:
 
@@ -484,7 +521,7 @@ An additional config file, the run config, that defines the FPEAM scenario must 
 
 ## Config file templates
 
-To create a config file and edit parameter definitions, copy and paste the template into a text file and save as [modulename].ini, then uncomment the parameters to be defined and edit the values as necessary. 
+To create a config file and edit parameter definitions, copy and paste the template into a text file and save with the .ini file extension (config file names can be arbitrary, but it may be helpful to include the corresponding module name in the config file name), then uncomment the parameters to be defined and edit the values as necessary. Unused parameter values can also be deleted from the config file. A list of suggested parameters to define is included with each config file template; these parameters are either necessary for FPEAM to function on specific machines or are commonly used in defining biomass production scenarios. The suggested parameters are listed assuming that users are either using the default FPEAM input datasets as-is or are using custom data with the same identifier variables (for instance, `feedstock_measure` and `forestry_feedstock_names`) as in the default datasets.
 
 ### MOVES config
 
@@ -578,6 +615,9 @@ To create a config file and edit parameter definitions, copy and paste the templ
 #ending_hour = 18
 ```
 
+Suggested parameters to define in the MOVES config file are `scenario_name`, `year`, `moves_database`, `moves_output_db`, `moves_path` and `moves_datafiles_path`. `scenario_name` identifies the biomass production scenario being run, and it is recommended that every unique scenario have a unique `scenario_name` to avoid overwriting results from previous scenarios. The `year` parameter defines the harvest and transportation year for the scenario. The remaining parameters specify where MOVES is installed (`moves_path`), where input files are saved during batch runs (`moves_datafiles_path`) and which default and output databases should be used in the scenario (`moves_database` and `moves_output_db`).
+
+
 ### NONROAD config
 
 ```
@@ -622,7 +662,7 @@ To create a config file and edit parameter definitions, copy and paste the templ
 
 ### NONROAD application options
 #nonroad_path = 'C:\MOVES2014a\NONROAD\NR08a\'
-#nonroad_project_path = 'C:\Nonroad'
+#nonroad_datafiles_path = 'C:\Nonroad'
 #nonroad_exe = 'NONROAD.exe'
 
 
@@ -646,6 +686,8 @@ To create a config file and edit parameter definitions, copy and paste the templ
 #diesel_pm10topm25 = 0.97
 ```
 
+Suggested parameters to define in the config file are `scenario_name`, `year`, `nonroad_database`, `nonroad_path`, and `nonroad_datafiles_path`. The `scenario_name` and `year` values should match the ones in the MOVES config file, if MOVES is also being run in the scenario, and the `nonroad_database` value should also be the same as the `moves_database`, again if MOVES is also included in the scenario. `nonroad_path` will depend on the MOVES installation path, and `nonroad_datafiles_path` is a user-created directory containing NONROAD input files. `nonroad_datafiles_path` should be a short directory path, with as few subdirectories as possible, to avoid errors when running NONROAD in batch mode.
+
 ### FugitiveDust config
 
 ```
@@ -657,6 +699,8 @@ To create a config file and edit parameter definitions, copy and paste the templ
 ## pollutant emission factors for resources
 #emission_factors ='../data/inputs/fugitive_dust_emission_factors.csv'
 ```
+
+Neither parameter needs to be set in the `FugitiveDust` config file to run FPEAM using the default input data.
 
 ### EmissionFactors config
 
@@ -673,8 +717,9 @@ To create a config file and edit parameter definitions, copy and paste the templ
 #resource_distribution = '../data/inputs/resource_distribution.csv'
 ```
 
-### Run_config
+None of the parameters need to be set in the `EmissionFactors` config file to run FPEAM using the default input data.
 
+### Run_config
 
 ```
 [run_config]
@@ -694,6 +739,8 @@ logger_level = DEBUG
 equipment = '../data/equipment/bts16_equipment.csv'
 production = '../data/production/prod_2015_bc1060.csv'
 ```
+
+In the `run_config` file, `scenario_name` (matching the values in the MOVES and NONROAD config files if MOVES and NONROAD are part of the scenario) and `project_path` should be specified for every scenario run. `modules` only needs to be specified if one or more modules are being excluded from the scenario, or if a module is being re-run for a scenario.
 
 ## Command line syntax
 

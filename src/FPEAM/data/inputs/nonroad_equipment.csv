@@ -1,0 +1,74 @@
+equipment_name,equipment_description,nonroad_equipment_scc
+aerial appl - chem,,
+aerial appl - fert,,
+aerial appl - seed,,
+backhoe,,
+burn and hand plant,,
+chainsaw delimbing,Dsl - Chain Saws,2260004025
+combine - hilside,Dsl - Combines,2270005020
+combine (2wd),Dsl - Combines,2270005020
+combine (4wd),Dsl - Combines,2270005020
+combine with row header (2wd),Dsl - Combines,2270005020
+combine with row header (4wd),Dsl - Combines,2270005020
+cotton picker,,
+cotton stripper,,
+crop consultant,,
+d6 crawler tractor,Dsl - Crawler Tractors,2270002069
+feller buncher (large),Dsl - Forest Eqp - Feller/Bunch/Skidder,2270007015
+feller buncher (medium),Dsl - Forest Eqp - Feller/Bunch/Skidder,2270007015
+forage harvester,,
+forage harvester (6 row head),,
+grapple skidder (large),Dsl - Forest Eqp - Feller/Bunch/Skidder,2270007015
+grapple skidder (medium),Dsl - Forest Eqp - Feller/Bunch/Skidder,2270007015
+hand felling (cc),,
+hand felling (thin),,
+harvest - eucalyptus,,
+harvest - pine,,
+harvest - poplar (ap),,
+harvest - poplar (cb),,
+harvest - poplar (dl),,
+harvest - poplar (lk),,
+harvest - poplar (np),,
+harvest - poplar (pa),,
+harvest - poplar (se),,
+harvest - poplar (sp),,
+hi-boy,,
+loader (2 row),Dsl - Forest Eqp - Feller/Bunch/Skidder,2270007015
+loader (large),Dsl - Forest Eqp - Feller/Bunch/Skidder,2270007015
+loader (medium),Dsl - Forest Eqp - Feller/Bunch/Skidder,2270007015
+planting - cane,,
+planting - eucalyptus,,
+planting - miscanthus,,
+planting - pine,,
+planting - poplar,,
+refrigerated truck,,
+rice gate,,
+scouting,,
+semi with trailer,,
+single-axle truck (2 ton),,
+skyline (large),,
+skyline (medium),,
+small chem applicator,Dsl - Sprayers,2270005035
+sugar cane billet harvester,,
+swather wiih conditioner,Dsl  - Swathers,2270005045
+tractor 2wd 100 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 135 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 150 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 160 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 175 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 205 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 225 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 290 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 55 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 85 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 143 hp,Dsl - Agricultural Tractors,2270005015
+tractor 2wd 450 hp,Dsl - Agricultural Tractors,2270005015
+tractor 4wd 205 hp,Dsl - Agricultural Tractors,2270005015
+tractor 4wd 290 hp,Dsl - Agricultural Tractors,2270005015
+whole tree chipper (large),Dsl - Chippers/Stump Grinders (com),2270004066
+whole tree chipper (medium),Dsl - Chippers/Stump Grinders (com),2270004066
+windrower-swather,Dsl  - Swathers,2270005045
+irrigation gasoline,Gas - Irrigation Pump,2265005060
+irrigation diesel,Dsl - Irrigation Pump,2270005060
+irrigation lpg,Lpg - Irrigation Pump,2267005060
+irrigation natgas,Natgas - Irrigation Pump,2268005060

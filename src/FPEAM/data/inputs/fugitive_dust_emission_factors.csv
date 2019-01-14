@@ -1,0 +1,33 @@
+feedstock,tillage_type,pollutant,rate,unit_numerator,unit_denominator
+corn grain,conventional tillage,pm10,10.5,pound,acre
+corn grain,conventional tillage,pm25,2.1,pound,acre
+corn grain,no tillage,pm10,7.7,pound,acre
+corn grain,no tillage,pm25,1.54,pound,acre
+corn grain,reduced tillage,pm10,9.7,pound,acre
+corn grain,reduced tillage,pm25,1.94,pound,acre
+corn stover,conventional tillage,pm10,1.7,pound,acre
+corn stover,conventional tillage,pm25,0.34,pound,acre
+corn stover,no tillage,pm10,1.7,pound,acre
+corn stover,no tillage,pm25,0.34,pound,acre
+corn stover,reduced tillage,pm10,1.7,pound,acre
+corn stover,reduced tillage,pm25,0.34,pound,acre
+forest residue,conventional tillage,pm10,0,pound,acre
+forest residue,conventional tillage,pm25,0,pound,acre
+forest residue,no tillage,pm10,0,pound,acre
+forest residue,no tillage,pm25,0,pound,acre
+forest residue,reduced tillage,pm10,0,pound,acre
+forest residue,reduced tillage,pm25,0,pound,acre
+sorghum stubble,conventional tillage,pm10,1.7,pound,acre
+sorghum stubble,conventional tillage,pm25,0.34,pound,acre
+sorghum stubble,no tillage,pm10,1.7,pound,acre
+sorghum stubble,no tillage,pm25,0.34,pound,acre
+sorghum stubble,reduced tillage,pm10,1.7,pound,acre
+sorghum stubble,reduced tillage,pm25,0.34,pound,acre
+wheat straw,no tillage,pm10,5.8,pound,acre
+wheat straw,no tillage,pm25,1.16,pound,acre
+wheat straw,reduced tillage,pm10,5.8,pound,acre
+wheat straw,reduced tillage,pm25,1.16,pound,acre
+switchgrass,no tillage,pm10,3.38,pound,acre
+switchgrass,no tillage,pm2.5,0.676,pound,acre
+miscanthus,no tillage,pm10,3.366666667,pound,acre
+miscanthus,no tillage,pm2.5,0.673333333,pound,acre

@@ -1,3 +1,21 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>README</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
 <h1 id="introduction">Introduction</h1>
 <p>The Feedstock Production Emissions to Air Model (FPEAM) calculates spatially explicit inventories of criteria air pollutants and precursors generated from agricultural and transportation activities associated with the production and supply of biomass feedstocks for renewable energy generation. FPEAM was originally developed to calculate air pollutants as part of the 2016 update to the Billion Ton Study (BTS). For this version of FPEAM, the code base has been substantially refactored and streamlined to provide increased flexibility around biomass production scenario definitions, including what activities and pollutants are included in the calculations and at what spatial scale. This document describes the FPEAM code base and default input files bundled with the beta model release.</p>
 <p>FPEAM calculations are organized into semi-independent modules, listed in the first table below along with the activities and pollutants included by default in each module. The EmissionFactors module is unique in that it can be used to calculate any pollutant from any activity, if sufficient input data is provided. In particular, users have the option of using the EmissionFactors module to replace the MOVES and/or NONROAD modules with emissions factors for agricultural equipment and on-road vehicle use. The EmissionFactors module can also be used to calculate pollutants from additional activities, such as non-nitrogen fertilizer application.</p>
@@ -156,6 +174,7 @@
 </tbody>
 </table>
 <p>Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered (with the numbers stored as characters rather than integers) and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset, to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset; any equipment data without matching feedstock production data (or vice versa) will be excluded from FPEAM calculations.</p>
+<p>The <code>rotation_year</code> column in the equipment dataset refers to the year in a multi-year crop rotation, for instance for a perennial cropping system such as switchgrass. <code>rotation_year</code> should not contain calendar years but rather integers greater than or equal to 1. The calendar year in which the rotation begins is defined using the <code>year</code> parameter in the MOVES and/or NONROAD config files, discussed further below. This <code>year</code> parameter specifies the calendar year in which biomass is grown, harvested and transported in a scenario.</p>
 <!-- TABLE: Equipment data examples
 
 | feedstock | tillage_type | equipment_group | rotation_year | activity | equipment_name | equipment_horsepower | resource | rate | unit_numerator | unit_denominator |
@@ -239,6 +258,7 @@
 </table>
 <h2 id="feedstock-production">Feedstock production</h2>
 <p>The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by what agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, equipment_group (values must match those in the equipment dataset) and region_production, that indicate where feedstocks were produced. Region_production values in the default feedstock production dataset correspond to the <a href="https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697">Federal Information Processing Standards</a> (FIPS) codes which identify U.S. counties. If values in the region_production column are not FIPS codes, an additional input file giving the mapping of the region_production values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.</p>
+<p>The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the <code>year</code> parameter in the MOVES and/or NONROAD config files, discussed further below.</p>
 <p>TABLE: List of columns in feedstock production data set with data types and descriptions</p>
 <table>
 <colgroup>
@@ -708,7 +728,9 @@
 </tr>
 </tbody>
 </table>
-<p>Before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above) using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the “General Output” screen, under “Output.” Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.</p>
+<h2 id="moves-installation-and-setup">MOVES installation and setup</h2>
+<p>During the MOVES installation process, users will need to select a folder in which MOVES is installed. By default, MOVES is installed to <code>C:\Users\Public\EPA\MOVES\MOVES2014a</code>, but the length of this file path causes problems when setting up and running NONROAD in batch mode (the NONROAD model is contained within MOVES). Users should instead install MOVES to a directory contained directly within the <code>C:</code> drive, such as <code>C:\MOVES2014a</code>. The exact directory name should be specified in the MOVES and NONROAD config files using the <code>moves_path</code> and <code>nonroad_path</code> parameters. Config files are discussed further below.</p>
+<p>After installing MOVES and before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above) using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the “General Output” screen, under “Output.” Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.</p>
 <h2 id="user-options">User options</h2>
 <p>These options can be changed manually using the FPEAM GUI or directly in the MOVES config file. The vmt_short_haul parameter is only used if the Router module is either unavailable or if the user specifies that the router should not be used. In this case vmt_short_haul specifies the number of vehicle miles used to calculate transportation emissions within each FIPS where a feedstock is produced.</p>
 <p>TABLE: Transportation distance and transportation mode parameters.</p>
@@ -1413,8 +1435,45 @@
 </table>
 <h2 id="additional-development-2">Additional development</h2>
 <p>Allow for county- or region-specific fugitive dust emission factors.</p>
-<h1 id="running-fpeam">Running FPEAM</h1>
-<h2 id="installing-the-fpeam-module">Installing the FPEAM module</h2>
+<h1 id="installing-and-running-fpeam">Installing and Running FPEAM</h1>
+<h2 id="pre-installation-requirements">Pre-installation requirements</h2>
+<p>Due to its dependence on MOVES, FPEAM can currently be installed and run only on Windows machines. Development is in progress to run MOVES and FPEAM on Linux systems. Additional software requirements are as follows:</p>
+<ul>
+<li>Windows 7+</li>
+<li>Python 3.6+
+<ul>
+<li>Recommended installation is via <a href="http://docs.anaconda.com/anaconda/install/windows/">Anaconda</a></li>
+</ul></li>
+<li>Python modules - install the most recent full release
+<ul>
+<li><a href="https://www.scipy.org/scipylib/download.html">numpy</a></li>
+<li><a href="http://pandas.pydata.org/pandas-docs/stable/install.html">pandas</a></li>
+<li><a href="https://pymysql.readthedocs.io/en/latest/user/installation.html">pymysql</a></li>
+<li><a href="https://configobj.readthedocs.io/en/latest/configobj.html#downloading">configobj</a></li>
+<li><a href="https://networkx.github.io/documentation/stable/install.html">networkx</a></li>
+<li><a href="https://lxml.de/installation.html">lxml</a></li>
+</ul></li>
+<li><a href="https://www.epa.gov/moves/moves-versions-limited-current-use#downloading-2014a">MOVES2014a</a>
+<ul>
+<li>Change the default install path as described in the MOVES Module section</li>
+</ul></li>
+<li>Install MOVES software dependencies as prompted during the installation process
+<ul>
+<li>Java Runtime Environment 7+ (link provided during MOVES installation)</li>
+<li>MySQL Server 5.5+ (link provided during MOVES installation)
+<ul>
+<li>MySQL may require installing the <a href="https://www.microsoft.com/en-us/download/details.aspx?id=52685">Microsoft Visual C++ 2015 Redistributable</a></li>
+<li>Make a note of the root password set during the MySQL Server installation process. This password will be needed to run the NONROAD module.</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>The following software is highly recommended for ease of use but not required to run FPEAM:</p>
+<ul>
+<li>MySQL Workbench - can be installed at the same time as MySQL Server</li>
+<li><a href="https://www.jetbrains.com/pycharm/download/#section=windows">PyCharm</a> (Community edition) - integrated development environment for Python</li>
+</ul>
+<p>After installing Python, add the directory where python.exe exists to the PATH environment variable. Do this by going to Control Panel, then System, then Edit environmental variables, and adding the python path to the PATH variable. Test that this was successful by opening a Windows command line, typing <code>python</code> and pressing Enter. This should start python within the terminal.</p>
+<h2 id="installing-fpeam">Installing FPEAM</h2>
 <p>Open either a Windows Command Prompt or an Anaconda Prompt and navigate to the outer FPEAM directory <code>fpeam</code> using cd. Then enter:</p>
 <p><code>pip install -e .</code></p>
 <p>This will install FPEAM on your computer as a Python module and allow you to use the command <code>fpeam</code> to run a scenario.</p>
@@ -1423,7 +1482,7 @@
 <p>All parameter definitions in the template config files below are commented out, indicating that the default values from the specification files will be used in running FPEAM. To change these parameters from their default values, uncomment the line where the parameter is defined and change the default value to the desired value. Then, in order to use the custom parameter definitions, the full file path to the custom config file must be specified when FPEAM is run.</p>
 <p>An additional config file, the run config, that defines the FPEAM scenario must also be specified in order to run FPEAM. Because the values in this file will be user- and machine-specific, and will vary according to the FPEAM scenario definition, this file is not supplied with the code base. Instead, a file template is provided below.</p>
 <h2 id="config-file-templates">Config file templates</h2>
-<p>To create a config file and edit parameter definitions, copy and paste the template into a text file and save as [modulename].ini, then uncomment the parameters to be defined and edit the values as necessary.</p>
+<p>To create a config file and edit parameter definitions, copy and paste the template into a text file and save with the .ini file extension (config file names can be arbitrary, but it may be helpful to include the corresponding module name in the config file name), then uncomment the parameters to be defined and edit the values as necessary. Unused parameter values can also be deleted from the config file. A list of suggested parameters to define is included with each config file template; these parameters are either necessary for FPEAM to function on specific machines or are commonly used in defining biomass production scenarios. The suggested parameters are listed assuming that users are either using the default FPEAM input datasets as-is or are using custom data with the same identifier variables (for instance, <code>feedstock_measure</code> and <code>forestry_feedstock_names</code>) as in the default datasets.</p>
 <h3 id="moves-config">MOVES config</h3>
 <pre><code>[moves]
 ## run identifier; defaults to FPEAM scenario name
@@ -1512,6 +1571,7 @@
 #day = 5
 #beginning_hour = 7
 #ending_hour = 18</code></pre>
+<p>Suggested parameters to define in the MOVES config file are <code>scenario_name</code>, <code>year</code>, <code>moves_database</code>, <code>moves_output_db</code>, <code>moves_path</code> and <code>moves_datafiles_path</code>. <code>scenario_name</code> identifies the biomass production scenario being run, and it is recommended that every unique scenario have a unique <code>scenario_name</code> to avoid overwriting results from previous scenarios. The <code>year</code> parameter defines the harvest and transportation year for the scenario. The remaining parameters specify where MOVES is installed (<code>moves_path</code>), where input files are saved during batch runs (<code>moves_datafiles_path</code>) and which default and output databases should be used in the scenario (<code>moves_database</code> and <code>moves_output_db</code>).</p>
 <h3 id="nonroad-config">NONROAD config</h3>
 <pre><code>[nonroad]
 ## run identifier; defaults to FPEAM scenario name
@@ -1576,6 +1636,7 @@
 
 ## pm10 to PM2.5 conversion factor
 #diesel_pm10topm25 = 0.97</code></pre>
+<p>Suggested parameters to define in the config file are <code>scenario_name</code>, <code>year</code>, <code>nonroad_database</code>, <code>nonroad_path</code>, and <code>nonroad_project_path</code>. The <code>scenario_name</code> and <code>year</code> values should match the ones in the MOVES config file, if MOVES is also being run in the scenario, and the <code>nonroad_database</code> value should also be the same as the <code>moves_database</code>, again if MOVES is also included in the scenario. <code>nonroad_path</code> will depend on the MOVES installation path, and <code>nonroad_project_path</code> is a user-created directory containing NONROAD input files. <code>nonroad_project_path</code> should be a short directory path, with as few subdirectories as possible, to avoid errors when running NONROAD in batch mode.</p>
 <h3 id="fugitivedust-config">FugitiveDust config</h3>
 <pre><code>[fugitivedust]
 
@@ -1584,6 +1645,7 @@
 
 ## pollutant emission factors for resources
 #emission_factors =&#39;../data/inputs/fugitive_dust_emission_factors.csv&#39;</code></pre>
+<p>Neither parameter needs to be set in the <code>FugitiveDust</code> config file to run FPEAM using the default input data.</p>
 <h3 id="emissionfactors-config">EmissionFactors config</h3>
 <pre><code>[emissionfactors]
 
@@ -1595,6 +1657,7 @@
 
 ## resource subtype distribution for all resources
 #resource_distribution = &#39;../data/inputs/resource_distribution.csv&#39;</code></pre>
+<p>None of the parameters need to be set in the <code>EmissionFactors</code> config file to run FPEAM using the default input data.</p>
 <h3 id="run_config">Run_config</h3>
 <pre><code>[run_config]
 ## run identifier
@@ -1612,6 +1675,7 @@ logger_level = DEBUG
 ## data paths
 equipment = &#39;../data/equipment/bts16_equipment.csv&#39;
 production = &#39;../data/production/prod_2015_bc1060.csv&#39;</code></pre>
+<p>In the <code>run_config</code> file, <code>scenario_name</code> (matching the values in the MOVES and NONROAD config files if MOVES and NONROAD are part of the scenario) and <code>project_path</code> should be specified for every scenario run. <code>modules</code> only needs to be specified if one or more modules are being excluded from the scenario, or if a module is being re-run for a scenario.</p>
 <h2 id="command-line-syntax">Command line syntax</h2>
 <p>FPEAM can be called directly from the command line using the fpeam.py (all lower case) file. Running FPEAM this way requires passing in the run_config.ini file. Config files for each module can also be passed in but are not required. The default values defined in the .spec files will be used if no module-specific config files are given. If module-specific config files are used, the complete file path to the config file location must be specified.</p>
 <p>The syntax to run FPEAM via command line without any module-specific config files is:</p>
@@ -1619,3 +1683,5 @@ production = &#39;../data/production/prod_2015_bc1060.csv&#39;</code></pre>
 <p>This command can be executed in any directory, including the one containing the config files. On a Windows machine, use <code>cd</code> to change the current working directory.</p>
 <p>If FPEAM is run with one or more module-specific config files, the syntax expands with the full filepaths to these config files and flags that indicate which config file is being specified. For instance, running FPEAM with all four module-specific config files would look like:</p>
 <pre><code>fpeam path/to/run_config.ini --emissionfactors_config path/to/emissionfactors.ini --moves_config path/to/moves.ini --nonroad_config path/to/nonroad.ini --fugitivedust_config path/to/fugitivedust.ini</code></pre>
+</body>
+</html>
