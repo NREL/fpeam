@@ -1,11 +1,11 @@
 feedstock,tillage_type,region_production,region_destination,equipment_group,feedstock_measure,feedstock_amount,unit_numerator,unit_denominator
-forest residues,no tillage,51101,42041,south,harvested,1371.5,dry short ton,
+forest residues,no tillage,51101,42041,south,harvested,1371.5,acre,
 forest residues,no tillage,51101,42041,south,production,10434.6,dry short ton,
-forest whole tree,no tillage,51101,42041,south,harvested,1490,dry short ton,
+forest whole tree,no tillage,51101,42041,south,harvested,1490,acre,
 forest whole tree,no tillage,51101,42041,south,production,25674.3,dry short ton,
-forest residues,no tillage,51107,42041,south,harvested,970,dry short ton,
+forest residues,no tillage,51107,42041,south,harvested,970,acre,
 forest residues,no tillage,51107,42041,south,production,3393,dry short ton,
-forest whole tree,no tillage,51107,42041,south,harvested,69.5,dry short ton,
+forest whole tree,no tillage,51107,42041,south,harvested,69.5,acre,
 forest whole tree,no tillage,51107,42041,south,production,1271.7,dry short ton,
 corn grain,reduced tillage,51101,42041,3,yield,3.3041421,dry short ton,acre
 corn grain,reduced tillage,51101,42041,3,harvested,1808.313,acre,
