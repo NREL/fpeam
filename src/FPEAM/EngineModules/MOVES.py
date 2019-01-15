@@ -44,8 +44,8 @@ class MOVES(Module):
 
         self._router = None
 
-        _transportation_graph = TransportationGraph(fpath=self.config['transportation_graph'])
-        _county_nodes = CountyNode(fpath=self.config['county_nodes'])
+        _transportation_graph = TransportationGraph(fpath=self.config.get('transportation_graph'))
+        _county_nodes = CountyNode(fpath=self.config.get('county_nodes'))
 
         # boolean controlling whether or NOT the router engine is used to
         # calculate vmt
@@ -56,12 +56,12 @@ class MOVES(Module):
             self.router = Router(edges=_transportation_graph,
                                  node_map=_county_nodes)  # @TODO: takes ages to load
 
-        self.year = self.config['year']
-        self.region_fips_map = RegionFipsMap(fpath=self.config['region_fips_map'])
+        self.year = self.config.get('year')
+        self.region_fips_map = RegionFipsMap(fpath=self.config.get('region_fips_map'))
         self.feedstock_measure_type = self.config.get('feedstock_measure_type')
 
         # this is a DF read in from a csv file
-        self.truck_capacity = TruckCapacity(fpath=self.config['truck_capacity'])
+        self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'))
 
         # boolean controlling whether available results are used from the
         # moves output database

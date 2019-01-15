@@ -28,42 +28,43 @@ class NONROAD(Module):
 
         # flag to encode feedstock, tillage type and activity names in all
         # nonroad filepaths and names
-        self.encode_names = self.config['encode_names']
+        self.encode_names = self.config.get('encode_names')
 
-        self.model_run_title = self.config['scenario_name']
-        self.nonroad_path = self.config['nonroad_path']
-        self.nonroad_datafiles_path = self.config['nonroad_datafiles_path']
-        self.nonroad_exe = self.config['nonroad_exe']
+        self.model_run_title = self.config.get('scenario_name')
+        self.nonroad_path = self.config.get('nonroad_path')
+        self.nonroad_datafiles_path = self.config.get('nonroad_datafiles_path')
+        self.nonroad_exe = self.config.get('nonroad_exe')
 
-        self.project_path = os.path.join(self.config['nonroad_datafiles_path'], self.model_run_title)
+        self.project_path = os.path.join(self.config.get('nonroad_datafiles_path'),
+                                         self.model_run_title)
 
         # store nonroad parameters in self
-        self.temp_min = self.config['nonroad_temp_min']
-        self.temp_mean = self.config['nonroad_temp_mean']
-        self.temp_max = self.config['nonroad_temp_max']
-        self.diesel_lhv = self.config['diesel_lhv']
-        self.diesel_nh3_ef = self.config['diesel_nh3_ef']
-        self.diesel_thc_voc_conversion = self.config['diesel_thc_voc_conversion']
-        self.diesel_pm10topm25 = self.config['diesel_pm10topm25']
-        self.time_resource_name = self.config['time_resource_name']
-        self.feedstock_measure_type = self.config['feedstock_measure_type']
-        self.irrigation_feedstock_measure_type = self.config['irrigation_feedstock_measure_type']
+        self.temp_min = self.config.get('nonroad_temp_min')
+        self.temp_mean = self.config.get('nonroad_temp_mean')
+        self.temp_max = self.config.get('nonroad_temp_max')
+        self.diesel_lhv = self.config.get('diesel_lhv')
+        self.diesel_nh3_ef = self.config.get('diesel_nh3_ef')
+        self.diesel_thc_voc_conversion = self.config.get('diesel_thc_voc_conversion')
+        self.diesel_pm10topm25 = self.config.get('diesel_pm10topm25')
+        self.time_resource_name = self.config.get('time_resource_name')
+        self.feedstock_measure_type = self.config.get('feedstock_measure_type')
+        self.irrigation_feedstock_measure_type = self.config.get('irrigation_feedstock_measure_type')
 
         # nonroad database parameters
-        self.nonroad_database = self.config['nonroad_database']
+        self.nonroad_database = self.config.get('nonroad_database')
 
         # open connection to NONROAD database for input/output
-        self._conn = pymysql.connect(host=self.config['nonroad_db_host'],
-                                     user=self.config['nonroad_db_user'],
-                                     password=self.config['nonroad_db_pass'],
-                                     db=self.config['nonroad_database'],
+        self._conn = pymysql.connect(host=self.config.get('nonroad_db_host'),
+                                     user=self.config.get('nonroad_db_user'),
+                                     password=self.config.get('nonroad_db_pass'),
+                                     db=self.config.get('nonroad_database'),
                                      local_infile=True)
 
         # dataframe of equipment names matching the names in the equipment
         # input df and SCC codes from nonroad
-        self.nonroad_equipment = NONROADEquipment(fpath=self.config['nonroad_equipment'])
+        self.nonroad_equipment = NONROADEquipment(fpath=self.config.get('nonroad_equipment'))
 
-        self.irrigation = Irrigation(fpath=self.config['irrigation'])
+        self.irrigation = Irrigation(fpath=self.config.get('irrigation'))
 
         self._equipment = None
         self.equipment = equipment
@@ -76,14 +77,14 @@ class NONROAD(Module):
         # mapping from the region_production column of production
         # to NONROAD fips values, used to derive state identifiers and run
         # scenario through NONROAD
-        self.region_fips_map = RegionFipsMap(fpath=self.config['region_fips_map'])
+        self.region_fips_map = RegionFipsMap(fpath=self.config.get('region_fips_map'))
 
         # mapping from 2-digit state FIPS to two-character state name
         # abbreviations
-        self.state_fips_map = StateFipsMap(fpath=self.config['state_fips_map'])
+        self.state_fips_map = StateFipsMap(fpath=self.config.get('state_fips_map'))
 
         # scenario year
-        self.year = self.config['year']
+        self.year = self.config.get('year')
 
         # add year as an extra column in production
         self.production['year'] = self.year

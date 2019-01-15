@@ -23,13 +23,13 @@ class EmissionFactors(Module):
         self.production = production
 
         # Emissions factors, Units: lb pollutant/lb resource
-        self.emission_factors = EmissionFactor(fpath=self.config['emission_factors'])
+        self.emission_factors = EmissionFactor(fpath=self.config.get('emission_factors'))
 
         # Resource subtype distribution, Units: unit-less fraction
-        self.resource_distribution = ResourceDistribution(fpath=self.config['resource_distribution'])
+        self.resource_distribution = ResourceDistribution(fpath=self.config.get('resource_distribution'))
 
         # Selector for the crop amount that scales emission factors
-        self.feedstock_measure_type = self.config['feedstock_measure_type']
+        self.feedstock_measure_type = self.config.get('feedstock_measure_type')
 
         # merge emissions factors and resource subtype distribution
         # dataframes by matching resource and resource subtype

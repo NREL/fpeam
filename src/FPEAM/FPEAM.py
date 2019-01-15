@@ -42,15 +42,15 @@ class FPEAM(object):
 
         # @TODO: load and validate fpeam.ini; currently only run_config gets checked and loaded
         self.config = run_config
-        self.equipment = Data.Equipment(fpath=self.config['equipment']).reset_index().rename({'index': 'row_id'}, axis=1)
-        self.production = Data.Production(fpath=self.config['production']).reset_index().rename({'index': 'row_id'}, axis=1)
-        self.feedstock_loss_factors = Data.FeedstockLossFactors(fpath=self.config['feedstock_loss_factors']).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.equipment = Data.Equipment(fpath=self.config.get('equipment')).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.production = Data.Production(fpath=self.config.get('production')).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.feedstock_loss_factors = Data.FeedstockLossFactors(fpath=self.config.get('feedstock_loss_factors')).reset_index().rename({'index': 'row_id'}, axis=1)
 
         for _module in self.config.get('modules', None) or self.MODULES.keys():
             _config = run_config.get(_module.lower(), None) or \
                       load_configs(resource_filename('FPEAM', '%s/%s.ini' % (CONFIG_FOLDER, _module.lower()))
                                    )[_module.lower()]
-            _config['scenario_name'] = _config.get('scenario_name', '').strip() or self.config['scenario_name']
+            _config['scenario_name'] = _config.get('scenario_name', '').strip() or self.config.get('scenario_name')
 
             try:
                 self.__setattr__(_module,
@@ -248,9 +248,9 @@ class FPEAM(object):
                                          'pollutant_amount',
                                          'unit_numerator',
                                          'unit_denominator']].to_csv(
-            os.path.join(self.config['project_path'],
+            os.path.join(self.config.get('project_path'),
                          '%s' %
-                         self.config['scenario_name'] +\
+                         self.config.get('scenario_name') +\
                          '_total_emissions_by_production_region.csv'),
             index=False)
 
@@ -282,9 +282,8 @@ class FPEAM(object):
                                                             as_index=False).sum()
 
         # save to csv
-        _results_normalized.to_csv(os.path.join(self.config['project_path'],
-                                                '%s' % self.config[
-                                                    'scenario_name'] +
+        _results_normalized.to_csv(os.path.join(self.config.get('project_path'),
+                                                '%s' % self.config.get('scenario_name') +
                                                 '_normalized_total_emissions_by_production_region.csv'),
                                    index=False)
 
@@ -304,9 +303,9 @@ class FPEAM(object):
                                                  'region_transportation',
                                                  'pollutant',
                                                  'pollutant_amount']].to_csv(
-                os.path.join(self.config['project_path'],
+                os.path.join(self.config.get('project_path'),
                              '%s' %
-                             self.config['scenario_name'] +\
+                             self.config.get('scenario_name') +\
                              '_transportation_emissions_by_region.csv'),
                 index=False)
 
@@ -325,9 +324,9 @@ class FPEAM(object):
 
         _summarize_by_module[['feedstock', 'tillage_type', 'module',
                               'pollutant', 'pollutant_amount']].to_csv(
-            os.path.join(self.config['project_path'],
+            os.path.join(self.config.get('project_path'),
                          '%s' %
-                         self.config['scenario_name'] +\
+                         self.config.get('scenario_name') +\
                          '_total_emissions_by_module.csv'), index=False)
 
     def plot(self, modules):
