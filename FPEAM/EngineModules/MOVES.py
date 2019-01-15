@@ -14,6 +14,7 @@ from ..Router import Router
 
 LOGGER = utils.logger(name=__name__)
 
+
 # @TODO keep the movesscenarioID in output table to identify cached results
 # @TODO separate directories for separate scenario names, also tack on
 # scenario name to MOVES input file names
@@ -35,7 +36,8 @@ class MOVES(Module):
         self.production = production
         self.equipment = equipment
 
-        self.feedstock_loss_factors = FeedstockLossFactors(fpath=self.config.get('feedstock_loss_factors'))
+        self.feedstock_loss_factors = FeedstockLossFactors(
+                fpath=self.config.get('feedstock_loss_factors'))
 
         # create a dictionary of conversion factors for later use
         self.conversion_factors = self._set_conversions()
@@ -45,13 +47,14 @@ class MOVES(Module):
         _transportation_graph = TransportationGraph(fpath=self.config['transportation_graph'])
         _county_nodes = CountyNode(fpath=self.config['county_nodes'])
 
-        # boolean controlling whether or not the router engine is used to
+        # boolean controlling whether or NOT the router engine is used to
         # calculate vmt
         self.use_router_engine = self.config.get('use_router_engine')
 
         if not _transportation_graph.empty or not _county_nodes.empty:
             LOGGER.info('Loading routing data; this may take a few minutes')
-            self.router = Router(edges=_transportation_graph, node_map=_county_nodes)  # @TODO: takes ages to load
+            self.router = Router(edges=_transportation_graph,
+                                 node_map=_county_nodes)  # @TODO: takes ages to load
 
         self.year = self.config['year']
         self.region_fips_map = RegionFipsMap(fpath=self.config['region_fips_map'])
@@ -67,16 +70,19 @@ class MOVES(Module):
         # scenario name
         self.model_run_title = self.config.get('scenario_name')
 
+        self.moves_run_list = None
+        self.prod_moves_runs = None
+
         # MOVES input and output databases - set names
         self.moves_database = self.config.get('moves_database')
         self.moves_output_db = self.config.get('moves_output_db')
 
         # open connection to MOVES default database for input/output
         self.conn = pymysql.connect(host=self.config.get('moves_db_host'),
-                                     user=self.config.get('moves_db_user'),
-                                     password=self.config.get('moves_db_pass'),
-                                     db=self.config.get('moves_database'),
-                                     local_infile=True)
+                                    user=self.config.get('moves_db_user'),
+                                    password=self.config.get('moves_db_pass'),
+                                    db=self.config.get('moves_database'),
+                                    local_infile=True)
 
         # get version of MOVES for XML trees
         self.moves_version = self.config.get('moves_version')
@@ -110,7 +116,7 @@ class MOVES(Module):
                       self.save_path_nationalinputs,
                       self.save_path_outputs]
 
-        # if file path does not exist, create it
+        # if file path does NOT exist, create it
         for _path in _path_list:
             if not os.path.exists(_path):
                 os.makedirs(_path)
@@ -169,7 +175,7 @@ class MOVES(Module):
         self.fuel_subtype_id = (20, 21)
 
         # selection of fuel supply type
-        # not sure what this means
+        # NOT sure what this means
         # @NOTE possibly add to GUI as user input in the future
         self.fuel_supply_fuel_type_id = '2'
 
@@ -256,7 +262,8 @@ class MOVES(Module):
                         "SO2": ["1", "2", "15", "16", "17", "90", "91"],
                         "TEC": ["1", "2", "90", "91"],
                         "THC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
-                        "VOC": ["1", "2", "11", "12", "13", "15", "16", "17", "18", "19", "90", "91"]}
+                        "VOC": ["1", "2", "11", "12", "13", "15", "16", "17", "18", "19", "90",
+                                "91"]}
 
         # dictionary for road types
         self.roaddict = {"1": "Off-Network",
@@ -290,7 +297,7 @@ class MOVES(Module):
         try:
             getattr(value, 'get_route')
         except AttributeError:
-            LOGGER.error('%s is not a valid routing engine. '
+            LOGGER.error('%s is NOT a valid routing engine. '
                          'Method .get_route(FIPS, FIPS) is required' % value)
         else:
             self._router = value
@@ -322,323 +329,341 @@ class MOVES(Module):
         kvals = dict()
         kvals['moves_output_db'] = self.moves_output_db
 
-        _create_database_sql = """CREATE DATABASE IF NOT EXISTS {moves_output_db};""".format(**kvals)
+        _create_database_sql = """CREATE DATABASE IF NOT EXISTS {moves_output_db};""".format(
+                **kvals)
 
         _create_tables_dict = dict()
 
-        _create_tables_dict['activitytype'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`activitytype` (
-        	activityTypeID       SMALLINT UNSIGNED NOT NULL,
-        	activityType         CHAR(20) NOT NULL,
-        	activityTypeDesc     CHAR(50) NULL DEFAULT NULL,
-        	PRIMARY KEY (activityTypeID)
+        _create_tables_dict['activitytype'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`activitytype` (
+            activityTypeID       SMALLINT UNSIGNED NOT NULL,
+            activityType         CHAR(20) NOT NULL,            
+            activityTypeDesc     CHAR(50) NULL DEFAULT NULL,            
+            PRIMARY KEY (activityTypeID)            
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['baserateoutput'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`baserateoutput` (
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	iterationID          SMALLINT UNSIGNED NULL DEFAULT 1,
-        	zoneID				 INTEGER NOT NULL DEFAULT '0',
-        	linkID				 INTEGER NOT NULL DEFAULT '0',
-        	sourceTypeID         SMALLINT NOT NULL DEFAULT '0',
+        _create_tables_dict['baserateoutput'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`baserateoutput` (
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            iterationID          SMALLINT UNSIGNED NULL DEFAULT 1,
+            zoneID               INTEGER NOT NULL DEFAULT '0',
+            linkID               INTEGER NOT NULL DEFAULT '0',
+            sourceTypeID         SMALLINT NOT NULL DEFAULT '0',
             SCC                  CHAR(10) NOT NULL DEFAULT '',
-        	roadTypeID           SMALLINT NOT NULL DEFAULT '0',
-        	avgSpeedBinID        SMALLINT NOT NULL DEFAULT '0',
-        	monthID              SMALLINT NOT NULL DEFAULT '0',
-        	hourDayID            SMALLINT NOT NULL DEFAULT '0',
-        	pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	modelYearID			 SMALLINT NOT NULL DEFAULT '0',
-        	yearID               SMALLINT NOT NULL,
-        	fuelTypeID			 SMALLINT NOT NULL DEFAULT '0',
-        	regClassID			 SMALLINT NOT NULL DEFAULT '0',
-        	meanBaseRate		 FLOAT NULL,
-        	emissionRate		 FLOAT NULL
+            roadTypeID           SMALLINT NOT NULL DEFAULT '0',
+            avgSpeedBinID        SMALLINT NOT NULL DEFAULT '0',
+            monthID              SMALLINT NOT NULL DEFAULT '0',
+            hourDayID            SMALLINT NOT NULL DEFAULT '0',
+            pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            modelYearID          SMALLINT NOT NULL DEFAULT '0',
+            yearID               SMALLINT NOT NULL,
+            fuelTypeID           SMALLINT NOT NULL DEFAULT '0',
+            regClassID           SMALLINT NOT NULL DEFAULT '0',
+            meanBaseRate         FLOAT NULL,
+            emissionRate         FLOAT NULL
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['baserateunits'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`baserateunits` (
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	meanBaseRateUnitsNumerator varchar(50) null default '',
-        	meanBaseRateUnitsDenominator varchar(50) null default '',
-        	emissionBaseRateUnitsNumerator varchar(50) null default '',
-        	emissionBaseRateUnitsDenominator varchar(50) null default ''
+        _create_tables_dict['baserateunits'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`baserateunits` (
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            meanBaseRateUnitsNumerator VARCHAR(50) NULL DEFAULT '',
+            meanBaseRateUnitsDenominator VARCHAR(50) NULL DEFAULT '',
+            emissionBaseRateUnitsNumerator VARCHAR(50) NULL DEFAULT '',
+            emissionBaseRateUnitsDenominator VARCHAR(50) NULL DEFAULT ''
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['bundletracking'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`bundletracking` (
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	hostType             char(1) not null default ' ',
-        	loopableClassName 	 varchar(200) not null default '',
-        	workerVersion        VARCHAR(100) NOT NULL,
-        	workerComputerID     VARCHAR(255) NOT NULL,
-        	workerID             VARCHAR(255) NOT NULL DEFAULT '',
-        	bundleNumber		 int not null default '0',
-        	isCleanUp 			 char(1) not null default 'N',
-        	iterationID 		 smallint unsigned null default null,
-        	processID 			 smallint unsigned null default null,
-        	roadTypeID		 	 smallint unsigned null default null,
-        	linkID		 		 integer unsigned null default null,
-        	zoneID 				 integer unsigned null default null,
-        	countyID 			 integer unsigned null default null,
-        	stateID 			 smallint unsigned null default null,
-        	yearID 				 smallint unsigned null default null,
-        	monthID 			 smallint unsigned null default null,
-        	dayID 				 smallint unsigned null default null,
-        	hourID 				 smallint unsigned null default null,
-        	executionGranularity varchar(10) null default null,
-        	executionPriority 	 smallint unsigned null,
-        	durationSeconds		 FLOAT NULL DEFAULT NULL,
-        	KEY (MOVESRunID, hostType, loopableClassName)
+        _create_tables_dict['bundletracking'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`bundletracking` (
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            hostType             CHAR(1) NOT NULL DEFAULT ' ',
+            loopableClassName    VARCHAR(200) NOT NULL DEFAULT '',
+            workerVersion        VARCHAR(100) NOT NULL,
+            workerComputerID     VARCHAR(255) NOT NULL,
+            workerID             VARCHAR(255) NOT NULL DEFAULT '',
+            bundleNumber         INT NOT NULL DEFAULT '0',
+            isCleanUp            CHAR(1) NOT NULL DEFAULT 'N',
+            iterationID          SMALLINT unsigned NULL DEFAULT NULL,
+            processID            SMALLINT unsigned NULL DEFAULT NULL,
+            roadTypeID           SMALLINT unsigned NULL DEFAULT NULL,
+            linkID               INTEGER unsigned NULL DEFAULT NULL,
+            zoneID               INTEGER unsigned NULL DEFAULT NULL,
+            countyID             INTEGER unsigned NULL DEFAULT NULL,
+            stateID              SMALLINT unsigned NULL DEFAULT NULL,
+            yearID               SMALLINT unsigned NULL DEFAULT NULL,
+            monthID              SMALLINT unsigned NULL DEFAULT NULL,
+            dayID                SMALLINT unsigned NULL DEFAULT NULL,
+            hourID               SMALLINT unsigned NULL DEFAULT NULL,
+            executionGranularity VARCHAR(10) NULL DEFAULT NULL,
+            executionPriority    SMALLINT unsigned NULL,
+            durationSeconds      FLOAT NULL DEFAULT NULL,
+            KEY (MOVESRunID, hostType, loopableClassName)
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['movesactivityoutput'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`movesactivityoutput` (
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	iterationID          SMALLINT UNSIGNED NULL DEFAULT 1,
-        	yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	stateID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	countyID             INTEGER UNSIGNED NULL DEFAULT NULL,
-        	zoneID               INTEGER UNSIGNED NULL DEFAULT NULL,
-        	linkID               INTEGER UNSIGNED NULL DEFAULT NULL,
-        	sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	roadTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	SCC                  CHAR(10) NULL DEFAULT NULL,
-        	engTechID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	sectorID             SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hpID                 SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	activityTypeID       SMALLINT NOT NULL,
-        	activity             FLOAT NULL DEFAULT NULL,
-        	activityMean         FLOAT NULL DEFAULT NULL,
-        	activitySigma        FLOAT NULL DEFAULT NULL
+        _create_tables_dict['movesactivityoutput'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`movesactivityoutput` (
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            iterationID          SMALLINT UNSIGNED NULL DEFAULT 1,
+            yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            stateID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            countyID             INTEGER UNSIGNED NULL DEFAULT NULL,
+            zoneID               INTEGER UNSIGNED NULL DEFAULT NULL,
+            linkID               INTEGER UNSIGNED NULL DEFAULT NULL,
+            sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
+            regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            roadTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            SCC                  CHAR(10) NULL DEFAULT NULL,
+            engTechID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            sectorID             SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hpID                 SMALLINT UNSIGNED NULL DEFAULT NULL,
+            activityTypeID       SMALLINT NOT NULL,
+            activity             FLOAT NULL DEFAULT NULL,
+            activityMean         FLOAT NULL DEFAULT NULL,
+            activitySigma        FLOAT NULL DEFAULT NULL
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['moveserror'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`moveserror` (
-        	MOVESErrorID         INTEGER  UNSIGNED NOT NULL AUTO_INCREMENT,
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	stateID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	countyID             INTEGER UNSIGNED NULL DEFAULT NULL,
-        	zoneID               INTEGER UNSIGNED NULL DEFAULT NULL,
-        	linkID               INTEGER UNSIGNED NULL DEFAULT NULL,
-        	pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	errorMessage         VARCHAR(255) NOT NULL,
-        	PRIMARY KEY (MOVESErrorID),
-        	KEY IX_MOVES_ERROR_ID (MOVESErrorID),
-        	KEY IX_MOVES_RUN_ID (MOVESRunID)
+        _create_tables_dict['moveserror'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`moveserror` (
+            MOVESErrorID         INTEGER  UNSIGNED NOT NULL AUTO_INCREMENT,
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            stateID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            countyID             INTEGER UNSIGNED NULL DEFAULT NULL,
+            zoneID               INTEGER UNSIGNED NULL DEFAULT NULL,
+            linkID               INTEGER UNSIGNED NULL DEFAULT NULL,
+            pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            errorMessage         VARCHAR(255) NOT NULL,
+            PRIMARY KEY (MOVESErrorID),
+            KEY IX_MOVES_ERROR_ID (MOVESErrorID),
+            KEY IX_MOVES_RUN_ID (MOVESRunID)
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['moveseventlog'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`moveseventlog` (
-        	EventRecordID        INT UNSIGNED NOT NULL,
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+        _create_tables_dict['moveseventlog'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`moveseventlog` (
+            EventRecordID        INT UNSIGNED NOT NULL,
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
             PRIMARY KEY (EventRecordID, MOVESRunID),
-        	EventName            CHAR(255) NOT NULL,
-        	WhenStarted          INT UNSIGNED NOT NULL,
-        	WhenStopped          INT UNSIGNED NULL,
-        	Duration             INT UNSIGNED NULL
+            EventName            CHAR(255) NOT NULL,
+            WhenStarted          INT UNSIGNED NOT NULL,
+            WhenStopped          INT UNSIGNED NULL,
+            Duration             INT UNSIGNED NULL
         );""".format(**kvals)
 
-        _create_tables_dict['movesoutput'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`movesoutput` (
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	iterationID          SMALLINT UNSIGNED NULL DEFAULT 1,
-        	yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	stateID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	countyID             INTEGER  UNSIGNED NULL DEFAULT NULL,
-        	zoneID               INTEGER  UNSIGNED NULL DEFAULT NULL,
-        	linkID               INTEGER  UNSIGNED NULL DEFAULT NULL,
-        	pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	fuelSubTypeID        SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	roadTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	SCC                  CHAR(10) NULL DEFAULT NULL,
-        	engTechID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	sectorID             SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hpID                 SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	emissionQuant        FLOAT NULL DEFAULT NULL,
-        	emissionQuantMean    FLOAT NULL DEFAULT NULL,
-        	emissionQuantSigma   FLOAT NULL  DEFAULT NULL
+        _create_tables_dict['movesoutput'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`movesoutput` (
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            iterationID          SMALLINT UNSIGNED NULL DEFAULT 1,
+            yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            stateID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            countyID             INTEGER  UNSIGNED NULL DEFAULT NULL,
+            zoneID               INTEGER  UNSIGNED NULL DEFAULT NULL,
+            linkID               INTEGER  UNSIGNED NULL DEFAULT NULL,
+            pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
+            regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            fuelSubTypeID        SMALLINT UNSIGNED NULL DEFAULT NULL,
+            modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            roadTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            SCC                  CHAR(10) NULL DEFAULT NULL,
+            engTechID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            sectorID             SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hpID                 SMALLINT UNSIGNED NULL DEFAULT NULL,
+            emissionQuant        FLOAT NULL DEFAULT NULL,
+            emissionQuantMean    FLOAT NULL DEFAULT NULL,
+            emissionQuantSigma   FLOAT NULL  DEFAULT NULL
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['movesrun'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`movesrun` (
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL auto_increment,
-        	outputTimePeriod     CHAR(5) NULL DEFAULT NULL,
-        	timeUnits            CHAR(5) NULL DEFAULT NULL,
-        	distanceUnits        CHAR(5) NULL DEFAULT NULL,
-        	massUnits            CHAR(5) NULL DEFAULT NULL,
-        	energyUnits          CHAR(5) NULL DEFAULT NULL,
-        	runSpecFileName      VARCHAR(500) NULL DEFAULT NULL,
-        	runSpecDescription   TEXT NULL,
-        	runSpecFileDateTime  DATETIME NULL DEFAULT NULL,
-        	runDateTime          DATETIME NULL DEFAULT NULL,
-        	scale                CHAR(5) NULL DEFAULT NULL,
-        	minutesDuration      FLOAT NULL  DEFAULT NULL,
-        	defaultDatabaseUsed  VARCHAR(200) NULL DEFAULT NULL,
-        	masterVersion        VARCHAR(100) NULL DEFAULT NULL,
-        	masterComputerID     VARCHAR(255) NULL DEFAULT NULL,
-        	masterIDNumber       VARCHAR(255) NULL DEFAULT NULL,
-        	domain               CHAR(10) NULL DEFAULT 'NATIONAL',
-        	domainCountyID		 INTEGER UNSIGNED NULL DEFAULT NULL,
-        	domainCountyName     VARCHAR(50) NULL DEFAULT NULL,
-        	domainDatabaseServer VARCHAR(100) NULL DEFAULT NULL,
-        	domainDatabaseName   VARCHAR(200) NULL DEFAULT NULL,
-        	expectedDONEFiles    INTEGER UNSIGNED NULL DEFAULT NULL,
-        	retrievedDONEFiles   INTEGER UNSIGNED NULL DEFAULT NULL,
-        	models               VARCHAR(40) NOT NULL DEFAULT 'onroad',
-        	PRIMARY KEY (MOVESRunID)
+        _create_tables_dict['movesrun'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`movesrun` (
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL auto_increment,
+            outputTimePeriod     CHAR(5) NULL DEFAULT NULL,
+            timeUnits            CHAR(5) NULL DEFAULT NULL,
+            distanceUnits        CHAR(5) NULL DEFAULT NULL,
+            massUnits            CHAR(5) NULL DEFAULT NULL,
+            energyUnits          CHAR(5) NULL DEFAULT NULL,
+            runSpecFileName      VARCHAR(500) NULL DEFAULT NULL,
+            runSpecDescription   TEXT NULL,
+            runSpecFileDateTime  DATETIME NULL DEFAULT NULL,
+            runDateTime          DATETIME NULL DEFAULT NULL,
+            scale                CHAR(5) NULL DEFAULT NULL,
+            minutesDuration      FLOAT NULL  DEFAULT NULL,
+            defaultDatabaseUsed  VARCHAR(200) NULL DEFAULT NULL,
+            masterVersion        VARCHAR(100) NULL DEFAULT NULL,
+            masterComputerID     VARCHAR(255) NULL DEFAULT NULL,
+            masterIDNumber       VARCHAR(255) NULL DEFAULT NULL,
+            domain               CHAR(10) NULL DEFAULT 'NATIONAL',
+            domainCountyID       INTEGER UNSIGNED NULL DEFAULT NULL,
+            domainCountyName     VARCHAR(50) NULL DEFAULT NULL,
+            domainDatabaseServer VARCHAR(100) NULL DEFAULT NULL,
+            domainDatabaseName   VARCHAR(200) NULL DEFAULT NULL,
+            expectedDONEFiles    INTEGER UNSIGNED NULL DEFAULT NULL,
+            retrievedDONEFiles   INTEGER UNSIGNED NULL DEFAULT NULL,
+            models               VARCHAR(40) NOT NULL DEFAULT 'onroad',
+            PRIMARY KEY (MOVESRunID)
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['movestablesused'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`movestablesused` (
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	databaseServer		 VARCHAR(100) NOT NULL DEFAULT '',
-        	databaseName		 VARCHAR(200) NOT NULL,
-        	tableName			 VARCHAR(200) NOT NULL,
-        	dataFileSize	     INTEGER UNSIGNED NULL DEFAULT NULL,
-        	dataFileModificationDate DATETIME NULL DEFAULT NULL,
-        	tableUseSequence	 INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-        	PRIMARY KEY (MOVESRunID, databaseServer, databaseName, tableName),
-        	KEY (MOVESRunID, tableUseSequence)
+        _create_tables_dict['movestablesused'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`movestablesused` (
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            databaseServer       VARCHAR(100) NOT NULL DEFAULT '',
+            databaseName         VARCHAR(200) NOT NULL,
+            tableName           VARCHAR(200) NOT NULL,
+            dataFileSize         INTEGER UNSIGNED NULL DEFAULT NULL,
+            dataFileModificationDate DATETIME NULL DEFAULT NULL,
+            tableUseSequence     INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+            PRIMARY KEY (MOVESRunID, databaseServer, databaseName, tableName),
+            KEY (MOVESRunID, tableUseSequence)
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['movesworkerused'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`movesworkersused` (
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	workerVersion        VARCHAR(100) NOT NULL,
-        	workerComputerID     VARCHAR(255) NOT NULL,
-        	workerID             VARCHAR(255) NOT NULL DEFAULT '',
-        	bundleCount          INTEGER UNSIGNED NOT NULL DEFAULT '0',
-        	failedBundleCount    INTEGER UNSIGNED NOT NULL DEFAULT '0',
-        	PRIMARY KEY (MOVESRunID, workerVersion, workerComputerID, workerID)
+        _create_tables_dict['movesworkerused'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`movesworkersused` (
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            workerVersion        VARCHAR(100) NOT NULL,
+            workerComputerID     VARCHAR(255) NOT NULL,
+            workerID             VARCHAR(255) NOT NULL DEFAULT '',
+            bundleCount          INTEGER UNSIGNED NOT NULL DEFAULT '0',
+            failedBundleCount    INTEGER UNSIGNED NOT NULL DEFAULT '0',
+            PRIMARY KEY (MOVESRunID, workerVersion, workerComputerID, workerID)
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['rateperdistance'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`rateperdistance` (
-        	MOVESScenarioID		 VARCHAR(40) NOT NULL DEFAULT '',
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	linkID               INTEGER  UNSIGNED NULL DEFAULT NULL,
-        	pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	SCC                  CHAR(10) NULL DEFAULT NULL,
-        	fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	roadTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	avgSpeedBinID        SMALLINT NULL DEFAULT NULL,
-        	temperature          FLOAT NULL DEFAULT NULL,
-        	relHumidity          FLOAT NULL DEFAULT NULL,
-        	ratePerDistance      FLOAT NULL DEFAULT NULL
+        _create_tables_dict['rateperdistance'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`rateperdistance` (
+            MOVESScenarioID      VARCHAR(40) NOT NULL DEFAULT '',
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            linkID               INTEGER  UNSIGNED NULL DEFAULT NULL,
+            pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
+            regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            SCC                  CHAR(10) NULL DEFAULT NULL,
+            fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            roadTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            avgSpeedBinID        SMALLINT NULL DEFAULT NULL,
+            temperature          FLOAT NULL DEFAULT NULL,
+            relHumidity          FLOAT NULL DEFAULT NULL,
+            ratePerDistance      FLOAT NULL DEFAULT NULL
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['rateperhour'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`rateperhour` (
-        	MOVESScenarioID		 VARCHAR(40) NOT NULL DEFAULT '',
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	linkID               INTEGER  UNSIGNED NULL DEFAULT NULL,
-        	pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	SCC                  CHAR(10) NULL DEFAULT NULL,
-        	fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	roadTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	temperature          FLOAT NULL DEFAULT NULL,
-        	relHumidity          FLOAT NULL DEFAULT NULL,
-        	ratePerHour          FLOAT NULL DEFAULT NULL
+        _create_tables_dict['rateperhour'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`rateperhour` (
+            MOVESScenarioID      VARCHAR(40) NOT NULL DEFAULT '',
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            linkID               INTEGER  UNSIGNED NULL DEFAULT NULL,
+            pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
+            regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            SCC                  CHAR(10) NULL DEFAULT NULL,
+            fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            roadTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            temperature          FLOAT NULL DEFAULT NULL,
+            relHumidity          FLOAT NULL DEFAULT NULL,
+            ratePerHour          FLOAT NULL DEFAULT NULL
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['rateperprofile'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`rateperprofile` (
-        	MOVESScenarioID		 VARCHAR(40) NOT NULL DEFAULT '',
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	temperatureProfileID BIGINT NULL DEFAULT NULL,
-        	yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	SCC                  CHAR(10) NULL DEFAULT NULL,
-        	fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	temperature          FLOAT NULL DEFAULT NULL,
-        	relHumidity          FLOAT NULL DEFAULT NULL,
-        	ratePerVehicle       FLOAT NULL DEFAULT NULL
+        _create_tables_dict['rateperprofile'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`rateperprofile` (
+            MOVESScenarioID      VARCHAR(40) NOT NULL DEFAULT '',
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            temperatureProfileID BIGINT NULL DEFAULT NULL,
+            yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
+            regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            SCC                  CHAR(10) NULL DEFAULT NULL,
+            fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            temperature          FLOAT NULL DEFAULT NULL,
+            relHumidity          FLOAT NULL DEFAULT NULL,
+            ratePerVehicle       FLOAT NULL DEFAULT NULL
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['rateperstart'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`rateperstart` (
-        	MOVESScenarioID		 VARCHAR(40) NOT NULL DEFAULT '',
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	zoneID               INTEGER  UNSIGNED NULL DEFAULT NULL,
-        	sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	SCC                  CHAR(10) NULL DEFAULT NULL,
-        	fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	temperature          FLOAT NULL DEFAULT NULL,
-        	relHumidity          FLOAT NULL DEFAULT NULL,
-        	ratePerStart         FLOAT NULL DEFAULT NULL
+        _create_tables_dict['rateperstart'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`rateperstart` (
+            MOVESScenarioID      VARCHAR(40) NOT NULL DEFAULT '',
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            zoneID               INTEGER  UNSIGNED NULL DEFAULT NULL,
+            sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
+            regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            SCC                  CHAR(10) NULL DEFAULT NULL,
+            fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            temperature          FLOAT NULL DEFAULT NULL,
+            relHumidity          FLOAT NULL DEFAULT NULL,
+            ratePerStart         FLOAT NULL DEFAULT NULL
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['ratepervehicle'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`ratepervehicle` (
-        	MOVESScenarioID		 VARCHAR(40) NOT NULL DEFAULT '',
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	zoneID               INTEGER  UNSIGNED NULL DEFAULT NULL,
-        	pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	SCC                  CHAR(10) NULL DEFAULT NULL,
-        	fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	temperature          FLOAT NULL DEFAULT NULL,
-        	relHumidity          FLOAT NULL DEFAULT NULL,
-        	ratePerVehicle       FLOAT NULL DEFAULT NULL
+        _create_tables_dict['ratepervehicle'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`ratepervehicle` (
+            MOVESScenarioID      VARCHAR(40) NOT NULL DEFAULT '',
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            zoneID               INTEGER  UNSIGNED NULL DEFAULT NULL,
+            pollutantID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            processID            SMALLINT UNSIGNED NULL DEFAULT NULL,
+            sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
+            regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            SCC                  CHAR(10) NULL DEFAULT NULL,
+            fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            temperature          FLOAT NULL DEFAULT NULL,
+            relHumidity          FLOAT NULL DEFAULT NULL,
+            ratePerVehicle       FLOAT NULL DEFAULT NULL
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
-        _create_tables_dict['startspervehicle'] = """CREATE TABLE IF NOT EXISTS {moves_output_db}.`startspervehicle` (
-        	MOVESScenarioID		 VARCHAR(40) NOT NULL DEFAULT '',
-        	MOVESRunID           SMALLINT UNSIGNED NOT NULL,
-        	yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	zoneID               INTEGER  UNSIGNED NULL DEFAULT NULL,
-        	sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	SCC                  CHAR(10) NULL DEFAULT NULL,
-        	fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
-        	startsPerVehicle     FLOAT NULL DEFAULT NULL
+        _create_tables_dict['startspervehicle'] = """CREATE TABLE IF NOT EXISTS
+            {moves_output_db}.`startspervehicle` (
+            MOVESScenarioID      VARCHAR(40) NOT NULL DEFAULT '',
+            MOVESRunID           SMALLINT UNSIGNED NOT NULL,
+            yearID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            monthID              SMALLINT UNSIGNED NULL DEFAULT NULL,
+            dayID                SMALLINT UNSIGNED NULL DEFAULT NULL,
+            hourID               SMALLINT UNSIGNED NULL DEFAULT NULL,
+            zoneID               INTEGER  UNSIGNED NULL DEFAULT NULL,
+            sourceTypeID         SMALLINT UNSIGNED NULL DEFAULT NULL,
+            regClassID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            SCC                  CHAR(10) NULL DEFAULT NULL,
+            fuelTypeID           SMALLINT UNSIGNED NULL DEFAULT NULL,
+            modelYearID          SMALLINT UNSIGNED NULL DEFAULT NULL,
+            startsPerVehicle     FLOAT NULL DEFAULT NULL
         ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
 
         # create output database
@@ -646,19 +671,18 @@ class MOVES(Module):
             _moves_cursor.execute(_create_database_sql)
             # @TODO record 'database already exists' warning to logger
         except pymysql.err.MySQLError as _mysqlerror:
-            LOGGER.error('MOVES output database was not created: %s' % _mysqlerror)
+            LOGGER.error('MOVES output database was NOT created: %s' % _mysqlerror)
 
         # create all tables in database
         for _sql in _create_tables_dict:
             try:
                 _moves_cursor.execute(_create_tables_dict[_sql])
-                #@TODO record 'table already exists' warning to logger
+                # @TODO record 'table already exists' warning to logger
             except pymysql.err.MySQLError as _mysqlerror:
-                LOGGER.error('%s table was not created: %s' % _sql, _mysqlerror)
+                LOGGER.error('%s table was NOT created: %s' % _sql, _mysqlerror)
 
         # close cursor after database creation
         _moves_cursor.close()
-
 
     def _create_national_data(self):
         """
@@ -792,7 +816,8 @@ class MOVES(Module):
                             WHERE {moves_database}.fuelsupply.fuelRegionID =
                             (SELECT DISTINCT regionID FROM {moves_database}.regioncounty 
                             WHERE countyID = '{countyID}' AND fuelYearID = '{year}')
-                            AND {moves_database}.fuelsupply.fuelYearID = '{year}';""".format(**kvals)
+                            AND {moves_database}.fuelsupply.fuelYearID = '{year}';""".format(
+                **kvals)
 
         # save for later use in create_xml_imports
         self.fuelsupply_filename = os.path.join(self.save_path_countyinputs,
@@ -800,7 +825,7 @@ class MOVES(Module):
 
         # pull data from database and save in a csv
         pd.read_sql(_fuelsupply_sql, self.conn).to_csv(
-            self.fuelsupply_filename, index=False)
+                self.fuelsupply_filename, index=False)
 
         # export county-level fuel formulation data
         # need one for each FIPS-year combination
@@ -816,7 +841,7 @@ class MOVES(Module):
         # pull data from database and save in a csv
         pd.read_sql(_fuelform_sql,
                     self.conn).to_csv(self.fuelformulation_filename,
-                                       index=False)
+                                      index=False)
 
         # export county-level fuel usage fraction data
         # need one for each FIPS-year combination
@@ -835,7 +860,7 @@ class MOVES(Module):
 
         # pull data from database and save in a csv
         pd.read_sql(_fuelusagename_sql, self.conn).to_csv(
-            self.fuelusage_filename, index=False)
+                self.fuelusage_filename, index=False)
 
         # export county-level meteorology data
         # need one for each FIPS
@@ -848,7 +873,7 @@ class MOVES(Module):
 
         # pull data from database and save in a csv
         pd.read_sql(_met_sql, self.conn).to_csv(self.met_filename,
-                                                 index=False)
+                                                index=False)
 
     def _create_xml_import(self, fips):
         """
@@ -869,7 +894,8 @@ class MOVES(Module):
         # create these files here since they were generated in a loop in
         # create_national_inputs - no stored filename
         # path to average speed distribution file (national inputs)
-        _avgspeeddist_filename = os.path.join(self.save_path_nationalinputs, 'avgspeeddistribution.csv')
+        _avgspeeddist_filename = os.path.join(self.save_path_nationalinputs,
+                                              'avgspeeddistribution.csv')
         _month_vmt_filename = os.path.join(self.save_path_nationalinputs, 'monthvmtfraction.csv')
         _day_vmt_filename = os.path.join(self.save_path_nationalinputs, 'dayvmtfraction.csv')
         _hour_vmt_filename = os.path.join(self.save_path_nationalinputs, 'hourvmtfraction.csv')
@@ -878,7 +904,7 @@ class MOVES(Module):
         self.internalcontrol = etree.XML(
                 '<internalcontrolstrategy classname="gov.epa.otaq.moves.master.implementation.'
                 'ghg.internalcontrolstrategies.rateofprogress.RateOfProgressStrategy">'
-                '<![CDATA[useParameters	No]]></internalcontrolstrategy>',
+                '<![CDATA[useParameters    No]]></internalcontrolstrategy>',
                 _parser)
         self.agename = "<filename>{agedistfilename}</filename>".format(
                 agedistfilename=self.agedistfilename)
@@ -1111,13 +1137,13 @@ class MOVES(Module):
 
         # create import filename using FIPS code, crop, and scenario year
         self.xmlimport_filename = os.path.join(self.save_path_importfiles,
-                                    '{fips}_import_{year}.mrs'.format(
-                                            fips=fips, year=self.year))
+                                               '{fips}_import_{year}.mrs'.format(
+                                                       fips=fips, year=self.year))
 
         # path for XML runspec files
         self.runspec_filename = os.path.join(self.save_path_runspecfiles,
                                              '{fips}_runspec_{year}.mrs'.format(
-                                                 **kvals))
+                                                     **kvals))
 
         # save string to file
         with open(self.xmlimport_filename, 'wb') as _fileout:
@@ -1144,7 +1170,7 @@ class MOVES(Module):
         internalcontrol = etree.XML(
                 '<internalcontrolstrategy classname="gov.epa.otaq.moves.master.implementation.ghg.'
                 'internalcontrolstrategies.rateofprogress.RateOfProgressStrategy">'
-                '<![CDATA[useParameters	No]]></internalcontrolstrategy>', _parser)
+                '<![CDATA[useParameters    No]]></internalcontrolstrategy>', _parser)
 
         # Create XML element tree for MOVES uncertainty parameters
         uncertaintyparam = etree.Element("uncertaintyparameters", uncertaintymodeenabled="false")
@@ -1329,8 +1355,8 @@ class MOVES(Module):
 
         # create filename for runspec file using FIPS and scenario year
         self.runspec_filename = os.path.join(self.save_path_runspecfiles,
-                                         '{fips}_runspec_{year}.mrs'.format(
-                                                 fips=fips, year=self.year))
+                                             '{fips}_runspec_{year}.mrs'.format(
+                                                     fips=fips, year=self.year))
 
         # save string to file
         with open(self.runspec_filename, 'wb') as _fileout:
@@ -1478,7 +1504,7 @@ class MOVES(Module):
         # create a filter for relevant rateperdistance rows based on which
         # fips in rateperdistance are equal to fips in the moves run list
         _rateperdistance_filter = _rateperdistance_all.fips.isin(
-            self.moves_run_list.MOVES_run_fips)
+                self.moves_run_list.MOVES_run_fips)
 
         # filter down the large rateperdistance table into just the rows
         # that are relevant to this run
@@ -1516,7 +1542,7 @@ class MOVES(Module):
         _ratepervehicle_all = pd.read_sql(_ratepervehicle_table_sql, self.conn)
 
         _ratepervehicle_filter = _ratepervehicle_all.fips.isin(
-            self.moves_run_list.MOVES_run_fips)
+                self.moves_run_list.MOVES_run_fips)
 
         _ratepervehicle = _ratepervehicle_all.loc[_ratepervehicle_filter,
                                                   _ratepervehicle_all.columns]
@@ -1585,12 +1611,12 @@ class MOVES(Module):
         # merge the truck capacity numbers with the rate per distance merge
         # to prep for calculating number of trips
         _run_emissions = _avgRateDist.merge(self.prod_moves_runs[['MOVES_run_fips',
-                                                     'state',
-                                                     'region_production',
-                                                     'region_destination',
-                                                     'feedstock',
-                                                     'tillage_type',
-                                                     'feedstock_amount']], how='left',
+                                                                  'state',
+                                                                  'region_production',
+                                                                  'region_destination',
+                                                                  'feedstock',
+                                                                  'tillage_type',
+                                                                  'feedstock_amount']], how='left',
                                             left_on=['fips', 'state'],
                                             right_on=['MOVES_run_fips',
                                                       'state']).merge(
@@ -1615,9 +1641,9 @@ class MOVES(Module):
         _routes = _routes.merge(self.region_fips_map, how='left',
                                 left_on='region_destination',
                                 right_on='region')[['region_production',
-                                            'region_destination',
-                                            'fips_production',
-                                            'fips']]
+                                                    'region_destination',
+                                                    'fips_production',
+                                                    'fips']]
         _routes.rename(index=str, columns={'fips': 'fips_destination'},
                        inplace=True)
 
@@ -1658,7 +1684,7 @@ class MOVES(Module):
                                                       'region_destination'])
 
         else:
-            # if user has specified not to use the router engine, use the
+            # if user has specified NOT to use the router engine, use the
             # user-specified vmt and fill the region_transportation column 
             # with values from the region_production column
             _run_emissions['region_transportation'] = _run_emissions['region_production']
@@ -1678,7 +1704,7 @@ class MOVES(Module):
                                                'monthID', 'dayID',
                                                'pollutantID'],
                                               as_index=False).sum(
-            inplace=True)[['fips', 'state', 'pollutantID', 'ratePerVehicle']]
+                inplace=True)[['fips', 'state', 'pollutantID', 'ratePerVehicle']]
 
         _avgRateVeh = _avgRateVeh.merge(self.pollutant_names, how='inner',
                                         on='pollutantID')
@@ -1696,9 +1722,9 @@ class MOVES(Module):
                                                    left_on=['fips', 'state'],
                                                    right_on=['MOVES_run_fips',
                                                              'state']).merge(
-            self.truck_capacity[['feedstock', 'truck_capacity']],
-            how='left',
-            on='feedstock')
+                self.truck_capacity[['feedstock', 'truck_capacity']],
+                how='left',
+                on='feedstock')
 
         # calculate start and hotelling emissions accounting for backhauling
         # trips including backhauling is 2N - 1 where N is the number of
@@ -1740,10 +1766,10 @@ class MOVES(Module):
 
         # sum up by pollutant type for final module output
         _transportation_emissions = _transportation_emissions.groupby(
-            ['region_production', 'region_destination', 'feedstock',
-             'tillage_type', 'module', 'activity', 'region_transportation',
-             'pollutant'],
-            as_index=False).sum()
+                ['region_production', 'region_destination', 'feedstock',
+                 'tillage_type', 'module', 'activity', 'region_transportation',
+                 'pollutant'],
+                as_index=False).sum()
 
         return _transportation_emissions
 
@@ -1792,9 +1818,9 @@ class MOVES(Module):
                                                                  'on farm transport'])]
 
         # calculate total losses on farm, remove unnecessary columns
-        _loss_factors_farmgate = _loss_factors_farmgate.groupby(['feedstock'],
-                                                                as_index=False).prod()[['feedstock',
-                                                                                        'dry_matter_remaining']]
+        _loss_factors_farmgate = _loss_factors_farmgate.groupby(['feedstock'], as_index=False)
+        _loss_factors_farmgate = _loss_factors_farmgate.prod()[['feedstock',
+                                                                'dry_matter_remaining']]
 
         # merge loss factors with prod df
         _prod_by_fips_feed = _prod_by_fips_feed.merge(_loss_factors_farmgate,
@@ -1802,7 +1828,7 @@ class MOVES(Module):
 
         # calculate farmgate feedstock amount by applying loss factors
         _prod_by_fips_feed['feedstock_amount'] = _prod_by_fips_feed['feedstock_amount'] *\
-                                                 _prod_by_fips_feed['dry_matter_remaining']
+            _prod_by_fips_feed['dry_matter_remaining']
 
         # remove loss factor column
         del _prod_by_fips_feed['dry_matter_remaining']
@@ -1883,8 +1909,7 @@ class MOVES(Module):
                       'f': _exclude_fips}
             LOGGER.info('using cached results from %(h)s/%(db)s for FIPS: %(f)s)' % _kvals)
             # create shortened list of fips to run through MOVES
-            _run_fips = [x for x in self.moves_run_list.MOVES_run_fips
-                         if x not in _exclude_fips]
+            _run_fips = [x for x in self.moves_run_list.MOVES_run_fips if x not in _exclude_fips]
         else:
             # run all fips regardless of whether cached results exist or not
             _run_fips = list(self.moves_run_list.MOVES_run_fips)
@@ -1917,7 +1942,8 @@ class MOVES(Module):
                 # import data and log output
                 command = 'cd {moves_path} & setenv.bat & ' \
                           'java -Xmx512M ' \
-                          'gov.epa.otaq.moves.master.commandline.MOVESCommandLine -i {import_file}' \
+                          'gov.epa.otaq.moves.master.commandline.MOVESCommandLine' \
+                          ' -i {import_file}' \
                           ''.format(moves_path=self.moves_path,
                                     import_file=self.xmlimport_filename)
                 os.system(command)  # @TODO: need to capture output, catch errors
@@ -1929,9 +1955,8 @@ class MOVES(Module):
                 command = 'cd {moves_folder} & setenv.bat & ' \
                           'java -Xmx512M ' \
                           'gov.epa.otaq.moves.master.commandline.MOVESCommandLine ' \
-                          '-r {run_moves}'.format(
-                           moves_folder=self.moves_path,
-                           run_moves=self.runspec_filename)
+                          '-r {run_moves}'.format(moves_folder=self.moves_path,
+                                                  run_moves=self.runspec_filename)
 
                 os.system(command)  # @TODO: need to capture output, catch errors
 
