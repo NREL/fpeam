@@ -199,8 +199,9 @@ class FPEAM(object):
         del _prod_losses['dry_matter_remaining'], _prod_losses_farmgate['dry_matter_remaining']
 
         # tack on the delivered feedstock dataframes to the filtered one
-        _prod_filtered.append(_prod_losses, inplace=True)
-        _prod_filtered.append(_prod_losses_farmgate, inplace=True)
+        _prod_filtered.append(_prod_losses, ignore_index=True, sort=False)
+        _prod_filtered.append(_prod_losses_farmgate, ignore_index=True,
+                              sort=False)
 
         # loop thru all modules being run and stack the data frames
         # containing output from each module
