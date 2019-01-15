@@ -8,7 +8,8 @@ from lxml.builder import E
 
 from FPEAM import utils
 from .Module import Module
-from ..Data import (RegionFipsMap, TruckCapacity, TransportationGraph, CountyNode)
+from ..Data import (RegionFipsMap, TruckCapacity, TransportationGraph,
+                    CountyNode, FeedstockLossFactors)
 from ..Router import Router
 
 LOGGER = utils.logger(name=__name__)
@@ -33,7 +34,8 @@ class MOVES(Module):
 
         self.production = production
         self.equipment = equipment
-        self.feedstock_loss_factors = self.config.get('feedstock_loss_factors')
+
+        self.feedstock_loss_factors = FeedstockLossFactors(fpath=self.config.get('feedstock_loss_factors'))
 
         # create a dictionary of conversion factors for later use
         self.conversion_factors = self._set_conversions()
