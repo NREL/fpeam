@@ -1768,17 +1768,44 @@ class MOVES(Module):
                                                                          left_on='region_production',
                                                                          right_on='region')
 
-        # sum all feedstock production within each FIPS-year combo (also
-        # grouping by state just pulls that column along, it doesn't change
-        # the grouping)
-        # this gets saved in self for use in postprocessing
+        # sum all feedstock production within each FIPS (grouping by state just
+        # pulls that column along, it doesn't change the grouping)
         _prod_by_fips_feed = _prod_merge.groupby(['fips',
                                                   'state',
                                                   'feedstock'],
                                                  as_index=False).sum()
 
-        # within each FIPS-year-feedstock combo, find the highest
-        # feedstock production
+        # apply feedstock loss factors for on-farm dry matter losses, since
+        # trips should be calculated based on farm-gate feedstock amounts
+        self.feedstock_loss_factors.eval('dry_matter_remaining = '
+                                         '1 - dry_matter_loss',
+                                         inplace=True)
+
+        # pull out only on-farm feedstock losses
+        # @todo the list of on-farm supply chain stages should be user input
+        _loss_factors_farmgate = self.feedstock_loss_factors[
+            self.feedstock_loss_factors.supply_chain_stage.isin(['harvest',
+                                                                 'field treatment',
+                                                                 'field drying',
+                                                                 'on farm transport'])]
+
+        # calculate total losses on farm, remove unnecessary columns
+        _loss_factors_farmgate = _loss_factors_farmgate.groupby(['feedstock'],
+                                                                as_index=False).prod()[['feedstock',
+                                                                                        'dry_matter_remaining']]
+
+        # merge loss factors with prod df
+        _prod_by_fips_feed = _prod_by_fips_feed.merge(_loss_factors_farmgate,
+                                                      on='feedstock')
+
+        # calculate farmgate feedstock amount by applying loss factors
+        _prod_by_fips_feed['feedstock_amount'] = _prod_by_fips_feed['feedstock_amount'] *\
+                                                 _prod_by_fips_feed['dry_matter_remaining']
+
+        # remove loss factor column
+        del _prod_by_fips_feed['dry_matter_remaining']
+
+        # find the highest feedstock production by type within each state
         _max_amts_feed = _prod_by_fips_feed.groupby(['state',
                                                      'feedstock'],
                                                     as_index=False).max()
