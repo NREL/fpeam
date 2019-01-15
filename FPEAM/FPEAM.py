@@ -192,7 +192,7 @@ class FPEAM(object):
 
         # change the feedstock measure columns to reflect the new feedstock
         # amounts
-        _prod_losses['feedstock_measure'] = 'delivered'
+        _prod_losses['feedstock_measure'] = 'at biorefinery'
         _prod_losses_farmgate['feedstock_measure'] = 'at farm gate'
 
         # remove the now extraneous loss factor columns
