@@ -1,0 +1,30 @@
+feedstock,supply_chain_stage,dry_matter_loss
+corn stover,harvest,0.05
+corn stover,field treatment,0.02
+corn stover,field drying,0.05
+corn stover,on farm transport,0.02
+corn stover,depot storage,0.048
+corn stover,on road transport,0.02
+switchgrass,harvest,0.05
+switchgrass,field treatment,0.02
+switchgrass,field drying,0.05
+switchgrass,on farm transport,0.02
+switchgrass,depot storage,0.048
+switchgrass,on road transport,0.02
+miscanthus,harvest,0.05
+miscanthus,field treatment,0.02
+miscanthus,field drying,0.05
+miscanthus,on farm transport,0.02
+miscanthus,depot storage,0.048
+miscanthus,on road transport,0.02
+sorghum,harvest,
+sorghum,field treatment,
+sorghum,field drying,
+sorghum,on farm transport,
+sorghum,on road transport,0.02
+sorghum,depot storage,0.026
+corn grain,,0.1
+forest residues,on road transport,
+forest residues,field drying,0.05
+forest whole tree,on road transport,
+forest whole tree,field drying,0.05
