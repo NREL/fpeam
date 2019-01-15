@@ -124,6 +124,18 @@ class Production(Data):
         super(Production, self).__init__(df=df, fpath=fpath, columns=columns)
 
 
+class FeedstockLossFactors(Data):
+
+    COLUMNS = {'feedstock': str,
+               'supply_chain_stage': str,
+               'dry_matter_loss': float}
+
+    INDEX_COLUMNS = ('feedstock', )
+
+    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+        super(FeedstockLossFactors, self).__init__(df=df, fpath=fpath, columns=columns)
+
+
 class ResourceDistribution(Data):
 
     COLUMNS = {'feedstock': str,
