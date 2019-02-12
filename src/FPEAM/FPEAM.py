@@ -38,6 +38,8 @@ class FPEAM(object):
         self._fertilizer_distribution = None
         self._fugitive_dust = None
 
+        self.results = None
+
         self.router = None
 
         # @TODO: load and validate fpeam.ini; currently only run_config gets checked and loaded
@@ -78,6 +80,7 @@ class FPEAM(object):
 
         _spec = resource_filename('FPEAM', '%s/run_config.spec' % (CONFIG_FOLDER, ))
         _config = utils.validate_config(config=value['run_config'], spec=_spec)
+
         if _config['extras']:
             LOGGER.warning('extra values: %s' % (_config['extras'], ))
         try:
@@ -112,7 +115,6 @@ class FPEAM(object):
             _results[_module] = _module.status
 
         self.results = self.collect(modules)
-
 
     def collect(self, modules=None):
         """

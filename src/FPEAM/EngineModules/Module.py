@@ -1,4 +1,3 @@
-import os
 from pkg_resources import resource_filename
 from configobj import (ConfigObj, ConfigObjError)
 
