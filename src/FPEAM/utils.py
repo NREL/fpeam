@@ -85,7 +85,14 @@ def filepath(fpath):
     if str(fpath).startswith('..'):
         fpath = fpath[3:]
 
-    _fpath = resource_filename('FPEAM', fpath)
+    if not exists(fpath):
+        try:
+            _fpath = resource_filename('FPEAM', fpath)
+        except ValueError:
+            _fpath = fpath
+            pass
+    else:
+        _fpath = fpath
 
     try:
         assert exists(_fpath)
