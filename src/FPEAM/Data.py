@@ -102,7 +102,20 @@ class Equipment(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Equipment, self).__init__(df=df, fpath=fpath, columns=columns)
 
-    #@todo backfill: rate column, default value NaN to exclude from calcs, log warning
+    def backfill(self):
+        
+        # if any rate values are missing,
+        if self.rate.isna().any():
+            # count the number of missing rates
+            _count_missing = sum(self.rate.isna())
+            _count_total = self.rate.__len__()
+
+            # log a warning with the number of missing values
+            LOGGER.warning('equipment dataset: %s of %s rate values are missing' % (_count_missing, _count_total))
+
+        else:
+            # log if no values are missing
+            LOGGER.info('no missing rate values in equipment')
 
 class Production(Data):
 
