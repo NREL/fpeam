@@ -129,6 +129,7 @@ class Production(Data):
 class FeedstockLossFactors(Data):
 
     COLUMNS = {'feedstock': str,
+               'activity': str,
                'supply_chain_stage': str,
                'dry_matter_loss': float}
 
