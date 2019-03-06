@@ -102,6 +102,7 @@ class Equipment(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Equipment, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    #@todo backfill: rate column, default value NaN to exclude from calcs, log warning
 
 class Production(Data):
 
@@ -115,13 +116,14 @@ class Production(Data):
                'unit_numerator': str,
                'unit_denominator': str}
 
-    # @TODO: moves_fips and nonroad_fips columns should be optional and backfilled with NaN if not present
-
     INDEX_COLUMNS = ('region_production', 'feedstock', 'tillage_type',
                      'equipment_group')
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Production, self).__init__(df=df, fpath=fpath, columns=columns)
+
+    # @todo backfill: feedstock_amount column, default value zero, log warning
+    # @todo validate: feedstock, region_production, feedstock_measure missing values trigger runtime error
 
 
 class FeedstockLossFactors(Data):
@@ -135,6 +137,9 @@ class FeedstockLossFactors(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(FeedstockLossFactors, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    # @todo backfill: dry_matter_loss column, default value zero, log warning
+    # @todo validate: feedstock or supply_chain_stage missing values trigger runtime error
+
 
 class ResourceDistribution(Data):
 
@@ -147,6 +152,10 @@ class ResourceDistribution(Data):
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(ResourceDistribution, self).__init__(df=df, fpath=fpath, columns=columns)
+
+    # @todo backfill: distribution, default value zero (or equal distribution?), log warning
+    # @todo validate: distribution column values sum to one within unique feedstock-resource combos
+    # @todo validate: resource and resource_subtype values match those in EmissionFactor
 
 
 class EmissionFactor(Data):
@@ -163,6 +172,8 @@ class EmissionFactor(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(EmissionFactor, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    # @todo backfill: rate column, default value zero, log warning
+    # @todo validate: resource, resource_subtype values match those in ResourceDistribution
 
 class FugitiveDust(Data):
 
@@ -178,6 +189,8 @@ class FugitiveDust(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(FugitiveDust, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    # @todo backfill: rate, default value zero, log warning
+    # @todo validate: missing feedstock, pollutant generate error
 
 class SCCCodes(Data):
 
@@ -189,6 +202,9 @@ class SCCCodes(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(SCCCodes, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    # no backfilling - doesn't make sense to do so for SCC
+    # @todo validate: any missing values generate error
+    # @todo validate: resource_subtypes match those in ResourceDistribution, EmissionFactor
 
 class NONROADEquipment(Data):
 
@@ -201,6 +217,10 @@ class NONROADEquipment(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(NONROADEquipment, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    # no backfilling - doesn't make sense for this data class
+    # ignore equipment_description; makes no difference if it's filled in or not
+    # @todo validate: equipment_name values match those in Equipment
+    # @todo validate: any missing SCC codes for provided equipment_name generates error
 
 class Irrigation(Data):
 
@@ -221,6 +241,8 @@ class Irrigation(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Irrigation, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    # @todo backfill: acreage_fraction, rate, default values zero, log warning
+    # @todo validate: missing equipment_horsepower values triggers error
 
 class TransportationGraph(Data):
 
@@ -290,6 +312,7 @@ class StateFipsMap(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(StateFipsMap, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    # @todo backfill: any missing values get NaNs and are excluded from calcs, log warning
 
 class TruckCapacity(Data):
 
@@ -303,6 +326,7 @@ class TruckCapacity(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(TruckCapacity, self).__init__(df=df, fpath=fpath, columns=columns)
 
+    # @todo backfill: truck_capacity, default value NaN (excludes from calcs), log warning
 
 class AVFT(Data):
 
@@ -316,3 +340,6 @@ class AVFT(Data):
 
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(AVFT, self).__init__(df=df, fpath=fpath, columns=columns)
+
+    # no backfilling
+    # @todo validate: any missing values generates error (filling in with zeros or NaNs may break MOVES)
