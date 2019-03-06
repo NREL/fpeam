@@ -1376,36 +1376,58 @@ class MOVES(Module):
         kvals['month'] = self.month
         kvals['day'] = self.day
 
-        _results_fips_sql = """SELECT MOVESScenarioID,
-                                                      dist_table.MOVESRunID,
-                                                      yearID,
-                                                      monthID,
-                                                      dayID,
-                                                      hourID,
-                                                      pollutantID,
-                                                      processID,
-                                                      fuelTypeID,
-                                                      modelYearID,
-                                                      roadTypeID,
-                                                      avgSpeedBinID,
-                                                      ratePerDistance,
-                                                      dist_table.fips
-              FROM {moves_output_db}.rateperdistance AS dist_table
-                INNER JOIN (SELECT distinct dist.fips, MOVESRunID
-                            FROM {moves_output_db}.rateperdistance dist
-                      INNER JOIN (SELECT fips, MAX(MOVESRunID) AS max_id
-                                  FROM {moves_output_db}.rateperdistance
-                                  GROUP BY fips) q
-                              ON dist.MOVESRunID = q.max_id
-                                  AND dist.fips = q.fips) runid_filter
-                    ON dist_table.MOVESRunID =
-                    runid_filter.MOVESRunID
-              WHERE dist_table.yearID = {year} AND dist_table.monthID = {month}
-               AND dist_table.dayID = {day};""".format(**kvals)
+        # determine if the rateperdistance table exists and contains the fips
+        # column, which indicates the table has been postprocessed and cached
+        # results exist
+        _check_results_sql = """SHOW COLUMNS
+                                FROM {moves_output_db}.rateperdistance
+                                LIKE 'fips';""".format(**kvals)
 
-        # read in the table and get the list of unique FIPS for which
-        # results already exist (takes year, month, day into account)
-        _fips_cached = pd.read_sql(_results_fips_sql, self.conn).fips.unique()
+        _check_results = pd.read_sql(_check_results_sql, self.conn)
+
+        # if the rateperdistance table exists and has been postprocessed,
+        # pull in a list of FIPS for which results already exist
+        # otherwise, log a warning and return None
+        try:
+            assert not _check_results.empty
+
+        except AssertionError:
+            LOGGER.info('Cached results do not exist. MOVES will be run '
+                           'as needed.')
+            # create a list with None so it's iterable later on
+            _fips_cached = [None]
+
+        else:
+            _results_fips_sql = """SELECT MOVESScenarioID,
+                                                          dist_table.MOVESRunID,
+                                                          yearID,
+                                                          monthID,
+                                                          dayID,
+                                                          hourID,
+                                                          pollutantID,
+                                                          processID,
+                                                          fuelTypeID,
+                                                          modelYearID,
+                                                          roadTypeID,
+                                                          avgSpeedBinID,
+                                                          ratePerDistance,
+                                                          dist_table.fips
+                  FROM {moves_output_db}.rateperdistance AS dist_table
+                    INNER JOIN (SELECT distinct dist.fips, MOVESRunID
+                                FROM {moves_output_db}.rateperdistance dist
+                          INNER JOIN (SELECT fips, MAX(MOVESRunID) AS max_id
+                                      FROM {moves_output_db}.rateperdistance
+                                      GROUP BY fips) q
+                                  ON dist.MOVESRunID = q.max_id
+                                      AND dist.fips = q.fips) runid_filter
+                        ON dist_table.MOVESRunID =
+                        runid_filter.MOVESRunID
+                  WHERE dist_table.yearID = {year} AND dist_table.monthID = {month}
+                   AND dist_table.dayID = {day};""".format(**kvals)
+
+            # read in the table and get the list of unique FIPS for which
+            # results already exist (takes year, month, day into account)
+            _fips_cached = pd.read_sql(_results_fips_sql, self.conn).fips.unique()
 
         return _fips_cached
 
@@ -1903,13 +1925,20 @@ class MOVES(Module):
 
             _exclude_fips = self._get_cached_results()
 
-            # report that MOVES run already complete
             _kvals = {'h': self.config.get('moves_db_host'),
                       'db': self.config.get('moves_database'),
                       'f': _exclude_fips}
-            LOGGER.info('using cached results from %(h)s/%(db)s for FIPS: %(f)s)' % _kvals)
+
+            if _exclude_fips != [None]:
+                # report that MOVES run already complete
+                LOGGER.info('using cached results from %(h)s/%(db)s for FIPS: %(f)s)' % _kvals)
+            else:
+                # report that no cached results were found
+                LOGGER.info('no cached results from %(h)s/%(db)s were found' % _kvals)
+
             # create shortened list of fips to run through MOVES
             _run_fips = [x for x in self.moves_run_list.MOVES_run_fips if x not in _exclude_fips]
+
         else:
             # run all fips regardless of whether cached results exist or not
             _run_fips = list(self.moves_run_list.MOVES_run_fips)
