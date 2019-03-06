@@ -1920,8 +1920,6 @@ class MOVES(Module):
 
         if self.use_cached_results:
             # run only fips for which there are no cached results
-            # @TODO implement: subset and redefine moves_run_list, 
-            # excluding those fips for which results already exist
 
             _exclude_fips = self._get_cached_results()
 
