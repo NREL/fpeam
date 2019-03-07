@@ -43,9 +43,34 @@ class Data(pd.DataFrame):
         # error if not able to coerce
         # backfill non-mandatory missing
 
-    def backfill(self):
-        # @TODO: add backfill methods
-        raise NotImplementedError
+    def backfill(self, column, backfill=0):
+        # backfill a column in the dataframe with backfill
+        # column argument must be provided
+        # the backfilling is done in self, nothing is returned
+
+        _backfilled = False
+
+        # if any values are missing,
+        if self[column].isna().any():
+            # count the missing values
+            _count_missing = sum(self[column].isna())
+            # count the total values
+            _count_total = self[column].__len__()
+
+            # fill the missing values with zeros
+            self[column].fillna(backfill, inplace=True)
+
+            # log a warning with the number of missing values
+            LOGGER.warning('%s of %s %s values were backfilled as %s' %
+                           (_count_missing, _count_total, column, backfill))
+
+            _backfilled = True
+
+        else:
+            # log if no values are missing
+            LOGGER.info('no missing %s values' % column)
+
+        return _backfilled
 
     def summarize(self):
         # @TODO: add summarization methods
@@ -102,20 +127,6 @@ class Equipment(Data):
     def __init__(self, df=None, fpath=None, columns=COLUMNS):
         super(Equipment, self).__init__(df=df, fpath=fpath, columns=columns)
 
-    def backfill(self):
-        
-        # if any rate values are missing,
-        if self.rate.isna().any():
-            # count the number of missing rates
-            _count_missing = sum(self.rate.isna())
-            _count_total = self.rate.__len__()
-
-            # log a warning with the number of missing values
-            LOGGER.warning('equipment dataset: %s of %s rate values are missing' % (_count_missing, _count_total))
-
-        else:
-            # log if no values are missing
-            LOGGER.info('no missing rate values in equipment')
 
 class Production(Data):
 
