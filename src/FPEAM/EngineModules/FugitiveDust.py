@@ -24,7 +24,7 @@ class FugitiveDust(Module):
 
         self.feedstock_measure_type = self.config.get('feedstock_measure_type')
         
-    def get_fugitivedust(self):
+    def get_onfarm_fugitivedust(self):
         """
         Calculate total PM10 and PM2.5 emissions from fugitive dust by
         feedstock, tillage type, source category and region.
@@ -70,7 +70,7 @@ class FugitiveDust(Module):
         _e = None
 
         try:
-            _results = self.get_fugitivedust()
+            _results = self.get_onfarm_fugitivedust()
         except Exception as e:
             _e = e
             LOGGER.exception(e)
