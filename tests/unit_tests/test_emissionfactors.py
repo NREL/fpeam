@@ -51,7 +51,7 @@ def production():
     :return: [DataFrame]
     """
 
-    _fpath = resource_filename('FPEAM', '%s/production/prod_2015_bc1060.csv' % DATA_FOLDER)
+    _fpath = resource_filename('FPEAM', '%s/production/production_2015_bc1060.csv' % DATA_FOLDER)
 
     return Data.Production(fpath=_fpath)
 
