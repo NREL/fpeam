@@ -33,19 +33,25 @@ class Data(pd.DataFrame):
                 raise RuntimeError('{} failed validation'.format(__name__, ))
             else:
                 pass
-        # else:
-        #     if index_columns:
-        #         self.set_index(keys=index_columns, inplace=True, drop=True)
 
         # error if mandatory missing
         # coerce types
         # error if not able to coerce
         # backfill non-mandatory missing
+        for _column in self.COLUMNS:
+            if _column['backfill'] is not None:
+                self.backfill(column=_column['name'], value=_column['backfill'])
 
-    def backfill(self, dataset, column, value=0):
-        # backfill a column in the dataframe with backfill
-        # dataset and column arguments (both strings) must be provided
-        # the backfilling is done in self, nothing is returned
+    def backfill(self, column, value=0):
+        """
+        Replace NaNs in <column> with <value>.
+
+        :param column: [string]
+        :param value: [any]
+        :return:
+        """
+
+        _dataset = str(type(self)).split("'")[1]
 
         _backfilled = False
 
@@ -61,14 +67,14 @@ class Data(pd.DataFrame):
 
             # log a warning with the number of missing values
             LOGGER.warning('%s of %s %s.%s values were backfilled as %s' %
-                           (_count_missing, _count_total, dataset,
+                           (_count_missing, _count_total, _dataset,
                             column, value))
 
             _backfilled = True
 
         else:
             # log if no values are missing
-            LOGGER.info('no missing %s.%s values' % (dataset, column))
+            LOGGER.info('no missing %s.%s values' % (_dataset, column))
 
         return _backfilled
 
