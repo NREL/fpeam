@@ -20,8 +20,8 @@ feedstock_measure_type = string(default='production')
 ## use the router engine to calculate vmt by county 
 use_router_engine = boolean(default=True)
 
-## if router is not used, assume 100 vmt per biomass production county
-vmt_short_haul = float(default=100)
+## if router is not used, assume 20 vmt per biomass production county
+vmt_short_haul = float(default=20)
 
 ## population of combination short-haul trucks per trip
 pop_short_haul = integer(default=1)
