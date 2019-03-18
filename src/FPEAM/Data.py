@@ -11,12 +11,11 @@ class Data(pd.DataFrame):
     FPEAM data representation.
     """
 
-    COLUMNS = {}
-    # @TODO: add method to warn users if column names don't match and what name we choose
+    COLUMNS = []
 
     INDEX_COLUMNS = []
 
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=None):
 
         _df = pd.DataFrame({}) if df is None and fpath is None else load(fpath=fpath,
                                                                          columns=columns)
@@ -34,19 +33,25 @@ class Data(pd.DataFrame):
                 raise RuntimeError('{} failed validation'.format(__name__, ))
             else:
                 pass
-        # else:
-        #     if index_columns:
-        #         self.set_index(keys=index_columns, inplace=True, drop=True)
 
         # error if mandatory missing
         # coerce types
         # error if not able to coerce
         # backfill non-mandatory missing
+        for _column in self.COLUMNS:
+            if _column['backfill'] is not None:
+                self.backfill(column=_column['name'], value=_column['backfill'])
 
-    def backfill(self, dataset, column, backfill=0):
-        # backfill a column in the dataframe with backfill
-        # dataset and column arguments (both strings) must be provided
-        # the backfilling is done in self, nothing is returned
+    def backfill(self, column, value=0):
+        """
+        Replace NaNs in <column> with <value>.
+
+        :param column: [string]
+        :param value: [any]
+        :return:
+        """
+
+        _dataset = str(type(self)).split("'")[1]
 
         _backfilled = False
 
@@ -58,18 +63,18 @@ class Data(pd.DataFrame):
             _count_total = self[column].__len__()
 
             # fill the missing values with zeros
-            self[column].fillna(backfill, inplace=True)
+            self[column].fillna(value, inplace=True)
 
             # log a warning with the number of missing values
             LOGGER.warning('%s of %s %s.%s values were backfilled as %s' %
-                           (_count_missing, _count_total, dataset,
-                            column, backfill))
+                           (_count_missing, _count_total, _dataset,
+                            column, value))
 
             _backfilled = True
 
         else:
             # log if no values are missing
-            LOGGER.info('no missing %s.%s values' % (dataset, column))
+            LOGGER.info('no missing %s.%s values' % (_dataset, column))
 
         return _backfilled
 
@@ -108,195 +113,162 @@ class Data(pd.DataFrame):
 
 class Equipment(Data):
 
-    COLUMNS = {'feedstock': str,
-               'tillage_type': str,
-               'equipment_group': str,
-               'rotation_year': int,
-               'activity': str,
-               'equipment_name': str,
-               'equipment_horsepower': float,
-               'resource': str,
-               'rate': float,
-               'unit_numerator': str,
-               'unit_denominator': str}
+    COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'tillage_type', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'equipment_group', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'rotation_year', 'type': int, 'index': True, 'backfill': None},
+               {'name': 'activity', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'equipment_name', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'equipment_horsepower', 'type': float, 'index': True, 'backfill': None},
+               {'name': 'resource', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'rate', 'type': float, 'index': False, 'backfill': 0},
+               {'name': 'unit_numerator', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'unit_denominator', 'type': str, 'index': True, 'backfill': None})
 
-    INDEX_COLUMNS = ('equipment_group', 'feedstock', 'tillage_type', 'equipment_group',
-                     'rotation_year', 'activity',
-                     'equipment_name', 'equipment_horsepower',
-                     'resource', 'unit_numerator', 'unit_denominator')
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(Equipment, self).__init__(df=df, fpath=fpath, columns=columns)
-        self.backfill(dataset='equipment', column='rate')
 
 
 class Production(Data):
 
-    COLUMNS = {'feedstock': str,
-               'tillage_type': str,
-               'region_production': str,
-               'region_destination': str,
-               'equipment_group': str,
-               'feedstock_measure': str,
-               'feedstock_amount': float,
-               'unit_numerator': str,
-               'unit_denominator': str}
+    COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'tillage_type', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'region_production', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'region_destination', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'equipment_group', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'feedstock_measure', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'feedstock_amount', 'type': float, 'index': False, 'backfill': 0},
+               {'name': 'unit_numerator', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'unit_denominator', 'type': str, 'index': True, 'backfill': None})
 
-    INDEX_COLUMNS = ('region_production', 'feedstock', 'tillage_type',
-                     'equipment_group')
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(Production, self).__init__(df=df, fpath=fpath, columns=columns)
-        self.backfill(dataset='production', column='feedstock_amount')
 
     # @todo validate: feedstock, region_production, feedstock_measure missing values trigger runtime error
 
 
 class FeedstockLossFactors(Data):
 
-    COLUMNS = {'feedstock': str,
-               'activity': str,
-               'supply_chain_stage': str,
-               'dry_matter_loss': float}
+    COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'activity', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'supply_chain_stage', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'dry_matter_loss', 'type': float, 'index': False, 'backfill': 0},)
 
-    INDEX_COLUMNS = ('feedstock', )
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(FeedstockLossFactors, self).__init__(df=df, fpath=fpath, columns=columns)
-        self.backfill(dataset='feedstocklossfactors', column='dry_matter_loss')
 
     # @todo validate: feedstock or supply_chain_stage missing values trigger runtime error
 
 
 class ResourceDistribution(Data):
 
-    COLUMNS = {'feedstock': str,
-               'resource': str,
-               'resource_subtype': str,
-               'distribution': float}
+    COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'resource', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'resource_subtype', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'distribution', 'type': float, 'index': True, 'backfill': 0})
 
-    INDEX_COLUMNS = ('feedstock', 'resource', 'resource_subtype')
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(ResourceDistribution, self).__init__(df=df, fpath=fpath, columns=columns)
-        self.backfill(dataset='resourcedistribution', column='distribution')
 
     # @todo validate: distribution column values sum to one within unique feedstock-resource combos
     # @todo validate: resource and resource_subtype values match those in EmissionFactor
 
 
 class EmissionFactor(Data):
-    COLUMNS = {'resource': str,
-               'resource_subtype': str,
-               'activity': str,
-               'pollutant': str,
-               'rate': float,
-               'unit_numerator': str,
-               'unit_denominator': str,}
+    COLUMNS = ({'name': 'resource', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'resource_subtype', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'activity', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'pollutant', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'rate', 'type': float, 'index': False, 'backfill': 0},
+               {'name': 'unit_numerator', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'unit_denominator', 'type': str, 'index': True, 'backfill': None},)
 
-    INDEX_COLUMNS = ('resource', 'resource_subtype', 'activity', 'pollutant')
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(EmissionFactor, self).__init__(df=df, fpath=fpath, columns=columns)
-        self.backfill(dataset='emissionfactor', column='rate')
 
     # @todo validate: resource, resource_subtype values match those in ResourceDistribution
 
+
 class FugitiveDust(Data):
 
-    COLUMNS = {'feedstock': str,
-               'tillage_type': str,
-               'pollutant': str,
-               'rate': float,
-               'unit_numerator': str,
-               'unit_denominator': str}
+    COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'tillage_type', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'pollutant', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'rate', 'type': float, 'index': False, 'backfill': 0},
+               {'name': 'unit_numerator', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'unit_denominator', 'type': str, 'index': True, 'backfill': None})
 
-    INDEX_COLUMNS = ('feedstock', 'tillage_type', 'pollutant',)
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(FugitiveDust, self).__init__(df=df, fpath=fpath, columns=columns)
-        self.backfill(dataset='fugitivedust', column='rate')
 
     # @todo validate: missing feedstock, pollutant generate error
 
+
 class SCCCodes(Data):
 
-    COLUMNS = {'resource_subtype': str,
-               'scc': str}
+    COLUMNS = ({'name': 'resource_subtype', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'scc', 'type': str, 'index': False, 'backfill': None})
 
-    INDEX_COLUMNS = ('resource_subtype', )
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(SCCCodes, self).__init__(df=df, fpath=fpath, columns=columns)
-        # no backfilling - doesn't make sense to do so for SCC
 
     # @todo validate: any missing values generate error
     # @todo validate: resource_subtypes match those in ResourceDistribution, EmissionFactor
 
+
 class NONROADEquipment(Data):
 
-    COLUMNS = {'equipment_name': str,
-               'equipment_description': str,
-               'nonroad_equipment_scc': str}
+    COLUMNS = ({'name': 'equipment_name', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'equipment_description', 'type': str, 'index': False, 'backfill': None},
+               {'name': 'nonroad_equipment_scc', 'type': str, 'index': False, 'backfill': None})
 
-    INDEX_COLUMNS = ('equipment_name', )
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(NONROADEquipment, self).__init__(df=df, fpath=fpath, columns=columns)
-        # no backfilling - doesn't make sense for this data class
 
     # @todo validate: equipment_name values match those in Equipment
     # @todo validate: any missing SCC codes for provided equipment_name generates error
 
+
 class Irrigation(Data):
 
-    COLUMNS = {'feedstock': str,
-               'state_fips': str,
-               'activity': str,
-               'equipment_name': str,
-               'equipment_horsepower': float,
-               'irrigation_water_source': str,
-               'acreage_fraction': float,
-               'resource': str,
-               'rate': float,
-               'unit_numerator': str,
-               'unit_denominator': str}
+    COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'state_fips', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'activity', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'equipment_name', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'equipment_horsepower', 'type': float, 'index': True, 'backfill': None},
+               {'name': 'irrigation_water_source', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'acreage_fraction', 'type': float, 'index': False, 'backfill': 0},
+               {'name': 'resource', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'rate', 'type': float, 'index': False, 'backfill': 0},
+               {'name': 'unit_numerator', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'unit_denominator', 'type': str, 'index': True, 'backfill': None})
 
-    INDEX_COLUMNS = {'feedstock', 'state_fips'}
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(Irrigation, self).__init__(df=df, fpath=fpath, columns=columns)
-        self.backfill(dataset='irrigation', column='acreage_fraction')
-        self.backfill(dataset='irrigation', column='rate')
 
     # @todo validate: missing equipment_horsepower values triggers error
 
+
 class TransportationGraph(Data):
 
-    COLUMNS = {'edge_id': int,
-               'statefp': str,
-               'countyfp': str,
-               'u_of_edge': int,
-               'v_of_edge': int,
-               'weight': float}
+    COLUMNS = ({'name': 'edge_id', 'type': int, 'index': True, 'backfill': None},
+               {'name': 'statefp', 'type': str, 'index': False, 'backfill': None},
+               {'name': 'countyfp', 'type': str, 'index': False, 'backfill': None},
+               {'name': 'u_of_edge', 'type': int, 'index': False, 'backfill': None},
+               {'name': 'v_of_edge', 'type': int, 'index': False, 'backfill': None},
+               {'name': 'weight', 'type': float, 'index': False, 'backfill': None})
 
-    INDEX_COLUMNS = ('edge_id', )
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(TransportationGraph, self).__init__(df=df, fpath=fpath, columns=columns)
-        # no backfilling
 
 
 class CountyNode(Data):
 
-    COLUMNS = {'fips': str,
-               'node_id': int}
+    COLUMNS = ({'name': 'fips', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'node_id', 'type': int, 'index': False, 'backfill': None})
 
-    INDEX_COLUMNS = ('fips', )
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(CountyNode, self).__init__(df=df, fpath=fpath, columns=columns)
-        # no backfilling
 
         if 'fips' not in self.index.names:
             self.set_index('fips', inplace=True)
@@ -304,14 +276,11 @@ class CountyNode(Data):
 
 class RegionFipsMap(Data):
 
-    COLUMNS = {'region': str,
-               'fips': str}
+    COLUMNS = ({'name': 'region', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'fips', 'type': str, 'index': True, 'backfill': None})
 
-    INDEX_COLUMNS = ('region', )
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(RegionFipsMap, self).__init__(df=df, fpath=fpath, columns=columns)
-        # no backfilling
 
     def validate(self):
         try:
@@ -334,42 +303,33 @@ class RegionFipsMap(Data):
 
 class StateFipsMap(Data):
 
-    COLUMNS = {'state_abbreviation': str,
-               'state_fips': str}
+    COLUMNS = ({'name': 'state_abbreviation', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'state_fips', 'type': str, 'index': False, 'backfill': None})
 
-    INDEX_COLUMNS = ('state_abbreviation', )
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(StateFipsMap, self).__init__(df=df, fpath=fpath, columns=columns)
-        # no backfilling
 
 
 class TruckCapacity(Data):
 
-    COLUMNS = {'feedstock': str,
-               'truck_capacity': float,
-               'unit_numerator': str,
-               'unit_denominator': str}
+    COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'truck_capacity', 'type': float, 'index': False, 'backfill': None},
+               {'name': 'unit_numerator', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'unit_denominator', 'type': str, 'index': True, 'backfill': None})
 
-    INDEX_COLUMNS = ('feedstock', )
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(TruckCapacity, self).__init__(df=df, fpath=fpath, columns=columns)
-        # no backfilling
 
 
 class AVFT(Data):
 
-    COLUMNS = {'sourceTypeID': int,
-               'modelYearID': int,
-               'fuelTypeID': int,
-               'engTechID': int,
-               'fuelEngFraction': float}
+    COLUMNS = ({'name': 'sourceTypeID', 'type': int, 'index': True, 'backfill': None},
+               {'name': 'modelYearID', 'type': int, 'index': True, 'backfill': None},
+               {'name': 'fuelTypeID', 'type': int, 'index': True, 'backfill': None},
+               {'name': 'engTechID', 'type': int, 'index': True, 'backfill': None},
+               {'name': 'fuelEngFraction', 'type': float, 'index': False, 'backfill': None})
 
-    INDEX_COLUMNS = ('sourceTypeID', 'modelYearID', 'fuelTypeID', 'engTechID')
-
-    def __init__(self, df=None, fpath=None, columns=COLUMNS):
+    def __init__(self, df=None, fpath=None, columns=(_['name'] for _ in COLUMNS)):
         super(AVFT, self).__init__(df=df, fpath=fpath, columns=columns)
-        # no backfilling
 
     # @todo validate: any missing values generates error (filling in with zeros or NaNs may break MOVES)
