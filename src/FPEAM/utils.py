@@ -77,24 +77,44 @@ def filepath(fpath):
     :return: [bool] True on success
     """
 
-    from os.path import exists
+    from os.path import exists, abspath, expanduser
     from pathlib import Path
     from pkg_resources import resource_filename
 
-    LOGGER.debug('validating %s' % fpath)
-    if str(fpath).startswith('..'):
-        fpath = fpath[3:]
+    if fpath.startswith('~'):
+        _fpath = expanduser(fpath)
+    elif fpath.startswith('.'):
+        _fpath = abspath(fpath)
+    else:
+        _fpath = fpath
 
-    _fpath = resource_filename('FPEAM', fpath)
+    LOGGER.debug('validating %s' % fpath)
+
+    _exists = exists(_fpath)
 
     try:
-        assert exists(_fpath)
-    except ValueError:
-        raise VdtTypeError(value=fpath)
+        assert _exists
     except AssertionError:
-        raise VdtPathDoesNotExist(value=fpath)
+        _fpath = resource_filename('FPEAM', _fpath)
     else:
         return Path(_fpath)
+
+    _exists = exists(_fpath)
+
+    try:
+        assert _exists
+    except AssertionError:
+        raise VdtPathDoesNotExist(value=fpath)
+
+
+    # try:
+    #     assert exists(_fpath)
+    # except ValueError:
+    #     raise VdtTypeError(value=fpath)
+    # except AssertionError:
+    #     raise VdtPathDoesNotExist(value=fpath)
+    # else:
+    #     return Path(_fpath)
 
 
 class VdtPathDoesNotExist(VdtValueError):
