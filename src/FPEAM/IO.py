@@ -28,9 +28,13 @@ def load_configs(*fpath):
     fpath = list(fpath)
 
     # add local config if available
-    _local_fpath = resource_filename('FPEAM', '%s/local.ini' % CONFIG_FOLDER)
-    if os.path.exists(_local_fpath) and _local_fpath not in fpath:
-        fpath.append(_local_fpath)
+    try:
+        _local_fpath = resource_filename('FPEAM', '%s/local.ini' % CONFIG_FOLDER)
+    except KeyError:
+        pass
+    else:
+        if os.path.exists(_local_fpath) and _local_fpath not in fpath:
+            fpath.append(_local_fpath)
 
     # init config
     _config = configobj.ConfigObj({}, file_error=True, unrepr=False, stringify=False)
@@ -62,8 +66,8 @@ def load(fpath, columns, memory_map=True, header=0, **kwargs):
 
     try:
         LOGGER.debug('importing columns %s from %s' % (columns, os.path.abspath(fpath)))
-        _df = pd.read_table(filepath_or_buffer=fpath, sep=',', dtype=columns,
-                            usecols=columns.keys(), memory_map=memory_map, header=header, **kwargs)
+        _df = pd.read_csv(filepath_or_buffer=fpath, sep=',', dtype=columns,
+                          usecols=columns.keys(), memory_map=memory_map, header=header, **kwargs)
     except ValueError as e:
         if e.__str__() == 'Usecols do not match names.':
             from collections import Counter

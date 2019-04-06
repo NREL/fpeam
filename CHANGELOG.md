@@ -1,9 +1,14 @@
-2018-01-09 (v2.1.0)
--------------------
+2018-01-09 (v2.1.3-beta)
+------------------------
+* bug fixes for default filepaths
+* bug fixes for filepath validation
+* switch pd.read_table to pd.read_csv
+
+2018-01-09 (v2.1.0-beta)
+------------------------
 * adds irrigation calculations and input data
 * removes source category packet from NONROAD options file template
 * includes backhaul emissions
-
 
 2016-09-31 (v1.0.0)
 -------------------

@@ -1,6 +1,6 @@
 
 # run identifier; defaults to FPEAM scenario name
-scenario_name = string(default='')
+scenario_name = string()
 
 
 ### MOVES execution options
@@ -36,7 +36,7 @@ source_type_id = integer(default=61)
 year = integer(default='2017')
 
 ## feedstock loss factor dataset
-feedstock_loss_factors = filepath(default='')
+feedstock_loss_factors = filepath(default='data/inputs/feedstock_loss_factors.csv')
 
 
 ### MOVES database connection options
@@ -67,19 +67,19 @@ mysqldump_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\m
 ### input files
 
 ## MOVES routing graph
-transportation_graph = filepath(default='../data/inputs/transportation_graph.csv')
+transportation_graph = filepath(default='data/inputs/transportation_graph.csv')
 
 ## graph nodes representing each county
-county_nodes = filepath(default='../data/inputs/county_nodes.csv')
+county_nodes = filepath(default='data/inputs/county_nodes.csv')
 
 ## truck capacities for feedstock transportation
-truck_capacity = filepath(default='../data/inputs/truck_capacity.csv')
+truck_capacity = filepath(default='data/inputs/truck_capacity.csv')
 
 ## fuel fraction by engine type
-avft = filepath(default='../data/inputs/avft.csv')
+avft = filepath(default='data/inputs/avft.csv')
 
 ## production region to MOVES FIPS mapping
-region_fips_map = filepath(default='../data/inputs/region_fips_map.csv')
+region_fips_map = filepath(default='data/inputs/region_fips_map.csv')
 
 
 ### Moves input options

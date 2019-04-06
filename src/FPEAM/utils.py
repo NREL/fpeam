@@ -81,6 +81,7 @@ def filepath(fpath):
     from pathlib import Path
     from pkg_resources import resource_filename
 
+    # get a full path
     if fpath.startswith('~'):
         _fpath = expanduser(fpath)
     elif fpath.startswith('.'):
@@ -90,31 +91,26 @@ def filepath(fpath):
 
     LOGGER.debug('validating %s' % fpath)
 
+    # check if exists as regular file
     _exists = exists(_fpath)
 
     try:
         assert _exists
     except AssertionError:
+        # convert to resource filename if not regular file
         _fpath = resource_filename('FPEAM', _fpath)
     else:
         return Path(_fpath)
 
+    # check if resource exists
     _exists = exists(_fpath)
 
     try:
         assert _exists
     except AssertionError:
         raise VdtPathDoesNotExist(value=fpath)
-
-
-    # try:
-    #     assert exists(_fpath)
-    # except ValueError:
-    #     raise VdtTypeError(value=fpath)
-    # except AssertionError:
-    #     raise VdtPathDoesNotExist(value=fpath)
-    # else:
-    #     return Path(_fpath)
+    else:
+        return _fpath
 
 
 class VdtPathDoesNotExist(VdtValueError):
