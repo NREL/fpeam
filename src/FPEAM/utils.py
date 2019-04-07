@@ -69,13 +69,19 @@ def validate_config(config, spec):
     return _return
 
 
-def filepath(fpath):
+def filepath(fpath, max_length=None):
     """
     Validate filepath <fpath> by asserting it exists.
 
     :param fpath: [string]
     :return: [bool] True on success
     """
+
+    if max_length:
+        try:
+            assert len(fpath) <= int(max_length)
+        except AssertionError:
+            raise VdtPathTooLong(fpath, max_length)
 
     from os.path import exists, abspath, expanduser
     from pathlib import Path
@@ -120,7 +126,20 @@ class VdtPathDoesNotExist(VdtValueError):
         """
         >>> raise VdtPathDoesNotExist('/not/a/path')
         Traceback (most recent call last):
-        VdtValueTooSmallError: the value "/not/a/path" does not exist
+        VdtValueTooSmallError: the path "/not/a/path" does not exist
         """
 
         ValidateError.__init__(self, 'the path "%s" does not exist' % (value, ))
+
+
+class VdtPathTooLong(VdtValueError):
+    """The value supplied has too many characteres."""
+
+    def __init__(self, value, max_length):
+        """
+        >>> raise VdtPathTooLong('/path/too/long')
+        Traceback (most recent call last):
+        VdtValueTooSmallError: the path "/path/too/long" exceeds the maximum length of <length> characters
+        """
+
+        ValidateError.__init__(self, 'the path "%s" exceeds the maximum length of %s characters' % (value, max_length))
