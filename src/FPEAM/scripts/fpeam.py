@@ -11,8 +11,8 @@ from FPEAM import (IO, FPEAM, utils)
 def main():
     parser = argparse.ArgumentParser(
         description='Execute FPEAM model against a given equipment'
-                    ' group set and production'
-                    ' dataset and configuration files')
+                    ' group set, production'
+                    ' dataset, and configuration files')
 
     parser.add_argument('run_config', type=str, help='execution configuration')
 
@@ -42,7 +42,6 @@ def main():
     args = parser.parse_args()
 
     # create shared logger
-    # _logger = utils.logger(name=__name__)
     logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
                                               ' [%(filename)s:%(module)s.'
                                               '%(funcName)s.%(lineno)d] %(message)s',
@@ -70,14 +69,11 @@ def main():
     _fpeam.run()
 
     # save the raw results to the project path folder specified in run_config
-    _fpeam.results.to_csv(os.path.join(_fpeam.config['project_path'],
-                                       '%s' %
-                                       _fpeam.config['scenario_name'] +
-                                       '_raw.csv'),
-                          index=False)
+    _fpath = os.path.join(_fpeam.config['project_path'],
+                          '%s_raw.csv' % _fpeam.config['scenario_name'])
+    _fpeam.results.to_csv(_fpath, index=False)
 
-    # save several summarized results files also to the project path folder
-    # specified in run_config
+    # save several summarized results files to the project folder
     _fpeam.summarize()
 
 
