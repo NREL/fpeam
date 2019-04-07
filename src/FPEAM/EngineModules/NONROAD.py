@@ -10,6 +10,7 @@ from pkg_resources import resource_filename
 from FPEAM import utils
 from .Module import Module
 from ..Data import (RegionFipsMap, StateFipsMap, NONROADEquipment, Irrigation)
+from ..IO import DATA_FOLDER
 
 LOGGER = utils.logger(name=__name__)
 
@@ -82,7 +83,7 @@ class NONROAD(Module):
 
         # mapping from 2-digit state FIPS to two-character state name
         # abbreviations
-        _fpath = resource_filename('FPEAM', 'data/inputs/state_fips_map.csv')
+        _fpath = resource_filename('FPEAM', '%s/inputs/state_fips_map.csv' %s DATA_FOLDER)
         self.state_fips_map = StateFipsMap(fpath=_fpath)
 
         # scenario year
