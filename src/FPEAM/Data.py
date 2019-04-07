@@ -66,7 +66,7 @@ class Data(pd.DataFrame):
             self[column].fillna(value, inplace=True)
 
             # log a warning with the number of missing values
-            LOGGER.warning('%s of %s %s.%s values were backfilled as %s' %
+            LOGGER.warning('%s of %s data values in %s.%s were backfilled as %s' %
                            (_count_missing, _count_total, _dataset,
                             column, value))
 
@@ -74,7 +74,7 @@ class Data(pd.DataFrame):
 
         else:
             # log if no values are missing
-            LOGGER.info('no missing %s.%s values' % (_dataset, column))
+            LOGGER.debug('no missing data values in %s.%s' % (_dataset, column))
 
         return _backfilled
 
