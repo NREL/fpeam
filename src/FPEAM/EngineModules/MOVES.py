@@ -44,17 +44,17 @@ class MOVES(Module):
 
         self._router = None
 
-        _transportation_graph = TransportationGraph(fpath=self.config.get('transportation_graph'))
-        _county_nodes = CountyNode(fpath=self.config.get('county_nodes'))
-
-        # boolean controlling whether or NOT the router engine is used to
-        # calculate vmt
+        # boolean controlling whether the router engine is used to calculate VMT
         self.use_router_engine = self.config.get('use_router_engine')
 
-        if not _transportation_graph.empty or not _county_nodes.empty:
-            LOGGER.info('Loading routing data; this may take a few minutes')
-            self.router = Router(edges=_transportation_graph,
-                                 node_map=_county_nodes)  # @TODO: takes ages to load
+        if self.use_router_engine:
+            _transportation_graph = TransportationGraph(fpath=self.config.get('transportation_graph'))
+            _county_nodes = CountyNode(fpath=self.config.get('county_nodes'))
+
+            if not _transportation_graph.empty or not _county_nodes.empty:
+                LOGGER.info('Loading routing data; this may take a few minutes')
+                self.router = Router(edges=_transportation_graph,
+                                     node_map=_county_nodes)  # @TODO: takes ages to load
 
         self.year = self.config.get('year')
         self.region_fips_map = RegionFipsMap(fpath=self.config.get('region_fips_map'))
@@ -63,8 +63,7 @@ class MOVES(Module):
         # this is a DF read in from a csv file
         self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'))
 
-        # boolean controlling whether available results are used from the
-        # moves output database
+        # boolean controlling whether available results are used from the MOVES output database
         self.use_cached_results = self.config.get('use_cached_results')
 
         # scenario name
