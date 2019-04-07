@@ -33,9 +33,6 @@ irrigated_feedstock_names = string_list(default=list('corn grain'))
 ## production region to NONROAD FIPS mapping
 region_fips_map = filepath(default='data/inputs/region_fips_map.csv')
 
-## state abbreviation to FIPS mapping
-state_fips_map = filepath(default='data/inputs/state_fips_map.csv')
-
 ## equipment name to NONROAD equipment name and SCC mapping
 nonroad_equipment = filepath(default='data/inputs/nonroad_equipment.csv')
 
