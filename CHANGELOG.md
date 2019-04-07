@@ -1,3 +1,15 @@
+2019-03-07 (v2.2.0-beta)
+------------------------
+* add backfilling to 0's to data tables
+* enforce 30 character limit on NONROAD filepath
+* bug fixes for filepath validation
+* skip loading routing engine if not needed
+* remove state_fips_map as config option
+* decreases vmt_short_haul default value
+* add updated silt data
+* bug fix for use_cached_results
+* add loss factors for biorefinery storage
+
 2018-01-09 (v2.1.3-beta)
 ------------------------
 * bug fixes for default filepaths
