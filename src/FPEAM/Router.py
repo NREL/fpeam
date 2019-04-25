@@ -1,5 +1,5 @@
 import networkx as nx
-import pandas as pd
+import   pandas as pd
 from networkx.algorithms.shortest_paths.weighted import bidirectional_dijkstra
 
 from FPEAM import utils
@@ -71,8 +71,10 @@ class Router(object):
                                   ~self.edges.statefp.isna()][['edge_id',
                                                                'statefp',
                                                                'countyfp',
-                                                               'weight']].groupby(['statefp',
-                                                                                   'countyfp'])\
+                                                               'weight',
+                                                               'fclass']].groupby(['statefp',
+                                                                                   'countyfp',
+                                                                                   'fclass'])\
             .sum().reset_index()
 
         _summary['region_transportation'] = _summary['statefp'] + _summary['countyfp']

@@ -256,7 +256,8 @@ class TransportationGraph(Data):
                {'name': 'countyfp', 'type': str, 'index': False, 'backfill': None},
                {'name': 'u_of_edge', 'type': int, 'index': False, 'backfill': None},
                {'name': 'v_of_edge', 'type': int, 'index': False, 'backfill': None},
-               {'name': 'weight', 'type': float, 'index': False, 'backfill': None})
+               {'name': 'weight', 'type': float, 'index': False, 'backfill': None},
+               {'name': 'fclass', 'type': int, 'index': False, 'backfill': None})
 
     def __init__(self, df=None, fpath=None, columns={d['name']: d['type'] for d in COLUMNS for k in d.keys()}):
         super(TransportationGraph, self).__init__(df=df, fpath=fpath, columns=columns)
