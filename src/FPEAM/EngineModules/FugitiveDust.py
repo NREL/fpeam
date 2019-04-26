@@ -8,7 +8,7 @@ LOGGER = utils.logger(name=__name__)
 class FugitiveDust(Module):
     """Base class to manage execution of on-farm fugitive dust calculations"""
 
-    def __init__(self, config, production, equipment=None):
+    def __init__(self, config, production, **kvals):
         """
         :param config [ConfigObj] configuration options
         :param production: [DataFrame] production values
@@ -18,7 +18,6 @@ class FugitiveDust(Module):
         super(FugitiveDust, self).__init__(config=config)
 
         self.production = production
-        self.equipment = equipment
 
         self.fugitive_dust = FugDust(fpath=self.config.get('emission_factors'))
 

@@ -8,7 +8,7 @@ LOGGER = utils.logger(name=__name__)
 class EmissionFactors(Module):
     """Base class to manage execution of pollutants calculated from emission factors"""
 
-    def __init__(self, config, equipment, production):
+    def __init__(self, config, equipment, production, **kvals):
         """
         :param config [ConfigObj] configuration options
         :param equipment: [DataFrame] equipment group

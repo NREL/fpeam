@@ -17,7 +17,7 @@ LOGGER = utils.logger(name=__name__)
 
 class NONROAD(Module):
 
-    def __init__(self, config, production, equipment):
+    def __init__(self, config, production, equipment, **kvals):
         """
 
         :param config: [ConfigObj]
@@ -83,7 +83,7 @@ class NONROAD(Module):
 
         # mapping from 2-digit state FIPS to two-character state name
         # abbreviations
-        _fpath = resource_filename('FPEAM', '%s/inputs/state_fips_map.csv' %s DATA_FOLDER)
+        _fpath = resource_filename('FPEAM', '%s/inputs/state_fips_map.csv' % DATA_FOLDER)
         self.state_fips_map = StateFipsMap(fpath=_fpath)
 
         # scenario year

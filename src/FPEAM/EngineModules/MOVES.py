@@ -8,9 +8,8 @@ from lxml.builder import E
 
 from FPEAM import utils
 from .Module import Module
-from ..Data import (RegionFipsMap, TruckCapacity, TransportationGraph,
-                    CountyNode, FeedstockLossFactors)
-from ..Router import Router
+from ..Data import (RegionFipsMap, TruckCapacity, FeedstockLossFactors)
+
 
 LOGGER = utils.logger(name=__name__)
 
@@ -22,19 +21,18 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, equipment=None):
+    def __init__(self, config, production, router=None, **kvals):
         """
 
         :param config: [ConfigObj]
         :param production: [DataFrame]
-        :param equipment: [DataFrame]
+        :param router: [Router]
         """
 
         # init parent
         super(MOVES, self).__init__(config=config)
 
         self.production = production
-        self.equipment = equipment
 
         self.feedstock_loss_factors = FeedstockLossFactors(
                 fpath=self.config.get('feedstock_loss_factors'))
@@ -42,19 +40,7 @@ class MOVES(Module):
         # create a dictionary of conversion factors for later use
         self.conversion_factors = self._set_conversions()
 
-        self._router = None
-
-        # boolean controlling whether the router engine is used to calculate VMT
-        self.use_router_engine = self.config.get('use_router_engine')
-
-        if self.use_router_engine:
-            _transportation_graph = TransportationGraph(fpath=self.config.get('transportation_graph'))
-            _county_nodes = CountyNode(fpath=self.config.get('county_nodes'))
-
-            if not _transportation_graph.empty or not _county_nodes.empty:
-                LOGGER.info('Loading routing data; this may take a few minutes')
-                self.router = Router(edges=_transportation_graph,
-                                     node_map=_county_nodes)  # @TODO: takes ages to load
+        self._router = router
 
         self.year = self.config.get('year')
         self.region_fips_map = RegionFipsMap(fpath=self.config.get('region_fips_map'))
@@ -1670,7 +1656,7 @@ class MOVES(Module):
 
         # if routing engine is specified, use it to get the route (fips and
         # vmt) for each unique region_production and region_destination pair
-        if self.use_router_engine:
+        if self.router is not None:
 
             # initialize holder for all routes
             _vmt_by_county_all_routes = pd.DataFrame()
