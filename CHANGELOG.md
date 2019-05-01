@@ -1,3 +1,9 @@
+2019-05-01 (v2.3.0-beta)
+------------------------
+* make routing engine available to all modules
+* cache routing engine output to temporary directory
+* summarize routing output by county and road class
+
 2019-03-07 (v2.2.0-beta)
 ------------------------
 * add backfilling to 0's to data tables

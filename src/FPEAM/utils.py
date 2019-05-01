@@ -1,7 +1,6 @@
 """Shared utilities and simple objects"""
 
 import logging
-
 from validate import (VdtTypeError, VdtValueError, ValidateError)
 
 LOGGER = logging.getLogger(name=__name__)

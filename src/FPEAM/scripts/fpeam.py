@@ -1,5 +1,5 @@
 """Executes FPEAM against given datasets and configuration files."""
-
+import pdb
 import argparse
 import logging
 import os
@@ -64,17 +64,16 @@ def main():
                               args.fugitivedust_config,
                               args.run_config)
 
-    _fpeam = FPEAM(run_config=_config)
+    with FPEAM(run_config=_config) as _fpeam:
+        _fpeam.run()
 
-    _fpeam.run()
+        # save the raw results to the project path folder specified in run_config
+        _fpath = os.path.join(_fpeam.config['project_path'],
+                              '%s_raw.csv' % _fpeam.config['scenario_name'])
+        _fpeam.results.to_csv(_fpath, index=False)
 
-    # save the raw results to the project path folder specified in run_config
-    _fpath = os.path.join(_fpeam.config['project_path'],
-                          '%s_raw.csv' % _fpeam.config['scenario_name'])
-    _fpeam.results.to_csv(_fpath, index=False)
-
-    # save several summarized results files to the project folder
-    _fpeam.summarize()
+        # save several summarized results files to the project folder
+        _fpeam.summarize()
 
 
 if __name__ == '__main__':
