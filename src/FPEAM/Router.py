@@ -1,5 +1,5 @@
 import networkx as nx
-import   pandas as pd
+import pandas as pd
 from networkx.algorithms.shortest_paths.weighted import bidirectional_dijkstra
 
 from FPEAM import utils
@@ -10,11 +10,12 @@ LOGGER = utils.logger(name=__name__)
 class Router(object):
     """Discover routing between nodes"""
 
-    def __init__(self, edges, node_map, algorithm=bidirectional_dijkstra):
+    def __init__(self, edges, node_map, memory=None, algorithm=bidirectional_dijkstra):
         """
 
         :param edges: [DataFrame]
         :param node_map: [DataFrame]
+        :param memory [joblib.Memory]
         :param algorithm: [function]
         :return:
         """
@@ -22,15 +23,21 @@ class Router(object):
         self.edges = edges
         self.node_map = node_map
 
+        self.memory = memory
+
         self.algorithm = algorithm
 
-        self.routes = None
+        self.routes = {}
         self.Graph = nx.Graph()
+
+        if self.memory is not None:
+            self.get_route = self.memory.cache(self.get_route, ignore=['self'])
 
         LOGGER.debug('loading routing graph')
         _ = self.edges.apply(lambda x: self.Graph.add_edge(**x), axis=1)
 
     def get_route(self, from_fips, to_fips, from_node=None, to_node=None):
+
         """
         Find route from <from_fips> to <to_fips>, if exists.
 
@@ -53,9 +60,8 @@ class Router(object):
             except KeyError:
                 LOGGER.error('FIPS code %s not found in FIPS to node lookup' % (to_fips, ))
 
-        if not from_node and to_node:
+        if not (from_node and to_node):
             raise ValueError('start or end node is undefined')
-
         _path = self.algorithm(self.Graph, from_node, to_node)[1]
 
         _route = pd.DataFrame(_path, columns=['start_node'], dtype=int)
@@ -80,4 +86,4 @@ class Router(object):
         _summary['region_transportation'] = _summary['statefp'] + _summary['countyfp']
         _summary['vmt'] = _summary['weight'] / 1000.0 * 0.621371
 
-        return _summary[['region_transportation', 'vmt']]
+        return _summary[['region_transportation', 'fclass', 'vmt']]

@@ -1,12 +1,17 @@
 import os
+import shutil
+import tempfile
 from collections import Iterable
-from pkg_resources import resource_filename
-import pandas as pd
 
-from . import Data
+import pandas as pd
+from joblib import Memory
+from pkg_resources import resource_filename
+
 from FPEAM import EngineModules
+from . import Data
 from . import utils
 from .IO import (CONFIG_FOLDER, load_configs)
+from .Router import Router
 
 LOGGER = utils.logger(name=__name__)
 
@@ -14,9 +19,8 @@ LOGGER = utils.logger(name=__name__)
 class FPEAM(object):
     """Base class to hold shared information"""
 
-    __version__ = '2.0.1-beta'
+    __version__ = '2.3.0-beta'
 
-    # @TODO: can't these be discovered via the Modules module?
     MODULES = {'emissionfactors': EngineModules.EmissionFactors,
                'fugitivedust': EngineModules.FugitiveDust,
                'MOVES': EngineModules.MOVES,
@@ -38,15 +42,27 @@ class FPEAM(object):
         self._fertilizer_distribution = None
         self._fugitive_dust = None
 
-        self.results = None
+        self._temp_dir = tempfile.mkdtemp()
 
-        self.router = None
+        self.memory = Memory(location=self._temp_dir)
+
+        self.results = None
 
         # @TODO: load and validate fpeam.ini; currently only run_config gets checked and loaded
         self.config = run_config
         self.equipment = Data.Equipment(fpath=self.config.get('equipment')).reset_index().rename({'index': 'row_id'}, axis=1)
         self.production = Data.Production(fpath=self.config.get('production')).reset_index().rename({'index': 'row_id'}, axis=1)
         self.feedstock_loss_factors = Data.FeedstockLossFactors(fpath=self.config.get('feedstock_loss_factors')).reset_index().rename({'index': 'row_id'}, axis=1)
+
+        if self.config.as_bool('use_router_engine'):
+            _transportation_graph = Data.TransportationGraph(fpath=self.config.get('transportation_graph'))
+            _county_nodes = Data.CountyNode(fpath=self.config.get('county_nodes'))
+
+            if not _transportation_graph.empty or not _county_nodes.empty:
+                LOGGER.info('Loading routing data; this may take a few minutes')
+                self.router = Router(edges=_transportation_graph,
+                                     node_map=_county_nodes,
+                                     memory=self.memory)
 
         for _module in self.config.get('modules', None) or self.MODULES.keys():
             _config = run_config.get(_module.lower(), None) or \
@@ -294,12 +310,11 @@ class FPEAM(object):
             _summarize_by_region_transportation = self.results.groupby(['feedstock',
                                                                         'tillage_type',
                                                                         'region_transportation',
-                                                                        'pollutant'], as_index=False).sum()
+                                                                        'pollutant'],
+                                                                       as_index=False).sum()
 
-            _summarize_by_region_transportation['unit_numerator'] = 'lb ' \
-                                                                    'pollutant'
-            _summarize_by_region_transportation['unit_denominator'] = \
-                'transportation county-year'
+            _summarize_by_region_transportation['unit_numerator'] = 'lb pollutant'
+            _summarize_by_region_transportation['unit_denominator'] = 'transportation county-year'
 
             _summarize_by_region_transportation[['feedstock', 'tillage_type',
                                                  'region_transportation',
@@ -324,12 +339,12 @@ class FPEAM(object):
         _summarize_by_module['unit_numerator'] = 'lb pollutant'
         _summarize_by_module['unit_denominator'] = 'county-year'
 
-        _summarize_by_module[['feedstock', 'tillage_type', 'module',
-                              'pollutant', 'pollutant_amount']].to_csv(
-            os.path.join(self.config.get('project_path'),
-                         '%s' %
-                         self.config.get('scenario_name') +\
-                         '_total_emissions_by_module.csv'), index=False)
+        _fpath_summary = os.path.join(self.config.get('project_path'),
+                                      '%s_total_emissions_by_module.csv'
+                                      % self.config.get('scenario_name'))
+
+        _summarize_by_module[['feedstock', 'tillage_type', 'module', 'pollutant',
+                              'pollutant_amount']].to_csv(_fpath_summary, index=False)
 
     def plot(self, modules):
         for _module in modules or self._modules.values():
@@ -341,6 +356,8 @@ class FPEAM(object):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        shutil.rmtree(self._temp_dir)
+
         # process exceptions
         if exc_type is not None:
             LOGGER.exception('%s\n%s\n%s' % (exc_type, exc_val, exc_tb))
