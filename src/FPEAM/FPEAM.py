@@ -64,13 +64,13 @@ class FPEAM(object):
         if _module_error:
             raise Exception('invalid module name')
 
-        self.equipment = Data.Equipment(fpath=self.config.get('equipment')).reset_index().rename({'index': 'row_id'}, axis=1)
-        self.production = Data.Production(fpath=self.config.get('production')).reset_index().rename({'index': 'row_id'}, axis=1)
-        self.feedstock_loss_factors = Data.FeedstockLossFactors(fpath=self.config.get('feedstock_loss_factors')).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.equipment = Data.Equipment(fpath=self.config.get('equipment'), backfill=self.config.as_bool('backfill')).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.production = Data.Production(fpath=self.config.get('production'), backfill=self.config.as_bool('backfill')).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.feedstock_loss_factors = Data.FeedstockLossFactors(fpath=self.config.get('feedstock_loss_factors'), backfill=self.config.as_bool('backfill')).reset_index().rename({'index': 'row_id'}, axis=1)
 
         if self.config.as_bool('use_router_engine'):
-            _transportation_graph = Data.TransportationGraph(fpath=self.config.get('transportation_graph'))
-            _county_nodes = Data.CountyNode(fpath=self.config.get('county_nodes'))
+            _transportation_graph = Data.TransportationGraph(fpath=self.config.get('transportation_graph'), backfill=self.config.as_bool('backfill'))
+            _county_nodes = Data.CountyNode(fpath=self.config.get('county_nodes'), backfill=self.config.as_bool('backfill'))
 
             if not _transportation_graph.empty or not _county_nodes.empty:
                 LOGGER.info('Loading routing data; this may take a few minutes')
@@ -88,7 +88,9 @@ class FPEAM(object):
                 self.__setattr__(_module,
                                  FPEAM.MODULES[_module](config=_config,
                                                         equipment=self.equipment,
-                                                        production=self.production))
+                                                        production=self.production,
+                                                        router=self.router,
+                                                        feedstock_loss_factors=self.feedstock_loss_factors))
             except KeyError:
                 if _module not in FPEAM.MODULES.keys():
                     LOGGER.warning('invalid module name: {}.'
@@ -108,8 +110,19 @@ class FPEAM(object):
     @config.setter
     def config(self, value):
 
+        _fpeam_spec = resource_filename('FPEAM', '%s/fpeam.spec' % (CONFIG_FOLDER, ))
+
+        try:
+            _fpeam_config = value['fpeam']
+        except KeyError:
+            _fpeam_config = resource_filename('FPEAM', '%s/fpeam.ini' % (CONFIG_FOLDER, ))
+
+        _fpeam_config = utils.validate_config(config=_fpeam_config, spec=_fpeam_spec)
+
         _spec = resource_filename('FPEAM', '%s/run_config.spec' % (CONFIG_FOLDER, ))
         _config = utils.validate_config(config=value['run_config'], spec=_spec)
+
+        _config['config']['fpeam'] = _fpeam_config
 
         if _config['extras']:
             LOGGER.warning('extra values: %s' % (_config['extras'], ))

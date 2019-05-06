@@ -8,7 +8,7 @@ from lxml.builder import E
 
 from FPEAM import utils
 from .Module import Module
-from ..Data import (RegionFipsMap, TruckCapacity, FeedstockLossFactors)
+from ..Data import (RegionFipsMap, TruckCapacity)
 
 
 LOGGER = utils.logger(name=__name__)
@@ -21,12 +21,14 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, router=None, **kvals):
+    def __init__(self, config, production, feedstock_loss_factors, router=None, backfill=True,
+                 **kvals):
         """
 
         :param config: [ConfigObj]
         :param production: [DataFrame]
         :param router: [Router]
+        :param backfill: [boolean] backfill missing data values with 0
         """
 
         # init parent
@@ -34,8 +36,7 @@ class MOVES(Module):
 
         self.production = production
 
-        self.feedstock_loss_factors = FeedstockLossFactors(
-                fpath=self.config.get('feedstock_loss_factors'))
+        self.feedstock_loss_factors = feedstock_loss_factors
 
         # create a dictionary of conversion factors for later use
         self.conversion_factors = self._set_conversions()
@@ -43,11 +44,13 @@ class MOVES(Module):
         self._router = router
 
         self.year = self.config.get('year')
-        self.region_fips_map = RegionFipsMap(fpath=self.config.get('region_fips_map'))
+        self.region_fips_map = RegionFipsMap(fpath=self.config.get('region_fips_map')
+                                             , backfill=backfill)
         self.feedstock_measure_type = self.config.get('feedstock_measure_type')
 
         # this is a DF read in from a csv file
-        self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'))
+        self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'),
+                                            backfill=backfill)
 
         # boolean controlling whether available results are used from the MOVES output database
         self.use_cached_results = self.config.get('use_cached_results')

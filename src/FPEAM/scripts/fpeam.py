@@ -17,6 +17,9 @@ def main():
     parser.add_argument('run_config', type=str, help='execution configuration')
 
     config_group = parser.add_argument_group('configuration files')
+    config_group.add_argument('--fpeam_config', type=str,
+                              default=None,
+                              help='FPEAM model configuration options')
     config_group.add_argument('--moves_config', type=str,
                               default=None,
                               help='MOVES model configuration options')
@@ -58,7 +61,8 @@ def main():
     logging.getLogger('').addHandler(_console)
 
     # load config options
-    _config = IO.load_configs(args.moves_config,
+    _config = IO.load_configs(args.fpeam_config,
+                              args.moves_config,
                               args.nonroad_config,
                               args.emissionfactors_config,
                               args.fugitivedust_config,

@@ -17,12 +17,13 @@ LOGGER = utils.logger(name=__name__)
 
 class NONROAD(Module):
 
-    def __init__(self, config, production, equipment, **kvals):
+    def __init__(self, config, production, equipment, backfill=True, **kvals):
         """
 
         :param config: [ConfigObj]
         :param production: [DataFrame]
         :param equipment:  [DataFrame]
+        :param backfill: [boolean] backfill missing data values with 0
         """
 
         # init parent
@@ -64,9 +65,10 @@ class NONROAD(Module):
 
         # dataframe of equipment names matching the names in the equipment
         # input df and SCC codes from nonroad
-        self.nonroad_equipment = NONROADEquipment(fpath=self.config.get('nonroad_equipment'))
+        self.nonroad_equipment = NONROADEquipment(fpath=self.config.get('nonroad_equipment'),
+                                                  backfill=backfill)
 
-        self.irrigation = Irrigation(fpath=self.config.get('irrigation'))
+        self.irrigation = Irrigation(fpath=self.config.get('irrigation'), backfill=backfill)
 
         self._equipment = None
         self.equipment = equipment
@@ -79,12 +81,13 @@ class NONROAD(Module):
         # mapping from the region_production column of production
         # to NONROAD fips values, used to derive state identifiers and run
         # scenario through NONROAD
-        self.region_fips_map = RegionFipsMap(fpath=self.config.get('region_fips_map'))
+        self.region_fips_map = RegionFipsMap(fpath=self.config.get('region_fips_map'),
+                                             backfill=backfill)
 
         # mapping from 2-digit state FIPS to two-character state name
         # abbreviations
         _fpath = resource_filename('FPEAM', '%s/inputs/state_fips_map.csv' % DATA_FOLDER)
-        self.state_fips_map = StateFipsMap(fpath=_fpath)
+        self.state_fips_map = StateFipsMap(fpath=_fpath, backfill=backfill)
 
         # scenario year
         self.year = self.config.get('year')

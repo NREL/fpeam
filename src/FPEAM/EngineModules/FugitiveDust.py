@@ -1,6 +1,6 @@
 from FPEAM import utils
 from .Module import Module
-from ..Data import FugitiveDust as FugDust
+from ..Data import FugitiveDust
 
 LOGGER = utils.logger(name=__name__)
 
@@ -8,10 +8,11 @@ LOGGER = utils.logger(name=__name__)
 class FugitiveDust(Module):
     """Base class to manage execution of on-farm fugitive dust calculations"""
 
-    def __init__(self, config, production, **kvals):
+    def __init__(self, config, production, backfill=True, **kvals):
         """
         :param config [ConfigObj] configuration options
         :param production: [DataFrame] production values
+        :param backfill: [boolean] backfill missing data values with 0
         """
 
         # init parent
@@ -19,7 +20,8 @@ class FugitiveDust(Module):
 
         self.production = production
 
-        self.fugitive_dust = FugDust(fpath=self.config.get('emission_factors'))
+        self.fugitive_dust = FugitiveDust(fpath=self.config.get('emission_factors'),
+                                          backfill=backfill)
 
         self.feedstock_measure_type = self.config.get('feedstock_measure_type')
         
