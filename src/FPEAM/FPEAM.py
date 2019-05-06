@@ -50,6 +50,20 @@ class FPEAM(object):
 
         # @TODO: load and validate fpeam.ini; currently only run_config gets checked and loaded
         self.config = run_config
+
+        # validate module names
+        _modules = self.config.get('modules', None) or self.MODULES.keys()
+        _module_error = False
+        for _module in _modules:
+            try:
+                assert _module in self.MODULES.keys()
+            except AssertionError:
+                _module_error = True
+                LOGGER.error('invalid module name: %s; must be one of: %s' % (_module, ', '.join(list(self.MODULES.keys()))))
+
+        if _module_error:
+            raise Exception('invalid module name')
+
         self.equipment = Data.Equipment(fpath=self.config.get('equipment')).reset_index().rename({'index': 'row_id'}, axis=1)
         self.production = Data.Production(fpath=self.config.get('production')).reset_index().rename({'index': 'row_id'}, axis=1)
         self.feedstock_loss_factors = Data.FeedstockLossFactors(fpath=self.config.get('feedstock_loss_factors')).reset_index().rename({'index': 'row_id'}, axis=1)
@@ -64,7 +78,7 @@ class FPEAM(object):
                                      node_map=_county_nodes,
                                      memory=self.memory)
 
-        for _module in self.config.get('modules', None) or self.MODULES.keys():
+        for _module in _modules:
             _config = run_config.get(_module.lower(), None) or \
                       load_configs(resource_filename('FPEAM', '%s/%s.ini' % (CONFIG_FOLDER, _module.lower()))
                                    )[_module.lower()]
