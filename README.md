@@ -37,9 +37,6 @@ The equipment and feedstock production input datasets described in the next sect
 
 The equipment dataset defines the agricultural activities involved in feedstock production; columns in this dataset are defined in the table below. The equipment dataset defines the equipment used for each agricultural activity (in the default equipment dataset, activities consist of establishment, maintenance, harvest and loading, but additional or alternate activities may be specified as needed) as well as the resources consumed, such as fuel, time, fertilizer, and other agricultural chemicals. Resource rate (amount) units in the equipment dataset must correspond with the units in the feedstock production dataset discussed below, or an error will be given when the data is read into FPEAM. For each activity that involves agricultural equipment, the equipment name must be provided. These are user-defined names that can be matched to NONROAD equipment types with a provided CSV file discussed further in the NONROAD module section.
 
-feedstock	tillage_type	equipment_group	rotation_year	activity	equipment_name	equipment_horsepower	resource	rate	unit_numerator	unit_denominator
-
-
 TABLE: List of columns and data types in equipment dataset.
 
 | Column name | Data type | Description |
@@ -163,6 +160,15 @@ TABLE: Feedstock bushel weight in dry short tons.
 
 ## Additional input datasets
 
+Feedstock dry matter loss is accounted for using loss factors that represent the losses incurred during specific activities and at several key points along the feedstock supply chain. These loss factors were obtained from GREET and from INL's state of the technology report 2018.
+
+TABLE: Dry matter loss factors by feedstock.
+
+| Feedstock | Activity | Supply Chain Stage | Dry Matter Loss |
+| :-------- | :------- | :----------------- | :-------------: |
+| corn stover
+
+
 `region_production` and `region_destination` values in the feedstock production dataset must be mapped to FIPS codes for use in MOVES and NONROAD (`region_production`) and in the router module (`region_production` and `region_destination`). Only one mapping is provided, thus the region column in the mapping should contain all `region_production` and `region_destination` values found in the feedstock production dataset. Any regions for which a FIPS mapping is not provided will be excluded from FPEAM calculations and results. Currently the region-to-FIPS mapping must be one-to-one, meaning that each unique `region_production` and `region_destination` code must map to one unique FIPS. Mappings which are not one-to-one will produce an error when the data is read in and must be corrected before FPEAM is run. Further development can allow for many-to-one and one-to-many mappings, if there is demand. 
 
 TABLE: List of columns, data types and descriptions in the map of region_production and region_destination values to FIPS codes
@@ -181,9 +187,6 @@ TABLE: Map of state FIPS codes to two-letter state abbreviations
 | state_abbreviation | string | Two-character state name abbreviation |
 | state_fips | string | Two-digit state FIPS code, stored as string |
 
-TABLE: Dry matter loss factors by feedstock.
-
-| Feedstock | 
 
 ## FPEAM Output
 
@@ -246,7 +249,7 @@ TABLE: MOVES database connection and software parameters.
 
 ## MOVES installation and setup
 
-During the MOVES installation process, users will need to select a folder in which MOVES is installed. By default, MOVES is installed to `C:\Users\Public\EPA\MOVES\MOVES2014a`, but the length of this file path causes problems when setting up and running NONROAD in batch mode (the NONROAD model is contained within MOVES). Users should instead install MOVES to a directory contained directly within the `C:` drive, such as `C:\MOVES2014a`. The exact directory name should be specified in the MOVES and NONROAD config files using the `moves_path` and `nonroad_path` parameters. Config files are discussed further below.
+During the MOVES installation process, users will need to select a folder in which MOVES is installed. By default, MOVES is installed to `C:\Users\Public\EPA\MOVES\MOVES2014a`, but the length of this file path causes problems when setting up and running NONROAD in batch mode (the NONROAD model is contained within MOVES). Users should instead install MOVES to a directory contained directly within the `C:` drive, such as `C:\MOVES2014a`. This is because the path to the NONROAD executable, which is contained within the MOVES directory, must be less than 60 characters in order for NONROAD to process it correctly. It is recommended that the `moves_path` and `nonroad_path` parameters be kept to a maximum of 30 characters for this reason. The exact directory name should be specified in the MOVES and NONROAD config files using the `moves_path` and `nonroad_path` parameters. Config files are discussed further below.
 
 After installing MOVES and before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above)  using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the "General Output" screen, under "Output." Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.
 
@@ -267,7 +270,7 @@ TABLE: Transportation distance and transportation mode parameters.
 
 TABLE: Default truck capacities by feedstock. Source: BTS.
 
-| Feedstock | Vehicle capacity (dry short tons/load) |
+| Feedstock | Truck capacity (dry short tons/load) |
 | :-------: | :----------------------------: |
 | corn stover | 17.28 |
 | wheat straw | 17.28 |
@@ -276,6 +279,10 @@ TABLE: Default truck capacities by feedstock. Source: BTS.
 | sorghum stubble | 21.10 |
 | forest residues | 16.68 |
 | whole trees | 16.68 |
+| poplar | 16.68 |
+| willow | 16.68 |
+
+The truck capacity value for forest residues was also used as a proxy value for whole trees, poplar, and willow feedstocks, due to a lack of additional data.
 
 Default vehicle miles traveled (VMT) fractions were calculated from Federal Highway Administration data on total vehicle miles traveled nationwide by combination trucks in 2006. The raw data is available from the [Federal Highway Administration](https://www.fhwa.dot.gov/policy/ohim/hs06/metric_tables.cfm) in the table "Vehicle distance of travel in kilometers and related data, by highway category and vehicle type." The VMT fraction representing vehicle idling (road type = 1) was assumed to be 0 due to lack of data.
 
@@ -693,7 +700,7 @@ Suggested parameters to define in the MOVES config file are `scenario_name`, `ye
 #diesel_pm10topm25 = 0.97
 ```
 
-Suggested parameters to define in the config file are `scenario_name`, `year`, `nonroad_database`, `nonroad_path`, and `nonroad_datafiles_path`. The `scenario_name` and `year` values should match the ones in the MOVES config file, if MOVES is also being run in the scenario, and the `nonroad_database` value should also be the same as the `moves_database`, again if MOVES is also included in the scenario. `nonroad_path` will depend on the MOVES installation path, and `nonroad_datafiles_path` is a user-created directory containing NONROAD input files. `nonroad_datafiles_path` should be a short directory path, with as few subdirectories as possible, to avoid errors when running NONROAD in batch mode.
+Suggested parameters to define in the config file are `scenario_name`, `year`, `nonroad_database`, `nonroad_path`, and `nonroad_datafiles_path`. The `scenario_name` and `year` values should match the ones in the MOVES config file, if MOVES is also being run in the scenario, and the `nonroad_database` value should also be the same as the `moves_database`, again if MOVES is also included in the scenario. `nonroad_path` will depend on the MOVES installation path, and `nonroad_datafiles_path` is a user-created directory containing NONROAD input files. `nonroad_datafiles_path` should be a short directory path containing as few subdirectories as possible because NONROAD cannot process filepaths that are longer than 60 characters total and several subdirectories will be created automatically under `nonroad_datafiles_path`. It is recommended that `nonroad_datafiles_path` be kept to 30 characters or less for this reason.
 
 ### FugitiveDust config
 
