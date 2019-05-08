@@ -17,9 +17,6 @@ use_cached_results = boolean(default=True)
 ## production table identifier (feedstock_measure in production data)
 feedstock_measure_type = string(default='production')
 
-## use the router engine to calculate vmt by county 
-use_router_engine = boolean(default=True)
-
 ## if router is not used, assume 20 vmt per biomass production county
 vmt_short_haul = float(default=20)
 
@@ -65,12 +62,6 @@ mysqldump_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\m
 
 
 ### input files
-
-## MOVES routing graph
-transportation_graph = filepath(default='data/inputs/transportation_graph.csv')
-
-## graph nodes representing each county
-county_nodes = filepath(default='data/inputs/county_nodes.csv')
 
 ## truck capacities for feedstock transportation
 truck_capacity = filepath(default='data/inputs/truck_capacity.csv')
