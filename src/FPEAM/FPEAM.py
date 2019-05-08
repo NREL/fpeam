@@ -90,7 +90,8 @@ class FPEAM(object):
                                                         equipment=self.equipment,
                                                         production=self.production,
                                                         router=self.router,
-                                                        feedstock_loss_factors=self.feedstock_loss_factors))
+                                                        feedstock_loss_factors=self.feedstock_loss_factors,
+                                                        backfill=self.config.as_bool('backfill')))
             except KeyError:
                 if _module not in FPEAM.MODULES.keys():
                     LOGGER.warning('invalid module name: {}.'
