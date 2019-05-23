@@ -187,6 +187,9 @@ TABLE: Map of state FIPS codes to two-letter state abbreviations
 | state_abbreviation | string | Two-character state name abbreviation |
 | state_fips | string | Two-digit state FIPS code, stored as string |
 
+## Input data validation
+
+how missing data is backfilled for each type of input data - users can choose to backfill or not; numerical data is always backfilled with zero; categorical/identifier variables are NEVER backfilled and so if one of those is missing that data entry is left out of the calculations; backfilling with zero means that data entry shows up in the results but as all zeros
 
 ## FPEAM Output
 
@@ -208,7 +211,7 @@ TABLE: Columns in main FPEAM output
 | region_transportation | string | Region identifier through which feedstock was transported (route) |
 | pollutant_amount | float | Amount of pollutant generated in pounds |
 
-Once generated, the raw output data frame may be saved as a CSV file or stored in a SQL database for further postprocessing or visualization. 
+Once generated, the raw output data frame may be saved as a CSV file or stored in a SQL database for further postprocessing or visualization.
 
 # MOVES Module
 
