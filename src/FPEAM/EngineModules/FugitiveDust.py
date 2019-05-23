@@ -59,6 +59,19 @@ class FugitiveDust(Module):
 
         return _df
 
+    def get_onroad_fugitivedust(self):
+        """
+        Calculate PM10 and PM2.5 from on-road biomass transportation, using
+        silt factors from the EPA and equations documented in the Billion Ton
+        Study.
+
+        Only equations and parameters for primary roads are used because the
+        definitions of primary and secondary roads are unclear and may vary
+        from data source to data source
+        :return: None
+        """
+        raise NotImplementedError
+
     def run(self):
         """
         Execute all calculations.
