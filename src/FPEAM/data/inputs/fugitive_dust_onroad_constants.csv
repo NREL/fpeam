@@ -1,29 +1,29 @@
 constant,description,road_type,pollutant,value,units
-k,empirical constant,unpaved,pm2.5,,pound per vehicle mile traveled
-W,mean vehicle weight on road,unpaved,pm2.5,,tons
-A,empirical constant,unpaved,pm2.5,,unitless
-B,empirical constant,unpaved,pm2.5,,unitless
-k,empirical constant,unpaved,pm10,,pound per vehicle mile traveled
-W,mean vehicle weight on road,unpaved,pm10,,tons
-A,empirical constant,unpaved,pm10,,unitless
-B,empirical constant,unpaved,pm10,,unitless
-k,empirical constant,paved primary,pm2.5,,pound per vehicle mile traveled
+k,empirical constant,unpaved,pm2.5,0.15,pound per vehicle mile traveled
+W,mean vehicle weight on road,unpaved,pm2.5,3.2,tons
+A,empirical constant,unpaved,pm2.5,0.9,unitless
+B,empirical constant,unpaved,pm2.5,0.45,unitless
+k,empirical constant,unpaved,pm10,1.5,pound per vehicle mile traveled
+W,mean vehicle weight on road,unpaved,pm10,3.2,tons
+A,empirical constant,unpaved,pm10,0.9,unitless
+B,empirical constant,unpaved,pm10,0.45,unitless
+k,empirical constant,paved primary,pm2.5,0.00054,pound per vehicle mile traveled
 s_L,road surface silt loading,paved primary,pm2.5,0.045,gram per square meter
-W,mean vehicle weight on road,paved primary,pm2.5,,tons
-A,empirical constant,paved primary,pm2.5,,unitless
-B,empirical constant,paved primary,pm2.5,,unitless
-k,empirical constant,paved primary,pm10,,pound per vehicle mile traveled
+W,mean vehicle weight on road,paved primary,pm2.5,3.2,tons
+A,empirical constant,paved primary,pm2.5,0.91,unitless
+B,empirical constant,paved primary,pm2.5,1.02,unitless
+k,empirical constant,paved primary,pm10,0.0022,pound per vehicle mile traveled
 s_L,road surface silt loading,paved primary,pm10,0.045,gram per square meter
-W,mean vehicle weight on road,paved primary,pm10,,tons
-A,empirical constant,paved primary,pm10,,unitless
-B,empirical constant,paved primary,pm10,,unitless
-k,empirical constant,paved secondary,pm2.5,,pound per vehicle mile traveled
+W,mean vehicle weight on road,paved primary,pm10,3.2,tons
+A,empirical constant,paved primary,pm10,0.91,unitless
+B,empirical constant,paved primary,pm10,1.02,unitless
+k,empirical constant,paved secondary,pm2.5,0.00054,pound per vehicle mile traveled
 s_L,road surface silt loading,paved secondary,pm2.5,0.4,gram per square meter
-W,mean vehicle weight on road,paved secondary,pm2.5,,tons
-A,empirical constant,paved secondary,pm2.5,,unitless
-B,empirical constant,paved secondary,pm2.5,,unitless
-k,empirical constant,paved secondary,pm10,,pound per vehicle mile traveled
+W,mean vehicle weight on road,paved secondary,pm2.5,3.2,tons
+A,empirical constant,paved secondary,pm2.5,0.91,unitless
+B,empirical constant,paved secondary,pm2.5,1.02,unitless
+k,empirical constant,paved secondary,pm10,0.0022,pound per vehicle mile traveled
 s_L,road surface silt loading,paved secondary,pm10,0.4,gram per square meter
-W,mean vehicle weight on road,paved secondary,pm10,,tons
-A,empirical constant,paved secondary,pm10,,unitless
-B,empirical constant,paved secondary,pm10,,unitless
+W,mean vehicle weight on road,paved secondary,pm10,3.2,tons
+A,empirical constant,paved secondary,pm10,0.91,unitless
+B,empirical constant,paved secondary,pm10,1.02,unitless
