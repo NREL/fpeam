@@ -175,8 +175,8 @@ TABLE: Dry matter loss factors by feedstock and supply chain stage.
 | miscanthus | biorefinery gate | 0.02 | GREET, 2018, EtOH pathway (includes preprocessing) |
 | sorghum | farm gate | 0.026 | GREET, 2018, EtOH pathway |
 | sorghum | biorefinery gate | 0.02 | GREET, 2018, EtOH pathway |
-| whole trees | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
-| forest residues | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
+| whole trees | biorefinery gate | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
+| forest residues | biorefinery gate | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
 
 `region_production` and `region_destination` values in the feedstock production dataset must be mapped to FIPS codes for use in MOVES and NONROAD (`region_production`) and in the router module (`region_production` and `region_destination`). Only one mapping is provided, thus the region column in the mapping should contain all `region_production` and `region_destination` values found in the feedstock production dataset. Any regions for which a FIPS mapping is not provided will be excluded from FPEAM calculations and results. Currently the region-to-FIPS mapping must be one-to-one, meaning that each unique `region_production` and `region_destination` code must map to one unique FIPS. Mappings which are not one-to-one will produce an error when the data is read in and must be corrected before FPEAM is run. Further development can allow for many-to-one and one-to-many mappings, if there is demand. 
 
