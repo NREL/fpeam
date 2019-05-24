@@ -151,7 +151,6 @@ class Production(Data):
 class FeedstockLossFactors(Data):
 
     COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
-               {'name': 'activity', 'type': str, 'index': True, 'backfill': None},
                {'name': 'supply_chain_stage', 'type': str, 'index': True, 'backfill': None},
                {'name': 'dry_matter_loss', 'type': float, 'index': False, 'backfill': 0},)
 
