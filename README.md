@@ -160,23 +160,23 @@ TABLE: Feedstock bushel weight in dry short tons.
 
 ## Additional input datasets
 
-Feedstock dry matter loss is accounted for using loss factors that represent the losses incurred during specific activities and at several key points along the feedstock supply chain. These loss factors were obtained from GREET 2018, from the Herbaceous Feedstock 2018 State of Technology Report prepared by Idaho National Lab, and from values reported in the 2016 Billion Ton Report, Volume 1. 
+Feedstock dry matter loss is accounted for using loss factors that represent the losses incurred during specific activities and at several key points along the feedstock supply chain. These loss factors were obtained from GREET 2018, from the Herbaceous Feedstock 2018 State of Technology Report prepared by Idaho National Lab, and from values reported in the 2016 Billion Ton Report, Volume 1. Factors for the farm gate supply chain stage represent
 
 TABLE: Dry matter loss factors by feedstock and supply chain stage.
 
 | Feedstock | Supply Chain Stage | Dry Matter Loss | Source |
 | :-------- | :----------------- | :-------------: | :----- |
-| corn grain | biorefinery gate | X | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value)|
-| corn stover | farm gate | X | INL, 2018, Table A.6 |
-| corn stover | biorefinery gate | X | INL, 2018, Figure A.4 |
-| switchgrass | farm gate | X | INL, 2018, Table A.6 |
-| switchgrass | biorefinery gate | X | INL, 2018, Figure A.4  |
-| miscanthus | farm gate | X | GREET, 2018, EtOH pathway |
-| miscanthus | biorefinery gate | X | GREET, 2018, EtOH pathway |
-| sorghum | farm gate | X | GREET, 2018, EtOH pathway |
-| sorghum | biorefinery gate | X | GREET, 2018, EtOH pathway |
-| whole trees | X | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
-| forest residues | X | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
+| corn grain | biorefinery gate | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value)|
+| corn stover | farm gate | 0.12 | INL, 2018, Table A.6 |
+| corn stover | biorefinery gate | 0.02 | INL, 2018, Figure A.4 (includes preprocessing) |
+| switchgrass | farm gate | 0.08 | INL, 2018, Table A.6 |
+| switchgrass | biorefinery gate | 0.02 | INL, 2018, Figure A.4 (includes preprocessing) |
+| miscanthus | farm gate | 0.12 | GREET, 2018, EtOH pathway (derived value) |
+| miscanthus | biorefinery gate | 0.02 | GREET, 2018, EtOH pathway (includes preprocessing) |
+| sorghum | farm gate | 0.026 | GREET, 2018, EtOH pathway |
+| sorghum | biorefinery gate | 0.02 | GREET, 2018, EtOH pathway |
+| whole trees | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
+| forest residues | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
 
 `region_production` and `region_destination` values in the feedstock production dataset must be mapped to FIPS codes for use in MOVES and NONROAD (`region_production`) and in the router module (`region_production` and `region_destination`). Only one mapping is provided, thus the region column in the mapping should contain all `region_production` and `region_destination` values found in the feedstock production dataset. Any regions for which a FIPS mapping is not provided will be excluded from FPEAM calculations and results. Currently the region-to-FIPS mapping must be one-to-one, meaning that each unique `region_production` and `region_destination` code must map to one unique FIPS. Mappings which are not one-to-one will produce an error when the data is read in and must be corrected before FPEAM is run. Further development can allow for many-to-one and one-to-many mappings, if there is demand. 
 
