@@ -1,6 +1,6 @@
 from FPEAM import utils
 from .Module import Module
-from ..Data import FugitiveDust
+from ..Data import FugitiveDust, TruckCapacity
 
 LOGGER = utils.logger(name=__name__)
 
@@ -8,7 +8,8 @@ LOGGER = utils.logger(name=__name__)
 class FugitiveDust(Module):
     """Base class to manage execution of on-farm fugitive dust calculations"""
 
-    def __init__(self, config, production, backfill=True, **kvals):
+    def __init__(self, config, production, feedstock_loss_factors,
+                 backfill=True, **kvals):
         """
         :param config [ConfigObj] configuration options
         :param production: [DataFrame] production values
@@ -19,6 +20,24 @@ class FugitiveDust(Module):
         super(FugitiveDust, self).__init__(config=config)
 
         self.production = production
+
+        # define columns used to merge production with fugitive_dust
+        self.prod_idx = ['feedstock', 'tillage_type']
+
+        # define list of columns of interest in production
+        _prod_columns = ['row_id'] + self.prod_idx + ['region_production', 'feedstock_amount']
+
+        # select only production rows corresponding to the user-defined crop measure
+        _prod_rows = self.production.feedstock_measure == self.feedstock_measure_type
+
+        # pull out relevant subset of production data
+        self.production = self.production[_prod_rows][_prod_columns]
+
+        self.feedstock_loss_factors = feedstock_loss_factors
+
+        # this is a DF read in from a csv file
+        self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'),
+                                            backfill=backfill)
 
         self.fugitive_dust = FugitiveDust(fpath=self.config.get('emission_factors'),
                                           backfill=backfill)
@@ -34,17 +53,8 @@ class FugitiveDust(Module):
                  tillage type, source category and region
         """
 
-        # define columns used to merge production with fugitive_dust
-        _idx = ['feedstock', 'tillage_type']
-
-        # define list of columns of interest in production
-        _prod_columns = ['row_id'] + _idx + ['region_production', 'feedstock_amount']
-
-        # select only production rows corresponding to the user-defined crop measure
-        _prod_rows = self.production.feedstock_measure == self.feedstock_measure_type
-
-        # merge production with fugitive dust
-        _df = self.production[_prod_rows][_prod_columns].merge(self.fugitive_dust, on=_idx)
+        # merge production subset with fugitive dust
+        _df = self.production.merge(self.fugitive_dust, on=self.prod_idx)
 
         # calculate fugitive dust
         _df.eval('pollutant_amount = feedstock_amount * rate', inplace=True)
@@ -70,7 +80,44 @@ class FugitiveDust(Module):
         from data source to data source
         :return: None
         """
-        raise NotImplementedError
+
+        # apply feedstock loss factors for on-farm dry matter losses, since
+        # trips should be calculated based on farm-gate feedstock amounts
+        self.feedstock_loss_factors.eval('dry_matter_remaining = '
+                                         '1 - dry_matter_loss',
+                                         inplace=True)
+
+        # pull out only on-farm feedstock losses
+        _loss_factors_farmgate = self.feedstock_loss_factors[
+            self.feedstock_loss_factors.supply_chain_stage.isin(['farm gate'])]
+
+        # calculate total losses on farm, remove unnecessary columns
+        _loss_factors_farmgate = _loss_factors_farmgate.groupby(['feedstock'],
+                                                                as_index=False)
+        _loss_factors_farmgate = _loss_factors_farmgate.prod()[['feedstock',
+                                                                'dry_matter_remaining']]
+
+        # merge loss factors with prod df
+        _df = self.production.merge(_loss_factors_farmgate, on='feedstock')
+
+        # calculate farmgate feedstock amount by applying loss factors
+        _df['feedstock_amount'] = _df['feedstock_amount'] * _df['dry_matter_remaining']
+
+        # remove loss factor column
+        del _df['dry_matter_remaining']
+
+        # merge with truck capacity so trips can be calculated
+        _df.merge(self.truck_capacity, on='feedstock')
+
+        # trips calculation accounting for dry matter loss (calc'd above),
+        # feedstock-specific truck capacity, and backhauling
+        _df.eval('trips = (2 * feedstock_amount / truck_capacity - 1)',
+                 inplace=True)
+
+        # remove truck capacity column that's not needed further
+        del _df['truck_capacity']
+
+        
 
     def run(self):
         """
