@@ -1,6 +1,7 @@
 from FPEAM import utils
 from .Module import Module
-from ..Data import FugitiveDust, TruckCapacity
+from ..Data import FugitiveDust, TruckCapacity, SiltContent,\
+    FugitiveDustOnroadConstants
 
 LOGGER = utils.logger(name=__name__)
 
@@ -35,12 +36,15 @@ class FugitiveDust(Module):
 
         self.feedstock_loss_factors = feedstock_loss_factors
 
-        # this is a DF read in from a csv file
+        # these inputs are datasets read in from csv files
         self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'),
                                             backfill=backfill)
-
-        self.fugitive_dust = FugitiveDust(fpath=self.config.get('emission_factors'),
+        self.fugitive_dust_factors = FugitiveDust(fpath=self.config.get('fugitive_dust_factors'),
                                           backfill=backfill)
+        self.silt_content = SiltContent(fpath=self.config.get('silt_content'),
+                                        backfill=backfill)
+        self.fugitive_dust_onroad_constants = FugitiveDustOnroadConstants(fpath=self.config.get('fugitive_dust_onroad_constants'),
+                                                                          backfill=backfill)
 
         self.feedstock_measure_type = self.config.get('feedstock_measure_type')
         
@@ -54,7 +58,7 @@ class FugitiveDust(Module):
         """
 
         # merge production subset with fugitive dust
-        _df = self.production.merge(self.fugitive_dust, on=self.prod_idx)
+        _df = self.production.merge(self.fugitive_dust_factors, on=self.prod_idx)
 
         # calculate fugitive dust
         _df.eval('pollutant_amount = feedstock_amount * rate', inplace=True)
@@ -117,7 +121,7 @@ class FugitiveDust(Module):
         # remove truck capacity column that's not needed further
         del _df['truck_capacity']
 
-        
+
 
     def run(self):
         """
