@@ -285,18 +285,17 @@ class TransportationGraph(Data):
                                                   backfill=backfill)
 
 
-class CountyNode(Data):
+class TransportationNodeLocations(Data):
 
-    COLUMNS = ({'name': 'fips', 'type': str, 'index': True, 'backfill': None},
-               {'name': 'node_id', 'type': int, 'index': False, 'backfill': None})
+    COLUMNS = ({'name': 'node_id', 'type': int, 'index': True, 'backfill': None},
+               {'name': 'x', 'type': float, 'index': False, 'backfill': None},
+               {'name': 'y', 'type': float, 'index': False, 'backfill': None})
 
     def __init__(self, df=None, fpath=None,
                  columns={d['name']: d['type'] for d in COLUMNS for k in d.keys()},
                  backfill=True):
-        super(CountyNode, self).__init__(df=df, fpath=fpath, columns=columns, backfill=backfill)
-
-        if 'fips' not in self.index.names:
-            self.set_index('fips', inplace=True)
+        super(TransportationNodeLocations, self).__init__(df=df, fpath=fpath, columns=columns,
+                                                          backfill=backfill)
 
 
 class RegionFipsMap(Data):
