@@ -198,7 +198,7 @@ class EmissionFactor(Data):
     # @todo validate: resource, resource_subtype values match those in ResourceDistribution
 
 
-class FugitiveDust(Data):
+class FugitiveDustFactors(Data):
 
     COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
                {'name': 'tillage_type', 'type': str, 'index': True, 'backfill': None},
@@ -210,7 +210,9 @@ class FugitiveDust(Data):
     def __init__(self, df=None, fpath=None,
                  columns={d['name']: d['type'] for d in COLUMNS for k in d.keys()},
                  backfill=True):
-        super(FugitiveDust, self).__init__(df=df, fpath=fpath, columns=columns, backfill=backfill)
+        super(FugitiveDustFactors, self).__init__(df=df, fpath=fpath,
+                                                  columns=columns,
+                                                  backfill=backfill)
 
     # @todo validate: missing feedstock, pollutant generate error
 

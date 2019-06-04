@@ -1448,12 +1448,10 @@ class MOVES(Module):
 
         for _table in _moves_table_list:
 
-            # LOGGER.debug('Adding fips column to {t}'.format(t=_table))
             _add_fips_sql = """ALTER TABLE {moves_output_db}.{t}
                                 ADD COLUMN fips char(5);""".format(t=_table,
                                                                    **kvals)
 
-            # LOGGER.debug('Updating fips column to {t}'.format(t=_table))
             _update_fips_sql = """UPDATE {moves_output_db}.{t}
                     SET fips = LEFT(MOVESScenarioID, 5);""".format(t=_table,
                                                                    **kvals)
@@ -1461,11 +1459,13 @@ class MOVES(Module):
             # test if the table already has a fips column; if so, go to update
             # table; if not, create the fips column
             try:
+                LOGGER.info('Adding fips column to {t}'.format(t=_table))
                 _moves_cursor.execute(_add_fips_sql)
 
             except pymysql.err.InternalError:
                 pass
 
+            LOGGER.info('Updating fips column to {t}'.format(t=_table))
             _moves_cursor.execute(_update_fips_sql)
 
         # close cursor after updating both tables
@@ -1860,6 +1860,7 @@ class MOVES(Module):
             # unique fips-state combos to run MOVES on
             self.moves_run_list = _max_amts[['fips',
                                              'state']].drop_duplicates()
+
         elif self.moves_by_state_and_feedstock:
             # get a list of unique fips-state-year combos to run MOVES on
             # keep feedstock in there to match results from each MOVES run

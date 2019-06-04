@@ -1,7 +1,8 @@
 from FPEAM import utils
 from .Module import Module
-from ..Data import FugitiveDust, TruckCapacity, SiltContent,\
+from ..Data import FugitiveDustFactors, TruckCapacity, SiltContent,\
     FugitiveDustOnroadConstants
+
 
 LOGGER = utils.logger(name=__name__)
 
@@ -39,7 +40,7 @@ class FugitiveDust(Module):
         # these inputs are datasets read in from csv files
         self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'),
                                             backfill=backfill)
-        self.fugitive_dust_factors = FugitiveDust(fpath=self.config.get('fugitive_dust_factors'),
+        self.fugitive_dust_factors = FugitiveDustFactors(fpath=self.config.get('fugitive_dust_factors'),
                                           backfill=backfill)
         self.silt_content = SiltContent(fpath=self.config.get('silt_content'),
                                         backfill=backfill)
