@@ -1,6 +1,6 @@
 from FPEAM import utils
 from .Module import Module
-from ..Data import FugitiveDust
+from ..Data import FugitiveDustFactors
 
 LOGGER = utils.logger(name=__name__)
 
@@ -20,7 +20,7 @@ class FugitiveDust(Module):
 
         self.production = production
 
-        self.fugitive_dust = FugitiveDust(fpath=self.config.get('emission_factors'),
+        self.fugitive_dust = FugitiveDustFactors(fpath=self.config.get('emission_factors'),
                                           backfill=backfill)
 
         self.feedstock_measure_type = self.config.get('feedstock_measure_type')
