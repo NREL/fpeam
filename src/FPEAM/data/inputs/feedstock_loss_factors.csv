@@ -1,40 +1,12 @@
-feedstock,activity,supply_chain_stage,dry_matter_loss
-corn stover,harvest,at farmgate,0.05
-corn stover,field treatment,at farmgate,0.02
-corn stover,field drying,at farmgate,0.05
-corn stover,on farm transport,at farmgate,0.02
-corn stover,depot storage,at depot,0.048
-corn stover,biorefinery storage,at biorefinery,0.048
-corn stover,on road transport,at biorefinery,0.02
-corn stover,on road transport,at depot,0.02
-switchgrass,harvest,at farmgate,0.05
-switchgrass,field treatment,at farmgate,0.02
-switchgrass,field drying,at farmgate,0.05
-switchgrass,on farm transport,at farmgate,0.02
-switchgrass,depot storage,at depot,0.048
-switchgrass,biorefinery storage,at biorefinery,0.048
-switchgrass,on road transport,at depot,0.02
-switchgrass,on road transport,at biorefinery,0.02
-miscanthus,harvest,at farmgate,0.05
-miscanthus,field treatment,at farmgate,0.02
-miscanthus,field drying,at farmgate,0.05
-miscanthus,on farm transport,at farmgate,0.02
-miscanthus,depot storage,at depot,0.048
-miscanthus,biorefinery storage,at biorefinery,0.048
-miscanthus,on road transport,at depot,0.02
-miscanthus,on road transport,at biorefinery,0.02
-sorghum,harvest,at farmgate,
-sorghum,field treatment,at farmgate,
-sorghum,field drying,at farmgate,
-sorghum,on farm transport,at farmgate,
-sorghum,on road transport,at depot,0.02
-sorghum,on road transport,at biorefinery,0.02
-sorghum,depot storage,at depot,0.026
-sorghum,biorefinery storage,at biorefinery,0.026
-corn grain,,at biorefinery,0.1
-forest residues,on road transport,at depot,
-forest residues,on road transport,at biorefinery,
-forest residues,field drying,at farmgate,0.05
-forest whole tree,on road transport,at biorefinery,
-forest whole tree,on road transport,at depot,
-forest whole tree,field drying,at farmgate,0.05
+feedstock,supply_chain_stage,dry_matter_loss
+corn stover,farm gate,0.12
+corn stover,biorefinery gate,0.02
+switchgrass,farm gate,0.08
+switchgrass,biorefinery gate,0.02
+miscanthus,farm gate,0.12
+miscanthus,biorefinery gate,0.02
+sorghum,farm gate,0.026
+sorghum,biorefinery gate,0.02
+corn grain,biorefinery gate,0.1
+forest residues,biorefinery gate,0.1
+forest whole tree,biorefinery gate,0.1

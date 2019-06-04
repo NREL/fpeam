@@ -1822,7 +1822,7 @@ class MOVES(Module):
         # pull out only on-farm feedstock losses
         # @todo the list of on-farm supply chain stages should be user input
         _loss_factors_farmgate = self.feedstock_loss_factors[
-            self.feedstock_loss_factors.supply_chain_stage.isin(['at farmgate'])]
+            self.feedstock_loss_factors.supply_chain_stage.isin(['farm gate'])]
 
         # calculate total losses on farm, remove unnecessary columns
         _loss_factors_farmgate = _loss_factors_farmgate.groupby(['feedstock'], as_index=False)
