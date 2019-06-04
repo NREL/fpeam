@@ -48,7 +48,7 @@ nonroad_db_host = string(default='localhost')
 
 
 ### NONROAD application options
-nonroad_path = filepath(default='C:\MOVES2014a\NONROAD\NR08a\extra_long_path', max_length=30)
+nonroad_path = filepath(default='C:\MOVES2014b\NONROAD\NR08a\', max_length=30)
 nonroad_exe = string(default='NONROAD.exe')
 
 
