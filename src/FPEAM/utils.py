@@ -103,7 +103,10 @@ def filepath(fpath, max_length=None):
         assert _exists
     except AssertionError:
         # convert to resource filename if not regular file
-        _fpath = resource_filename('FPEAM', _fpath)
+        try:
+            _fpath = resource_filename('FPEAM', _fpath)
+        except ValueError:
+            raise VdtPathDoesNotExist(value=fpath)
     else:
         return Path(_fpath)
 
