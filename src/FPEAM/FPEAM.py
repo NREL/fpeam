@@ -70,7 +70,7 @@ class FPEAM(object):
 
         if self.config.as_bool('use_router_engine'):
             _transportation_graph = Data.TransportationGraph(fpath=self.config.get('transportation_graph'), backfill=self.config.as_bool('backfill'))
-            _county_nodes = Data.CountyNode(fpath=self.config.get('county_nodes'), backfill=self.config.as_bool('backfill'))
+            _county_nodes = Data.TransportationNodeLocations(fpath=self.config.get('node_locations'), backfill=self.config.as_bool('backfill'))
 
             if not _transportation_graph.empty or not _county_nodes.empty:
                 LOGGER.info('Loading routing data; this may take a few minutes')
