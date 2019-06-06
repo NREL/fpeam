@@ -23,6 +23,9 @@ class FugitiveDust(Module):
 
         self.production = production
 
+        self.onfarm_feedstock_measure_type = self.config.get('onfarm_feedstock_measure_type')
+        self.onroad_feedstock_measure_type = self.config.get('onroad_feedstock_measure_type')
+
         # define columns used to merge production with fugitive_dust
         self.prod_idx = ['feedstock', 'tillage_type']
 
@@ -30,10 +33,12 @@ class FugitiveDust(Module):
         _prod_columns = ['row_id'] + self.prod_idx + ['region_production', 'feedstock_amount']
 
         # select only production rows corresponding to the user-defined crop measure
-        _prod_rows = self.production.feedstock_measure == self.feedstock_measure_type
+        _prod_rows_onfarm = self.production.feedstock_measure == self.onfarm_feedstock_measure_type
+        _prod_rows_onroad = self.production.feedstock_measure == self.onroad_feedstock_measure_type
 
         # pull out relevant subset of production data
-        self.production = self.production[_prod_rows][_prod_columns]
+        self.prod_onfarm = self.production[_prod_rows_onfarm][_prod_columns]
+        self.prod_onroad = self.production[_prod_rows_onroad][_prod_columns]
 
         self.feedstock_loss_factors = feedstock_loss_factors
 
@@ -46,8 +51,6 @@ class FugitiveDust(Module):
                                         backfill=backfill)
         self.fugitive_dust_onroad_constants = FugitiveDustOnroadConstants(fpath=self.config.get('fugitive_dust_onroad_constants'),
                                                                           backfill=backfill)
-
-        self.feedstock_measure_type = self.config.get('feedstock_measure_type')
         
     def get_onfarm_fugitivedust(self):
         """
@@ -59,7 +62,7 @@ class FugitiveDust(Module):
         """
 
         # merge production subset with fugitive dust
-        _df = self.production.merge(self.fugitive_dust_factors, on=self.prod_idx)
+        _df = self.prod_onfarm.merge(self.fugitive_dust_factors, on=self.prod_idx)
 
         # calculate fugitive dust
         _df.eval('pollutant_amount = feedstock_amount * rate', inplace=True)
@@ -103,7 +106,7 @@ class FugitiveDust(Module):
                                                                 'dry_matter_remaining']]
 
         # merge loss factors with prod df
-        _df = self.production.merge(_loss_factors_farmgate, on='feedstock')
+        _df = self.prod_onroad.merge(_loss_factors_farmgate, on='feedstock')
 
         # calculate farmgate feedstock amount by applying loss factors
         _df['feedstock_amount'] = _df['feedstock_amount'] * _df['dry_matter_remaining']
