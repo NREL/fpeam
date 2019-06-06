@@ -22,9 +22,6 @@ irrigation_feedstock_measure_type = string(default='planted')
 ## equipment table row identifier (resource in equipment data)
 time_resource_name = string(default='time')
 
-## forest feedstocks have different allocation indicators
-forestry_feedstock_names = string_list(default=list('forest residues', 'forest whole tree'))
-
 ## list of irrigated feedstocks
 irrigated_feedstock_names = string_list(default=list('corn grain'))
 
