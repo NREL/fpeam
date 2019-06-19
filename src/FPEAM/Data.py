@@ -138,7 +138,11 @@ class Production(Data):
                {'name': 'feedstock_measure', 'type': str, 'index': True, 'backfill': None},
                {'name': 'feedstock_amount', 'type': float, 'index': False, 'backfill': 0},
                {'name': 'unit_numerator', 'type': str, 'index': True, 'backfill': None},
-               {'name': 'unit_denominator', 'type': str, 'index': True, 'backfill': None})
+               {'name': 'unit_denominator', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'source_lon', 'type': float, 'index': False, 'backfill': None},
+               {'name': 'source_lat', 'type': float, 'index': False, 'backfill': None},
+               {'name': 'destination_lon', 'type': float, 'index': False, 'backfill': None},
+               {'name': 'destination_lat', 'type': float, 'index': False, 'backfill': None})
 
     def __init__(self, df=None, fpath=None,
                  columns={d['name']: d['type'] for d in COLUMNS for k in d.keys()},
