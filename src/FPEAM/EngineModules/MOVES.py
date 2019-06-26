@@ -286,7 +286,8 @@ class MOVES(Module):
             getattr(value, 'get_route')
         except AttributeError:
             LOGGER.error('%s is NOT a valid routing engine. '
-                         'Method .get_route(FIPS, FIPS) is required' % value)
+                         'Method .get_route((start lon, start lat), (end lon, end lat)'
+                         ' is required' % value)
         else:
             self._router = value
 
@@ -1626,7 +1627,11 @@ class MOVES(Module):
                                                                   'region_destination',
                                                                   'feedstock',
                                                                   'tillage_type',
-                                                                  'feedstock_amount']], how='left',
+                                                                  'feedstock_amount',
+                                                                  'source_lon',
+                                                                  'source_lat',
+                                                                  'destination_lon',
+                                                                  'destination_lat']], how='left',
                                             left_on=['fips', 'state'],
                                             right_on=['MOVES_run_fips',
                                                       'state']).merge(
@@ -1637,25 +1642,10 @@ class MOVES(Module):
 
         # get routing information between each unique region_production and
         # region_destination pair
-        _routes = _run_emissions[['region_production',
-                                  'region_destination']].drop_duplicates()
-
-        # use the region-fips map to generate fips_production and
-        # fips_destination columns
-        _routes = _routes.merge(self.region_fips_map, how='left',
-                                left_on='region_production',
-                                right_on='region')
-        _routes.rename(index=str, columns={'fips': 'fips_production'},
-                       inplace=True)
-
-        _routes = _routes.merge(self.region_fips_map, how='left',
-                                left_on='region_destination',
-                                right_on='region')[['region_production',
-                                                    'region_destination',
-                                                    'fips_production',
-                                                    'fips']]
-        _routes.rename(index=str, columns={'fips': 'fips_destination'},
-                       inplace=True)
+        _routes = _run_emissions[['source_lon',
+                                  'source_lat',
+                                  'destination_lon',
+                                  'destination_lat']].drop_duplicates()
 
         # if routing engine is specified, use it to get the route (fips and
         # vmt) for each unique region_production and region_destination pair
@@ -1668,12 +1658,16 @@ class MOVES(Module):
             for i in np.arange(_routes.shape[0]):
 
                 # use the routing engine to get a route
-                _vmt_by_county = self.router.get_route(from_fips=_routes.fips_production.iloc[i],
-                                                       to_fips=_routes.fips_destination.iloc[i])
+                _vmt_by_county = self.router.get_route(start=(_routes.source_lon.iloc[i],
+                                                              _routes.source_lat.iloc[i]),
+                                                       end=(_routes.destination_lon.iloc[i],
+                                                            _routes.destination_lat.iloc[i]))
 
                 # add identifier columns for later merging with _run_emissions
-                _vmt_by_county['region_production'] = _routes.region_production.iloc[i]
-                _vmt_by_county['region_destination'] = _routes.region_destination.iloc[i]
+                _vmt_by_county['source_lon'] = _routes.source_lon.iloc[i]
+                _vmt_by_county['source_lat'] = _routes.source_lat.iloc[i]
+                _vmt_by_county['destination_lon'] = _routes.source_lon.iloc[i]
+                _vmt_by_county['destination_lat'] = _routes.source_lat.iloc[i]
 
                 # either create the data frame to store all routes,
                 # or append the current route
@@ -1690,12 +1684,14 @@ class MOVES(Module):
             # frame containing all routes with _run_emissions
             _run_emissions = _run_emissions.merge(_vmt_by_county_all_routes,
                                                   how='left',
-                                                  on=['region_production',
-                                                      'region_destination'])
+                                                  on=['source_lon',
+                                                      'source_lat',
+                                                      'destination_lon',
+                                                      'destination_lat'])
 
         else:
             # if user has specified NOT to use the router engine, use the
-            # user-specified vmt and fill the region_transportation column 
+            # user-specified vmt and fill the region_transportation column
             # with values from the region_production column
             _run_emissions['region_transportation'] = _run_emissions['region_production']
             _run_emissions['vmt'] = self.vmt_short_haul
@@ -1727,7 +1723,11 @@ class MOVES(Module):
                                                                          'tillage_type',
                                                                          'feedstock',
                                                                          'feedstock_measure',
-                                                                         'feedstock_amount']],
+                                                                         'feedstock_amount',
+                                                                         'source_lon',
+                                                                         'source_lat',
+                                                                         'destination_lon',
+                                                                         'destination_lat']],
                                                    how='left',
                                                    left_on=['fips', 'state'],
                                                    right_on=['MOVES_run_fips',
@@ -1751,13 +1751,21 @@ class MOVES(Module):
                                                                'tillage_type',
                                                                'region_transportation',
                                                                'pollutant',
-                                                               'pollutant_amount']],
+                                                               'pollutant_amount',
+                                                               'source_lon',
+                                                               'source_lat',
+                                                               'destination_lon',
+                                                               'destination_lat']],
                                                _start_hotel_emissions[['region_production',
                                                                        'region_destination',
                                                                        'feedstock',
                                                                        'tillage_type',
                                                                        'pollutant',
-                                                                       'pollutant_amount']]],
+                                                                       'pollutant_amount',
+                                                                       'source_lon',
+                                                                       'source_lat',
+                                                                       'destination_lon',
+                                                                       'destination_lat']]],
                                               ignore_index=True, sort=True)
 
         # converts pollutant names to all lower case to match the output of
@@ -1778,7 +1786,7 @@ class MOVES(Module):
         _transportation_emissions = _transportation_emissions.groupby(
                 ['region_production', 'region_destination', 'feedstock',
                  'tillage_type', 'module', 'activity', 'region_transportation',
-                 'pollutant'],
+                 'pollutant', 'source_lon', 'source_lat', 'destination_lon', 'destination_lat'],
                 as_index=False).sum()
 
         return _transportation_emissions
@@ -1822,7 +1830,7 @@ class MOVES(Module):
         # pull out only on-farm feedstock losses
         # @todo the list of on-farm supply chain stages should be user input
         _loss_factors_farmgate = self.feedstock_loss_factors[
-            self.feedstock_loss_factors.supply_chain_stage.isin(['farm gate'])]
+            self.feedstock_loss_factors.supply_chain_stage.isin(['at farmgate'])]
 
         # calculate total losses on farm, remove unnecessary columns
         _loss_factors_farmgate = _loss_factors_farmgate.groupby(['feedstock'], as_index=False)
@@ -1895,7 +1903,11 @@ class MOVES(Module):
              'tillage_type',
              'feedstock',
              'feedstock_measure',
-             'feedstock_amount']].drop_duplicates()
+             'feedstock_amount',
+             'source_lon',
+             'source_lat',
+             'destination_lon',
+             'destination_lat']].drop_duplicates()
 
         # @NOTE prod_moves_runs is being stored in self as a potential
         # output or check on functionality; it'll also be used in
