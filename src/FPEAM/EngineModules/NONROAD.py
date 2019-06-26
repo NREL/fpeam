@@ -504,8 +504,8 @@ population or land area.  The format is as follows.
         for i in np.arange(self.nr_files.shape[0]):
 
             _fpath = os.path.join(self.project_path, 'ALLOCATE',
-                                   self.nr_files.alo_file_names.iloc[i] + '.alo')
-            LOGGER.debug('creating allocation file %s (%s/%s)' % (_fpath, i, self.nr_files.shape[0]))
+                                  self.nr_files.alo_file_names.iloc[i] + '.alo')
+            LOGGER.debug('creating allocation file %s (%s/%s)' % (_fpath, i + 1, self.nr_files.shape[0]))
             # initialize file
             with open(_fpath, 'w') as _alo_file_path:
 
@@ -968,7 +968,7 @@ T4M       1.0       0.02247
             f = os.path.join(self.project_path, 'OPT',
                              self.nr_files.out_opt_dir_names.iloc[i],
                              self.nr_files.state_abbreviation.iloc[i] + '.opt')
-            LOGGER.debug('creating option file %s (%s/%s)' % (f, i, self.nr_files.shape[0]))
+            LOGGER.debug('creating option file %s (%s/%s)' % (f, i + 1, self.nr_files.shape[0]))
 
             with open(f, 'w') as _opt_file:
                 _opt_file.writelines(_options_file_template.format(**kvals,
@@ -1152,7 +1152,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                                      self.nr_files.pop_file_names.iloc[
                                          i] + '.pop')
 
-            LOGGER.debug('creating %s population file (%s/%s)' % (_pop_path, i, self.nr_files.shape[0]))
+            LOGGER.debug('creating %s population file (%s/%s)' % (_pop_path, i + 1, self.nr_files.shape[0]))
             # create filter to pull out only the lines in _nr_pop that are
             # relevant to this population file
             _nr_pop_filter = (_nr_pop.state_abbreviation ==
@@ -1201,8 +1201,9 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
 
         # create files and write the first line which is identical across
         # all batch files except for the master file
-        for i in list(self.nr_files.out_opt_dir_names.drop_duplicates()):
-            LOGGER.debug('creating %s batch file' % i)
+        _files = list(self.nr_files.out_opt_dir_names.drop_duplicates())
+        for idx, i in enumerate(_files):
+            LOGGER.debug('creating %s batch file (%s/%s)' % (i, idx + 1, len(_files)))
             # create the full path to the batch file
             _batch_filepath = os.path.join(_batch_path, i + '.bat')
 
