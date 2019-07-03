@@ -1415,7 +1415,7 @@ class MOVES(Module):
 
             # read in the table and get the list of unique FIPS for which
             # results already exist (takes year, month, day into account)
-            _fips_cached = pd.read_sql(_results_fips_sql, self.conn).fips.unique()
+            _fips_cached = pd.read_sql(_results_fips_sql, self.conn).fips.unique().tolist()
 
         return _fips_cached
 
