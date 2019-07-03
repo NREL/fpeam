@@ -25,8 +25,8 @@ forestry_feedstock_names = string_list(default=list('forest residues', 'forest w
 ## MOVES routing graph
 transportation_graph = filepath(default='data/inputs/transportation_graph.csv')
 
-## graph nodes representing each county
-county_nodes = filepath(default='data/inputs/county_nodes.csv')
+## graph node locations
+node_locations = filepath(default='data/inputs/node_locations.csv')
 
 ## data backfill flag
 backfill = boolean(default=True)
