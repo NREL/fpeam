@@ -155,7 +155,6 @@ class Production(Data):
 class FeedstockLossFactors(Data):
 
     COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
-               {'name': 'activity', 'type': str, 'index': True, 'backfill': None},
                {'name': 'supply_chain_stage', 'type': str, 'index': True, 'backfill': None},
                {'name': 'dry_matter_loss', 'type': float, 'index': False, 'backfill': 0},)
 
@@ -203,7 +202,7 @@ class EmissionFactor(Data):
     # @todo validate: resource, resource_subtype values match those in ResourceDistribution
 
 
-class FugitiveDust(Data):
+class FugitiveDustFactors(Data):
 
     COLUMNS = ({'name': 'feedstock', 'type': str, 'index': True, 'backfill': None},
                {'name': 'tillage_type', 'type': str, 'index': True, 'backfill': None},
@@ -215,10 +214,41 @@ class FugitiveDust(Data):
     def __init__(self, df=None, fpath=None,
                  columns={d['name']: d['type'] for d in COLUMNS for k in d.keys()},
                  backfill=True):
-        super(FugitiveDust, self).__init__(df=df, fpath=fpath, columns=columns, backfill=backfill)
+        super(FugitiveDustFactors, self).__init__(df=df, fpath=fpath,
+                                                  columns=columns,
+                                                  backfill=backfill)
 
     # @todo validate: missing feedstock, pollutant generate error
 
+class SiltContent(Data):
+
+    COLUMNS = ({'name': 'st_name', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'st_fips', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'uprsm_pct_silt', 'type': float, 'index': True, 'backfill': None})
+
+    def __init__(self, df=None, fpath=None,
+                 columns={d['name']: d['type'] for d in COLUMNS for k in d.keys()},
+                 backfill=True):
+        super(SiltContent, self).__init__(df=df, fpath=fpath, columns=columns, backfill=backfill)
+
+    # @todo validate: missing st_fips values generate error
+
+class FugitiveDustOnroadConstants(Data):
+
+    COLUMNS = ({'name': 'constant', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'description', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'road_type', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'pollutant', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'value', 'type': float, 'index': False, 'backfill': 0},
+               {'name': 'unit_numerator', 'type': str, 'index': True, 'backfill': None},
+               {'name': 'unit_denominator', 'type': str, 'index': True, 'backfill': None})
+
+    def __init__(self, df=None, fpath=None,
+                 columns={d['name']: d['type'] for d in COLUMNS for k in d.keys()},
+                 backfill=True):
+        super(FugitiveDustOnroadConstants, self).__init__(df=df, fpath=fpath, columns=columns, backfill=backfill)
+
+    # @todo validate: missing constant, road_type, pollutant generate error
 
 class SCCCodes(Data):
 
