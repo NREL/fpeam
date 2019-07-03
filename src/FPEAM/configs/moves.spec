@@ -57,8 +57,8 @@ moves_path = filepath(default='C:\MOVES2014b')
 
 
 ### MySQL options
-mysql_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe')
-mysqldump_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe')
+mysql_binary = filepath(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe')
+mysqldump_binary = filepath(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe')
 
 
 ### input files
