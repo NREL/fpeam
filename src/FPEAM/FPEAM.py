@@ -62,6 +62,8 @@ class FPEAM(object):
             except AssertionError:
                 _module_error = True
                 LOGGER.error('invalid module name: %s; must be one of: %s' % (_module, ', '.join(list(self.MODULES.keys()))))
+            else:
+                self._modules[_module] = self.MODULES[_module]
 
         if _module_error:
             raise Exception('invalid module name')
