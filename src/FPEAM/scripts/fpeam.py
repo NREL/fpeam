@@ -1,5 +1,4 @@
 """Executes FPEAM against given datasets and configuration files."""
-import pdb
 import argparse
 import logging
 import os
