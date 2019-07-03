@@ -1894,16 +1894,19 @@ class MOVES(Module):
         # for use in postprocessing
         self.prod_moves_runs = _prod_merge.merge(self.moves_run_list,
                                                  left_on='state',
-                                                 right_on='MOVES_run_state')[
-            ['fips',
-             'MOVES_run_fips',
-             'state',
-             'region_production',
-             'region_destination',
-             'tillage_type',
-             'feedstock',
-             'feedstock_measure',
-             'feedstock_amount']].drop_duplicates()
+                                                 right_on='MOVES_run_state')[['fips',
+                                                                              'MOVES_run_fips',
+                                                                              'state',
+                                                                              'region_production',
+                                                                              'region_destination',
+                                                                              'tillage_type',
+                                                                              'feedstock',
+                                                                              'feedstock_measure',
+                                                                              'feedstock_amount',
+                                                                              'source_lon',
+                                                                              'source_lat',
+                                                                              'destination_lon',
+                                                                              'destination_lat']].drop_duplicates()
 
         # @NOTE prod_moves_runs is being stored in self as a potential
         # output or check on functionality; it'll also be used in
