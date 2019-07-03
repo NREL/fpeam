@@ -16,7 +16,7 @@ emission_factors ='{emission_factors}'"""
 
     print(tmpFolder)
 
-    my_ini_file_path = os.path.join(tmpFolder, "fugitiveDust.ini")
+    my_ini_file_path = os.path.join(tmpFolder, "fugitivedust.ini")
     with open(my_ini_file_path, 'w') as f:
         f.write(my_ini_config)
 

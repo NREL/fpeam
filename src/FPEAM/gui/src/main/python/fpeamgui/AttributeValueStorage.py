@@ -9,7 +9,7 @@ class AttributeValueStorage:
         self.module = 'NONROAD', 'MOVES', 'emissionfactors', 'fugitivedust'
         self.loggerLevel = "DEBUG"
         self.equipment = 'data/equipment/bts16_equipment.csv'
-        self.production = 'data/production/prod_2015_bc1060.csv'
+        self.production = 'data/production/production_2015_bc1060.csv'
         self.feedstockLossFactors = 'data/inputs/feedstock_loss_factors.csv'
         self.transportationGraph = 'data/inputs/transportation_graph.csv'
         self.countyNodes = 'data/inputs/county_nodes.csv'

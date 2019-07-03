@@ -1530,17 +1530,31 @@ class AlltabsModule(QtWidgets.QWidget):
         attributeValueObj.projectPath = self.lineEditProjectPath.text().strip()
 
         # Check which module is selected
-        self.selected_module_list = []
+        self.selected_module_string = ""
         if self.checkBoxMoves.isChecked():
-            attributeValueObj.module = self.selected_module_list.append(self.checkBoxMoves.text())
+            #attributeValueObj.module = self.selected_module_list.append(self.checkBoxMoves.text())
+            self.selected_module_string += "'" + self.checkBoxMoves.text() + "'"
+            attributeValueObj.module = self.selected_module_string
+            self.selected_module_string += ", "
         if self.checkBoxNonroad.isChecked():
-            attributeValueObj.module = self.selected_module_list.append(self.checkBoxNonroad.text())
-        if self.checkBoxEmissionFactors.isChecked():
-            attributeValueObj.module = self.selected_module_list.append(self.checkBoxEmissionFactors.text())
-        if self.checkBoxFugitiveDust.isChecked():
-            attributeValueObj.module = self.selected_module_list.append(self.checkBoxFugitiveDust.text())
 
-        attributeValueObj.module = self.selected_module_list
+            #attributeValueObj.module = self.selected_module_list.append(self.checkBoxNonroad.text())
+            self.selected_module_string += "'" + self.checkBoxNonroad.text() + "'"
+            attributeValueObj.module = self.selected_module_string
+            self.selected_module_string += ", "
+        if self.checkBoxEmissionFactors.isChecked():
+
+            #attributeValueObj.module = self.selected_module_list.append(self.checkBoxEmissionFactors.text())
+            self.selected_module_string +=  "'" + self.checkBoxEmissionFactors.text() + "'"
+            attributeValueObj.module = self.selected_module_string
+            self.selected_module_string += ", "
+        if self.checkBoxFugitiveDust.isChecked():
+
+            #attributeValueObj.module = "'" + self.selected_module_list.append(self.checkBoxFugitiveDust.text())
+            self.selected_module_string +=  "'" + self.checkBoxFugitiveDust.text() + "'"
+            attributeValueObj.module = self.selected_module_string
+
+        #attributeValueObj.module = self.selected_module_list
 
         changedVerboLoggerLevel = self.comboBoxVerbosityLevel.currentText()
         if changedVerboLoggerLevel:
@@ -1548,10 +1562,18 @@ class AlltabsModule(QtWidgets.QWidget):
 
         changedBackfill = self.comboBoxBF.currentText()
         if changedBackfill:
+            if changedBackfill == "No":
+                changedBackfill = False
+            else:
+                changedBackfill = True
             attributeValueObj.backfill = changedBackfill
 
         changedRouterEngine = self.comboBoxRE.currentText()
         if changedRouterEngine:
+            if changedRouterEngine == "No":
+                changedRouterEngine = False
+            else:
+                changedRouterEngine = True
             attributeValueObj.useRouterEngine = changedRouterEngine
 
         if self.radioButtonEqCustom.isChecked():
@@ -1656,19 +1678,15 @@ class AlltabsModule(QtWidgets.QWidget):
         changedYearNonroad = self.comboBoxYearNon.currentText()
         if changedYearNonroad:
             attributeValueObj.yearNonroad = changedYearNonroad
-        print(attributeValueObj.yearNonroad)
 
         if self.radioButtonFipsNonCustom.isChecked():
             attributeValueObj.regionFipsMapNonroad = self.lineEditFipsNon.text().strip()
-        print(attributeValueObj.regionFipsMapNonroad)
 
         if self.radioButtonDatafilesNonCustom.isChecked():
             attributeValueObj.nonroadDatafilesPath = self.lineEditDatafilesNon.text().strip()
-        print(attributeValueObj.nonroadDatafilesPath)
 
         if self.radioButtonNonIrrigCustom.isChecked():
             attributeValueObj.irrigation = self.lineEditNonIrrig.text().strip()
-        print(attributeValueObj.irrigation)
 
 
 
@@ -1722,7 +1740,7 @@ class AlltabsModule(QtWidgets.QWidget):
         # run FugitiveDust module
         command = "fpeam " + runConfigObj + " --emissionfactors_config " + emissionFactorsConfigCreationObj
         print(command)
-        t = threading.Thread(target= runCommand , args = (command , ))
+        t = threading.Thread(target= runCommand , args = (runConfigObj , emissionFactorsConfigCreationObj, ))
         t.start()
 
         while t.is_alive():
@@ -1731,9 +1749,6 @@ class AlltabsModule(QtWidgets.QWidget):
 
         t.join()
 
-        print("current directory "+os.getcwd())
-        print("###################")
-        #################################################
 
 
     #########################################################################################################################
@@ -1783,36 +1798,36 @@ class AlltabsModule(QtWidgets.QWidget):
 
         ####### ==================================================================
 
-def runCommand(command):
+def runCommand(runConfigObj , emissionFactorsConfigCreationObj):
     #runModuleCommand = "fpeam " + runConfigObj + " --emissionfactors_config " + emissionFactorsConfigCreationObj
 
-    runModuleCommad = command
-
-    process = subprocess.Popen(runModuleCommad, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    while process.poll():
-        print("running")
-        time.sleep(1)
-    output, error = process.communicate()
-    print("--------------")
-
-    print("Output" + str(output, "utf-8") + "\n" + "Error" + str(error, "utf-8"))
+    # runModuleCommad = command
     #
-    # # load config options
-    # _config = IO.load_configs(args.emissionfactors_config,
-    #                           args.run_config)
+    # process = subprocess.Popen(runModuleCommad, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     #
-    # with FPEAM(run_config=_config) as _fpeam:
-    #     _fpeam.run()
+    # while process.poll():
+    #     print("running")
+    #     time.sleep(1)
+    # output, error = process.communicate()
+    # print("--------------")
     #
-    #     # save the raw results to the project path folder specified in run_config
-    #     _fpath = os.path.join(_fpeam.config['project_path'],
-    #                           '%s_raw.csv' % _fpeam.config['scenario_name'])
-    #     _fpeam.results.to_csv(_fpath, index=False)
-    #
-    #     # save several summarized results files to the project folder
-    #     _fpeam.summarize()
+    # print("Output" + str(output, "utf-8") + "\n" + "Error" + str(error, "utf-8"))
 
+    # load config options
+    _config = IO.load_configs(emissionFactorsConfigCreationObj, runConfigObj)
+    print(_config)
+
+    with FPEAM(run_config=_config) as _fpeam:
+        _fpeam.run()
+
+        # save the raw results to the project path folder specified in run_config
+        _fpath = os.path.join(_fpeam.config['project_path'],
+                              '%s_raw.csv' % _fpeam.config['scenario_name'])
+        _fpeam.results.to_csv(_fpath, index=False)
+
+        # save several summarized results files to the project folder
+        _fpeam.summarize()
+        print("Done")
 
 ##############################################################################################
 

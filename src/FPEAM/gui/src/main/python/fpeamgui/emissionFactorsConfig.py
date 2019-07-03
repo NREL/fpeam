@@ -30,10 +30,8 @@ def emissionFactorsConfigCreation(tmpFolder, attributeValueObj):
     #                                            emission_factors = attributeValueObj.emissionFactorsEF,
     #                                            resource_distribution = attributeValueObj.resourceDistributionEF)
 
-    print(my_ini_config)
-    print("######## INI File #")
 
-    my_ini_file_path = os.path.join(tmpFolder,"emissionFactors.ini")
+    my_ini_file_path = os.path.join(tmpFolder,"emissionfactors.ini")
     with open(my_ini_file_path, 'w') as f:
         f.write(my_ini_config)
 
