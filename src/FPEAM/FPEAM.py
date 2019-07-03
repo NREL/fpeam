@@ -42,6 +42,8 @@ class FPEAM(object):
         self._fertilizer_distribution = None
         self._fugitive_dust = None
 
+        self.router = None
+
         self._temp_dir = tempfile.mkdtemp()
 
         self.memory = Memory(location=self._temp_dir)
@@ -77,6 +79,8 @@ class FPEAM(object):
                 self.router = Router(edges=_transportation_graph,
                                      node_map=_county_nodes,
                                      memory=self.memory)
+        else:
+            LOGGER.warning('Using fixed distance(s) for all transportation distances')
 
         for _module in _modules:
             _config = run_config.get(_module.lower(), None) or \
