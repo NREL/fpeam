@@ -42,6 +42,8 @@ class FPEAM(object):
         self._fertilizer_distribution = None
         self._fugitive_dust = None
 
+        self.router = None
+
         self._temp_dir = tempfile.mkdtemp()
 
         self.memory = Memory(location=self._temp_dir)
@@ -60,6 +62,8 @@ class FPEAM(object):
             except AssertionError:
                 _module_error = True
                 LOGGER.error('invalid module name: %s; must be one of: %s' % (_module, ', '.join(list(self.MODULES.keys()))))
+            else:
+                self._modules[_module] = self.MODULES[_module]
 
         if _module_error:
             raise Exception('invalid module name')
@@ -68,7 +72,7 @@ class FPEAM(object):
         self.production = Data.Production(fpath=self.config.get('production'), backfill=self.config.as_bool('backfill')).reset_index().rename({'index': 'row_id'}, axis=1)
         self.feedstock_loss_factors = Data.FeedstockLossFactors(fpath=self.config.get('feedstock_loss_factors'), backfill=self.config.as_bool('backfill')).reset_index().rename({'index': 'row_id'}, axis=1)
 
-        if self.config.as_bool('use_router_engine'):
+        if self.config.as_bool('use_router_engine') and ('MOVES' in self._modules.keys() or 'fugitivedust' in self._modules.keys()):
             _transportation_graph = Data.TransportationGraph(fpath=self.config.get('transportation_graph'), backfill=self.config.as_bool('backfill'))
             _county_nodes = Data.TransportationNodeLocations(fpath=self.config.get('node_locations'), backfill=self.config.as_bool('backfill'))
 
@@ -77,6 +81,9 @@ class FPEAM(object):
                 self.router = Router(edges=_transportation_graph,
                                      node_map=_county_nodes,
                                      memory=self.memory)
+        else:
+            if 'MOVES' in self._modules.keys() or 'fugitivedust' in self._modules.keys():
+                LOGGER.warning('Using fixed distance(s) for all transportation distances')
 
         for _module in _modules:
             _config = run_config.get(_module.lower(), None) or \

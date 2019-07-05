@@ -47,18 +47,18 @@ moves_output_db = string(default='moves_output_db')
 ### MOVES application options
 
 ## the moves version used only for human reference; it's ignored by MOVES
-moves_version = string(default='MOVES2014b-20151028')
+moves_version = string(default='MOVES')
 
 ## this directory contains all input files created for MOVES runs
-moves_datafiles_path = filepath(default='C:\MOVESdata',  max_length=30)
+moves_datafiles_path = filepath(default='C:\MOVESdata', max_length=30)
 
 ## use this path to specify which version of MOVES should be run
-moves_path = filepath(default='C:\MOVES2014b)
+moves_path = filepath(default='C:\MOVES2014b')
 
 
 ### MySQL options
-mysql_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe')
-mysqldump_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe')
+mysql_binary = filepath(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe')
+mysqldump_binary = filepath(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe')
 
 
 ### input files
