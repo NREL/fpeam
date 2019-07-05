@@ -21,7 +21,8 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, feedstock_loss_factors, router=None, backfill=True,
+    def __init__(self, config, production, feedstock_loss_factors, vmt_short_haul,
+                 router=None, backfill=True,
                  **kvals):
         """
 
@@ -37,6 +38,10 @@ class MOVES(Module):
         self.production = production
 
         self.feedstock_loss_factors = feedstock_loss_factors
+
+        # user input - default values used for running MOVES, actual VMT
+        #  used to compute total emission in postprocessing
+        self.vmt_short_haul = vmt_short_haul
 
         # create a dictionary of conversion factors for later use
         self.conversion_factors = self._set_conversions()
@@ -141,10 +146,6 @@ class MOVES(Module):
             raise RuntimeError('moves_by_state and '
                                'moves_by_state_and_feedstock cannot both be '
                                'True')
-
-        # user input - default values used for running MOVES, actual VMT
-        #  used to compute total emission in postprocessing
-        self.vmt_short_haul = self.config.as_int('vmt_short_haul')
 
         # user input - population of combination short-haul trucks (assume one
         # per trip and only run MOVES for single trip)

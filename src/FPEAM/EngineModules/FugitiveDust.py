@@ -4,7 +4,7 @@ from FPEAM import utils
 from .Module import Module
 from ..Data import FugitiveDustFactors, TruckCapacity, SiltContent,\
     FugitiveDustOnroadConstants
-
+import pdb
 
 LOGGER = utils.logger(name=__name__)
 
@@ -12,8 +12,8 @@ LOGGER = utils.logger(name=__name__)
 class FugitiveDust(Module):
     """Base class to manage execution of on-farm fugitive dust calculations"""
 
-    def __init__(self, config, production, feedstock_loss_factors, router=None,
-                 backfill=True, **kvals):
+    def __init__(self, config, production, feedstock_loss_factors, vmt_short_haul,
+                 router=None, backfill=True, **kvals):
         """
         :param config [ConfigObj] configuration options
         :param production: [DataFrame] production values
@@ -26,8 +26,8 @@ class FugitiveDust(Module):
         self.production = production
 
         self._router = router
-        self.vmt_short_haul = self.config.as_int('vmt_short_haul')
-
+        self.vmt_short_haul = vmt_short_haul
+        pdb.set_trace()
         self.onfarm_feedstock_measure_type = self.config.get('onfarm_feedstock_measure_type')
         self.onroad_feedstock_measure_type = self.config.get('onroad_feedstock_measure_type')
 
@@ -48,7 +48,7 @@ class FugitiveDust(Module):
         # pull out relevant subset of production data
         self.prod_onfarm = self.production[_prod_rows_onfarm][_prod_columns]
         self.prod_onroad = self.production[_prod_rows_onroad][_prod_columns]
-
+        pdb.set_trace()
         self.feedstock_loss_factors = feedstock_loss_factors
 
         # these inputs are datasets read in from csv files
@@ -136,7 +136,7 @@ class FugitiveDust(Module):
 
         # merge loss factors with prod df
         _df = _prod.merge(_loss_factors_farmgate, on='feedstock')
-
+        pdb.set_trace()
         # calculate farmgate feedstock amount by applying loss factors
         _df['feedstock_amount'] = _df['feedstock_amount'] * _df['dry_matter_remaining']
 
@@ -192,7 +192,7 @@ class FugitiveDust(Module):
                                                         (self.fugitive_dust_onroad_constants['pollutant'] == 'pm2.5')][['constant', 'value']].set_index('constant').to_dict()['value']
         _pav_pm10 = self.fugitive_dust_onroad_constants[(self.fugitive_dust_onroad_constants['road_type'] == 'paved primary') &
                                                         (self.fugitive_dust_onroad_constants['pollutant'] == 'pm10')][['constant', 'value']].set_index('constant').to_dict()['value']
-
+        pdb.set_trace()
         # mileage per feedstock-county combination on unpaved roads is
         # assumed to be 2 miles for ag feedstocks and 10 miles for forestry
         # feedstocks, per BTS16 Ch 9
@@ -208,15 +208,17 @@ class FugitiveDust(Module):
                  global_dict=_unp_pm25, inplace=True)
         _df.eval('unp_pm10 = trips * unp_vmt * @k * (uprsm_pct_silt/12)**@A * (@W/3)**@B',
                  global_dict=_unp_pm10, inplace=True)
-
+        pdb.set_trace()
         # the router engine must be used to calculate the onroad, paved fugdust
         # since we need vmt by county *for every county along the route* in
         # order to do the calculations properly
 
         # get routing information between each unique latlong_production and
         # latlong_destination pair
-        _routes = _df[['latlong_production',
-                       'latlong_destination']].drop_duplicates()
+        _routes = _df[['source_lon',
+                       'source_lat',
+                       'destination_lon',
+                       'destination_lat']].drop_duplicates()
 
         # if routing engine is specified, use it to get the route (fips and
         # vmt) for each unique latlong_production and latlong_destination pair
