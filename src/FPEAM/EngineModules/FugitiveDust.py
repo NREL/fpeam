@@ -4,7 +4,7 @@ from FPEAM import utils
 from .Module import Module
 from ..Data import FugitiveDustFactors, TruckCapacity, SiltContent,\
     FugitiveDustOnroadConstants
-import pdb
+
 
 LOGGER = utils.logger(name=__name__)
 
@@ -218,7 +218,7 @@ class FugitiveDust(Module):
                  global_dict=_unp_pm25, inplace=True)
         _df.eval('unp_pm10 = trips * unp_vmt * @k * (uprsm_pct_silt/12)**@A * (@W/3)**@B',
                  global_dict=_unp_pm10, inplace=True)
-        pdb.set_trace()
+
         # the router engine must be used to calculate the onroad, paved fugdust
         # since we need vmt by county *for every county along the route* in
         # order to do the calculations properly
@@ -229,7 +229,7 @@ class FugitiveDust(Module):
                        'source_lat',
                        'destination_lon',
                        'destination_lat']].drop_duplicates()
-        pdb.set_trace()
+
         # if routing engine is specified, use it to get the route (fips and
         # vmt) for each unique latlong_production and latlong_destination pair
         if self.router is not None:
@@ -245,12 +245,12 @@ class FugitiveDust(Module):
                                                               _routes.source_lat.iloc[i]),
                                                        end=(_routes.destination_lon.iloc[i],
                                                             _routes.destination_lat.iloc[i]))
-                pdb.set_trace()
-                # add identifier columns for later merging with _run_emissions
+
+                # add identifier columns for later merging
                 _vmt_by_county['source_lon'] = _routes.source_lon.iloc[i]
                 _vmt_by_county['source_lat'] = _routes.source_lat.iloc[i]
-                _vmt_by_county['destination_lon'] = _routes.source_lon.iloc[i]
-                _vmt_by_county['destination_lat'] = _routes.source_lat.iloc[i]
+                _vmt_by_county['destination_lon'] = _routes.destination_lon.iloc[i]
+                _vmt_by_county['destination_lat'] = _routes.destination_lat.iloc[i]
 
                 # either create the data frame to store all routes,
                 # or append the current route
@@ -263,13 +263,21 @@ class FugitiveDust(Module):
                                                          ignore_index=True,
                                                          sort=True)
 
+            # @todo what's fclass and is this the correct treatment?
+            _vmt_by_county_all_routes = _vmt_by_county_all_routes.groupby(['region_transportation',
+                                                                           'source_lon', 'source_lat',
+                                                                           'destination_lon', 'destination_lat'],
+                                                                          as_index=False).sum()
+
+            del _vmt_by_county_all_routes['fclass']
+
             # after the loop through all routes is complete, merge the data
             # frame containing all routes with _run_emissions
             _df = _df.merge(_vmt_by_county_all_routes,
-                            how='left', on=['source_lon',
-                                            'source_lat',
-                                            'destination_lon',
-                                            'destination_lat'])
+                            how='outer', on=['source_lon',
+                                             'source_lat',
+                                             'destination_lon',
+                                             'destination_lat'])
 
         else:
             # if user has specified NOT to use the router engine, use the
@@ -295,12 +303,16 @@ class FugitiveDust(Module):
         # activity column says "on-road fugitive dust"
         # module column says "fugitive dust"
         _fugdust = _df[['feedstock', 'tillage_type', 'region_production',
-                        'region_destination', 'region_transportation',
-                        'equipment_group', 'unp_pm25', 'unp_pm10', 'pav_pm25',
+                        'region_transportation', 'source_lon', 'source_lat',
+                        'destination_lon', 'destination_lat',
+                        'unp_pm25', 'unp_pm10', 'pav_pm25',
                         'pav_pm10']].copy().melt(id_vars=['feedstock',
                                                           'tillage_type',
                                                           'region_production',
-                                                          'region_destination',
+                                                          'source_lon',
+                                                          'source_lat',
+                                                          'destination_lon',
+                                                          'destination_lat',
                                                           'region_transportation'],
                                                  value_vars=['unp_pm25',
                                                              'unp_pm10',
@@ -313,7 +325,7 @@ class FugitiveDust(Module):
         _fugdust['pollutant'] = _fugdust.loc[:, 'road_pollutant'].str[-4:]
 
         _fugdust['activity'] = 'on road fugitive dust'
-        pdb.set_trace()
+
         _fugdust.loc[_fugdust.road_pollutant.isin(['unp_pm25',
                                                    'unp_pm10']), 'activity'] = 'on unpaved road fugitive dust'
         _fugdust.loc[_fugdust.road_pollutant.isin(['pav_pm25',
