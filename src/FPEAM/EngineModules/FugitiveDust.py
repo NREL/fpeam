@@ -13,7 +13,7 @@ class FugitiveDust(Module):
     """Base class to manage execution of on-farm fugitive dust calculations"""
 
     def __init__(self, config, production, feedstock_loss_factors, truck_capacity,
-                 vmt_short_haul,
+                 vmt_short_haul, forestry_feedstock_names,
                  router=None, backfill=True, **kvals):
         """
         :param config [ConfigObj] configuration options
@@ -32,7 +32,7 @@ class FugitiveDust(Module):
         self.onfarm_feedstock_measure_type = self.config.get('onfarm_feedstock_measure_type')
         self.onroad_feedstock_measure_type = self.config.get('onroad_feedstock_measure_type')
 
-        self.forestry_feedstock_names = self.config.get('forestry_feedstock_names')
+        self.forestry_feedstock_names = forestry_feedstock_names
 
         self.region_fips_map = self.config.get('region_fips_map')
 
@@ -57,7 +57,7 @@ class FugitiveDust(Module):
 
         # these inputs are datasets read in from csv files
         self.truck_capacity = truck_capacity
-        pdb.set_trace()
+
         self.fugitive_dust_factors = FugitiveDustFactors(fpath=self.config.get('fugitive_dust_factors'),
                                           backfill=backfill)
         self.silt_content = SiltContent(fpath=self.config.get('silt_content'),
@@ -100,8 +100,14 @@ class FugitiveDust(Module):
         # add column to identify source of fugitive dust
         _df['activity'] = 'on farm fugitive dust'
 
+        # add dummy column for region_transportation so the two fugitive dust
+        # results dfs can be stacked
+        _df['region_transportation'] = np.nan
+
         # clean up DataFrame
-        _df = _df[['region_production', 'feedstock',
+        _df = _df[['region_production', 'source_lon', 'source_lat',
+                   'destination_lon', 'destination_lat',
+                   'region_transportation', 'feedstock',
                    'tillage_type', 'module', 'activity',
                    'pollutant', 'pollutant_amount']]
 
@@ -140,7 +146,7 @@ class FugitiveDust(Module):
 
         # merge loss factors with prod df
         _df = _prod.merge(_loss_factors_farmgate, on='feedstock')
-        pdb.set_trace()
+
         # calculate farmgate feedstock amount by applying loss factors
         _df['feedstock_amount'] = _df['feedstock_amount'] * _df['dry_matter_remaining']
 
@@ -148,7 +154,7 @@ class FugitiveDust(Module):
         del _df['dry_matter_remaining']
 
         # merge with truck capacity so trips can be calculated
-        _df.merge(self.truck_capacity, on='feedstock')
+        _df = _df.merge(self.truck_capacity, on='feedstock')
 
         # trips calculation accounting for dry matter loss (calc'd above),
         # feedstock-specific truck capacity, and backhauling
@@ -196,7 +202,7 @@ class FugitiveDust(Module):
                                                         (self.fugitive_dust_onroad_constants['pollutant'] == 'pm2.5')][['constant', 'value']].set_index('constant').to_dict()['value']
         _pav_pm10 = self.fugitive_dust_onroad_constants[(self.fugitive_dust_onroad_constants['road_type'] == 'paved primary') &
                                                         (self.fugitive_dust_onroad_constants['pollutant'] == 'pm10')][['constant', 'value']].set_index('constant').to_dict()['value']
-        pdb.set_trace()
+
         # mileage per feedstock-county combination on unpaved roads is
         # assumed to be 2 miles for ag feedstocks and 10 miles for forestry
         # feedstocks, per BTS16 Ch 9
@@ -223,7 +229,7 @@ class FugitiveDust(Module):
                        'source_lat',
                        'destination_lon',
                        'destination_lat']].drop_duplicates()
-
+        pdb.set_trace()
         # if routing engine is specified, use it to get the route (fips and
         # vmt) for each unique latlong_production and latlong_destination pair
         if self.router is not None:
@@ -239,7 +245,7 @@ class FugitiveDust(Module):
                                                               _routes.source_lat.iloc[i]),
                                                        end=(_routes.destination_lon.iloc[i],
                                                             _routes.destination_lat.iloc[i]))
-
+                pdb.set_trace()
                 # add identifier columns for later merging with _run_emissions
                 _vmt_by_county['source_lon'] = _routes.source_lon.iloc[i]
                 _vmt_by_county['source_lat'] = _routes.source_lat.iloc[i]
@@ -307,7 +313,7 @@ class FugitiveDust(Module):
         _fugdust['pollutant'] = _fugdust.loc[:, 'road_pollutant'].str[-4:]
 
         _fugdust['activity'] = 'on road fugitive dust'
-
+        pdb.set_trace()
         _fugdust.loc[_fugdust.road_pollutant.isin(['unp_pm25',
                                                    'unp_pm10']), 'activity'] = 'on unpaved road fugitive dust'
         _fugdust.loc[_fugdust.road_pollutant.isin(['pav_pm25',
@@ -319,7 +325,9 @@ class FugitiveDust(Module):
         _fugdust['unit_numerator'] = 'lb pollutant'
         _fugdust['unit_denominator'] = 'county-year'
 
-        return _fugdust[['region_production', 'region_transportation',
+        return _fugdust[['region_production', 'source_lon', 'source_lat',
+                         'destination_lon', 'destination_lat',
+                         'region_transportation',
                          'feedstock',
                          'tillage_type', 'module', 'activity',
                          'pollutant', 'pollutant_amount']]
@@ -337,14 +345,17 @@ class FugitiveDust(Module):
         _e = None
 
         try:
-            # @todo add in onroad fugdust here
-            _results = self.get_onfarm_fugitivedust()
+            _results_onfarm = self.get_onfarm_fugitivedust()
+            _results_onroad = self.get_onroad_fugitivedust()
         except Exception as e:
             _e = e
             LOGGER.exception(e)
             _status = 'failed'
         else:
             _status = 'complete'
+            _results = _results_onfarm.append(_results_onroad,
+                                              ignore_index=True,
+                                              sort=False)
         finally:
             self.status = _status
             self.results = _results
