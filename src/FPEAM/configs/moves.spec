@@ -60,9 +60,6 @@ mysqldump_binary = filepath(default='C:\Program Files\MySQL\MySQL Server 5.7\bin
 
 ### input files
 
-## truck capacities for feedstock transportation
-truck_capacity = filepath(default='data/inputs/truck_capacity.csv')
-
 ## fuel fraction by engine type
 avft = filepath(default='data/inputs/avft.csv')
 

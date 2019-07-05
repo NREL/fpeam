@@ -28,6 +28,9 @@ transportation_graph = filepath(default='data/inputs/transportation_graph.csv')
 ## if router is not used, assume 20 vehicle miles traveled per biomass production county
 vmt_short_haul = float(default=20)
 
+## truck capacities for feedstock transportation
+truck_capacity = filepath(default='data/inputs/truck_capacity.csv')
+
 ## graph node locations
 node_locations = filepath(default='data/inputs/node_locations.csv')
 

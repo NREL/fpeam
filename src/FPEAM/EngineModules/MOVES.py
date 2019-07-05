@@ -21,7 +21,8 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, feedstock_loss_factors, vmt_short_haul,
+    def __init__(self, config, production, feedstock_loss_factors, truck_capacity,
+                 vmt_short_haul,
                  router=None, backfill=True,
                  **kvals):
         """
@@ -54,8 +55,7 @@ class MOVES(Module):
         self.feedstock_measure_type = self.config.get('feedstock_measure_type')
 
         # this is a DF read in from a csv file
-        self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'),
-                                            backfill=backfill)
+        self.truck_capacity = truck_capacity
 
         # boolean controlling whether available results are used from the MOVES output database
         self.use_cached_results = self.config.get('use_cached_results')

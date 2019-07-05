@@ -12,7 +12,8 @@ LOGGER = utils.logger(name=__name__)
 class FugitiveDust(Module):
     """Base class to manage execution of on-farm fugitive dust calculations"""
 
-    def __init__(self, config, production, feedstock_loss_factors, vmt_short_haul,
+    def __init__(self, config, production, feedstock_loss_factors, truck_capacity,
+                 vmt_short_haul,
                  router=None, backfill=True, **kvals):
         """
         :param config [ConfigObj] configuration options
@@ -27,7 +28,7 @@ class FugitiveDust(Module):
 
         self._router = router
         self.vmt_short_haul = vmt_short_haul
-        pdb.set_trace()
+
         self.onfarm_feedstock_measure_type = self.config.get('onfarm_feedstock_measure_type')
         self.onroad_feedstock_measure_type = self.config.get('onroad_feedstock_measure_type')
 
@@ -39,7 +40,10 @@ class FugitiveDust(Module):
         self.prod_idx = ['feedstock', 'tillage_type']
 
         # define list of columns of interest in production
-        _prod_columns = ['row_id'] + self.prod_idx + ['region_production', 'feedstock_amount']
+        _prod_columns = ['row_id'] + self.prod_idx + \
+                        ['region_production', 'source_lon', 'source_lat',
+                         'destination_lon', 'destination_lat',
+                         'feedstock_amount']
 
         # select only production rows corresponding to the user-defined crop measure
         _prod_rows_onfarm = self.production.feedstock_measure == self.onfarm_feedstock_measure_type
@@ -48,12 +52,12 @@ class FugitiveDust(Module):
         # pull out relevant subset of production data
         self.prod_onfarm = self.production[_prod_rows_onfarm][_prod_columns]
         self.prod_onroad = self.production[_prod_rows_onroad][_prod_columns]
-        pdb.set_trace()
+
         self.feedstock_loss_factors = feedstock_loss_factors
 
         # these inputs are datasets read in from csv files
-        self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'),
-                                            backfill=backfill)
+        self.truck_capacity = truck_capacity
+        pdb.set_trace()
         self.fugitive_dust_factors = FugitiveDustFactors(fpath=self.config.get('fugitive_dust_factors'),
                                           backfill=backfill)
         self.silt_content = SiltContent(fpath=self.config.get('silt_content'),
