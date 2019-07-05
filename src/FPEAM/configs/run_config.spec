@@ -25,6 +25,9 @@ forestry_feedstock_names = string_list(default=list('forest residues', 'forest w
 ## MOVES routing graph
 transportation_graph = filepath(default='data/inputs/transportation_graph.csv')
 
+## if router is not used, assume 20 vehicle miles traveled per biomass production county
+vmt_short_haul = float(default=20)
+
 ## graph node locations
 node_locations = filepath(default='data/inputs/node_locations.csv')
 

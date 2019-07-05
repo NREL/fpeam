@@ -17,9 +17,6 @@ use_cached_results = boolean(default=True)
 ## production table identifier (feedstock_measure in production data)
 feedstock_measure_type = string(default='production')
 
-## if router is not used, assume 20 vmt per biomass production county
-vmt_short_haul = float(default=20)
-
 ## population of combination short-haul trucks per trip
 pop_short_haul = integer(default=1)
 
