@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from FPEAM import utils
 from .Module import Module
 from ..Data import FugitiveDustFactors, TruckCapacity, SiltContent,\
@@ -92,10 +93,13 @@ class FugitiveDust(Module):
         # add column to identify module
         _df['module'] = 'fugitive dust'
 
+        # add column to identify source of fugitive dust
+        _df['activity'] = 'on farm fugitive dust'
+
         # clean up DataFrame
         _df = _df[['region_production', 'feedstock',
-                   'tillage_type', 'module', 'pollutant',
-                   'pollutant_amount']]
+                   'tillage_type', 'module', 'activity',
+                   'pollutant', 'pollutant_amount']]
 
         return _df
 
@@ -110,7 +114,6 @@ class FugitiveDust(Module):
         from data source to data source
         :return: None
         """
-
 
         # apply feedstock loss factors for on-farm dry matter losses, since
         # trips should be calculated based on farm-gate feedstock amounts
@@ -195,8 +198,8 @@ class FugitiveDust(Module):
         # feedstocks, per BTS16 Ch 9
 
         # create column in _df filled with 2.0 to hold the unpaved vmt values
-        # overwrite with 10.0 for forestry feedstocks only
         _df['unp_vmt'] = 2.0
+        # overwrite with 10.0 for forestry feedstocks only
         _df.loc[_df.feedstock.isin(self.forestry_feedstock_names), 'unp_vmt'] = 10.0
 
         # calculate pm25 and pm10 emissions from transpo over unpaved roads in
@@ -210,30 +213,13 @@ class FugitiveDust(Module):
         # since we need vmt by county *for every county along the route* in
         # order to do the calculations properly
 
-        # get routing information between each unique region_production and
-        # region_destination pair
-        _routes = _df[['region_production',
-                       'region_destination']].drop_duplicates()
-
-        # use the region-fips map to generate fips_production and
-        # fips_destination columns - in case any of the regions aren't fips
-        _routes = _routes.merge(self.region_fips_map, how='left',
-                                left_on='region_production',
-                                right_on='region')
-        _routes.rename(index=str, columns={'fips': 'fips_production'},
-                       inplace=True)
-
-        _routes = _routes.merge(self.region_fips_map, how='left',
-                                left_on='region_destination',
-                                right_on='region')[['region_production',
-                                                    'region_destination',
-                                                    'fips_production',
-                                                    'fips']]
-        _routes.rename(index=str, columns={'fips': 'fips_destination'},
-                       inplace=True)
+        # get routing information between each unique latlong_production and
+        # latlong_destination pair
+        _routes = _df[['latlong_production',
+                       'latlong_destination']].drop_duplicates()
 
         # if routing engine is specified, use it to get the route (fips and
-        # vmt) for each unique region_production and region_destination pair
+        # vmt) for each unique latlong_production and latlong_destination pair
         if self.router is not None:
 
             # initialize holder for all routes
@@ -243,15 +229,16 @@ class FugitiveDust(Module):
             for i in np.arange(_routes.shape[0]):
 
                 # use the routing engine to get a route
-                _vmt_by_county = self.router.get_route(
-                    from_fips=_routes.fips_production.iloc[i],
-                    to_fips=_routes.fips_destination.iloc[i])
+                _vmt_by_county = self.router.get_route(start=(_routes.source_lon.iloc[i],
+                                                              _routes.source_lat.iloc[i]),
+                                                       end=(_routes.destination_lon.iloc[i],
+                                                            _routes.destination_lat.iloc[i]))
 
                 # add identifier columns for later merging with _run_emissions
-                _vmt_by_county['region_production'] = \
-                _routes.region_production.iloc[i]
-                _vmt_by_county['region_destination'] = \
-                _routes.region_destination.iloc[i]
+                _vmt_by_county['source_lon'] = _routes.source_lon.iloc[i]
+                _vmt_by_county['source_lat'] = _routes.source_lat.iloc[i]
+                _vmt_by_county['destination_lon'] = _routes.source_lon.iloc[i]
+                _vmt_by_county['destination_lat'] = _routes.source_lat.iloc[i]
 
                 # either create the data frame to store all routes,
                 # or append the current route
@@ -267,8 +254,10 @@ class FugitiveDust(Module):
             # after the loop through all routes is complete, merge the data
             # frame containing all routes with _run_emissions
             _df = _df.merge(_vmt_by_county_all_routes,
-                            how='left', on=['region_production',
-                                            'region_destination'])
+                            how='left', on=['source_lon',
+                                            'source_lat',
+                                            'destination_lon',
+                                            'destination_lat'])
 
         else:
             # if user has specified NOT to use the router engine, use the
@@ -277,7 +266,57 @@ class FugitiveDust(Module):
             _df['region_transportation'] = _df['region_production']
             _df['vmt'] = self.vmt_short_haul
 
+        # calculate pm25 and pm10 from paved primary roads using vmt column
+        # generated by router
+        _df.eval('pav_pm25 = trips * vmt * @k * @s_L**@A * @W**@B',
+                 global_dict=_pav_pm25, inplace=True)
+        _df.eval('pav_pm10 = trips * vmt * @k * @s_L**@A * @W**@B',
+                 global_dict=_pav_pm10, inplace=True)
 
+        # https://pandas.pydata.org/pandas-docs/version/0.23.4/generated/pandas.DataFrame.melt.html#pandas.DataFrame.melt
+        # need one column for pollutant amount and another for pollutant (name)
+        # identifier variables are feedstock, tillage_type, region_production,
+        # region_destination, region_transportation, equipment_group
+        # columns to be melted are unp_pm25, unp_pm10, pav_pm25, pav_pm10
+        # these should be melted into a single column called pollutant_amount
+        # then add another identifier column with the pollutant name
+        # activity column says "on-road fugitive dust"
+        # module column says "fugitive dust"
+        _fugdust = _df[['feedstock', 'tillage_type', 'region_production',
+                        'region_destination', 'region_transportation',
+                        'equipment_group', 'unp_pm25', 'unp_pm10', 'pav_pm25',
+                        'pav_pm10']].copy().melt(id_vars=['feedstock',
+                                                          'tillage_type',
+                                                          'region_production',
+                                                          'region_destination',
+                                                          'region_transportation'],
+                                                 value_vars=['unp_pm25',
+                                                             'unp_pm10',
+                                                             'pav_pm25',
+                                                             'pav_pm10'],
+                                                 var_name='road_pollutant',
+                                                 value_name='pollutant_amount')
+
+        # create column with just pollutant name by trimming last 4 characters
+        _fugdust['pollutant'] = _fugdust.loc[:, 'road_pollutant'].str[-4:]
+
+        _fugdust['activity'] = 'on road fugitive dust'
+
+        _fugdust.loc[_fugdust.road_pollutant.isin(['unp_pm25',
+                                                   'unp_pm10']), 'activity'] = 'on unpaved road fugitive dust'
+        _fugdust.loc[_fugdust.road_pollutant.isin(['pav_pm25',
+                                                   'pav_pm10']), 'activity'] = 'on paved road fugitive dust'
+
+        del _fugdust['road_pollutant']
+
+        _fugdust['module'] = 'fugitive dust'
+        _fugdust['unit_numerator'] = 'lb pollutant'
+        _fugdust['unit_denominator'] = 'county-year'
+
+        return _fugdust[['region_production', 'region_transportation',
+                         'feedstock',
+                         'tillage_type', 'module', 'activity',
+                         'pollutant', 'pollutant_amount']]
 
 
     def run(self):
@@ -292,6 +331,7 @@ class FugitiveDust(Module):
         _e = None
 
         try:
+            # @todo add in onroad fugdust here
             _results = self.get_onfarm_fugitivedust()
         except Exception as e:
             _e = e
