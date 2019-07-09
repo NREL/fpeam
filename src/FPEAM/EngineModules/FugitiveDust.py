@@ -5,7 +5,7 @@ from .Module import Module
 from ..Data import FugitiveDustFactors, TruckCapacity, SiltContent,\
     FugitiveDustOnroadConstants
 
-
+import pdb
 LOGGER = utils.logger(name=__name__)
 
 
@@ -321,6 +321,13 @@ class FugitiveDust(Module):
                                                  var_name='road_pollutant',
                                                  value_name='pollutant_amount')
 
+        # remove the region_transportation values for unpaved road pm emissions
+        # unpaved emissions occur only in production regions
+        _fugdust.loc[_fugdust.road_pollutant.isin(['unp_pm25', 'unp_pm10']), 'region_transportation'] = ''
+
+        # take out duplicate rows to clean up df
+        _fugdust = _fugdust.drop_duplicates()
+        pdb.set_trace()
         # create column with just pollutant name by trimming last 4 characters
         _fugdust['pollutant'] = _fugdust.loc[:, 'road_pollutant'].str[-4:]
 
