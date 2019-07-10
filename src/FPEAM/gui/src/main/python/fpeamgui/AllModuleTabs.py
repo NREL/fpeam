@@ -9,7 +9,6 @@ import logging
 import os
 
 #import args as args
-import self as self
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import QRadioButton, QComboBox, QPushButton, QTextEdit, QFileDialog, QMessageBox, QPlainTextEdit

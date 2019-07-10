@@ -1,4 +1,4 @@
-import os, tempfile, self
+import os, tempfile
 
 
 def nonroadConfigCreation(tmpFolder, attributeValueObj):

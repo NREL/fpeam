@@ -1,4 +1,4 @@
-import os, tempfile, self
+import os, tempfile
 
 
 def movesConfigCreation(tmpFolder, attributeValueObj):
