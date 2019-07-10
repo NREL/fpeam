@@ -768,7 +768,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element VMT Fraction Error
         self.labelVMTFractionError = QLabel()
-        self.labelVMTFractionError.setText("##########")
+        self.labelVMTFractionError.setText("")
         if additionVMTFraction > str(1):
             self.labelVMTFractionError.setText("Sum of all VMT Fraction should be equal to 1")
         self.windowLayout.addWidget(self.labelVMTFractionError, 19, 1)
