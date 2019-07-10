@@ -1510,17 +1510,21 @@ class AlltabsModule(QtWidgets.QWidget):
         # Fugitive Dust code start
         self.windowLayout = QGridLayout()
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
-        self.windowLayout.setColumnStretch(3, 1)
-        self.windowLayout.setColumnStretch(4, 1)
+        self.windowLayout.setColumnStretch(6, 1)
+        # self.windowLayout.setColumnStretch(4, 1)
 
         self.tabFugitiveDust.setLayout(self.windowLayout)
-
 
         # Created UI element Feedstock Measure Type - Fugitive Dust
         self.labelFeedMeasureTypeFD = QLabel()
         self.labelFeedMeasureTypeFD.setText("Feedstock Measure Type")
         self.labelFeedMeasureTypeFD.setToolTip("Production table identifier ")
         self.lineEditFeedMeasureTypeFD = QLineEdit(self)
+        self.lineEditFeedMeasureTypeFD.setStyleSheet("QLineEdit { color:red; }")
+        # palette  = self.lineEditFeedMeasureTypeFD.palette()
+        # palette.setColor(QPalette.Text, Qt.black)
+        # self.lineEditFeedMeasureTypeFD.setPalette(palette)
+        self.lineEditFeedMeasureTypeFD.setFixedWidth(100)
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditFeedMeasureTypeFD.setValidator(validator)
@@ -1528,39 +1532,47 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelFeedMeasureTypeFD, 2, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeFD, 2, 1)
 
-
         # Created UI element Emission Factors - Fugitive Dust
         self.labelEmiFactFD = QLabel()
         self.labelEmiFactFD.setText("Emission Factors")
         self.labelEmiFactFD.setToolTip("Pollutant emission factors for resources")
         self.radioGroupEmiFactFD = QButtonGroup(self.windowLayout)
         self.radioVuttonEmiFactFDDefault = QRadioButton("Default")
+        self.radioVuttonEmiFactFDDefault.setFixedWidth(200)
+        self.radioVuttonEmiFactFDDefault.setFixedHeight(30)
         self.radioVuttonEmiFactFDDefault.setChecked(True)
         self.radioVuttonEmiFactFDDefault.toggled.connect(self.radioButtonEmiFactFDDefaultClicked)
         self.radioButtonEmiFactFDCustom = QRadioButton("Custom")
+        self.radioButtonEmiFactFDCustom.setFixedWidth(200)
+        self.radioButtonEmiFactFDCustom.setFixedHeight(30)
         self.radioButtonEmiFactFDCustom.toggled.connect(self.radioButtonEmiFactFDCustomClicked)
         self.radioGroupEmiFactFD.addButton(self.radioVuttonEmiFactFDDefault)
         self.radioGroupEmiFactFD.addButton(self.radioButtonEmiFactFDCustom)
         self.browseBtnEmiFactFD = QPushButton("Browse", self)
+        self.browseBtnEmiFactFD.setFixedWidth(100)
         self.browseBtnEmiFactFD.setEnabled(False)
         self.browseBtnEmiFactFD.hide()
         self.browseBtnEmiFactFD.clicked.connect(self.getfilesEmiFactFD)
+        # Add Empty PlainText
+        self.emptyPlainTextEmiFactFD = QLabel()
+        self.emptyPlainTextEmiFactFD.setFixedWidth(90)
         self.lineEditEmiFactFD = QLineEdit(self)
+        self.lineEditEmiFactFD.setFixedWidth(100)
         self.lineEditEmiFactFD.setEnabled(False)
         self.lineEditEmiFactFD.hide()
         self.windowLayout.addWidget(self.labelEmiFactFD, 3, 0)
         self.windowLayout.addWidget(self.radioVuttonEmiFactFDDefault, 3, 1)
         self.windowLayout.addWidget(self.radioButtonEmiFactFDCustom, 3, 2)
         self.windowLayout.addWidget(self.browseBtnEmiFactFD, 3, 3)
-        self.windowLayout.addWidget(self.lineEditEmiFactFD, 3, 4)
-
+        self.windowLayout.addWidget(self.emptyPlainTextEmiFactFD, 3, 4)
+        self.windowLayout.addWidget(self.lineEditEmiFactFD, 3, 5)
 
         # Add Empty PlainText
         self.emptyPlainText1 = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText1, 4, 0)
 
+        # Functions used for Emission Factors - - Fugitive Dust
 
-    # Functions used for Emission Factors - - Fugitive Dust
     def radioButtonEmiFactFDDefaultClicked(self, enabled):
         if enabled:
             self.browseBtnEmiFactFD.hide()
@@ -1582,7 +1594,7 @@ class AlltabsModule(QtWidgets.QWidget):
         selectedFileNameTruckCapaFD = str(fileNameEqWitoutBracketTruckCapaFD).split(',')
         self.lineEditEmiFactFD.setText(selectedFileNameTruckCapaFD[1])
 
-
+###################################################################
 
     # Run Button
     def runTheSelectedModules(self):
