@@ -1183,11 +1183,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         if self.tabMoves.isEnabled():
             fieldValues.add(self.comboBoxYear.currentText())
-            fieldNames.append("Moves")
+            fieldNames.append("MOVES")
 
         if self.tabNonroad.isEnabled():
             fieldValues.add(self.comboBoxYearNon.currentText())
-            fieldNames.append("Nonroad")
+            fieldNames.append("NONROAD")
 
         print(fieldValues)
         if len(fieldValues) == 1:
