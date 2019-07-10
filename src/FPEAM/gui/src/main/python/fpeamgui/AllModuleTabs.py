@@ -5,13 +5,14 @@
 # Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
+import logging
 import os
 
 #import args as args
 import self as self
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
-from PyQt5.QtWidgets import QRadioButton, QComboBox, QPushButton, QTextEdit, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QRadioButton, QComboBox, QPushButton, QTextEdit, QFileDialog, QMessageBox, QPlainTextEdit
 from PyQt5.QtWidgets import QGridLayout, QLabel, QButtonGroup, QLineEdit, QSpinBox, QCheckBox
 
 
@@ -1826,7 +1827,7 @@ class AlltabsModule(QtWidgets.QWidget):
         # run FugitiveDust module
         command = "fpeam " + runConfigObj + " --emissionfactors_config " + emissionFactorsConfigCreationObj
         print(command)
-        t = threading.Thread(target= runCommand , args = (runConfigObj , emissionFactorsConfigCreationObj, ))
+        t = threading.Thread(target= runCommand , args = (runConfigObj , emissionFactorsConfigCreationObj, attributeValueObj, ))
         t.start()
 
         while t.is_alive():
@@ -1835,7 +1836,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         t.join()
 
+        # Display logs in result tab after completion of running
+        self.centralwidget.setCurrentWidget(self.tabResult)
 
+        # Set logs to Plaintext in Result tab
+        self.plainTextLog.setPlainText(attributeValueObj.logContents)
 
     #########################################################################################################################
 
@@ -1849,13 +1854,43 @@ class AlltabsModule(QtWidgets.QWidget):
         self.centralwidget.addTab(self.tabResult, "RESULT")
 
         # Result code start
-        self.windowLayout = QGridLayout()
-        self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
+        windowLayout = QGridLayout()
+        windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
 
-        self.windowLayout.setColumnStretch(3, 1)
-        self.windowLayout.setColumnStretch(4, 1)
+        self.windowLayout.setColumnStretch(6, 1)
+        # self.windowLayout.setColumnStretch(4, 1)
 
-        self.tabResult.setLayout(self.windowLayout)
+        self.plainTextLog = QPlainTextEdit()
+        self.plainTextLog.setPlainText("")
+        self.plainTextLog.setFixedSize(500, 200)
+        self.plainTextLog.setReadOnly(True)
+        windowLayout.addWidget(self.plainTextLog, 0, 0)
+
+        self.plainTextMOVESGraph = QPlainTextEdit()
+        self.plainTextMOVESGraph.setReadOnly(True)
+        self.plainTextMOVESGraph.setFixedSize(500, 200)
+        self.plainTextMOVESGraph.setPlainText("MOVES Graph")
+        windowLayout.addWidget(self.plainTextMOVESGraph, 1, 0)
+
+        self.plainTextNONROADGraph = QPlainTextEdit()
+        self.plainTextNONROADGraph.setReadOnly(True)
+        self.plainTextNONROADGraph.setFixedSize(500, 200)
+        self.plainTextNONROADGraph.setPlainText("NONROAD Graph")
+        windowLayout.addWidget(self.plainTextNONROADGraph, 1, 1)
+
+        self.plainTextEmissionFactorsGraph = QPlainTextEdit()
+        self.plainTextEmissionFactorsGraph.setReadOnly(True)
+        self.plainTextEmissionFactorsGraph.setFixedSize(500, 200)
+        self.plainTextEmissionFactorsGraph.setPlainText("Emissionfactors Graph")
+        windowLayout.addWidget(self.plainTextEmissionFactorsGraph, 2, 0)
+
+        self.plainTextFugitivedustGraph = QPlainTextEdit()
+        self.plainTextFugitivedustGraph.setReadOnly(True)
+        self.plainTextFugitivedustGraph.setFixedSize(500, 200)
+        self.plainTextFugitivedustGraph.setPlainText("Fugitivedust Graph")
+        windowLayout.addWidget(self.plainTextFugitivedustGraph, 2, 1)
+
+        self.tabResult.setLayout(windowLayout)
 
 
         #########################################################################################################################
@@ -1884,20 +1919,26 @@ class AlltabsModule(QtWidgets.QWidget):
 
         ####### ==================================================================
 
-def runCommand(runConfigObj , emissionFactorsConfigCreationObj):
-    #runModuleCommand = "fpeam " + runConfigObj + " --emissionfactors_config " + emissionFactorsConfigCreationObj
+def runCommand(runConfigObj , emissionFactorsConfigCreationObj, attributeValueStorageObj):
+    # Generate Logs
+    logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
+                                              ' [%(filename)s:%(module)s.'
+                                              '%(funcName)s.%(lineno)d] %(message)s',
+                        stream=attributeValueStorageObj.streamGenerated)
 
-    # runModuleCommad = command
-    #
-    # process = subprocess.Popen(runModuleCommad, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    #
-    # while process.poll():
-    #     print("running")
-    #     time.sleep(1)
-    # output, error = process.communicate()
-    # print("--------------")
-    #
-    # print("Output" + str(output, "utf-8") + "\n" + "Error" + str(error, "utf-8"))
+    # Set Logger level according to selection of Verbosity Logger Level on Home Page
+    if attributeValueStorageObj.loggerLevel == "INFO":
+        logging.getLogger().setLevel(logging.INFO)
+    elif attributeValueStorageObj.loggerLevel == "DEBUG":
+        logging.getLogger().setLevel(logging.DEBUG)
+    elif attributeValueStorageObj.loggerLevel == "WARNING":
+        logging.getLogger().setLevel(logging.WARNING)
+    elif attributeValueStorageObj.loggerLevel == "ERROR":
+        logging.getLogger().setLevel(logging.ERROR)
+    elif attributeValueStorageObj.loggerLevel == "CRITICAL":
+        logging.getLogger().setLevel(logging.CRITICAL)
+    elif attributeValueStorageObj.loggerLevel == "UNSET":
+        logging.getLogger().setLevel(logging.NOTSET)
 
     # load config options
     _config = IO.load_configs(emissionFactorsConfigCreationObj, runConfigObj)
@@ -1915,40 +1956,11 @@ def runCommand(runConfigObj , emissionFactorsConfigCreationObj):
         _fpeam.summarize()
         print("Done")
 
+    attributeValueStorageObj.logContents = attributeValueStorageObj.streamGenerated.getvalue()
+
 ##############################################################################################
 
 
-# Merge config files
-
-# def ParseThis(file1, file2):
-#     parser = ConfigParser()
-#     parser.read(file1)
-#
-#     for option in parser.options(file2):
-#         print("\t" + option)
-#         try:
-#             if parser.get(file2, option) != 'None':
-#                 print(option + ": " + parser.get(file2, option))
-#             else:
-#                 print(option + ": Option doesn't exist")
-#         except:
-#             print(option + ": Something went wrong")
-
-# print "First File:"
-# print "Section 1"
-# ParseThis('emmissionfactors.ini', 'run_config.ini')
-
-#
-# print "\n"
-# print "Second File: "
-# print "Section 1"
-# ParseThis('test1.ini', 'Section 1')
-#
-# print "\n"
-# print "First File: "
-# print "Section 1"
-# ParseThis('runConfig.ini', 'fugitiveDustConfig.ini')
-##############################################################################################
 
 if __name__ == "__main__":
     import sys

@@ -1,7 +1,13 @@
 
+import io
+
 class AttributeValueStorage:
 
     def __init__(self):
+
+
+        self.logContents = ""
+        self.streamGenerated = io.StringIO()
 
         # FPEAM home page - Attribute Initialization
         self.scenarioName = "test"
