@@ -485,28 +485,16 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element Moves Path
         self.MovesPathLable = QLabel()
         self.MovesPathLable.setText("Moves Path")
-        self.MovesPathLable.setToolTip("Path where Moves is installed. If it's not installed, then download from the link - <a href ='https://www.epa.gov/moves/moves-versions-limited-current-use#downloading-2014a'>MOVES</a> ")
-        #self.MovesPathLable.setToolTipDuration(10)
-        self.radioGroupMovesPath = QButtonGroup(self.windowLayout)
-        self.radioButtonMovesPathDefault = QRadioButton("Default")
-        self.radioButtonMovesPathDefault.setChecked(True)
-        self.radioButtonMovesPathDefault.toggled.connect(self.radioButtonDeMovesPathDefaultClicked)
-        self.radioButtonMovesPathCustom = QRadioButton("Custom")
-        self.radioButtonMovesPathCustom.toggled.connect(self.radioButtonDeMovesPathCustomClicked)
-        self.radioGroupMovesPath.addButton(self.radioButtonMovesPathDefault)
-        self.radioGroupMovesPath.addButton(self.radioButtonMovesPathCustom)
+        self.MovesPathLable.setToolTip("Path where Moves is installed. If it's not installed, then download from the "
+                                       "link - "
+                                       "<a href ='https://www.epa.gov/moves/moves-versions-limited-current-use#downloading-2014a'>MOVES</a> ")
         self.browseBtnMovesPath = QPushButton("Browse", self)
-        self.browseBtnMovesPath.setEnabled(False)
-        self.browseBtnMovesPath.hide()
         self.browseBtnMovesPath.clicked.connect(self.getfilesMovesPath)
         self.lineEditMovesPath = QLineEdit(self)
-        self.lineEditMovesPath.setEnabled(False)
-        self.lineEditMovesPath.hide()
+        self.lineEditMovesPath.setPlaceholderText("C:\MOVES2014b")
         self.windowLayout.addWidget(self.MovesPathLable, 4, 0)
-        self.windowLayout.addWidget(self.radioButtonMovesPathDefault, 4, 1)
-        self.windowLayout.addWidget(self.radioButtonMovesPathCustom, 4, 2)
-        self.windowLayout.addWidget(self.browseBtnMovesPath, 4, 3)
-        self.windowLayout.addWidget(self.lineEditMovesPath, 4,4)
+        self.windowLayout.addWidget(self.lineEditMovesPath, 4, 1)
+        self.windowLayout.addWidget(self.browseBtnMovesPath, 4, 2)
 
         # Created UI element VMT per Truck
         self.labelVMTperTruck = QLabel()
@@ -781,19 +769,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 """QComboBox { background-color: red; color: white }""")
 
     # Functions used for Moves Path
-    def radioButtonDeMovesPathDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnMovesPath.hide()
-            self.lineEditMovesPath.hide()
-            self.browseBtnMovesPath.setEnabled(False)
-            self.lineEditMovesPath.setEnabled(False)
-
-    def radioButtonDeMovesPathCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnMovesPath.show()
-            self.lineEditMovesPath.show()
-            self.browseBtnMovesPath.setEnabled(True)
-            self.lineEditMovesPath.setEnabled(True)
 
     def getfilesMovesPath(self):
         fileNameMovesPath = QFileDialog.getExistingDirectory(self, "Browse")
@@ -1596,9 +1571,6 @@ class AlltabsModule(QtWidgets.QWidget):
         changedFeedstockMeasureTypeMoves = self.lineEditFeedMeasureType.text().strip()
         if changedFeedstockMeasureTypeMoves:
             attributeValueObj.feedstockMeasureTypeMoves = changedFeedstockMeasureTypeMoves
-
-        if self.radioButtonMovesPathCustom.isChecked():
-            attributeValueObj.movesPath = self.lineEditMovesPath.text().strip()
 
         changedVMTPerTruck = self.lineEditVMTperTruck.text().strip()
         if changedVMTPerTruck:
