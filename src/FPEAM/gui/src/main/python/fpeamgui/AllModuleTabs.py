@@ -44,8 +44,8 @@ class AlltabsModule(QtWidgets.QWidget):
         # Home Page code start
         self.windowLayout = QGridLayout()
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
-        self.windowLayout.setColumnStretch(3, 1)
-        self.windowLayout.setColumnStretch(4, 1)
+        self.windowLayout.setColumnStretch(5, 1)
+        #self.windowLayout.setColumnStretch(4, 1)
 
         self.tabHome.setLayout(self.windowLayout)
 
@@ -92,7 +92,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditProjectPath = QLineEdit(self)
         self.windowLayout.addWidget(self.labelProjPath, 2, 0)
         self.windowLayout.addWidget(self.browseBtn, 2, 1)
-        self.windowLayout.addWidget(self.lineEditProjectPath, 2, 2, 1, 2)
+        self.windowLayout.addWidget(self.lineEditProjectPath, 2, 2)
 
         # Created UI element Run Button
         self.runBtn = QPushButton("Run", self)
@@ -166,7 +166,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.radioButtonEqDefault, 7, 1)
         self.windowLayout.addWidget(self.radioButtonEqCustom, 7, 2)
         self.windowLayout.addWidget(self.browseBtnEq, 7, 3)
-        self.windowLayout.addWidget(self.lineEditEq, 7, 4, 1, 2)
+        self.windowLayout.addWidget(self.lineEditEq, 7, 4)
 
         # UI element - Production
         self.labelProd = QLabel()
@@ -191,7 +191,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.radioButtonProdDefault, 8, 1)
         self.windowLayout.addWidget(self.radioButtonProdCustom, 8, 2)
         self.windowLayout.addWidget(self.browseBtnProd, 8, 3)
-        self.windowLayout.addWidget(self.lineEditProd, 8, 4, 1, 2)
+        self.windowLayout.addWidget(self.lineEditProd, 8, 4)
 
         # Feedstock Loss Factors
         self.labelFedLossFact = QLabel()
@@ -216,7 +216,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.radioButtonFedLossFactDefault, 9, 1)
         self.windowLayout.addWidget(self.radioButtonFedLossFactCustom, 9, 2)
         self.windowLayout.addWidget(self.browseBtnFLoss, 9, 3)
-        self.windowLayout.addWidget(self.lineEditFedLossFact, 9, 4, 1, 2)
+        self.windowLayout.addWidget(self.lineEditFedLossFact, 9, 4)
 
         # Transportation graph
         self.labelTransGraph = QLabel()
@@ -241,7 +241,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.radioButtonTransGraphDefault, 10, 1)
         self.windowLayout.addWidget(self.radioButtonTransGraphCustom, 10, 2)
         self.windowLayout.addWidget(self.browseBtnTransGr, 10, 3)
-        self.windowLayout.addWidget(self.lineEditTransGraph, 10, 4, 1, 2)
+        self.windowLayout.addWidget(self.lineEditTransGraph, 10, 4)
 
         # County Node
         self.labelCountyNode = QLabel()
@@ -266,7 +266,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.radioButtonCountyNodeDefault, 11, 1)
         self.windowLayout.addWidget(self.radioButtonCountyNodeCustom, 11, 2)
         self.windowLayout.addWidget(self.browseBtnCountyNode, 11, 3)
-        self.windowLayout.addWidget(self.lineEditCountyNode, 11, 4, 1, 2)
+        self.windowLayout.addWidget(self.lineEditCountyNode, 11, 4)
 
 
     # Checkbox - MOves Module - Checked
