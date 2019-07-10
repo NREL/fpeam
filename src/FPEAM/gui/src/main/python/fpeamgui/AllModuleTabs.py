@@ -644,7 +644,7 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element AVFT
         self.labelAVFT = QLabel()
         self.labelAVFT.setText("AVFT")
-        self.labelAVFT.setToolTip("Select AVFT ( fuel fraction by engine type) dataset")
+        self.labelAVFT.setToolTip("Select AVFT (fuel fraction by engine type) dataset")
         self.radioGroupAVFT = QButtonGroup(self.windowLayout)
         self.radioVuttonAVFTDefault = QRadioButton("Default")
         self.radioVuttonAVFTDefault.setChecked(True)
