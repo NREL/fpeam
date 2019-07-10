@@ -435,8 +435,8 @@ class AlltabsModule(QtWidgets.QWidget):
         # Moves code start
         self.windowLayout = QGridLayout()
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
-        self.windowLayout.setColumnStretch(3, 1)
-        self.windowLayout.setColumnStretch(4, 1)
+        self.windowLayout.setColumnStretch(6, 1)
+        #self.windowLayout.setColumnStretch(4, 1)
 
         self.tabMoves.setLayout(self.windowLayout)
 
@@ -454,7 +454,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.radioButtonByState.setFixedWidth(200)
         self.radioButtonByState.setFixedHeight(30)
         self.radioButtonByStateandFeed = QRadioButton("MOVES By State and Feedstock ")
-        self.radioButtonByStateandFeed.setFixedWidth(200)
+        self.radioButtonByStateandFeed.setFixedWidth(210)
         self.radioButtonByStateandFeed.setFixedHeight(30)
         self.radioGroupAggLevel.addButton(self.radioButtonByCounty)
         self.radioGroupAggLevel.addButton(self.radioButtonByState)
@@ -808,7 +808,7 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element VMT Fraction Error
         self.labelVMTFractionError = QLabel()
         self.labelVMTFractionError.setText("")
-        
+
 
 
     # CHeck for consistent input for year
@@ -932,16 +932,17 @@ class AlltabsModule(QtWidgets.QWidget):
         # Nonroad code start
         self.windowLayout = QGridLayout()
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
-        self.windowLayout.setColumnStretch(3, 1)
-        self.windowLayout.setColumnStretch(4, 1)
+        self.windowLayout.setColumnStretch(6, 1)
+        # self.windowLayout.setColumnStretch(4, 1)
 
         self.tabNonroad.setLayout(self.windowLayout)
 
         # Created UI element Year - Nonroad
         self.labelYearNon = QLabel()
         self.labelYearNon.setText("Year")
-        self.labelYearNon.setToolTip("Start year of Equipment")
+        self.labelYearNon.setToolTip("Start year of equipment")
         self.comboBoxYearNon = QComboBox(self)
+        self.comboBoxYearNon.setFixedWidth(100)
         for i in range(2018, 1990, -1):
             self.number = i
             self.comboBoxYearNon.addItem(str(i))
@@ -951,10 +952,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelYearNonErrorMsg.setText("")
         self.windowLayout.addWidget(self.labelYearNon, 2, 0)
         self.windowLayout.addWidget(self.comboBoxYearNon, 2, 1)
-        self.windowLayout.addWidget(self.labelYearNonErrorMsg, 2, 2, 1, 2)
+        self.windowLayout.addWidget(self.labelYearNonErrorMsg, 2, 2)
         # Check whether Moves year matches with Nonroad year
         self.comboBoxYearNon.currentIndexChanged.connect(self.handleItemPressed)
-
 
         # Created UI element Paths
         self.labelPathNon = QLabel()
@@ -963,54 +963,73 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element Nonroad Datafiles
         self.labelDatafilesNon = QLabel()
-        self.labelDatafilesNon.setText("Nonroad Datafiles")
+        self.labelDatafilesNon.setText("NONROAD Datafiles")
         self.labelDatafilesNon.setToolTip("Select NONROAD output folder")
         self.radioGroupDatafilesNon = QButtonGroup(self.windowLayout)
         self.radioVuttonDatafilesNonDefault = QRadioButton("Default")
+        self.radioVuttonDatafilesNonDefault.setFixedWidth(200)
+        self.radioVuttonDatafilesNonDefault.setFixedHeight(30)
         self.radioVuttonDatafilesNonDefault.setChecked(True)
         self.radioVuttonDatafilesNonDefault.toggled.connect(self.radioButtonDatafilesNonDefaultClicked)
         self.radioButtonDatafilesNonCustom = QRadioButton("Custom")
+        self.radioButtonDatafilesNonCustom.setFixedWidth(200)
+        self.radioButtonDatafilesNonCustom.setFixedHeight(30)
         self.radioButtonDatafilesNonCustom.toggled.connect(self.radioButtonDatafilesNonCustomClicked)
         self.radioGroupDatafilesNon.addButton(self.radioVuttonDatafilesNonDefault)
         self.radioGroupDatafilesNon.addButton(self.radioButtonDatafilesNonCustom)
         self.browseBtnDatafilesNon = QPushButton("Browse", self)
+        self.browseBtnDatafilesNon.setFixedWidth(100)
         self.browseBtnDatafilesNon.setEnabled(False)
         self.browseBtnDatafilesNon.hide()
         self.browseBtnDatafilesNon.clicked.connect(self.getfilesDatafilesNon)
+        # Add Empty PlainText
+        self.emptyPlainTextNonDatafiles = QLabel()
+        self.emptyPlainTextNonDatafiles.setFixedWidth(90)
         self.lineEditDatafilesNon = QLineEdit(self)
+        self.lineEditDatafilesNon.setFixedWidth(100)
         self.lineEditDatafilesNon.setEnabled(False)
         self.lineEditDatafilesNon.hide()
         self.windowLayout.addWidget(self.labelDatafilesNon, 4, 0)
         self.windowLayout.addWidget(self.radioVuttonDatafilesNonDefault, 4, 1)
         self.windowLayout.addWidget(self.radioButtonDatafilesNonCustom, 4, 2)
         self.windowLayout.addWidget(self.browseBtnDatafilesNon, 4, 3)
-        self.windowLayout.addWidget(self.lineEditDatafilesNon, 4, 4)
+        self.windowLayout.addWidget(self.emptyPlainTextNonDatafiles, 4, 4)
+        self.windowLayout.addWidget(self.lineEditDatafilesNon, 4, 5)
 
         # Created UI element Region FIPs Map Nonroad
         self.labelFipsNon = QLabel()
-        self.labelFipsNon.setText("Region FIPs Map")
-        self.labelFipsNon.setToolTip("Select Region FIPs Map (production region to Nonroad FIPS mapping) dataset")
+        self.labelFipsNon.setText("Region FIPS Map")
+        self.labelFipsNon.setToolTip("Select Region FIPS Map (production region to Nonroad FIPS mapping) dataset")
         self.radioGroupFipsNon = QButtonGroup(self.windowLayout)
         self.radioVuttonFipsNonDefault = QRadioButton("Default")
+        self.radioVuttonFipsNonDefault.setFixedWidth(200)
+        self.radioVuttonFipsNonDefault.setFixedHeight(30)
         self.radioVuttonFipsNonDefault.setChecked(True)
         self.radioVuttonFipsNonDefault.toggled.connect(self.radioButtonFipsNonDefaultClicked)
         self.radioButtonFipsNonCustom = QRadioButton("Custom")
+        self.radioButtonFipsNonCustom.setFixedWidth(200)
+        self.radioButtonFipsNonCustom.setFixedHeight(30)
         self.radioButtonFipsNonCustom.toggled.connect(self.radioButtonFipsNonCustomClicked)
         self.radioGroupFipsNon.addButton(self.radioVuttonFipsNonDefault)
         self.radioGroupFipsNon.addButton(self.radioButtonFipsNonCustom)
         self.browseBtnFipsNon = QPushButton("Browse", self)
+        self.browseBtnFipsNon.setFixedWidth(100)
         self.browseBtnFipsNon.setEnabled(False)
         self.browseBtnFipsNon.hide()
         self.browseBtnFipsNon.clicked.connect(self.getfilesFipsNon)
+        # Add Empty PlainText
+        self.emptyPlainTextNonRegFips = QLabel()
+        self.emptyPlainTextNonRegFips.setFixedWidth(90)
         self.lineEditFipsNon = QLineEdit(self)
+        self.lineEditFipsNon.setFixedWidth(100)
         self.lineEditFipsNon.setEnabled(False)
         self.lineEditFipsNon.hide()
         self.windowLayout.addWidget(self.labelFipsNon, 5, 0)
         self.windowLayout.addWidget(self.radioVuttonFipsNonDefault, 5, 1)
         self.windowLayout.addWidget(self.radioButtonFipsNonCustom, 5, 2)
         self.windowLayout.addWidget(self.browseBtnFipsNon, 5, 3)
-        self.windowLayout.addWidget(self.lineEditFipsNon, 5, 4)
-
+        self.windowLayout.addWidget(self.emptyPlainTextNonRegFips, 5, 4)
+        self.windowLayout.addWidget(self.lineEditFipsNon, 5, 5)
 
         # Created UI element Region Nonroad Irrigation
         self.labelNonIrrig = QLabel()
@@ -1018,42 +1037,54 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelNonIrrig.setToolTip("Select irrigation dataset")
         self.radioGroupNonIrrig = QButtonGroup(self.windowLayout)
         self.radioVuttonNonIrrigDefault = QRadioButton("Default")
+        self.radioVuttonNonIrrigDefault.setFixedWidth(200)
+        self.radioVuttonNonIrrigDefault.setFixedHeight(30)
         self.radioVuttonNonIrrigDefault.setChecked(True)
         self.radioVuttonNonIrrigDefault.toggled.connect(self.radioButtonNonIrrigDefaultClicked)
         self.radioButtonNonIrrigCustom = QRadioButton("Custom")
+        self.radioButtonNonIrrigCustom.setFixedWidth(200)
+        self.radioButtonNonIrrigCustom.setFixedHeight(30)
         self.radioButtonNonIrrigCustom.toggled.connect(self.radioButtonNonIrrigCustomClicked)
         self.radioGroupNonIrrig.addButton(self.radioVuttonNonIrrigDefault)
         self.radioGroupNonIrrig.addButton(self.radioButtonNonIrrigCustom)
         self.browseBtnNonIrrig = QPushButton("Browse", self)
+        self.browseBtnNonIrrig.setFixedWidth(100)
         self.browseBtnNonIrrig.setEnabled(False)
         self.browseBtnNonIrrig.hide()
         self.browseBtnNonIrrig.clicked.connect(self.getfilesNonIrrig)
+        self.browseBtnNonIrrig.clicked.connect(self.getfilesNonIrrig)
+        # Add Empty PlainText
+        self.emptyPlainTextNonIrri = QLabel()
+        self.emptyPlainTextNonIrri.setFixedWidth(90)
         self.lineEditNonIrrig = QLineEdit(self)
+        self.lineEditNonIrrig.setFixedWidth(100)
         self.lineEditNonIrrig.setEnabled(False)
         self.lineEditNonIrrig.hide()
         self.windowLayout.addWidget(self.labelNonIrrig, 6, 0)
         self.windowLayout.addWidget(self.radioVuttonNonIrrigDefault, 6, 1)
         self.windowLayout.addWidget(self.radioButtonNonIrrigCustom, 6, 2)
         self.windowLayout.addWidget(self.browseBtnNonIrrig, 6, 3)
-        self.windowLayout.addWidget(self.lineEditNonIrrig, 6, 4)
+        self.windowLayout.addWidget(self.emptyPlainTextNonIrri, 6, 4)
+        self.windowLayout.addWidget(self.lineEditNonIrrig, 6, 5)
 
         # Created UI element Region Nonroad Encode Names
         self.labelNonEncodeNames = QLabel()
         self.labelNonEncodeNames.setText("Encode Names")
         self.labelNonEncodeNames.setToolTip("Encode feedstock, tillage type and activity names")
         self.comboBoxEncodeNames = QComboBox(self)
+        self.comboBoxEncodeNames.setFixedWidth(100)
         self.comboBoxEncodeNames.addItem("Yes")
         self.comboBoxEncodeNames.addItem("No")
         self.comboBoxEncodeNames.setCurrentText("Yes")
         self.windowLayout.addWidget(self.labelNonEncodeNames, 7, 0)
         self.windowLayout.addWidget(self.comboBoxEncodeNames, 7, 1)
 
-
         # Created UI element Feedstock Measure Type Nonroad
         self.labelFeedMeasureTypeNon = QLabel()
         self.labelFeedMeasureTypeNon.setText("Feedstock Measure Type")
-        self.labelFeedMeasureTypeNon.setToolTip("Enter Feedstock Measure Type Identifier")
+        self.labelFeedMeasureTypeNon.setToolTip("Enter Feedstock Measure Type identifier")
         self.lineEditFeedMeasureTypeNon = QLineEdit()
+        self.lineEditFeedMeasureTypeNon.setFixedWidth(100)
         self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedMeasureTypeNon.setValidator(validator)
@@ -1065,8 +1096,10 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element Irrigation Feedstock Measure Type Nonroad
         self.labelFeedMeasureTypeIrrigNon = QLabel()
         self.labelFeedMeasureTypeIrrigNon.setText("Irrigation Feedstock Measure Type")
-        self.labelFeedMeasureTypeIrrigNon.setToolTip("Productio table ow identifier for irrigation activity calculation")
+        self.labelFeedMeasureTypeIrrigNon.setToolTip(
+            "Production table of identifier for irrigation activity calculation")
         self.lineEditFeedMeasureTypeIrrigNon = QLineEdit()
+        self.lineEditFeedMeasureTypeIrrigNon.setFixedWidth(100)
         self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedMeasureTypeIrrigNon.setValidator(validator)
@@ -1079,6 +1112,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelIrrigationFeedNamesNon.setText("Irrigation Feedstock Names")
         self.labelIrrigationFeedNamesNon.setToolTip("List of irrigated feedstocks")
         self.lineEditFeedIrrigNamesNon = QLineEdit()
+        self.lineEditFeedIrrigNamesNon.setFixedWidth(100)
         self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedIrrigNamesNon.setValidator(validator)
@@ -1091,6 +1125,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTimeResNamesNon.setText("Time Resource Name")
         self.labelTimeResNamesNon.setToolTip("Equipment table row identifier")
         self.lineEditTimeResNamesNon = QLineEdit()
+        self.lineEditTimeResNamesNon.setFixedWidth(100)
         self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditTimeResNamesNon.setValidator(validator)
@@ -1098,12 +1133,12 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelTimeResNamesNon, 11, 0)
         self.windowLayout.addWidget(self.lineEditTimeResNamesNon, 11, 1)
 
-
         # Created UI element Forestry Feedstock Names
         self.labelForestryNamesNon = QLabel()
         self.labelForestryNamesNon.setText("Forestry Feedstock Names")
         self.labelForestryNamesNon.setToolTip("Different allocation indicators of forest feedstocks")
         self.lineEditForestryNamesNon = QLineEdit(self)
+        self.lineEditForestryNamesNon.setFixedWidth(100)
         self.regex = QtCore.QRegExp("[a-z-A-Z_,]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditForestryNamesNon.setValidator(validator)
@@ -1114,13 +1149,14 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element Temperature
         self.labelTemper = QLabel()
         self.labelTemper.setText("Temperature")
-        self.labelTemper.setToolTip("Enter temperature range for Nonroad")
+        self.labelTemper.setToolTip("Enter temperature range for NONROAD")
         self.windowLayout.addWidget(self.labelTemper, 13, 0)
 
         # Created UI element Minimum Temperature
         self.labelMinTemp = QLabel()
         self.labelMinTemp.setText("Minimum")
         self.lineEditMinTemp = QLineEdit(self)
+        self.lineEditMinTemp.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditMinTemp.setValidator(self.onlyFlaot)
         self.lineEditMinTemp.setPlaceholderText("50")
@@ -1131,6 +1167,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelMaxTemp = QLabel()
         self.labelMaxTemp.setText("Maximum")
         self.lineEditMaxTemp = QLineEdit()
+        self.lineEditMaxTemp.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditMaxTemp.setValidator(self.onlyFlaot)
         self.lineEditMaxTemp.setPlaceholderText("68.8")
@@ -1141,6 +1178,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelMeanTemp = QLabel()
         self.labelMeanTemp.setText("Mean")
         self.lineEditMeanTemp = QLineEdit(self)
+        self.lineEditMeanTemp.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditMeanTemp.setValidator(self.onlyFlaot)
         self.lineEditMeanTemp.setPlaceholderText("60")
@@ -1155,8 +1193,9 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element Low Heating Value
         self.labelLowHeat = QLabel()
         self.labelLowHeat.setText("Low Heating Value")
-        self.labelLowHeat.setToolTip("Lower heating value for diesel fuel")
+        self.labelLowHeat.setToolTip("Lower Heating Value for diesel fuel")
         self.lineEditLowHeat = QLineEdit(self)
+        self.lineEditLowHeat.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditLowHeat.setValidator(self.onlyFlaot)
         self.lineEditLowHeat.setPlaceholderText("0.012845")
@@ -1166,8 +1205,9 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element NH3 Emission Factor
         self.labelNH3 = QLabel()
         self.labelNH3.setText("NH3 Emission Factor")
-        self.labelNH3.setToolTip("NH3 emissionn factor for diesel fuel")
+        self.labelNH3.setToolTip("NH3 Emissionn Factor for diesel fuel")
         self.lineEditNH3 = QLineEdit(self)
+        self.lineEditNH3.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditNH3.setValidator(self.onlyFlaot)
         self.lineEditNH3.setPlaceholderText("0.68")
@@ -1177,8 +1217,9 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element Hydrocarbon to VOC Conversion Factor
         self.labelHydeo = QLabel()
         self.labelHydeo.setText("Hydrocarbon to VOC Conversion Factor")
-        self.labelHydeo.setToolTip("VOC conversion factor for Hydrocarbon Emission components")
+        self.labelHydeo.setToolTip("VOC Conversion Factor for Hydrocarbon Emission components")
         self.lineEditHydro = QLineEdit()
+        self.lineEditHydro.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditHydro.setValidator(self.onlyFlaot)
         self.lineEditHydro.setPlaceholderText("1.053")
@@ -1187,9 +1228,10 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element PM10 to PM2.5 Conversion Factor
         self.labelPM10 = QLabel()
-        self.labelPM10.setText("Hydrocarbon to VOC Conversion Factor")
-        self.labelPM10.setToolTip("PM10 to PM2.5 conversion factor")
+        self.labelPM10.setText("PM10 to PM2.5 Conversion Factor")
+        self.labelPM10.setToolTip("PM10 to PM2.5 Conversion Factor")
         self.lineEditPM10 = QLineEdit(self)
+        self.lineEditPM10.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditPM10.setValidator(self.onlyFlaot)
         self.lineEditPM10.setPlaceholderText("0.97")
@@ -1314,8 +1356,8 @@ class AlltabsModule(QtWidgets.QWidget):
         # Emission Factors code start
         self.windowLayout = QGridLayout()
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
-        self.windowLayout.setColumnStretch(3, 1)
-        self.windowLayout.setColumnStretch(4, 1)
+        self.windowLayout.setColumnStretch(6, 1)
+        # self.windowLayout.setColumnStretch(4, 1)
 
         self.tabEmissionFactors.setLayout(self.windowLayout)
 
@@ -1324,6 +1366,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelFeedMeasureTypeEF.setText("Feedstock Measure Type")
         self.labelFeedMeasureTypeEF.setToolTip("Production table Identifier")
         self.lineEditFeedMeasureTypeEF = QLineEdit()
+        self.lineEditFeedMeasureTypeEF.setFixedWidth(100)
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditFeedMeasureTypeEF.setValidator(validator)
@@ -1334,27 +1377,37 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element Emission Factors
         self.labelEmiFact = QLabel()
         self.labelEmiFact.setText("Emission Factors")
-        self.labelEmiFact.setToolTip("Emission factors as lb pollutant per lb resource subtype")
+        self.labelEmiFact.setToolTip("Emission Factors as lb pollutant per lb resource subtype")
         self.radioGroupEmiFact = QButtonGroup(self.windowLayout)
         self.radioVuttonEmiFactDefault = QRadioButton("Default")
+        self.radioVuttonEmiFactDefault.setFixedWidth(200)
+        self.radioVuttonEmiFactDefault.setFixedHeight(30)
         self.radioVuttonEmiFactDefault.setChecked(True)
         self.radioVuttonEmiFactDefault.toggled.connect(self.radioButtonEmiFactDefaultClicked)
         self.radioButtonEmiFactCustom = QRadioButton("Custom")
+        self.radioButtonEmiFactCustom.setFixedWidth(200)
+        self.radioButtonEmiFactCustom.setFixedHeight(30)
         self.radioButtonEmiFactCustom.toggled.connect(self.radioButtonEmiFactCustomClicked)
         self.radioGroupEmiFact.addButton(self.radioVuttonEmiFactDefault)
         self.radioGroupEmiFact.addButton(self.radioButtonEmiFactCustom)
         self.browseBtnEmiFact = QPushButton("Browse", self)
+        self.browseBtnEmiFact.setFixedWidth(100)
         self.browseBtnEmiFact.setEnabled(False)
         self.browseBtnEmiFact.hide()
         self.browseBtnEmiFact.clicked.connect(self.getfilesEmiFact)
+        # Add Empty PlainText
+        self.emptyPlainTextEmiFact = QLabel()
+        self.emptyPlainTextEmiFact.setFixedWidth(90)
         self.lineEditEmiFact = QLineEdit(self)
+        self.lineEditEmiFact.setFixedWidth(100)
         self.lineEditEmiFact.setEnabled(False)
         self.lineEditEmiFact.hide()
         self.windowLayout.addWidget(self.labelEmiFact, 3, 0)
         self.windowLayout.addWidget(self.radioVuttonEmiFactDefault, 3, 1)
         self.windowLayout.addWidget(self.radioButtonEmiFactCustom, 3, 2)
         self.windowLayout.addWidget(self.browseBtnEmiFact, 3, 3)
-        self.windowLayout.addWidget(self.lineEditEmiFact, 3, 4)
+        self.windowLayout.addWidget(self.emptyPlainTextEmiFact, 3, 4)
+        self.windowLayout.addWidget(self.lineEditEmiFact, 3, 5)
 
         # Created UI element Resource Distribution
         self.labelResDist = QLabel()
@@ -1362,31 +1415,41 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelResDist.setToolTip("Resource subtype distribution for all resources")
         self.radioGroupResDist = QButtonGroup(self.windowLayout)
         self.radioVuttonResDistDefault = QRadioButton("Default")
+        self.radioVuttonResDistDefault.setFixedWidth(200)
+        self.radioVuttonResDistDefault.setFixedHeight(30)
         self.radioVuttonResDistDefault.setChecked(True)
         self.radioVuttonResDistDefault.toggled.connect(self.radioButtonResDistDefaultClicked)
         self.radioButtonResDistCustom = QRadioButton("Custom")
+        self.radioButtonResDistCustom.setFixedWidth(200)
+        self.radioButtonResDistCustom.setFixedHeight(30)
         self.radioButtonResDistCustom.toggled.connect(self.radioButtonResDistCustomClicked)
         self.radioGroupResDist.addButton(self.radioVuttonResDistDefault)
         self.radioGroupResDist.addButton(self.radioButtonResDistCustom)
         self.browseBtnReDist = QPushButton("Browse", self)
+        self.browseBtnReDist.setFixedWidth(100)
         self.browseBtnReDist.setEnabled(False)
         self.browseBtnReDist.hide()
         self.browseBtnReDist.clicked.connect(self.getfilesResDist)
+        # Add Empty PlainText
+        self.emptyPlainTextResDistri = QLabel()
+        self.emptyPlainTextResDistri.setFixedWidth(90)
         self.lineEditResDist = QLineEdit(self)
+        self.lineEditResDist.setFixedWidth(100)
         self.lineEditResDist.setEnabled(False)
         self.lineEditResDist.hide()
         self.windowLayout.addWidget(self.labelResDist, 4, 0)
         self.windowLayout.addWidget(self.radioVuttonResDistDefault, 4, 1)
         self.windowLayout.addWidget(self.radioButtonResDistCustom, 4, 2)
         self.windowLayout.addWidget(self.browseBtnReDist, 4, 3)
-        self.windowLayout.addWidget(self.lineEditResDist, 4, 4)
+        self.windowLayout.addWidget(self.emptyPlainTextResDistri, 4, 4)
+        self.windowLayout.addWidget(self.lineEditResDist, 4, 5)
 
         # Add Empty PlainText
         self.emptyPlainText2 = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText2, 5, 0)
 
+        # Functions used for Emission Factors
 
-    # Functions used for Emission Factors
     def radioButtonEmiFactDefaultClicked(self, enabled):
         if enabled:
             self.browseBtnEmiFact.hide()
@@ -1408,7 +1471,8 @@ class AlltabsModule(QtWidgets.QWidget):
         selectedFileNameTruckCapa = str(fileNameEqWitoutBracketTruckCapa).split(',')
         self.lineEditEmiFact.setText(selectedFileNameTruckCapa[1])
 
-    # Functions used for Resource Distribution
+        # Functions used for Resource Distribution
+
     def radioButtonResDistDefaultClicked(self, enabled):
         if enabled:
             self.browseBtnReDist.hide()
