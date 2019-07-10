@@ -18,7 +18,7 @@ class AttributeValueStorage:
         self.production = 'data/production/production_2015_bc1060.csv'
         self.feedstockLossFactors = 'data/inputs/feedstock_loss_factors.csv'
         self.transportationGraph = 'data/inputs/transportation_graph.csv'
-        self.countyNodes = 'data/inputs/county_nodes.csv'
+        #self.countyNodes = 'data/inputs/county_nodes.csv'
         self.backfill = True
         self.useRouterEngine = True
 

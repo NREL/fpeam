@@ -9,10 +9,13 @@ import logging
 import os
 
 #import args as args
+import pandas
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import QRadioButton, QComboBox, QPushButton, QTextEdit, QFileDialog, QMessageBox, QPlainTextEdit
 from PyQt5.QtWidgets import QGridLayout, QLabel, QButtonGroup, QLineEdit, QSpinBox, QCheckBox
+
+from pkg_resources import resource_filename
 
 
 from FPEAM.gui.src.main.python.fpeamgui.AttributeValueStorage import AttributeValueStorage
@@ -350,9 +353,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesEq(self):
         fileNameEq = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketEq = str(fileNameEq).split(',')
-        fileNameEqWitoutBracketEq = str(fileNameEqWithBracketEq).split('(')
-        selectedFileNameEq = str(fileNameEqWitoutBracketEq).split(',')
+        selectedFileNameEq = fileNameEq[0].split("FPEAM/")
         self.lineEditEq.setText(selectedFileNameEq[1])
 
     # Production
@@ -372,9 +373,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesProd(self):
         fileNameProd = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketProd = str(fileNameProd).split(',')
-        fileNameEqWitoutBracketProd = str(fileNameEqWithBracketProd).split('(')
-        selectedFileNameProd = str(fileNameEqWitoutBracketProd).split(',')
+        selectedFileNameProd = fileNameProd[0].split("FPEAM/")
         self.lineEditProd.setText(selectedFileNameProd[1])
 
     # Feedstock Loss Factors
@@ -394,9 +393,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesFLoss(self):
         fileNameFLoss = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketFLoss = str(fileNameFLoss).split(',')
-        fileNameEqWitoutBracketFLoss = str(fileNameEqWithBracketFLoss).split('(')
-        selectedFileNameFLoss = str(fileNameEqWitoutBracketFLoss).split(',')
+        selectedFileNameFLoss = fileNameFLoss[0].split("FPEAM/")
         self.lineEditFedLossFact.setText(selectedFileNameFLoss[1])
 
     # Transportation graph
@@ -416,9 +413,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesTransGr(self):
         fileNameTransGr = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketTransGr = str(fileNameTransGr).split(',')
-        fileNameEqWitoutBracketTransGr = str(fileNameEqWithBracketTransGr).split('(')
-        selectedFileNameTransGr = str(fileNameEqWitoutBracketTransGr).split(',')
+        selectedFileNameTransGr = fileNameTransGr[0].split("FPEAM/")
         self.lineEditTransGraph.setText(selectedFileNameTransGr[1])
 
 
@@ -843,9 +838,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesTruckCapa(self):
         fileNameTruckCapa = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketTruckCapa= str(fileNameTruckCapa).split(',')
-        fileNameEqWitoutBracketTruckCapa = str(fileNameEqWithBracketTruckCapa).split('(')
-        selectedFileNameTruckCapa = str(fileNameEqWitoutBracketTruckCapa).split(',')
+        selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
         self.lineEditTruckCapa.setText(selectedFileNameTruckCapa[1])
 
     # Functions used for AVFT
@@ -865,9 +858,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesAVFT(self):
         fileNameAVFT = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketAVFT= str(fileNameAVFT).split(',')
-        fileNameEqWitoutBracketAVFT = str(fileNameEqWithBracketAVFT).split('(')
-        selectedFileNameAVFT = str(fileNameEqWitoutBracketAVFT).split(',')
+        selectedFileNameAVFT = fileNameAVFT[0].split("FPEAM/")
         self.lineEditAVFT.setText(selectedFileNameAVFT[1])
 
 
@@ -888,9 +879,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesFips(self):
         fileNameFips = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketFips = str(fileNameFips).split(',')
-        fileNameEqWitoutBracketFips = str(fileNameEqWithBracketFips).split('(')
-        selectedFileNameFips = str(fileNameEqWitoutBracketFips).split(',')
+        selectedFileNameFips = fileNameFips[0].split("FPEAM/")
         self.lineEditFips.setText(selectedFileNameFips[1])
 
     # Functions used for Moves Datafiles
@@ -1051,7 +1040,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.browseBtnNonIrrig.setFixedWidth(100)
         self.browseBtnNonIrrig.setEnabled(False)
         self.browseBtnNonIrrig.hide()
-        self.browseBtnNonIrrig.clicked.connect(self.getfilesNonIrrig)
         self.browseBtnNonIrrig.clicked.connect(self.getfilesNonIrrig)
         # Add Empty PlainText
         self.emptyPlainTextNonIrri = QLabel()
@@ -1314,9 +1302,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesFipsNon(self):
         fileNameFipsNon = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketFipsNon = str(fileNameFipsNon).split(',')
-        fileNameEqWitoutBracketFipsNon = str(fileNameEqWithBracketFipsNon).split('(')
-        selectedFileNameFipsNon = str(fileNameEqWitoutBracketFipsNon).split(',')
+        selectedFileNameFipsNon = fileNameFipsNon[0].split("FPEAM/")
         self.lineEditFipsNon.setText(selectedFileNameFipsNon[1])
 
     # Functions used for Nonroad Irrigation
@@ -1336,9 +1322,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesNonIrrig(self):
         fileNameNonEq = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketNonEq = str(fileNameNonEq).split(',')
-        fileNameEqWitoutBracketNonEq = str(fileNameEqWithBracketNonEq).split('(')
-        selectedFileNameNonEq = str(fileNameEqWitoutBracketNonEq).split(',')
+        selectedFileNameNonEq = fileNameNonEq[0].split("FPEAM/")
         self.lineEditNonIrrig.setText(selectedFileNameNonEq[1])
 
     ###########################################################################################################################################################
@@ -1466,9 +1450,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesEmiFact(self):
         fileNameTruckCapa = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketTruckCapa = str(fileNameTruckCapa).split(',')
-        fileNameEqWitoutBracketTruckCapa = str(fileNameEqWithBracketTruckCapa).split('(')
-        selectedFileNameTruckCapa = str(fileNameEqWitoutBracketTruckCapa).split(',')
+        selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
         self.lineEditEmiFact.setText(selectedFileNameTruckCapa[1])
 
         # Functions used for Resource Distribution
@@ -1489,9 +1471,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesResDist(self):
         fileNameTruckCapa = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketTruckCapa = str(fileNameTruckCapa).split(',')
-        fileNameEqWitoutBracketTruckCapa = str(fileNameEqWithBracketTruckCapa).split('(')
-        selectedFileNameTruckCapa = str(fileNameEqWitoutBracketTruckCapa).split(',')
+        selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
         self.lineEditResDist.setText(selectedFileNameTruckCapa[1])
 
 
@@ -1589,9 +1569,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesEmiFactFD(self):
         fileNameTruckCapaFD = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketTruckCapaFD = str(fileNameTruckCapaFD).split(',')
-        fileNameEqWitoutBracketTruckCapaFD = str(fileNameEqWithBracketTruckCapaFD).split('(')
-        selectedFileNameTruckCapaFD = str(fileNameEqWitoutBracketTruckCapaFD).split(',')
+        selectedFileNameTruckCapaFD = fileNameTruckCapaFD[0].split("FPEAM/")
         self.lineEditEmiFactFD.setText(selectedFileNameTruckCapaFD[1])
 
 ###################################################################
@@ -1665,6 +1643,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
             if self.radioButtonEqCustom.isChecked():
                 attributeValueObj.equipment = self.lineEditEq.text().strip()
+
+            #Check wether csv file is empty or not
+            # _fpath= resource_filename('FPEAM', attributeValueObj.equipment)
+            # import pandas
+            # eqPathCsv = pandas.read_csv(_fpath)
+            # print(eqPathCsv.head()) # head() will print first five rows only
 
             if self.radioButtonProdCustom.isChecked():
                 attributeValueObj.production = self.lineEditProd.text().strip()
