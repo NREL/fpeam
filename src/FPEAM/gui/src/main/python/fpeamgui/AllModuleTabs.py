@@ -1077,7 +1077,7 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedMeasureTypeNon.setValidator(validator)
         # Set Default text
-        self.lineEditFeedMeasureTypeNon.setPlaceholderText("Harvested")
+        self.lineEditFeedMeasureTypeNon.setPlaceholderText("harvested")
         self.windowLayout.addWidget(self.labelFeedMeasureTypeNon, 8, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeNon, 8, 1)
 
@@ -1354,7 +1354,7 @@ class AlltabsModule(QtWidgets.QWidget):
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditFeedMeasureTypeEF.setValidator(validator)
-        self.lineEditFeedMeasureTypeEF.setPlaceholderText("Harvested")
+        self.lineEditFeedMeasureTypeEF.setPlaceholderText("harvested")
         self.windowLayout.addWidget(self.labelFeedMeasureTypeEF, 2, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeEF, 2, 1)
 
@@ -1508,7 +1508,7 @@ class AlltabsModule(QtWidgets.QWidget):
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditFeedMeasureTypeFD.setValidator(validator)
-        self.lineEditFeedMeasureTypeFD.setPlaceholderText("Harvested")
+        self.lineEditFeedMeasureTypeFD.setPlaceholderText("harvested")
         self.windowLayout.addWidget(self.labelFeedMeasureTypeFD, 2, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeFD, 2, 1)
 
@@ -1895,7 +1895,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.plainTextLog.setPlainText("")
         self.plainTextLog.setFixedSize(500, 200)
         self.plainTextLog.setReadOnly(True)
-        windowLayout.addWidget(self.plainTextLog, 0, 0)
+        windowLayout.addWidget(self.plainTextLog, 0, 0, 1, 3)
 
         self.plainTextMOVESGraph = QPlainTextEdit()
         self.plainTextMOVESGraph.setReadOnly(True)

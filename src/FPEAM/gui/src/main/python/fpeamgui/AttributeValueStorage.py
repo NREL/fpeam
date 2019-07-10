@@ -10,7 +10,7 @@ class AttributeValueStorage:
         self.streamGenerated = io.StringIO()
 
         # FPEAM home page - Attribute Initialization
-        self.scenarioName = "test"
+        self.scenarioName = ""
         self.projectPath = None
         self.module = 'NONROAD', 'MOVES', 'emissionfactors', 'fugitivedust'
         self.loggerLevel = "DEBUG"
@@ -23,17 +23,17 @@ class AttributeValueStorage:
         self.useRouterEngine = True
 
         # Fugitive Dust module - Attribute Initialization
-        self.feedMeasureTypeFD = "Harvested"
+        self.feedMeasureTypeFD = "harvested"
         self.emissionFactorsFD = "../data/inputs/fugitive_dust_emission_factors.csv"
 
         # Emission Factors Module - Attribute Initialization
-        self.feedMeasureTypeEF = "Harvested"
+        self.feedMeasureTypeEF = "harvested"
         self.emissionFactorsEF = None
         self.resourceDistributionEF = None
 
         # Nonroad Module - Attribute Initialization
         self.yearNonroad = 2017
-        self.feedstockMeasureTypeNon = "Harvested"
+        self.feedstockMeasureTypeNon = "harvested"
         self.timeResourceNameNon = "time"
         self.forestryFeedstockNames = ['forest whole tree', 'forest residues']
         self.regionFipsMapNonroad = "../data/inputs/region_fips_map.csv"
@@ -53,7 +53,7 @@ class AttributeValueStorage:
         # Moves Module - Attribute Initialization
         self.aggegationLevel = "Moves By Each County"
         self.cachedResults = "Yes"
-        self.feedstockMeasureTypeMoves = "Harvested"
+        self.feedstockMeasureTypeMoves = "harvested"
         self.vMTPerTruck = 20
         self.noOfTrucksUsed = 1
         self.yearMoves = 2017
