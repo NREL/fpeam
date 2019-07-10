@@ -53,7 +53,7 @@ class AttributeValueStorage:
         # Moves Module - Attribute Initialization
         self.aggegationLevel = "Moves By Each County"
         self.cachedResults = "Yes"
-        self.feedstockMeasureTypeMoves = "harvested"
+        self.feedstockMeasureTypeMoves = "production"
         self.vMTPerTruck = 20
         self.noOfTrucksUsed = 1
         self.yearMoves = 2017

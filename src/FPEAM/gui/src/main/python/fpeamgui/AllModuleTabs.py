@@ -487,7 +487,7 @@ class AlltabsModule(QtWidgets.QWidget):
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditFeedMeasureType.setValidator(validator)
-        self.lineEditFeedMeasureType.setPlaceholderText("Production")
+        self.lineEditFeedMeasureType.setText("production")
         self.windowLayout.addWidget(self.labelFeedMeasureType, 3, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureType, 3, 1)
 
@@ -501,7 +501,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.browseBtnMovesPath.clicked.connect(self.getfilesMovesPath)
         self.lineEditMovesPath = QLineEdit(self)
         self.lineEditMovesPath.setFixedWidth(100)
-        self.lineEditMovesPath.setPlaceholderText("C:\MOVES2014b")
+        self.lineEditMovesPath.setText("C:\MOVES2014b")
         self.windowLayout.addWidget(self.MovesPathLable, 4, 0)
         self.windowLayout.addWidget(self.lineEditMovesPath, 4, 1)
         self.windowLayout.addWidget(self.browseBtnMovesPath, 4, 2)
@@ -514,7 +514,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditVMTperTruck.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditVMTperTruck.setValidator(self.onlyFlaot)
-        self.lineEditVMTperTruck.setPlaceholderText("20")
+        self.lineEditVMTperTruck.setText("20")
         self.windowLayout.addWidget(self.labelVMTperTruck, 5, 0)
         self.windowLayout.addWidget(self.lineEditVMTperTruck, 5, 1)
 
@@ -759,7 +759,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditRuralRes.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditRuralRes.setValidator(self.onlyFlaot)
-        self.lineEditRuralRes.setPlaceholderText("0.3")
+        self.lineEditRuralRes.setText("0.3")
         self.windowLayout.addWidget(self.labelRuralRes, 20, 0)
         self.windowLayout.addWidget(self.lineEditRuralRes, 20, 1)
 
@@ -770,7 +770,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditRuralUnres.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditRuralUnres.setValidator(self.onlyFlaot)
-        self.lineEditRuralUnres.setPlaceholderText("0.28")
+        self.lineEditRuralUnres.setText("0.28")
         self.windowLayout.addWidget(self.labelRuralUnres, 21, 0)
         self.windowLayout.addWidget(self.lineEditRuralUnres, 21, 1)
 
@@ -781,7 +781,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditUrbanRes.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditUrbanRes.setValidator(self.onlyFlaot)
-        self.lineEditUrbanRes.setPlaceholderText("0.21")
+        self.lineEditUrbanRes.setText("0.21")
         self.windowLayout.addWidget(self.labelUrbanRes, 22, 0)
         self.windowLayout.addWidget(self.lineEditUrbanRes, 22, 1)
 
@@ -792,7 +792,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditUrbanUnres.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditUrbanUnres.setValidator(self.onlyFlaot)
-        self.lineEditUrbanUnres.setPlaceholderText("0.28")
+        self.lineEditUrbanUnres.setText("0.28")
         self.windowLayout.addWidget(self.labelUrbanUnres, 23, 0)
         self.windowLayout.addWidget(self.lineEditUrbanUnres, 23, 1)
 
@@ -803,7 +803,6 @@ class AlltabsModule(QtWidgets.QWidget):
         # Created UI element VMT Fraction Error
         self.labelVMTFractionError = QLabel()
         self.labelVMTFractionError.setText("")
-
 
 
     # CHeck for consistent input for year
@@ -1077,7 +1076,7 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedMeasureTypeNon.setValidator(validator)
         # Set Default text
-        self.lineEditFeedMeasureTypeNon.setPlaceholderText("harvested")
+        self.lineEditFeedMeasureTypeNon.setText("harvested")
         self.windowLayout.addWidget(self.labelFeedMeasureTypeNon, 8, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeNon, 8, 1)
 
@@ -1091,7 +1090,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedMeasureTypeIrrigNon.setValidator(validator)
-        self.lineEditFeedMeasureTypeIrrigNon.setPlaceholderText("Planted")
+        self.lineEditFeedMeasureTypeIrrigNon.setText("planted")
         self.windowLayout.addWidget(self.labelFeedMeasureTypeIrrigNon, 9, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeIrrigNon, 9, 1)
 
@@ -1104,7 +1103,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedIrrigNamesNon.setValidator(validator)
-        self.lineEditFeedIrrigNamesNon.setPlaceholderText("Corn Garin")
+        self.lineEditFeedIrrigNamesNon.setText("corn garin")
         self.windowLayout.addWidget(self.labelIrrigationFeedNamesNon, 10, 0)
         self.windowLayout.addWidget(self.lineEditFeedIrrigNamesNon, 10, 1)
 
@@ -1117,7 +1116,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditTimeResNamesNon.setValidator(validator)
-        self.lineEditTimeResNamesNon.setPlaceholderText("Time")
+        self.lineEditTimeResNamesNon.setText("time")
         self.windowLayout.addWidget(self.labelTimeResNamesNon, 11, 0)
         self.windowLayout.addWidget(self.lineEditTimeResNamesNon, 11, 1)
 
@@ -1130,7 +1129,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.regex = QtCore.QRegExp("[a-z-A-Z_,]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditForestryNamesNon.setValidator(validator)
-        self.lineEditForestryNamesNon.setPlaceholderText("forest residues, forest whole tree")
+        self.lineEditForestryNamesNon.setText("forest residues, forest whole tree")
         self.windowLayout.addWidget(self.labelForestryNamesNon, 12, 0)
         self.windowLayout.addWidget(self.lineEditForestryNamesNon, 12, 1)
 
@@ -1147,7 +1146,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditMinTemp.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditMinTemp.setValidator(self.onlyFlaot)
-        self.lineEditMinTemp.setPlaceholderText("50")
+        self.lineEditMinTemp.setText("50")
         self.windowLayout.addWidget(self.labelMinTemp, 14, 0)
         self.windowLayout.addWidget(self.lineEditMinTemp, 14, 1)
 
@@ -1158,7 +1157,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditMaxTemp.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditMaxTemp.setValidator(self.onlyFlaot)
-        self.lineEditMaxTemp.setPlaceholderText("68.8")
+        self.lineEditMaxTemp.setText("68.8")
         self.windowLayout.addWidget(self.labelMaxTemp, 15, 0)
         self.windowLayout.addWidget(self.lineEditMaxTemp, 15, 1)
 
@@ -1169,7 +1168,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditMeanTemp.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditMeanTemp.setValidator(self.onlyFlaot)
-        self.lineEditMeanTemp.setPlaceholderText("60")
+        self.lineEditMeanTemp.setText("60")
         self.windowLayout.addWidget(self.labelMeanTemp, 16, 0)
         self.windowLayout.addWidget(self.lineEditMeanTemp, 16, 1)
 
@@ -1186,7 +1185,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditLowHeat.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditLowHeat.setValidator(self.onlyFlaot)
-        self.lineEditLowHeat.setPlaceholderText("0.012845")
+        self.lineEditLowHeat.setText("0.012845")
         self.windowLayout.addWidget(self.labelLowHeat, 18, 0)
         self.windowLayout.addWidget(self.lineEditLowHeat, 18, 1)
 
@@ -1198,7 +1197,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditNH3.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditNH3.setValidator(self.onlyFlaot)
-        self.lineEditNH3.setPlaceholderText("0.68")
+        self.lineEditNH3.setText("0.68")
         self.windowLayout.addWidget(self.labelNH3, 19, 0)
         self.windowLayout.addWidget(self.lineEditNH3, 19, 1)
 
@@ -1210,7 +1209,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditHydro.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditHydro.setValidator(self.onlyFlaot)
-        self.lineEditHydro.setPlaceholderText("1.053")
+        self.lineEditHydro.setText("1.053")
         self.windowLayout.addWidget(self.labelHydeo, 20, 0)
         self.windowLayout.addWidget(self.lineEditHydro, 20, 1)
 
@@ -1222,7 +1221,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditPM10.setFixedWidth(100)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditPM10.setValidator(self.onlyFlaot)
-        self.lineEditPM10.setPlaceholderText("0.97")
+        self.lineEditPM10.setText("0.97")
         self.windowLayout.addWidget(self.labelPM10, 21, 0)
         self.windowLayout.addWidget(self.lineEditPM10, 21, 1)
 
@@ -1354,7 +1353,7 @@ class AlltabsModule(QtWidgets.QWidget):
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditFeedMeasureTypeEF.setValidator(validator)
-        self.lineEditFeedMeasureTypeEF.setPlaceholderText("harvested")
+        self.lineEditFeedMeasureTypeEF.setText("harvested")
         self.windowLayout.addWidget(self.labelFeedMeasureTypeEF, 2, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeEF, 2, 1)
 
@@ -1500,15 +1499,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelFeedMeasureTypeFD.setText("Feedstock Measure Type")
         self.labelFeedMeasureTypeFD.setToolTip("Production table identifier ")
         self.lineEditFeedMeasureTypeFD = QLineEdit(self)
-        self.lineEditFeedMeasureTypeFD.setStyleSheet("QLineEdit { color:red; }")
-        # palette  = self.lineEditFeedMeasureTypeFD.palette()
-        # palette.setColor(QPalette.Text, Qt.black)
-        # self.lineEditFeedMeasureTypeFD.setPalette(palette)
         self.lineEditFeedMeasureTypeFD.setFixedWidth(100)
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditFeedMeasureTypeFD.setValidator(validator)
-        self.lineEditFeedMeasureTypeFD.setPlaceholderText("harvested")
+        self.lineEditFeedMeasureTypeFD.setText("harvested")
         self.windowLayout.addWidget(self.labelFeedMeasureTypeFD, 2, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeFD, 2, 1)
 
