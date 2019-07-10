@@ -254,7 +254,7 @@ class AlltabsModule(QtWidgets.QWidget):
         # Transportation graph
         self.labelTransGraph = QLabel()
         self.labelTransGraph = QLabel()
-        self.labelTransGraph.setText("Transportation graph")
+        self.labelTransGraph.setText("Transportation Graph")
         self.labelTransGraph.setToolTip("Select Transportation graph dataset")
         self.radioGroupTransGraph = QButtonGroup(self.windowLayout)
         self.radioButtonTransGraphDefault = QRadioButton("Default")
