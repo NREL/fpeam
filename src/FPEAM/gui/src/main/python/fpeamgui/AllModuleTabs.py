@@ -460,7 +460,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element Cached Result usage
         self.labelCachedResUse = QLabel()
-        self.labelCachedResUse.setText("Cached Result usage")
+        self.labelCachedResUse.setText("Cached Result Usage")
         self.labelCachedResUse.setToolTip("Use existing results in MOVES output database or run MOVES for all counties")
         self.comboBoxCachedResUse = QComboBox(self)
         self.comboBoxCachedResUse.addItem("Yes")
@@ -522,8 +522,8 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element No of Trucks used
         self.labelNoofTruck = QLabel()
-        self.labelNoofTruck.setText("No of Trucks used")
-        self.labelNoofTruck.setToolTip("No of trucks used in a scenario")
+        self.labelNoofTruck.setText("Number Of Trucks Used")
+        self.labelNoofTruck.setToolTip("Number of trucks used in a scenario")
         self.spinBoxNoofTruck = QSpinBox()
         self.spinBoxNoofTruck.setMinimum(1)
         self.spinBoxNoofTruck.setValue(1)
@@ -602,7 +602,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element Timestamp - Day Type
         self.labelDayType = QLabel()
-        self.labelDayType.setText("Day type")
+        self.labelDayType.setText("Day Type")
         self.comboBoxDayType = QComboBox(self)
         self.comboBoxDayType.addItem(str(2))
         self.comboBoxDayType.addItem(str(5))
@@ -668,8 +668,8 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element Region FIPs Map
         self.labelFips = QLabel()
-        self.labelFips.setText("Region FIPs Map")
-        self.labelFips.setToolTip("Select Region FIPs Map (production region to MOVES FIPS mapping) dataset")
+        self.labelFips.setText("Region FIPS Map")
+        self.labelFips.setToolTip("Select Region FIPS Map (production region to MOVES FIPS mapping) dataset")
         self.radioGroupFips = QButtonGroup(self.windowLayout)
         self.radioVuttonFipsDefault = QRadioButton("Default")
         self.radioVuttonFipsDefault.setChecked(True)
