@@ -1281,7 +1281,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 # names gives names to the columns that are read in - the raw
                 # column names have whitespaces so it's easier to define new
                 #  names
-                _to_append = pd.read_table(_nr_out_file,
+                _to_append = pd.read_csv(_nr_out_file,
                                            sep=',', header=9,
                                            usecols=[0, 5, 6,
                                                     7, 9, 10, 19],

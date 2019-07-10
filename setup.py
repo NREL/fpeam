@@ -72,7 +72,8 @@ setup(
         'networkx',
         'pymysql',
         'lxml',
-        'joblib'
+        'joblib',
+        'scipy'
     ],
     entry_points={
         'console_scripts': [
