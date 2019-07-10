@@ -1607,225 +1607,221 @@ class AlltabsModule(QtWidgets.QWidget):
         # check if scenario name and project path is entered or not
         if self.lineEditProjectPath.text() == "":
             self.lineEditProjectPath.setStyleSheet("border: 2px solid red;")
-        else:
-            self.lineEditProjectPath.setStyleSheet("border: 1px solid black;")
-
-        if self.lineEditScenaName.text() == "":
             self.lineEditScenaName.setStyleSheet("border: 2px solid red;")
+            return
         else:
-            self.lineEditScenaName.setStyleSheet("border: 1px solid black;")
 
 
-        # FPEAM Home Page attributes value initialization
+            # FPEAM Home Page attributes value initialization
 
-        attributeValueObj.scenarioName = self.lineEditScenaName.text().strip()
-        attributeValueObj.projectPath = self.lineEditProjectPath.text().strip()
+            attributeValueObj.scenarioName = self.lineEditScenaName.text().strip()
+            attributeValueObj.projectPath = self.lineEditProjectPath.text().strip()
 
-        # Check which module is selected
-        self.selected_module_string = ""
-        if self.checkBoxMoves.isChecked():
-            #attributeValueObj.module = self.selected_module_list.append(self.checkBoxMoves.text())
-            self.selected_module_string += "'" + self.checkBoxMoves.text() + "'"
-            attributeValueObj.module = self.selected_module_string
-            self.selected_module_string += ", "
-        if self.checkBoxNonroad.isChecked():
+            # Check which module is selected
+            self.selected_module_string = ""
+            if self.checkBoxMoves.isChecked():
+                #attributeValueObj.module = self.selected_module_list.append(self.checkBoxMoves.text())
+                self.selected_module_string += "'" + self.checkBoxMoves.text() + "'"
+                attributeValueObj.module = self.selected_module_string
+                self.selected_module_string += ", "
+            if self.checkBoxNonroad.isChecked():
 
-            #attributeValueObj.module = self.selected_module_list.append(self.checkBoxNonroad.text())
-            self.selected_module_string += "'" + self.checkBoxNonroad.text() + "'"
-            attributeValueObj.module = self.selected_module_string
-            self.selected_module_string += ", "
-        if self.checkBoxEmissionFactors.isChecked():
+                #attributeValueObj.module = self.selected_module_list.append(self.checkBoxNonroad.text())
+                self.selected_module_string += "'" + self.checkBoxNonroad.text() + "'"
+                attributeValueObj.module = self.selected_module_string
+                self.selected_module_string += ", "
+            if self.checkBoxEmissionFactors.isChecked():
 
-            #attributeValueObj.module = self.selected_module_list.append(self.checkBoxEmissionFactors.text())
-            self.selected_module_string +=  "'" + self.checkBoxEmissionFactors.text() + "'"
-            attributeValueObj.module = self.selected_module_string
-            self.selected_module_string += ", "
-        if self.checkBoxFugitiveDust.isChecked():
+                #attributeValueObj.module = self.selected_module_list.append(self.checkBoxEmissionFactors.text())
+                self.selected_module_string +=  "'" + self.checkBoxEmissionFactors.text() + "'"
+                attributeValueObj.module = self.selected_module_string
+                self.selected_module_string += ", "
+            if self.checkBoxFugitiveDust.isChecked():
 
-            #attributeValueObj.module = "'" + self.selected_module_list.append(self.checkBoxFugitiveDust.text())
-            self.selected_module_string +=  "'" + self.checkBoxFugitiveDust.text() + "'"
-            attributeValueObj.module = self.selected_module_string
+                #attributeValueObj.module = "'" + self.selected_module_list.append(self.checkBoxFugitiveDust.text())
+                self.selected_module_string +=  "'" + self.checkBoxFugitiveDust.text() + "'"
+                attributeValueObj.module = self.selected_module_string
 
-        #attributeValueObj.module = self.selected_module_list
+            #attributeValueObj.module = self.selected_module_list
 
-        changedVerboLoggerLevel = self.comboBoxVerbosityLevel.currentText()
-        if changedVerboLoggerLevel:
-            attributeValueObj.loggerLevel = changedVerboLoggerLevel
+            changedVerboLoggerLevel = self.comboBoxVerbosityLevel.currentText()
+            if changedVerboLoggerLevel:
+                attributeValueObj.loggerLevel = changedVerboLoggerLevel
 
-        changedBackfill = self.comboBoxBF.currentText()
-        if changedBackfill:
-            if changedBackfill == "No":
-                changedBackfill = False
-            else:
-                changedBackfill = True
-            attributeValueObj.backfill = changedBackfill
+            changedBackfill = self.comboBoxBF.currentText()
+            if changedBackfill:
+                if changedBackfill == "No":
+                    changedBackfill = False
+                else:
+                    changedBackfill = True
+                attributeValueObj.backfill = changedBackfill
 
-        changedRouterEngine = self.comboBoxRE.currentText()
-        if changedRouterEngine:
-            if changedRouterEngine == "No":
-                changedRouterEngine = False
-            else:
-                changedRouterEngine = True
-            attributeValueObj.useRouterEngine = changedRouterEngine
+            changedRouterEngine = self.comboBoxRE.currentText()
+            if changedRouterEngine:
+                if changedRouterEngine == "No":
+                    changedRouterEngine = False
+                else:
+                    changedRouterEngine = True
+                attributeValueObj.useRouterEngine = changedRouterEngine
 
-        if self.radioButtonEqCustom.isChecked():
-            attributeValueObj.equipment = self.lineEditEq.text().strip()
+            if self.radioButtonEqCustom.isChecked():
+                attributeValueObj.equipment = self.lineEditEq.text().strip()
 
-        if self.radioButtonProdCustom.isChecked():
-            attributeValueObj.production = self.lineEditProd.text().strip()
+            if self.radioButtonProdCustom.isChecked():
+                attributeValueObj.production = self.lineEditProd.text().strip()
 
-        if self.radioButtonFedLossFactCustom.isChecked():
-            attributeValueObj.feedstockLossFactors = self.lineEditFedLossFact.text().strip()
+            if self.radioButtonFedLossFactCustom.isChecked():
+                attributeValueObj.feedstockLossFactors = self.lineEditFedLossFact.text().strip()
 
-        if self.radioButtonTransGraphCustom.isChecked():
-            attributeValueObj.transportationGraph = self.lineEditTransGraph.text().strip()
+            if self.radioButtonTransGraphCustom.isChecked():
+                attributeValueObj.transportationGraph = self.lineEditTransGraph.text().strip()
 
 
-        ###############################################################################################################
+            ###############################################################################################################
 
-        # Moves attributes value initialization
+            # Moves attributes value initialization
 
-        if self.radioButtonByState.isChecked():
-            attributeValueObj.aggegationLevel = "Moves By State"
-        if self.radioButtonByStateandFeed.isChecked():
-            attributeValueObj.aggegationLevel = "Moves By State and Feedstock"
+            if self.radioButtonByState.isChecked():
+                attributeValueObj.aggegationLevel = "Moves By State"
+            if self.radioButtonByStateandFeed.isChecked():
+                attributeValueObj.aggegationLevel = "Moves By State and Feedstock"
 
-        changedcachedResults = self.comboBoxCachedResUse.currentText()
-        if changedcachedResults:
-            attributeValueObj.cachedResults = changedcachedResults
+            changedcachedResults = self.comboBoxCachedResUse.currentText()
+            if changedcachedResults:
+                attributeValueObj.cachedResults = changedcachedResults
 
-        changedFeedstockMeasureTypeMoves = self.lineEditFeedMeasureType.text().strip()
-        if changedFeedstockMeasureTypeMoves:
-            attributeValueObj.feedstockMeasureTypeMoves = changedFeedstockMeasureTypeMoves
+            changedFeedstockMeasureTypeMoves = self.lineEditFeedMeasureType.text().strip()
+            if changedFeedstockMeasureTypeMoves:
+                attributeValueObj.feedstockMeasureTypeMoves = changedFeedstockMeasureTypeMoves
 
-        changedVMTPerTruck = self.lineEditVMTperTruck.text().strip()
-        if changedVMTPerTruck:
-            attributeValueObj.vMTPerTruck = changedVMTPerTruck
+            changedVMTPerTruck = self.lineEditVMTperTruck.text().strip()
+            if changedVMTPerTruck:
+                attributeValueObj.vMTPerTruck = changedVMTPerTruck
 
-        changedNoOfTrucksUsed = self.spinBoxNoofTruck.text()
-        if changedNoOfTrucksUsed:
-            attributeValueObj.noOfTrucksUsed = changedNoOfTrucksUsed
+            changedNoOfTrucksUsed = self.spinBoxNoofTruck.text()
+            if changedNoOfTrucksUsed:
+                attributeValueObj.noOfTrucksUsed = changedNoOfTrucksUsed
 
-        changedYearMoves = self.comboBoxYear.currentText()
-        if changedYearMoves:
-            attributeValueObj.yearMoves = changedYearMoves
+            changedYearMoves = self.comboBoxYear.currentText()
+            if changedYearMoves:
+                attributeValueObj.yearMoves = changedYearMoves
 
-        changedMonth = self.comboBoxMonth.currentText()
-        if changedMonth:
-            attributeValueObj.month = changedMonth
+            changedMonth = self.comboBoxMonth.currentText()
+            if changedMonth:
+                attributeValueObj.month = changedMonth
 
-        changedDate = self.comboBoxDate.currentText()
-        if changedDate:
-            attributeValueObj.date = changedDate
+            changedDate = self.comboBoxDate.currentText()
+            if changedDate:
+                attributeValueObj.date = changedDate
 
-        changedBegHr = self.comboBoxBegHr.currentText()
-        if changedBegHr:
-            attributeValueObj.beginningHr = changedBegHr
+            changedBegHr = self.comboBoxBegHr.currentText()
+            if changedBegHr:
+                attributeValueObj.beginningHr = changedBegHr
 
-        changedEndHr = self.comboBoxEndHr.currentText()
-        if changedEndHr:
-            attributeValueObj.endingHr = changedEndHr
+            changedEndHr = self.comboBoxEndHr.currentText()
+            if changedEndHr:
+                attributeValueObj.endingHr = changedEndHr
 
-        changedDayType = self.comboBoxDayType.currentText()
-        if changedDayType:
-            attributeValueObj.dayType = changedDayType
+            changedDayType = self.comboBoxDayType.currentText()
+            if changedDayType:
+                attributeValueObj.dayType = changedDayType
 
-        if self.radioButtonTruckCapaCustom.isChecked():
-            attributeValueObj.truckCapacity = self.lineEditTruckCapa.text().strip()
+            if self.radioButtonTruckCapaCustom.isChecked():
+                attributeValueObj.truckCapacity = self.lineEditTruckCapa.text().strip()
 
-        if self.radioButtonAVFTCustom.isChecked():
-            attributeValueObj.avft = self.lineEditAVFT.text().strip()
+            if self.radioButtonAVFTCustom.isChecked():
+                attributeValueObj.avft = self.lineEditAVFT.text().strip()
 
-        if self.radioButtonFipsCustom.isChecked():
-            attributeValueObj.regionFipsMapMoves = self.lineEditFips.text().strip()
+            if self.radioButtonFipsCustom.isChecked():
+                attributeValueObj.regionFipsMapMoves = self.lineEditFips.text().strip()
 
-        if self.radioButtonDatafilesCustom.isChecked():
-            attributeValueObj.movesDatafilesPath = self.lineEditDatafiles.text().strip()
+            if self.radioButtonDatafilesCustom.isChecked():
+                attributeValueObj.movesDatafilesPath = self.lineEditDatafiles.text().strip()
 
-        changedRuralRes = self.lineEditRuralRes.text().strip()
-        if changedRuralRes:
-            attributeValueObj.ruralRestricted = changedRuralRes
+            changedRuralRes = self.lineEditRuralRes.text().strip()
+            if changedRuralRes:
+                attributeValueObj.ruralRestricted = changedRuralRes
 
-        changedRuralUnres = self.lineEditRuralUnres.text().strip()
-        if changedRuralUnres:
-            attributeValueObj.ruralUnrestricted = changedRuralUnres
+            changedRuralUnres = self.lineEditRuralUnres.text().strip()
+            if changedRuralUnres:
+                attributeValueObj.ruralUnrestricted = changedRuralUnres
 
-        changedUrbanRes = self.lineEditUrbanRes.text().strip()
-        if changedUrbanRes:
-            attributeValueObj.urbanRestricted = changedUrbanRes
+            changedUrbanRes = self.lineEditUrbanRes.text().strip()
+            if changedUrbanRes:
+                attributeValueObj.urbanRestricted = changedUrbanRes
 
-        changedUrbanUnres = self.lineEditUrbanUnres.text().strip()
-        if changedUrbanUnres:
-            attributeValueObj.urbanUnrestricted = changedUrbanUnres
+            changedUrbanUnres = self.lineEditUrbanUnres.text().strip()
+            if changedUrbanUnres:
+                attributeValueObj.urbanUnrestricted = changedUrbanUnres
 
-        ###############################################################################################################
+            ###############################################################################################################
 
-            # Nonroad attributes value initialization
+                # Nonroad attributes value initialization
 
-            changedYearNonroad = self.comboBoxYearNon.currentText()
-            if changedYearNonroad:
-                attributeValueObj.yearNonroad = changedYearNonroad
+                changedYearNonroad = self.comboBoxYearNon.currentText()
+                if changedYearNonroad:
+                    attributeValueObj.yearNonroad = changedYearNonroad
 
-            if self.radioButtonFipsNonCustom.isChecked():
-                attributeValueObj.regionFipsMapNonroad = self.lineEditFipsNon.text().strip()
+                if self.radioButtonFipsNonCustom.isChecked():
+                    attributeValueObj.regionFipsMapNonroad = self.lineEditFipsNon.text().strip()
 
-            if self.radioButtonDatafilesNonCustom.isChecked():
-                attributeValueObj.nonroadDatafilesPath = self.lineEditDatafilesNon.text().strip()
+                if self.radioButtonDatafilesNonCustom.isChecked():
+                    attributeValueObj.nonroadDatafilesPath = self.lineEditDatafilesNon.text().strip()
 
-            if self.radioButtonNonIrrigCustom.isChecked():
-                attributeValueObj.irrigation = self.lineEditNonIrrig.text().strip()
+                if self.radioButtonNonIrrigCustom.isChecked():
+                    attributeValueObj.irrigation = self.lineEditNonIrrig.text().strip()
 
-            changedEncodeName = self.comboBoxEncodeNames.currentText()
-            if changedEncodeName:
-                attributeValueObj.encodeNames = changedEncodeName
+                changedEncodeName = self.comboBoxEncodeNames.currentText()
+                if changedEncodeName:
+                    attributeValueObj.encodeNames = changedEncodeName
 
-            changedFeedstockMeasureTypeNonroad = self.lineEditFeedMeasureTypeNon.text().strip()
-            if changedFeedstockMeasureTypeNonroad:
-                attributeValueObj.feedstockMeasureTypeNon = changedFeedstockMeasureTypeNonroad
+                changedFeedstockMeasureTypeNonroad = self.lineEditFeedMeasureTypeNon.text().strip()
+                if changedFeedstockMeasureTypeNonroad:
+                    attributeValueObj.feedstockMeasureTypeNon = changedFeedstockMeasureTypeNonroad
 
-            changedIrrigationFeedMeasureType = self.lineEditFeedMeasureTypeIrrigNon.text().strip()
-            if changedIrrigationFeedMeasureType:
-                attributeValueObj.irrigationFeedstockMeasureType = changedIrrigationFeedMeasureType
+                changedIrrigationFeedMeasureType = self.lineEditFeedMeasureTypeIrrigNon.text().strip()
+                if changedIrrigationFeedMeasureType:
+                    attributeValueObj.irrigationFeedstockMeasureType = changedIrrigationFeedMeasureType
 
-            changedIrrigationFeedNames = self.lineEditFeedIrrigNamesNon.text().strip()
-            if changedIrrigationFeedNames:
-                attributeValueObj.irrigatedFeedstockNames = changedIrrigationFeedNames
+                changedIrrigationFeedNames = self.lineEditFeedIrrigNamesNon.text().strip()
+                if changedIrrigationFeedNames:
+                    attributeValueObj.irrigatedFeedstockNames = changedIrrigationFeedNames
 
-            changedTimeResName = self.lineEditTimeResNamesNon.text().strip()
-            if changedTimeResName:
-                attributeValueObj.timeResourceNameNon = changedTimeResName
+                changedTimeResName = self.lineEditTimeResNamesNon.text().strip()
+                if changedTimeResName:
+                    attributeValueObj.timeResourceNameNon = changedTimeResName
 
-            changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
-            if changedForestryFeedNames:
-                attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
+                changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
+                if changedForestryFeedNames:
+                    attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
 
-            changedTempMin = self.lineEditMinTemp.text().strip()
-            if changedTempMin:
-                attributeValueObj.tempMin = changedTempMin
+                changedTempMin = self.lineEditMinTemp.text().strip()
+                if changedTempMin:
+                    attributeValueObj.tempMin = changedTempMin
 
-            changedTempMax = self.lineEditMaxTemp.text().strip()
-            if changedTempMax:
-                attributeValueObj.tempMax = changedTempMax
+                changedTempMax = self.lineEditMaxTemp.text().strip()
+                if changedTempMax:
+                    attributeValueObj.tempMax = changedTempMax
 
-            changedTempMean = self.lineEditMeanTemp.text().strip()
-            if changedTempMean:
-                attributeValueObj.tempMean = changedTempMean
+                changedTempMean = self.lineEditMeanTemp.text().strip()
+                if changedTempMean:
+                    attributeValueObj.tempMean = changedTempMean
 
-            changeddieselLHV = self.lineEditLowHeat.text().strip()
-            if changeddieselLHV:
-                attributeValueObj.dieselLHV = changeddieselLHV
+                changeddieselLHV = self.lineEditLowHeat.text().strip()
+                if changeddieselLHV:
+                    attributeValueObj.dieselLHV = changeddieselLHV
 
-            changeddieselNH3 = self.lineEditNH3.text().strip()
-            if changeddieselNH3:
-                attributeValueObj.dieselNh3Ef = changeddieselNH3
+                changeddieselNH3 = self.lineEditNH3.text().strip()
+                if changeddieselNH3:
+                    attributeValueObj.dieselNh3Ef = changeddieselNH3
 
-            changeddieselHydrotoVOC = self.lineEditHydro.text().strip()
-            if changeddieselHydrotoVOC:
-                attributeValueObj.tempMean = changeddieselHydrotoVOC
+                changeddieselHydrotoVOC = self.lineEditHydro.text().strip()
+                if changeddieselHydrotoVOC:
+                    attributeValueObj.tempMean = changeddieselHydrotoVOC
 
-            changedPMConversionFact = self.lineEditPM10.text().strip()
-            if changedPMConversionFact:
-                attributeValueObj.dieselPm10topm25 = changedPMConversionFact
+                changedPMConversionFact = self.lineEditPM10.text().strip()
+                if changedPMConversionFact:
+                    attributeValueObj.dieselPm10topm25 = changedPMConversionFact
 
 
 
@@ -1838,61 +1834,61 @@ class AlltabsModule(QtWidgets.QWidget):
 
 
 
-        ###############################################################################################################
+            ###############################################################################################################
 
-        # Emission Factors attributs value Initialization
+            # Emission Factors attributs value Initialization
 
-        changedFeedMeasureTypeFEF= self.lineEditFeedMeasureTypeEF.text().strip()
-        if changedFeedMeasureTypeFEF:
-            attributeValueObj.feedMeasureTypeEF = changedFeedMeasureTypeFEF
+            changedFeedMeasureTypeFEF= self.lineEditFeedMeasureTypeEF.text().strip()
+            if changedFeedMeasureTypeFEF:
+                attributeValueObj.feedMeasureTypeEF = changedFeedMeasureTypeFEF
 
-        if self.radioButtonEmiFactCustom.isChecked():
-            attributeValueObj.emissionFactorsEF = self.lineEditEmiFact.text().strip()
-        if self.radioButtonResDistCustom.isChecked():
-            attributeValueObj.resourceDistributionEF = self.lineEditResDist.text().strip()
+            if self.radioButtonEmiFactCustom.isChecked():
+                attributeValueObj.emissionFactorsEF = self.lineEditEmiFact.text().strip()
+            if self.radioButtonResDistCustom.isChecked():
+                attributeValueObj.resourceDistributionEF = self.lineEditResDist.text().strip()
 
-        ###############################################################################################################
+            ###############################################################################################################
 
-        # Fugititve Dust attributes value initialization
+            # Fugititve Dust attributes value initialization
 
-        changedFeedMeasureTypeFD = self.lineEditFeedMeasureTypeFD.text().strip()
-        if changedFeedMeasureTypeFD:
-            attributeValueObj.feedMeasureTypeFD = changedFeedMeasureTypeFD
+            changedFeedMeasureTypeFD = self.lineEditFeedMeasureTypeFD.text().strip()
+            if changedFeedMeasureTypeFD:
+                attributeValueObj.feedMeasureTypeFD = changedFeedMeasureTypeFD
 
-        if self.radioButtonEmiFactFDCustom.isChecked():
-            attributeValueObj.emissionFactorsFD = self.lineEditEmiFactFD.text().strip()
+            if self.radioButtonEmiFactFDCustom.isChecked():
+                attributeValueObj.emissionFactorsFD = self.lineEditEmiFactFD.text().strip()
 
-        ###############################################################################################################
+            ###############################################################################################################
 
 
-        # Call config file creation function - working code
-        # if self.checkBoxMoves.isChecked():
-        #     movesConfigCreationObj = movesConfigCreation(tmpFolder)
-        # if self.checkBoxNonroad.isChecked():
-        #     nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder)
-        if self.checkBoxEmissionFactors.isChecked():
-            emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(tmpFolder, attributeValueObj)
-        # if self.checkBoxFugitiveDust.isChecked():
-        #     fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder)
-        runConfigObj = runConfigCreation(tmpFolder, attributeValueObj)
+            # Call config file creation function - working code
+            # if self.checkBoxMoves.isChecked():
+            #     movesConfigCreationObj = movesConfigCreation(tmpFolder)
+            # if self.checkBoxNonroad.isChecked():
+            #     nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder)
+            if self.checkBoxEmissionFactors.isChecked():
+                emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(tmpFolder, attributeValueObj)
+            # if self.checkBoxFugitiveDust.isChecked():
+            #     fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder)
+            runConfigObj = runConfigCreation(tmpFolder, attributeValueObj)
 
-        # run FugitiveDust module
-        command = "fpeam " + runConfigObj + " --emissionfactors_config " + emissionFactorsConfigCreationObj
-        print(command)
-        t = threading.Thread(target= runCommand , args = (runConfigObj , emissionFactorsConfigCreationObj, attributeValueObj, ))
-        t.start()
+            # run FugitiveDust module
+            command = "fpeam " + runConfigObj + " --emissionfactors_config " + emissionFactorsConfigCreationObj
+            print(command)
+            t = threading.Thread(target= runCommand , args = (runConfigObj , emissionFactorsConfigCreationObj, attributeValueObj, ))
+            t.start()
 
-        while t.is_alive():
-            print("alive. Waiting for 1 second to recheck")
-            time.sleep(1)
+            while t.is_alive():
+                print("alive. Waiting for 1 second to recheck")
+                time.sleep(1)
 
-        t.join()
+            t.join()
 
-        # Display logs in result tab after completion of running
-        self.centralwidget.setCurrentWidget(self.tabResult)
+            # Display logs in result tab after completion of running
+            self.centralwidget.setCurrentWidget(self.tabResult)
 
-        # Set logs to Plaintext in Result tab
-        self.plainTextLog.setPlainText(attributeValueObj.logContents)
+            # Set logs to Plaintext in Result tab
+            self.plainTextLog.setPlainText(attributeValueObj.logContents)
 
     #########################################################################################################################
 
