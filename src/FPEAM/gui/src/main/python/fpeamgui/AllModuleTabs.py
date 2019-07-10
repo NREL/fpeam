@@ -282,30 +282,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.browseBtnTransGr, 10, 3)
         self.windowLayout.addWidget(self.lineEditTransGraph, 10, 4)
 
-        # County Node
-        self.labelCountyNode = QLabel()
-        self.labelCountyNode = QLabel()
-        self.labelCountyNode.setText("County Node")
-        self.labelCountyNode.setToolTip("Select County Node dataset")
-        self.radioGroupCountyNode = QButtonGroup(self.windowLayout)
-        self.radioButtonCountyNodeDefault = QRadioButton("Default")
-        self.radioButtonCountyNodeDefault.setChecked(True)
-        self.radioButtonCountyNodeDefault.toggled.connect(self.radioButtonCountyNodeDefaultClicked)
-        self.radioButtonCountyNodeCustom = QRadioButton("Custom")
-        self.radioButtonCountyNodeCustom.toggled.connect(self.radioButtonCountyNodeCustomClicked)
-        self.radioGroupCountyNode.addButton(self.radioButtonCountyNodeDefault)
-        self.radioGroupCountyNode.addButton(self.radioButtonCountyNodeCustom)
-        self.browseBtnCountyNode = QPushButton("Browse", self)
-        self.browseBtnCountyNode.clicked.connect(self.getfilesCountyNode)
-        self.browseBtnCountyNode.setEnabled(False)
-        self.browseBtnCountyNode.hide()
-        self.lineEditCountyNode = QLineEdit(self)
-        self.lineEditCountyNode.hide()
-        self.windowLayout.addWidget(self.labelCountyNode, 11, 0)
-        self.windowLayout.addWidget(self.radioButtonCountyNodeDefault, 11, 1)
-        self.windowLayout.addWidget(self.radioButtonCountyNodeCustom, 11, 2)
-        self.windowLayout.addWidget(self.browseBtnCountyNode, 11, 3)
-        self.windowLayout.addWidget(self.lineEditCountyNode, 11, 4)
 
 
     # Checkbox - MOves Module - Checked
@@ -444,30 +420,6 @@ class AlltabsModule(QtWidgets.QWidget):
         fileNameEqWitoutBracketTransGr = str(fileNameEqWithBracketTransGr).split('(')
         selectedFileNameTransGr = str(fileNameEqWitoutBracketTransGr).split(',')
         self.lineEditTransGraph.setText(selectedFileNameTransGr[1])
-
-    # County Node
-    def radioButtonCountyNodeDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnCountyNode.hide()
-            self.lineEditCountyNode.hide()
-            self.browseBtnCountyNode.setEnabled(False)
-            self.lineEditCountyNode.setEnabled(False)
-
-    def radioButtonCountyNodeCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnCountyNode.show()
-            self.lineEditCountyNode.show()
-            self.browseBtnCountyNode.setEnabled(True)
-            self.lineEditCountyNode.setEnabled(True)
-
-    def getfilesCountyNode(self):
-        fileNameCountyNode = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        fileNameEqWithBracketCountyNode = str(fileNameCountyNode).split(',')
-        fileNameEqWitoutBracketCountyNode = str(fileNameEqWithBracketCountyNode).split('(')
-        selectedFileNameCountyNode = str(fileNameEqWitoutBracketCountyNode).split(',')
-        self.lineEditCountyNode.setText(selectedFileNameCountyNode[1])
-
-
 
 
         ###########################################################################################################################################################################
@@ -1627,8 +1579,6 @@ class AlltabsModule(QtWidgets.QWidget):
         if self.radioButtonTransGraphCustom.isChecked():
             attributeValueObj.transportationGraph = self.lineEditTransGraph.text().strip()
 
-        if self.radioButtonCountyNodeCustom.isChecked():
-            attributeValueObj.countyNodes = self.lineEditCountyNode.text().strip()
 
         ###############################################################################################################
 

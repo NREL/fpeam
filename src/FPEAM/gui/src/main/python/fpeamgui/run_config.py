@@ -24,8 +24,6 @@ feedstock_loss_factors = '{feedstock_loss_factors}'
 ## MOVES routing graph
 transportation_graph = '{transportation_graph}'
 
-## graph nodes representing each county
-county_nodes = '{county_nodes}'
 
 ## data backfill flag
 backfill = {backfill}
@@ -42,7 +40,6 @@ use_router_engine = {use_router_engine} """
                                                production = attributeValueObj.production,
                                                feedstock_loss_factors = attributeValueObj.feedstockLossFactors,
                                                transportation_graph = attributeValueObj.transportationGraph,
-                                               county_nodes = attributeValueObj.countyNodes,
                                                backfill = attributeValueObj.backfill,
                                                use_router_engine = attributeValueObj.useRouterEngine)
 
