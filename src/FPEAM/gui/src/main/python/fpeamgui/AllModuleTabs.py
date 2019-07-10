@@ -1760,20 +1760,72 @@ class AlltabsModule(QtWidgets.QWidget):
 
         ###############################################################################################################
 
-        # Nonroad attributes value initialization
+            # Nonroad attributes value initialization
 
-        changedYearNonroad = self.comboBoxYearNon.currentText()
-        if changedYearNonroad:
-            attributeValueObj.yearNonroad = changedYearNonroad
+            changedYearNonroad = self.comboBoxYearNon.currentText()
+            if changedYearNonroad:
+                attributeValueObj.yearNonroad = changedYearNonroad
 
-        if self.radioButtonFipsNonCustom.isChecked():
-            attributeValueObj.regionFipsMapNonroad = self.lineEditFipsNon.text().strip()
+            if self.radioButtonFipsNonCustom.isChecked():
+                attributeValueObj.regionFipsMapNonroad = self.lineEditFipsNon.text().strip()
 
-        if self.radioButtonDatafilesNonCustom.isChecked():
-            attributeValueObj.nonroadDatafilesPath = self.lineEditDatafilesNon.text().strip()
+            if self.radioButtonDatafilesNonCustom.isChecked():
+                attributeValueObj.nonroadDatafilesPath = self.lineEditDatafilesNon.text().strip()
 
-        if self.radioButtonNonIrrigCustom.isChecked():
-            attributeValueObj.irrigation = self.lineEditNonIrrig.text().strip()
+            if self.radioButtonNonIrrigCustom.isChecked():
+                attributeValueObj.irrigation = self.lineEditNonIrrig.text().strip()
+
+            changedEncodeName = self.comboBoxEncodeNames.currentText()
+            if changedEncodeName:
+                attributeValueObj.encodeNames = changedEncodeName
+
+            changedFeedstockMeasureTypeNonroad = self.lineEditFeedMeasureTypeNon.text().strip()
+            if changedFeedstockMeasureTypeNonroad:
+                attributeValueObj.feedstockMeasureTypeNon = changedFeedstockMeasureTypeNonroad
+
+            changedIrrigationFeedMeasureType = self.lineEditFeedMeasureTypeIrrigNon.text().strip()
+            if changedIrrigationFeedMeasureType:
+                attributeValueObj.irrigationFeedstockMeasureType = changedIrrigationFeedMeasureType
+
+            changedIrrigationFeedNames = self.lineEditFeedIrrigNamesNon.text().strip()
+            if changedIrrigationFeedNames:
+                attributeValueObj.irrigatedFeedstockNames = changedIrrigationFeedNames
+
+            changedTimeResName = self.lineEditTimeResNamesNon.text().strip()
+            if changedTimeResName:
+                attributeValueObj.timeResourceNameNon = changedTimeResName
+
+            changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
+            if changedForestryFeedNames:
+                attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
+
+            changedTempMin = self.lineEditMinTemp.text().strip()
+            if changedTempMin:
+                attributeValueObj.tempMin = changedTempMin
+
+            changedTempMax = self.lineEditMaxTemp.text().strip()
+            if changedTempMax:
+                attributeValueObj.tempMax = changedTempMax
+
+            changedTempMean = self.lineEditMeanTemp.text().strip()
+            if changedTempMean:
+                attributeValueObj.tempMean = changedTempMean
+
+            changeddieselLHV = self.lineEditLowHeat.text().strip()
+            if changeddieselLHV:
+                attributeValueObj.dieselLHV = changeddieselLHV
+
+            changeddieselNH3 = self.lineEditNH3.text().strip()
+            if changeddieselNH3:
+                attributeValueObj.dieselNh3Ef = changeddieselNH3
+
+            changeddieselHydrotoVOC = self.lineEditHydro.text().strip()
+            if changeddieselHydrotoVOC:
+                attributeValueObj.tempMean = changeddieselHydrotoVOC
+
+            changedPMConversionFact = self.lineEditPM10.text().strip()
+            if changedPMConversionFact:
+                attributeValueObj.dieselPm10topm25 = changedPMConversionFact
 
 
 
