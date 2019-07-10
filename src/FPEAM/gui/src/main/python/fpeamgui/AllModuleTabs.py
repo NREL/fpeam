@@ -109,7 +109,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.runBtn = QPushButton("Run", self)
         self.runBtn.setFixedWidth(100)
         self.runBtn.clicked.connect(self.runTheSelectedModules)
-        self.windowLayout.addWidget(self.runBtn, 3, 4)
+        self.windowLayout.addWidget(self.runBtn, 3, 1)
 
         # Ui Element - Logging Verbosity Level
         self.labelLoggVerboLevel = QLabel()
