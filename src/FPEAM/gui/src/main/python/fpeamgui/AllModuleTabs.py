@@ -1802,16 +1802,6 @@ class AlltabsModule(QtWidgets.QWidget):
                     attributeValueObj.dieselPm10topm25 = changedPMConversionFact
 
 
-
-
-
-
-
-
-
-
-
-
             ###############################################################################################################
 
             # Emission Factors attributs value Initialization
@@ -1888,31 +1878,26 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.plainTextLog = QPlainTextEdit()
         self.plainTextLog.setPlainText("")
-        self.plainTextLog.setFixedSize(500, 200)
         self.plainTextLog.setReadOnly(True)
         windowLayout.addWidget(self.plainTextLog, 0, 0, 1, 3)
 
         self.plainTextMOVESGraph = QPlainTextEdit()
         self.plainTextMOVESGraph.setReadOnly(True)
-        self.plainTextMOVESGraph.setFixedSize(500, 200)
         self.plainTextMOVESGraph.setPlainText("MOVES Graph")
         windowLayout.addWidget(self.plainTextMOVESGraph, 1, 0)
 
         self.plainTextNONROADGraph = QPlainTextEdit()
         self.plainTextNONROADGraph.setReadOnly(True)
-        self.plainTextNONROADGraph.setFixedSize(500, 200)
         self.plainTextNONROADGraph.setPlainText("NONROAD Graph")
         windowLayout.addWidget(self.plainTextNONROADGraph, 1, 1)
 
         self.plainTextEmissionFactorsGraph = QPlainTextEdit()
         self.plainTextEmissionFactorsGraph.setReadOnly(True)
-        self.plainTextEmissionFactorsGraph.setFixedSize(500, 200)
         self.plainTextEmissionFactorsGraph.setPlainText("Emissionfactors Graph")
         windowLayout.addWidget(self.plainTextEmissionFactorsGraph, 2, 0)
 
         self.plainTextFugitivedustGraph = QPlainTextEdit()
         self.plainTextFugitivedustGraph.setReadOnly(True)
-        self.plainTextFugitivedustGraph.setFixedSize(500, 200)
         self.plainTextFugitivedustGraph.setPlainText("Fugitivedust Graph")
         windowLayout.addWidget(self.plainTextFugitivedustGraph, 2, 1)
 
