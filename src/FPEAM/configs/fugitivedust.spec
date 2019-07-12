@@ -1,7 +1,8 @@
 
 
 ## production table identifier (feedstock_measure in production data)
-feedstock_measure_type = string(default='harvested')
+onfarm_feedstock_measure_type = string(default='harvested')
+onroad_feedstock_measure_type = string(default='production')
 
 ## particulate matter emission factors by acreage
 fugitive_dust_factors = filepath(default='data/inputs/fugitive_dust_emission_factors.csv')
