@@ -506,125 +506,53 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTruckCapacity = QLabel()
         self.labelTruckCapacity.setText("Truck Capacity")
         self.labelTruckCapacity.setToolTip("Select Truck Capacity (truck capacities for feedstock transportation) dataset")
-        self.radioGroupTruckCapa = QButtonGroup(self.windowLayout)
-        self.radioVuttonTruckCapaDefault = QRadioButton("Default")
-        self.radioVuttonTruckCapaDefault.setFixedWidth(100)
-        self.radioVuttonTruckCapaDefault.setFixedHeight(30)
-        self.radioVuttonTruckCapaDefault.setChecked(True)
-        self.radioVuttonTruckCapaDefault.toggled.connect(self.radioButtonTruckCapaDefaultClicked)
-        self.radioButtonTruckCapaCustom = QRadioButton("Custom")
-        self.radioButtonTruckCapaCustom.setFixedWidth(100)
-        self.radioButtonTruckCapaCustom.setFixedHeight(30)
-        self.radioButtonTruckCapaCustom.toggled.connect(self.radioButtonTruckCapaCustomClicked)
-        self.radioGroupTruckCapa.addButton(self.radioVuttonTruckCapaDefault)
-        self.radioGroupTruckCapa.addButton(self.radioButtonTruckCapaCustom)
         self.browseBtnTruckCapa = QPushButton("Browse", self)
         self.browseBtnTruckCapa.setFixedWidth(100)
-        self.browseBtnTruckCapa.setEnabled(False)
-        self.browseBtnTruckCapa.hide()
         self.browseBtnTruckCapa.clicked.connect(self.getfilesTruckCapa)
         self.lineEditTruckCapa = QLineEdit(self)
         self.lineEditTruckCapa.setFixedWidth(100)
-        self.lineEditTruckCapa.setEnabled(False)
-        self.lineEditTruckCapa.hide()
         self.windowLayout.addWidget(self.labelTruckCapacity, 15, 0)
-        self.windowLayout.addWidget(self.radioVuttonTruckCapaDefault, 15, 1)
-        self.windowLayout.addWidget(self.radioButtonTruckCapaCustom, 15, 2)
-        self.windowLayout.addWidget(self.browseBtnTruckCapa, 15, 3)
-        self.windowLayout.addWidget(self.lineEditTruckCapa, 15, 4)
+        self.windowLayout.addWidget(self.browseBtnTruckCapa, 15, 1)
+        self.windowLayout.addWidget(self.lineEditTruckCapa, 15, 2)
 
         # Created UI element AVFT
         self.labelAVFT = QLabel()
         self.labelAVFT.setText("AVFT")
         self.labelAVFT.setToolTip("Select AVFT (fuel fraction by engine type) dataset")
-        self.radioGroupAVFT = QButtonGroup(self.windowLayout)
-        self.radioVuttonAVFTDefault = QRadioButton("Default")
-        self.radioVuttonAVFTDefault.setFixedWidth(100)
-        self.radioVuttonAVFTDefault.setFixedHeight(30)
-        self.radioVuttonAVFTDefault.setChecked(True)
-        self.radioVuttonAVFTDefault.toggled.connect(self.radioButtonAVFTDefaultClicked)
-        self.radioButtonAVFTCustom = QRadioButton("Custom")
-        self.radioButtonAVFTCustom.setFixedWidth(100)
-        self.radioButtonAVFTCustom.setFixedHeight(30)
-        self.radioButtonAVFTCustom.toggled.connect(self.radioButtonAVFTCustomClicked)
-        self.radioGroupAVFT.addButton(self.radioVuttonAVFTDefault)
-        self.radioGroupAVFT.addButton(self.radioButtonAVFTCustom)
         self.browseBtnAVFT = QPushButton("Browse", self)
         self.browseBtnAVFT.setFixedWidth(100)
-        self.browseBtnAVFT.setEnabled(False)
-        self.browseBtnAVFT.hide()
         self.browseBtnAVFT.clicked.connect(self.getfilesAVFT)
         self.lineEditAVFT = QLineEdit(self)
         self.lineEditAVFT.setFixedWidth(100)
-        self.lineEditAVFT.setEnabled(False)
-        self.lineEditAVFT.hide()
         self.windowLayout.addWidget(self.labelAVFT, 16, 0)
-        self.windowLayout.addWidget(self.radioVuttonAVFTDefault, 16, 1)
-        self.windowLayout.addWidget(self.radioButtonAVFTCustom, 16, 2)
-        self.windowLayout.addWidget(self.browseBtnAVFT, 16, 3)
-        self.windowLayout.addWidget(self.lineEditAVFT, 16, 4)
+        self.windowLayout.addWidget(self.browseBtnAVFT, 16, 1)
+        self.windowLayout.addWidget(self.lineEditAVFT, 16, 2)
 
         # Created UI element Region FIPs Map
         self.labelFips = QLabel()
         self.labelFips.setText("Region FIPS Map")
         self.labelFips.setToolTip("Select Region FIPS Map (production region to MOVES FIPS mapping) dataset")
-        self.radioGroupFips = QButtonGroup(self.windowLayout)
-        self.radioVuttonFipsDefault = QRadioButton("Default")
-        self.radioVuttonFipsDefault.setFixedWidth(100)
-        self.radioVuttonFipsDefault.setFixedHeight(30)
-        self.radioVuttonFipsDefault.setChecked(True)
-        self.radioVuttonFipsDefault.toggled.connect(self.radioButtonFipsDefaultClicked)
-        self.radioButtonFipsCustom = QRadioButton("Custom")
-        self.radioButtonFipsCustom.setFixedWidth(100)
-        self.radioButtonFipsCustom.setFixedHeight(30)
-        self.radioButtonFipsCustom.toggled.connect(self.radioButtonFipsCustomClicked)
-        self.radioGroupFips.addButton(self.radioVuttonFipsDefault)
-        self.radioGroupFips.addButton(self.radioButtonFipsCustom)
         self.browseBtnFips = QPushButton("Browse", self)
         self.browseBtnFips.setFixedWidth(100)
-        self.browseBtnFips.setEnabled(False)
-        self.browseBtnFips.hide()
         self.browseBtnFips.clicked.connect(self.getfilesFips)
         self.lineEditFips = QLineEdit(self)
         self.lineEditFips.setFixedWidth(100)
-        self.lineEditFips.setEnabled(False)
-        self.lineEditFips.hide()
         self.windowLayout.addWidget(self.labelFips, 17, 0)
-        self.windowLayout.addWidget(self.radioVuttonFipsDefault, 17, 1)
-        self.windowLayout.addWidget(self.radioButtonFipsCustom, 17, 2)
-        self.windowLayout.addWidget(self.browseBtnFips, 17, 3)
-        self.windowLayout.addWidget(self.lineEditFips, 17, 4)
+        self.windowLayout.addWidget(self.browseBtnFips, 17, 1)
+        self.windowLayout.addWidget(self.lineEditFips, 17, 2)
 
         # Created UI element Moves Datafiles
         self.labelDatafiles = QLabel()
         self.labelDatafiles.setText("Moves Datafiles")
         self.labelDatafiles.setToolTip("Select all input files created for MOVES runs")
-        self.radioGroupDatafiles = QButtonGroup(self.windowLayout)
-        self.radioVuttonDatafilesDefault = QRadioButton("Default")
-        self.radioVuttonDatafilesDefault.setFixedWidth(100)
-        self.radioVuttonDatafilesDefault.setFixedHeight(30)
-        self.radioVuttonDatafilesDefault.setChecked(True)
-        self.radioVuttonDatafilesDefault.toggled.connect(self.radioButtonDatafilesDefaultClicked)
-        self.radioButtonDatafilesCustom = QRadioButton("Custom")
-        self.radioButtonDatafilesCustom.setFixedWidth(100)
-        self.radioButtonDatafilesCustom.setFixedHeight(30)
-        self.radioButtonDatafilesCustom.toggled.connect(self.radioButtonDatafilesCustomClicked)
-        self.radioGroupDatafiles.addButton(self.radioVuttonDatafilesDefault)
-        self.radioGroupDatafiles.addButton(self.radioButtonDatafilesCustom)
         self.browseBtnDatafiles = QPushButton("Browse", self)
         self.browseBtnDatafiles.setFixedWidth(100)
-        self.browseBtnDatafiles.setEnabled(False)
-        self.browseBtnDatafiles.hide()
         self.browseBtnDatafiles.clicked.connect(self.getfilesDatafiles)
         self.lineEditDatafiles = QLineEdit(self)
         self.lineEditDatafiles.setFixedWidth(100)
-        self.lineEditDatafiles.setEnabled(False)
-        self.lineEditDatafiles.hide()
         self.windowLayout.addWidget(self.labelDatafiles, 18, 0)
-        self.windowLayout.addWidget(self.radioVuttonDatafilesDefault, 18, 1)
-        self.windowLayout.addWidget(self.radioButtonDatafilesCustom, 18, 2)
-        self.windowLayout.addWidget(self.browseBtnDatafiles, 18, 3)
-        self.windowLayout.addWidget(self.lineEditDatafiles, 18, 4)
+        self.windowLayout.addWidget(self.browseBtnDatafiles, 18, 1)
+        self.windowLayout.addWidget(self.lineEditDatafiles, 18, 2)
 
         # Created UI element VMT Fraction
         self.labelVMTFraction = QLabel()
@@ -701,19 +629,6 @@ class AlltabsModule(QtWidgets.QWidget):
 
 
     # Functions used for Truck Capacity
-    def radioButtonTruckCapaDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnTruckCapa.hide()
-            self.lineEditTruckCapa.hide()
-            self.browseBtnTruckCapa.setEnabled(False)
-            self.lineEditTruckCapa.setEnabled(False)
-
-    def radioButtonTruckCapaCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnTruckCapa.show()
-            self.lineEditTruckCapa.show()
-            self.browseBtnTruckCapa.setEnabled(True)
-            self.lineEditTruckCapa.setEnabled(True)
 
     def getfilesTruckCapa(self):
         fileNameTruckCapa = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -721,19 +636,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditTruckCapa.setText(selectedFileNameTruckCapa[1])
 
     # Functions used for AVFT
-    def radioButtonAVFTDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnAVFT.hide()
-            self.lineEditAVFT.hide()
-            self.browseBtnAVFT.setEnabled(False)
-            self.lineEditAVFT.setEnabled(False)
-
-    def radioButtonAVFTCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnAVFT.show()
-            self.lineEditAVFT.show()
-            self.browseBtnAVFT.setEnabled(True)
-            self.lineEditAVFT.setEnabled(True)
 
     def getfilesAVFT(self):
         fileNameAVFT = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -742,19 +644,6 @@ class AlltabsModule(QtWidgets.QWidget):
 
 
     # Functions used for Fips
-    def radioButtonFipsDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnFips.hide()
-            self.lineEditFips.hide()
-            self.browseBtnFips.setEnabled(False)
-            self.lineEditFips.setEnabled(False)
-
-    def radioButtonFipsCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnFips.show()
-            self.lineEditFips.show()
-            self.browseBtnFips.setEnabled(True)
-            self.lineEditFips.setEnabled(True)
 
     def getfilesFips(self):
         fileNameFips = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -762,19 +651,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFips.setText(selectedFileNameFips[1])
 
     # Functions used for Moves Datafiles
-    def radioButtonDatafilesDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnDatafiles.hide()
-            self.lineEditDatafiles.hide()
-            self.browseBtnDatafiles.setEnabled(False)
-            self.lineEditDatafiles.setEnabled(False)
-
-    def radioButtonDatafilesCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnDatafiles.show()
-            self.lineEditDatafiles.show()
-            self.browseBtnDatafiles.setEnabled(True)
-            self.lineEditDatafiles.setEnabled(True)
 
     def getfilesDatafiles(self):
         fileNameDatafile = QFileDialog.getExistingDirectory(self, "Browse")
@@ -833,106 +709,52 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelDatafilesNon = QLabel()
         self.labelDatafilesNon.setText("NONROAD Datafiles")
         self.labelDatafilesNon.setToolTip("Select NONROAD output folder")
-        self.radioGroupDatafilesNon = QButtonGroup(self.windowLayout)
-        self.radioVuttonDatafilesNonDefault = QRadioButton("Default")
-        self.radioVuttonDatafilesNonDefault.setFixedWidth(200)
-        self.radioVuttonDatafilesNonDefault.setFixedHeight(30)
-        self.radioVuttonDatafilesNonDefault.setChecked(True)
-        self.radioVuttonDatafilesNonDefault.toggled.connect(self.radioButtonDatafilesNonDefaultClicked)
-        self.radioButtonDatafilesNonCustom = QRadioButton("Custom")
-        self.radioButtonDatafilesNonCustom.setFixedWidth(200)
-        self.radioButtonDatafilesNonCustom.setFixedHeight(30)
-        self.radioButtonDatafilesNonCustom.toggled.connect(self.radioButtonDatafilesNonCustomClicked)
-        self.radioGroupDatafilesNon.addButton(self.radioVuttonDatafilesNonDefault)
-        self.radioGroupDatafilesNon.addButton(self.radioButtonDatafilesNonCustom)
         self.browseBtnDatafilesNon = QPushButton("Browse", self)
         self.browseBtnDatafilesNon.setFixedWidth(100)
-        self.browseBtnDatafilesNon.setEnabled(False)
-        self.browseBtnDatafilesNon.hide()
         self.browseBtnDatafilesNon.clicked.connect(self.getfilesDatafilesNon)
         # Add Empty PlainText
         self.emptyPlainTextNonDatafiles = QLabel()
         self.emptyPlainTextNonDatafiles.setFixedWidth(90)
         self.lineEditDatafilesNon = QLineEdit(self)
         self.lineEditDatafilesNon.setFixedWidth(100)
-        self.lineEditDatafilesNon.setEnabled(False)
-        self.lineEditDatafilesNon.hide()
         self.windowLayout.addWidget(self.labelDatafilesNon, 4, 0)
-        self.windowLayout.addWidget(self.radioVuttonDatafilesNonDefault, 4, 1)
-        self.windowLayout.addWidget(self.radioButtonDatafilesNonCustom, 4, 2)
-        self.windowLayout.addWidget(self.browseBtnDatafilesNon, 4, 3)
-        self.windowLayout.addWidget(self.emptyPlainTextNonDatafiles, 4, 4)
-        self.windowLayout.addWidget(self.lineEditDatafilesNon, 4, 5)
+        self.windowLayout.addWidget(self.browseBtnDatafilesNon, 4, 1)
+        self.windowLayout.addWidget(self.emptyPlainTextNonDatafiles, 4, 2)
+        self.windowLayout.addWidget(self.lineEditDatafilesNon, 4, 3)
 
         # Created UI element Region FIPs Map Nonroad
         self.labelFipsNon = QLabel()
         self.labelFipsNon.setText("Region FIPS Map")
         self.labelFipsNon.setToolTip("Select Region FIPS Map (production region to Nonroad FIPS mapping) dataset")
-        self.radioGroupFipsNon = QButtonGroup(self.windowLayout)
-        self.radioVuttonFipsNonDefault = QRadioButton("Default")
-        self.radioVuttonFipsNonDefault.setFixedWidth(200)
-        self.radioVuttonFipsNonDefault.setFixedHeight(30)
-        self.radioVuttonFipsNonDefault.setChecked(True)
-        self.radioVuttonFipsNonDefault.toggled.connect(self.radioButtonFipsNonDefaultClicked)
-        self.radioButtonFipsNonCustom = QRadioButton("Custom")
-        self.radioButtonFipsNonCustom.setFixedWidth(200)
-        self.radioButtonFipsNonCustom.setFixedHeight(30)
-        self.radioButtonFipsNonCustom.toggled.connect(self.radioButtonFipsNonCustomClicked)
-        self.radioGroupFipsNon.addButton(self.radioVuttonFipsNonDefault)
-        self.radioGroupFipsNon.addButton(self.radioButtonFipsNonCustom)
         self.browseBtnFipsNon = QPushButton("Browse", self)
         self.browseBtnFipsNon.setFixedWidth(100)
-        self.browseBtnFipsNon.setEnabled(False)
-        self.browseBtnFipsNon.hide()
         self.browseBtnFipsNon.clicked.connect(self.getfilesFipsNon)
         # Add Empty PlainText
         self.emptyPlainTextNonRegFips = QLabel()
         self.emptyPlainTextNonRegFips.setFixedWidth(90)
         self.lineEditFipsNon = QLineEdit(self)
         self.lineEditFipsNon.setFixedWidth(100)
-        self.lineEditFipsNon.setEnabled(False)
-        self.lineEditFipsNon.hide()
         self.windowLayout.addWidget(self.labelFipsNon, 5, 0)
-        self.windowLayout.addWidget(self.radioVuttonFipsNonDefault, 5, 1)
-        self.windowLayout.addWidget(self.radioButtonFipsNonCustom, 5, 2)
-        self.windowLayout.addWidget(self.browseBtnFipsNon, 5, 3)
-        self.windowLayout.addWidget(self.emptyPlainTextNonRegFips, 5, 4)
-        self.windowLayout.addWidget(self.lineEditFipsNon, 5, 5)
+        self.windowLayout.addWidget(self.browseBtnFipsNon, 5, 1)
+        self.windowLayout.addWidget(self.emptyPlainTextNonRegFips, 5, 2)
+        self.windowLayout.addWidget(self.lineEditFipsNon, 5, 3)
 
         # Created UI element Region Nonroad Irrigation
         self.labelNonIrrig = QLabel()
         self.labelNonIrrig.setText("Irrigation")
         self.labelNonIrrig.setToolTip("Select irrigation dataset")
-        self.radioGroupNonIrrig = QButtonGroup(self.windowLayout)
-        self.radioVuttonNonIrrigDefault = QRadioButton("Default")
-        self.radioVuttonNonIrrigDefault.setFixedWidth(200)
-        self.radioVuttonNonIrrigDefault.setFixedHeight(30)
-        self.radioVuttonNonIrrigDefault.setChecked(True)
-        self.radioVuttonNonIrrigDefault.toggled.connect(self.radioButtonNonIrrigDefaultClicked)
-        self.radioButtonNonIrrigCustom = QRadioButton("Custom")
-        self.radioButtonNonIrrigCustom.setFixedWidth(200)
-        self.radioButtonNonIrrigCustom.setFixedHeight(30)
-        self.radioButtonNonIrrigCustom.toggled.connect(self.radioButtonNonIrrigCustomClicked)
-        self.radioGroupNonIrrig.addButton(self.radioVuttonNonIrrigDefault)
-        self.radioGroupNonIrrig.addButton(self.radioButtonNonIrrigCustom)
         self.browseBtnNonIrrig = QPushButton("Browse", self)
         self.browseBtnNonIrrig.setFixedWidth(100)
-        self.browseBtnNonIrrig.setEnabled(False)
-        self.browseBtnNonIrrig.hide()
         self.browseBtnNonIrrig.clicked.connect(self.getfilesNonIrrig)
         # Add Empty PlainText
         self.emptyPlainTextNonIrri = QLabel()
         self.emptyPlainTextNonIrri.setFixedWidth(90)
         self.lineEditNonIrrig = QLineEdit(self)
         self.lineEditNonIrrig.setFixedWidth(100)
-        self.lineEditNonIrrig.setEnabled(False)
-        self.lineEditNonIrrig.hide()
         self.windowLayout.addWidget(self.labelNonIrrig, 6, 0)
-        self.windowLayout.addWidget(self.radioVuttonNonIrrigDefault, 6, 1)
-        self.windowLayout.addWidget(self.radioButtonNonIrrigCustom, 6, 2)
-        self.windowLayout.addWidget(self.browseBtnNonIrrig, 6, 3)
-        self.windowLayout.addWidget(self.emptyPlainTextNonIrri, 6, 4)
-        self.windowLayout.addWidget(self.lineEditNonIrrig, 6, 5)
+        self.windowLayout.addWidget(self.browseBtnNonIrrig, 6, 1)
+        self.windowLayout.addWidget(self.emptyPlainTextNonIrri, 6, 2)
+        self.windowLayout.addWidget(self.lineEditNonIrrig, 6, 3)
 
         # Created UI element Region Nonroad Encode Names
         self.labelNonEncodeNames = QLabel()
@@ -1145,19 +967,6 @@ class AlltabsModule(QtWidgets.QWidget):
 
 
     # Functions used for Moves Datafiles
-    def radioButtonDatafilesNonDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnDatafilesNon.hide()
-            self.lineEditDatafilesNon.hide()
-            self.browseBtnDatafilesNon.setEnabled(False)
-            self.lineEditDatafilesNon.setEnabled(False)
-
-    def radioButtonDatafilesNonCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnDatafilesNon.show()
-            self.lineEditDatafilesNon.show()
-            self.browseBtnDatafilesNon.setEnabled(True)
-            self.lineEditDatafilesNon.setEnabled(True)
 
     def getfilesDatafilesNon(self):
         fileName = QFileDialog.getExistingDirectory(self, "Browse")
@@ -1165,19 +974,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDatafilesNon.setText(selectedFileName[0])
 
     # Functions used for Fips Nonroad
-    def radioButtonFipsNonDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnFipsNon.hide()
-            self.lineEditFipsNon.hide()
-            self.browseBtnFipsNon.setEnabled(False)
-            self.lineEditFipsNon.setEnabled(False)
-
-    def radioButtonFipsNonCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnFipsNon.show()
-            self.lineEditFipsNon.show()
-            self.browseBtnFipsNon.setEnabled(True)
-            self.lineEditFipsNon.setEnabled(True)
 
     def getfilesFipsNon(self):
         fileNameFipsNon = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -1185,19 +981,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFipsNon.setText(selectedFileNameFipsNon[1])
 
     # Functions used for Nonroad Irrigation
-    def radioButtonNonIrrigDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnNonIrrig.hide()
-            self.lineEditNonIrrig.hide()
-            self.browseBtnNonIrrig.setEnabled(False)
-            self.lineEditNonIrrig.setEnabled(False)
-
-    def radioButtonNonIrrigCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnNonIrrig.show()
-            self.lineEditNonIrrig.show()
-            self.browseBtnNonIrrig.setEnabled(True)
-            self.lineEditNonIrrig.setEnabled(True)
 
     def getfilesNonIrrig(self):
         fileNameNonEq = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -1241,112 +1024,48 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelEmiFact = QLabel()
         self.labelEmiFact.setText("Emission Factors")
         self.labelEmiFact.setToolTip("Emission Factors as lb pollutant per lb resource subtype")
-        self.radioGroupEmiFact = QButtonGroup(self.windowLayout)
-        self.radioVuttonEmiFactDefault = QRadioButton("Default")
-        self.radioVuttonEmiFactDefault.setFixedWidth(200)
-        self.radioVuttonEmiFactDefault.setFixedHeight(30)
-        self.radioVuttonEmiFactDefault.setChecked(True)
-        self.radioVuttonEmiFactDefault.toggled.connect(self.radioButtonEmiFactDefaultClicked)
-        self.radioButtonEmiFactCustom = QRadioButton("Custom")
-        self.radioButtonEmiFactCustom.setFixedWidth(200)
-        self.radioButtonEmiFactCustom.setFixedHeight(30)
-        self.radioButtonEmiFactCustom.toggled.connect(self.radioButtonEmiFactCustomClicked)
-        self.radioGroupEmiFact.addButton(self.radioVuttonEmiFactDefault)
-        self.radioGroupEmiFact.addButton(self.radioButtonEmiFactCustom)
         self.browseBtnEmiFact = QPushButton("Browse", self)
         self.browseBtnEmiFact.setFixedWidth(100)
-        self.browseBtnEmiFact.setEnabled(False)
-        self.browseBtnEmiFact.hide()
         self.browseBtnEmiFact.clicked.connect(self.getfilesEmiFact)
         # Add Empty PlainText
         self.emptyPlainTextEmiFact = QLabel()
         self.emptyPlainTextEmiFact.setFixedWidth(90)
         self.lineEditEmiFact = QLineEdit(self)
         self.lineEditEmiFact.setFixedWidth(100)
-        self.lineEditEmiFact.setEnabled(False)
-        self.lineEditEmiFact.hide()
         self.windowLayout.addWidget(self.labelEmiFact, 3, 0)
-        self.windowLayout.addWidget(self.radioVuttonEmiFactDefault, 3, 1)
-        self.windowLayout.addWidget(self.radioButtonEmiFactCustom, 3, 2)
-        self.windowLayout.addWidget(self.browseBtnEmiFact, 3, 3)
-        self.windowLayout.addWidget(self.emptyPlainTextEmiFact, 3, 4)
-        self.windowLayout.addWidget(self.lineEditEmiFact, 3, 5)
+        self.windowLayout.addWidget(self.browseBtnEmiFact, 3, 1)
+        self.windowLayout.addWidget(self.emptyPlainTextEmiFact, 3, 2)
+        self.windowLayout.addWidget(self.lineEditEmiFact, 3, 3)
 
         # Created UI element Resource Distribution
         self.labelResDist = QLabel()
         self.labelResDist.setText("Resource Distribution")
         self.labelResDist.setToolTip("Resource subtype distribution for all resources")
-        self.radioGroupResDist = QButtonGroup(self.windowLayout)
-        self.radioVuttonResDistDefault = QRadioButton("Default")
-        self.radioVuttonResDistDefault.setFixedWidth(200)
-        self.radioVuttonResDistDefault.setFixedHeight(30)
-        self.radioVuttonResDistDefault.setChecked(True)
-        self.radioVuttonResDistDefault.toggled.connect(self.radioButtonResDistDefaultClicked)
-        self.radioButtonResDistCustom = QRadioButton("Custom")
-        self.radioButtonResDistCustom.setFixedWidth(200)
-        self.radioButtonResDistCustom.setFixedHeight(30)
-        self.radioButtonResDistCustom.toggled.connect(self.radioButtonResDistCustomClicked)
-        self.radioGroupResDist.addButton(self.radioVuttonResDistDefault)
-        self.radioGroupResDist.addButton(self.radioButtonResDistCustom)
         self.browseBtnReDist = QPushButton("Browse", self)
         self.browseBtnReDist.setFixedWidth(100)
-        self.browseBtnReDist.setEnabled(False)
-        self.browseBtnReDist.hide()
         self.browseBtnReDist.clicked.connect(self.getfilesResDist)
         # Add Empty PlainText
         self.emptyPlainTextResDistri = QLabel()
         self.emptyPlainTextResDistri.setFixedWidth(90)
         self.lineEditResDist = QLineEdit(self)
         self.lineEditResDist.setFixedWidth(100)
-        self.lineEditResDist.setEnabled(False)
-        self.lineEditResDist.hide()
         self.windowLayout.addWidget(self.labelResDist, 4, 0)
-        self.windowLayout.addWidget(self.radioVuttonResDistDefault, 4, 1)
-        self.windowLayout.addWidget(self.radioButtonResDistCustom, 4, 2)
-        self.windowLayout.addWidget(self.browseBtnReDist, 4, 3)
-        self.windowLayout.addWidget(self.emptyPlainTextResDistri, 4, 4)
-        self.windowLayout.addWidget(self.lineEditResDist, 4, 5)
+        self.windowLayout.addWidget(self.browseBtnReDist, 4, 1)
+        self.windowLayout.addWidget(self.emptyPlainTextResDistri, 4, 2)
+        self.windowLayout.addWidget(self.lineEditResDist, 4, 3)
 
         # Add Empty PlainText
         self.emptyPlainText2 = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText2, 5, 0)
 
-        # Functions used for Emission Factors
-
-    def radioButtonEmiFactDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnEmiFact.hide()
-            self.lineEditEmiFact.hide()
-            self.browseBtnEmiFact.setEnabled(False)
-            self.lineEditEmiFact.setEnabled(False)
-
-    def radioButtonEmiFactCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnEmiFact.show()
-            self.lineEditEmiFact.show()
-            self.browseBtnEmiFact.setEnabled(True)
-            self.lineEditEmiFact.setEnabled(True)
+    # Functions used for Emission Factors
 
     def getfilesEmiFact(self):
         fileNameTruckCapa = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
         selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
         self.lineEditEmiFact.setText(selectedFileNameTruckCapa[1])
 
-        # Functions used for Resource Distribution
-
-    def radioButtonResDistDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnReDist.hide()
-            self.lineEditResDist.hide()
-            self.browseBtnReDist.setEnabled(False)
-            self.lineEditResDist.setEnabled(False)
-
-    def radioButtonResDistCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnReDist.show()
-            self.lineEditResDist.show()
-            self.browseBtnReDist.setEnabled(True)
-            self.lineEditResDist.setEnabled(True)
+    # Functions used for Resource Distribution
 
     def getfilesResDist(self):
         fileNameTruckCapa = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -1391,56 +1110,24 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelEmiFactFD = QLabel()
         self.labelEmiFactFD.setText("Emission Factors")
         self.labelEmiFactFD.setToolTip("Pollutant emission factors for resources")
-        self.radioGroupEmiFactFD = QButtonGroup(self.windowLayout)
-        self.radioVuttonEmiFactFDDefault = QRadioButton("Default")
-        self.radioVuttonEmiFactFDDefault.setFixedWidth(200)
-        self.radioVuttonEmiFactFDDefault.setFixedHeight(30)
-        self.radioVuttonEmiFactFDDefault.setChecked(True)
-        self.radioVuttonEmiFactFDDefault.toggled.connect(self.radioButtonEmiFactFDDefaultClicked)
-        self.radioButtonEmiFactFDCustom = QRadioButton("Custom")
-        self.radioButtonEmiFactFDCustom.setFixedWidth(200)
-        self.radioButtonEmiFactFDCustom.setFixedHeight(30)
-        self.radioButtonEmiFactFDCustom.toggled.connect(self.radioButtonEmiFactFDCustomClicked)
-        self.radioGroupEmiFactFD.addButton(self.radioVuttonEmiFactFDDefault)
-        self.radioGroupEmiFactFD.addButton(self.radioButtonEmiFactFDCustom)
         self.browseBtnEmiFactFD = QPushButton("Browse", self)
         self.browseBtnEmiFactFD.setFixedWidth(100)
-        self.browseBtnEmiFactFD.setEnabled(False)
-        self.browseBtnEmiFactFD.hide()
         self.browseBtnEmiFactFD.clicked.connect(self.getfilesEmiFactFD)
         # Add Empty PlainText
         self.emptyPlainTextEmiFactFD = QLabel()
         self.emptyPlainTextEmiFactFD.setFixedWidth(90)
         self.lineEditEmiFactFD = QLineEdit(self)
         self.lineEditEmiFactFD.setFixedWidth(100)
-        self.lineEditEmiFactFD.setEnabled(False)
-        self.lineEditEmiFactFD.hide()
         self.windowLayout.addWidget(self.labelEmiFactFD, 3, 0)
-        self.windowLayout.addWidget(self.radioVuttonEmiFactFDDefault, 3, 1)
-        self.windowLayout.addWidget(self.radioButtonEmiFactFDCustom, 3, 2)
-        self.windowLayout.addWidget(self.browseBtnEmiFactFD, 3, 3)
-        self.windowLayout.addWidget(self.emptyPlainTextEmiFactFD, 3, 4)
-        self.windowLayout.addWidget(self.lineEditEmiFactFD, 3, 5)
+        self.windowLayout.addWidget(self.browseBtnEmiFactFD, 3, 1)
+        self.windowLayout.addWidget(self.emptyPlainTextEmiFactFD, 3, 2)
+        self.windowLayout.addWidget(self.lineEditEmiFactFD, 3, 3)
 
         # Add Empty PlainText
         self.emptyPlainText1 = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText1, 4, 0)
 
-        # Functions used for Emission Factors - - Fugitive Dust
-
-    def radioButtonEmiFactFDDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnEmiFactFD.hide()
-            self.lineEditEmiFactFD.hide()
-            self.browseBtnEmiFactFD.setEnabled(False)
-            self.lineEditEmiFactFD.setEnabled(False)
-
-    def radioButtonEmiFactFDCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnEmiFactFD.show()
-            self.lineEditEmiFactFD.show()
-            self.browseBtnEmiFactFD.setEnabled(True)
-            self.lineEditEmiFactFD.setEnabled(True)
+    # Functions used for Emission Factors - - Fugitive Dust
 
     def getfilesEmiFactFD(self):
         fileNameTruckCapaFD = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -1518,22 +1205,18 @@ class AlltabsModule(QtWidgets.QWidget):
             changedEqPath = self.lineEditEq.text().strip()
             if changedEqPath:
                 attributeValueObj.equipment = changedEqPath
-            print(attributeValueObj.equipment)
 
             changedProdPath = self.lineEditProd.text().strip()
             if changedProdPath:
                 attributeValueObj.production = changedProdPath
-            print(attributeValueObj.production)
 
             changedFeedLossFactPath = self.lineEditFedLossFact.text().strip()
             if changedFeedLossFactPath:
                 attributeValueObj.feedstockLossFactors = changedFeedLossFactPath
-            print(attributeValueObj.feedstockLossFactors)
 
             changedTranGraphPath = self.lineEditTransGraph.text().strip()
             if changedTranGraphPath:
                 attributeValueObj.transportationGraph = changedTranGraphPath
-            print(attributeValueObj.transportationGraph)
 
 
             ###############################################################################################################
@@ -1585,17 +1268,21 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedDayType:
                 attributeValueObj.dayType = changedDayType
 
-            if self.radioButtonTruckCapaCustom.isChecked():
-                attributeValueObj.truckCapacity = self.lineEditTruckCapa.text().strip()
+            changedTruckCapacityPath = self.lineEditTruckCapa.text().strip()
+            if changedTruckCapacityPath:
+                attributeValueObj.truckCapacity = changedTruckCapacityPath
 
-            if self.radioButtonAVFTCustom.isChecked():
-                attributeValueObj.avft = self.lineEditAVFT.text().strip()
+            changedAvftPath = self.lineEditAVFT.text().strip()
+            if changedAvftPath:
+                attributeValueObj.avft = changedAvftPath
 
-            if self.radioButtonFipsCustom.isChecked():
-                attributeValueObj.regionFipsMapMoves = self.lineEditFips.text().strip()
+            changedFipsMapNovesPath = self.lineEditFips.text().strip()
+            if changedFipsMapNovesPath:
+                attributeValueObj.regionFipsMapMoves = changedFipsMapNovesPath
 
-            if self.radioButtonDatafilesCustom.isChecked():
-                attributeValueObj.movesDatafilesPath = self.lineEditDatafiles.text().strip()
+            changedDatafilesMovesPath = self.lineEditDatafiles.text().strip()
+            if changedDatafilesMovesPath:
+                attributeValueObj.movesDatafilesPath = changedDatafilesMovesPath
 
             changedRuralRes = self.lineEditRuralRes.text().strip()
             if changedRuralRes:
@@ -1615,75 +1302,75 @@ class AlltabsModule(QtWidgets.QWidget):
 
             ###############################################################################################################
 
-                # Nonroad attributes value initialization
+            # Nonroad attributes value initialization
 
-                changedYearNonroad = self.comboBoxYearNon.currentText()
-                if changedYearNonroad:
-                    attributeValueObj.yearNonroad = changedYearNonroad
+            changedYearNonroad = self.comboBoxYearNon.currentText()
+            if changedYearNonroad:
+                attributeValueObj.yearNonroad = changedYearNonroad
 
-                if self.radioButtonFipsNonCustom.isChecked():
-                    attributeValueObj.regionFipsMapNonroad = self.lineEditFipsNon.text().strip()
+            if self.radioButtonFipsNonCustom.isChecked():
+                attributeValueObj.regionFipsMapNonroad = self.lineEditFipsNon.text().strip()
 
-                if self.radioButtonDatafilesNonCustom.isChecked():
-                    attributeValueObj.nonroadDatafilesPath = self.lineEditDatafilesNon.text().strip()
+            if self.radioButtonDatafilesNonCustom.isChecked():
+                attributeValueObj.nonroadDatafilesPath = self.lineEditDatafilesNon.text().strip()
 
-                if self.radioButtonNonIrrigCustom.isChecked():
-                    attributeValueObj.irrigation = self.lineEditNonIrrig.text().strip()
+            if self.radioButtonNonIrrigCustom.isChecked():
+                attributeValueObj.irrigation = self.lineEditNonIrrig.text().strip()
 
-                changedEncodeName = self.comboBoxEncodeNames.currentText()
-                if changedEncodeName:
-                    attributeValueObj.encodeNames = changedEncodeName
+            changedEncodeName = self.comboBoxEncodeNames.currentText()
+            if changedEncodeName:
+                attributeValueObj.encodeNames = changedEncodeName
 
-                changedFeedstockMeasureTypeNonroad = self.lineEditFeedMeasureTypeNon.text().strip()
-                if changedFeedstockMeasureTypeNonroad:
-                    attributeValueObj.feedstockMeasureTypeNon = changedFeedstockMeasureTypeNonroad
+            changedFeedstockMeasureTypeNonroad = self.lineEditFeedMeasureTypeNon.text().strip()
+            if changedFeedstockMeasureTypeNonroad:
+                attributeValueObj.feedstockMeasureTypeNon = changedFeedstockMeasureTypeNonroad
 
-                changedIrrigationFeedMeasureType = self.lineEditFeedMeasureTypeIrrigNon.text().strip()
-                if changedIrrigationFeedMeasureType:
-                    attributeValueObj.irrigationFeedstockMeasureType = changedIrrigationFeedMeasureType
+            changedIrrigationFeedMeasureType = self.lineEditFeedMeasureTypeIrrigNon.text().strip()
+            if changedIrrigationFeedMeasureType:
+                attributeValueObj.irrigationFeedstockMeasureType = changedIrrigationFeedMeasureType
 
-                changedIrrigationFeedNames = self.lineEditFeedIrrigNamesNon.text().strip()
-                if changedIrrigationFeedNames:
-                    attributeValueObj.irrigatedFeedstockNames = changedIrrigationFeedNames
+            changedIrrigationFeedNames = self.lineEditFeedIrrigNamesNon.text().strip()
+            if changedIrrigationFeedNames:
+                attributeValueObj.irrigatedFeedstockNames = changedIrrigationFeedNames
 
-                changedTimeResName = self.lineEditTimeResNamesNon.text().strip()
-                if changedTimeResName:
-                    attributeValueObj.timeResourceNameNon = changedTimeResName
+            changedTimeResName = self.lineEditTimeResNamesNon.text().strip()
+            if changedTimeResName:
+                attributeValueObj.timeResourceNameNon = changedTimeResName
 
-                changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
-                if changedForestryFeedNames:
-                    attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
+            changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
+            if changedForestryFeedNames:
+                attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
 
-                changedTempMin = self.lineEditMinTemp.text().strip()
-                if changedTempMin:
-                    attributeValueObj.tempMin = changedTempMin
+            changedTempMin = self.lineEditMinTemp.text().strip()
+            if changedTempMin:
+                attributeValueObj.tempMin = changedTempMin
 
-                changedTempMax = self.lineEditMaxTemp.text().strip()
-                if changedTempMax:
-                    attributeValueObj.tempMax = changedTempMax
+            changedTempMax = self.lineEditMaxTemp.text().strip()
+            if changedTempMax:
+                attributeValueObj.tempMax = changedTempMax
 
-                changedTempMean = self.lineEditMeanTemp.text().strip()
-                if changedTempMean:
-                    attributeValueObj.tempMean = changedTempMean
+            changedTempMean = self.lineEditMeanTemp.text().strip()
+            if changedTempMean:
+                attributeValueObj.tempMean = changedTempMean
 
-                changeddieselLHV = self.lineEditLowHeat.text().strip()
-                if changeddieselLHV:
-                    attributeValueObj.dieselLHV = changeddieselLHV
+            changeddieselLHV = self.lineEditLowHeat.text().strip()
+            if changeddieselLHV:
+                attributeValueObj.dieselLHV = changeddieselLHV
 
-                changeddieselNH3 = self.lineEditNH3.text().strip()
-                if changeddieselNH3:
-                    attributeValueObj.dieselNh3Ef = changeddieselNH3
+            changeddieselNH3 = self.lineEditNH3.text().strip()
+            if changeddieselNH3:
+                attributeValueObj.dieselNh3Ef = changeddieselNH3
 
-                changeddieselHydrotoVOC = self.lineEditHydro.text().strip()
-                if changeddieselHydrotoVOC:
-                    attributeValueObj.tempMean = changeddieselHydrotoVOC
+            changeddieselHydrotoVOC = self.lineEditHydro.text().strip()
+            if changeddieselHydrotoVOC:
+                attributeValueObj.tempMean = changeddieselHydrotoVOC
 
-                changedPMConversionFact = self.lineEditPM10.text().strip()
-                if changedPMConversionFact:
-                    attributeValueObj.dieselPm10topm25 = changedPMConversionFact
+            changedPMConversionFact = self.lineEditPM10.text().strip()
+            if changedPMConversionFact:
+                attributeValueObj.dieselPm10topm25 = changedPMConversionFact
 
 
-            ###############################################################################################################
+        ###############################################################################################################
 
             # Emission Factors attributs value Initialization
 
@@ -1691,10 +1378,14 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedFeedMeasureTypeFEF:
                 attributeValueObj.feedMeasureTypeEF = changedFeedMeasureTypeFEF
 
-            if self.radioButtonEmiFactCustom.isChecked():
-                attributeValueObj.emissionFactorsEF = self.lineEditEmiFact.text().strip()
-            if self.radioButtonResDistCustom.isChecked():
-                attributeValueObj.resourceDistributionEF = self.lineEditResDist.text().strip()
+            changedEmissionFactEFPath = self.lineEditEmiFact.text().strip()
+            if changedEmissionFactEFPath:
+                attributeValueObj.emissionFactorsEF = changedEmissionFactEFPath
+
+            changedResDistriEFPath = self.lineEditResDist.text().strip()
+            if changedResDistriEFPath:
+                attributeValueObj.resourceDistributionEF = changedResDistriEFPath
+
 
             ###############################################################################################################
 
@@ -1704,8 +1395,10 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedFeedMeasureTypeFD:
                 attributeValueObj.feedMeasureTypeFD = changedFeedMeasureTypeFD
 
-            if self.radioButtonEmiFactFDCustom.isChecked():
-                attributeValueObj.emissionFactorsFD = self.lineEditEmiFactFD.text().strip()
+            changedEmissionFactFDPath = self.lineEditEmiFactFD.text().strip()
+            if changedEmissionFactFDPath:
+                attributeValueObj.emissionFactorsFD = changedEmissionFactFDPath
+
 
             ###############################################################################################################
 
