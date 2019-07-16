@@ -10,13 +10,14 @@ import os
 
 #import args as args
 import pandas
+import pylab
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import QRadioButton, QComboBox, QPushButton, QTextEdit, QFileDialog, QMessageBox, QPlainTextEdit
 from PyQt5.QtWidgets import QGridLayout, QLabel, QButtonGroup, QLineEdit, QSpinBox, QCheckBox
 
 from pkg_resources import resource_filename
-
+from pyqtgraph import PlotWidget
 
 from FPEAM.gui.src.main.python.fpeamgui.AttributeValueStorage import AttributeValueStorage
 #from FPEAM.gui.src.main.python.fpeamgui.AttributeValueStorage import attributeValueObj
@@ -32,8 +33,11 @@ from FPEAM.scripts.fpeam import main
 
 import tempfile
 import threading, time
-import subprocess
-from configparser import *
+
+import matplotlib.pyplot as plt
+plt.rcdefaults()
+import numpy as np
+import pandas as pd
 
 class AlltabsModule(QtWidgets.QWidget):
 
@@ -163,127 +167,55 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # UI element - Equipment
         self.labelEq = QLabel()
-        self.labelEq = QLabel()
         self.labelEq.setText("Equipment")
         self.labelEq.setToolTip("Select equipment input dataset")
-        self.radioGroupEq = QButtonGroup(self.windowLayout)
-        self.radioButtonEqDefault = QRadioButton("Default")
-        self.radioButtonEqDefault.setFixedWidth(100)
-        self.radioButtonEqDefault.setFixedHeight(30)
-        self.radioButtonEqDefault.setChecked(True)
-        self.radioButtonEqDefault.toggled.connect(self.radioButtonEqDefaultClicked)
-        self.radioButtonEqCustom = QRadioButton("Custom")
-        self.radioButtonEqCustom.setFixedWidth(100)
-        self.radioButtonEqCustom.setFixedHeight(30)
-        self.radioButtonEqCustom.toggled.connect(self.radioButtonEqCustomClicked)
-        self.radioGroupEq.addButton(self.radioButtonEqDefault)
-        self.radioGroupEq.addButton(self.radioButtonEqCustom)
         self.browseBtnEq = QPushButton("Browse", self)
         self.browseBtnEq.setFixedWidth(100)
         self.browseBtnEq.clicked.connect(self.getfilesEq)
-        self.browseBtnEq.setEnabled(False)
-        self.browseBtnEq.hide()
         self.lineEditEq = QLineEdit(self)
         self.lineEditEq.setFixedWidth(100)
-        self.lineEditEq.hide()
         self.windowLayout.addWidget(self.labelEq, 7, 0)
-        self.windowLayout.addWidget(self.radioButtonEqDefault, 7, 1)
-        self.windowLayout.addWidget(self.radioButtonEqCustom, 7, 2)
-        self.windowLayout.addWidget(self.browseBtnEq, 7, 3)
-        self.windowLayout.addWidget(self.lineEditEq, 7, 4)
+        self.windowLayout.addWidget(self.browseBtnEq, 7, 1)
+        self.windowLayout.addWidget(self.lineEditEq, 7, 2)
 
         # UI element - Production
         self.labelProd = QLabel()
-        self.labelProd = QLabel()
         self.labelProd.setText("Production")
         self.labelProd.setToolTip("Select production input dataset")
-        self.radioGroupProd = QButtonGroup(self.windowLayout)
-        self.radioButtonProdDefault = QRadioButton("Default")
-        self.radioButtonProdDefault.setFixedWidth(100)
-        self.radioButtonProdDefault.setFixedHeight(30)
-        self.radioButtonProdDefault.setChecked(True)
-        self.radioButtonProdDefault.toggled.connect(self.radioButtonProdDefaultClicked)
-        self.radioButtonProdCustom = QRadioButton("Custom")
-        self.radioButtonProdCustom.setFixedWidth(100)
-        self.radioButtonProdCustom.setFixedHeight(30)
-        self.radioButtonProdCustom.toggled.connect(self.radioButtonProdCustomClicked)
-        self.radioGroupProd.addButton(self.radioButtonProdDefault)
-        self.radioGroupProd.addButton(self.radioButtonProdCustom)
         self.browseBtnProd = QPushButton("Browse", self)
         self.browseBtnProd.setFixedWidth(100)
         self.browseBtnProd.clicked.connect(self.getfilesProd)
-        self.browseBtnProd.setEnabled(False)
-        self.browseBtnProd.hide()
         self.lineEditProd = QLineEdit(self)
         self.lineEditProd.setFixedWidth(100)
-        self.lineEditProd.hide()
         self.windowLayout.addWidget(self.labelProd, 8, 0)
-        self.windowLayout.addWidget(self.radioButtonProdDefault, 8, 1)
-        self.windowLayout.addWidget(self.radioButtonProdCustom, 8, 2)
-        self.windowLayout.addWidget(self.browseBtnProd, 8, 3)
-        self.windowLayout.addWidget(self.lineEditProd, 8, 4)
+        self.windowLayout.addWidget(self.browseBtnProd, 8, 1)
+        self.windowLayout.addWidget(self.lineEditProd, 8, 2)
 
         # Feedstock Loss Factors
         self.labelFedLossFact = QLabel()
-        self.labelFedLossFact = QLabel()
         self.labelFedLossFact.setText("Feedstock Loss Factors")
         self.labelFedLossFact.setToolTip("Select Feedstock Loss Factors dataset")
-        self.radioGroupFeedLossFact = QButtonGroup(self.windowLayout)
-        self.radioButtonFedLossFactDefault = QRadioButton("Default")
-        self.radioButtonFedLossFactDefault.setFixedWidth(100)
-        self.radioButtonFedLossFactDefault.setFixedHeight(30)
-        self.radioButtonFedLossFactDefault.setChecked(True)
-        self.radioButtonFedLossFactDefault.toggled.connect(self.radioButtonFLossDefaultClicked)
-        self.radioButtonFedLossFactCustom = QRadioButton("Custom")
-        self.radioButtonFedLossFactCustom.setFixedWidth(100)
-        self.radioButtonFedLossFactCustom.setFixedHeight(30)
-        self.radioButtonFedLossFactCustom.toggled.connect(self.radioButtonFLossCustomClicked)
-        self.radioGroupFeedLossFact.addButton(self.radioButtonFedLossFactDefault)
-        self.radioGroupFeedLossFact.addButton(self.radioButtonFedLossFactCustom)
         self.browseBtnFLoss = QPushButton("Browse", self)
         self.browseBtnFLoss.setFixedWidth(100)
         self.browseBtnFLoss.clicked.connect(self.getfilesFLoss)
-        self.browseBtnFLoss.setEnabled(False)
-        self.browseBtnFLoss.hide()
         self.lineEditFedLossFact = QLineEdit(self)
         self.lineEditFedLossFact.setFixedWidth(100)
-        self.lineEditFedLossFact.hide()
         self.windowLayout.addWidget(self.labelFedLossFact, 9, 0)
-        self.windowLayout.addWidget(self.radioButtonFedLossFactDefault, 9, 1)
-        self.windowLayout.addWidget(self.radioButtonFedLossFactCustom, 9, 2)
-        self.windowLayout.addWidget(self.browseBtnFLoss, 9, 3)
-        self.windowLayout.addWidget(self.lineEditFedLossFact, 9, 4)
+        self.windowLayout.addWidget(self.browseBtnFLoss, 9, 1)
+        self.windowLayout.addWidget(self.lineEditFedLossFact, 9, 2)
 
         # Transportation graph
         self.labelTransGraph = QLabel()
-        self.labelTransGraph = QLabel()
         self.labelTransGraph.setText("Transportation Graph")
         self.labelTransGraph.setToolTip("Select Transportation graph dataset")
-        self.radioGroupTransGraph = QButtonGroup(self.windowLayout)
-        self.radioButtonTransGraphDefault = QRadioButton("Default")
-        self.radioButtonTransGraphDefault.setFixedWidth(100)
-        self.radioButtonTransGraphDefault.setFixedHeight(30)
-        self.radioButtonTransGraphDefault.setChecked(True)
-        self.radioButtonTransGraphDefault.toggled.connect(self.radioButtonTransGrDefaultClicked)
-        self.radioButtonTransGraphCustom = QRadioButton("Custom")
-        self.radioButtonTransGraphCustom.setFixedWidth(100)
-        self.radioButtonTransGraphCustom.setFixedHeight(30)
-        self.radioButtonTransGraphCustom.toggled.connect(self.radioButtonTransGrCustomClicked)
-        self.radioGroupTransGraph.addButton(self.radioButtonTransGraphDefault)
-        self.radioGroupTransGraph.addButton(self.radioButtonTransGraphCustom)
         self.browseBtnTransGr = QPushButton("Browse", self)
         self.browseBtnTransGr.setFixedWidth(100)
         self.browseBtnTransGr.clicked.connect(self.getfilesTransGr)
-        self.browseBtnTransGr.setEnabled(False)
-        self.browseBtnTransGr.hide()
         self.lineEditTransGraph = QLineEdit(self)
         self.lineEditTransGraph.setFixedWidth(100)
-        self.lineEditTransGraph.hide()
         self.windowLayout.addWidget(self.labelTransGraph, 10, 0)
-        self.windowLayout.addWidget(self.radioButtonTransGraphDefault, 10, 1)
-        self.windowLayout.addWidget(self.radioButtonTransGraphCustom, 10, 2)
-        self.windowLayout.addWidget(self.browseBtnTransGr, 10, 3)
-        self.windowLayout.addWidget(self.lineEditTransGraph, 10, 4)
+        self.windowLayout.addWidget(self.browseBtnTransGr, 10, 1)
+        self.windowLayout.addWidget(self.lineEditTransGraph, 10, 2)
 
 
 
@@ -337,19 +269,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxVerbosityLevel.currentText()
 
     # Equipment
-    def radioButtonEqDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnEq.hide()
-            self.lineEditEq.hide()
-            self.browseBtnEq.setEnabled(False)
-            self.lineEditEq.setEnabled(False)
-
-    def radioButtonEqCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnEq.show()
-            self.lineEditEq.show()
-            self.browseBtnEq.setEnabled(True)
-            self.lineEditEq.setEnabled(True)
 
     def getfilesEq(self):
         fileNameEq = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -357,19 +276,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditEq.setText(selectedFileNameEq[1])
 
     # Production
-    def radioButtonProdDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnProd.hide()
-            self.lineEditProd.hide()
-            self.browseBtnProd.setEnabled(False)
-            self.lineEditProd.setEnabled(False)
-
-    def radioButtonProdCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnProd.show()
-            self.lineEditProd.show()
-            self.browseBtnProd.setEnabled(True)
-            self.lineEditProd.setEnabled(True)
 
     def getfilesProd(self):
         fileNameProd = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -377,19 +283,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditProd.setText(selectedFileNameProd[1])
 
     # Feedstock Loss Factors
-    def radioButtonFLossDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnFLoss.hide()
-            self.lineEditFedLossFact.hide()
-            self.browseBtnFLoss.setEnabled(False)
-            self.lineEditFedLossFact.setEnabled(False)
-
-    def radioButtonFLossCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnFLoss.show()
-            self.lineEditFedLossFact.show()
-            self.browseBtnFLoss.setEnabled(True)
-            self.lineEditFedLossFact.setEnabled(True)
 
     def getfilesFLoss(self):
         fileNameFLoss = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -397,19 +290,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFedLossFact.setText(selectedFileNameFLoss[1])
 
     # Transportation graph
-    def radioButtonTransGrDefaultClicked(self, enabled):
-        if enabled:
-            self.browseBtnTransGr.hide()
-            self.lineEditTransGraph.hide()
-            self.browseBtnTransGr.setEnabled(False)
-            self.lineEditTransGraph.setEnabled(False)
-
-    def radioButtonTransGrCustomClicked(self, enabled):
-        if enabled:
-            self.browseBtnTransGr.show()
-            self.lineEditTransGraph.show()
-            self.browseBtnTransGr.setEnabled(True)
-            self.lineEditTransGraph.setEnabled(True)
 
     def getfilesTransGr(self):
         fileNameTransGr = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -1614,7 +1494,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.selected_module_string +=  "'" + self.checkBoxFugitiveDust.text() + "'"
                 attributeValueObj.module = self.selected_module_string
 
-            #attributeValueObj.module = self.selected_module_list
 
             changedVerboLoggerLevel = self.comboBoxVerbosityLevel.currentText()
             if changedVerboLoggerLevel:
@@ -1636,23 +1515,25 @@ class AlltabsModule(QtWidgets.QWidget):
                     changedRouterEngine = True
                 attributeValueObj.useRouterEngine = changedRouterEngine
 
-            if self.radioButtonEqCustom.isChecked():
-                attributeValueObj.equipment = self.lineEditEq.text().strip()
+            changedEqPath = self.lineEditEq.text().strip()
+            if changedEqPath:
+                attributeValueObj.equipment = changedEqPath
+            print(attributeValueObj.equipment)
 
-            #Check wether csv file is empty or not
-            # _fpath= resource_filename('FPEAM', attributeValueObj.equipment)
-            # import pandas
-            # eqPathCsv = pandas.read_csv(_fpath)
-            # print(eqPathCsv.head()) # head() will print first five rows only
+            changedProdPath = self.lineEditProd.text().strip()
+            if changedProdPath:
+                attributeValueObj.production = changedProdPath
+            print(attributeValueObj.production)
 
-            if self.radioButtonProdCustom.isChecked():
-                attributeValueObj.production = self.lineEditProd.text().strip()
+            changedFeedLossFactPath = self.lineEditFedLossFact.text().strip()
+            if changedFeedLossFactPath:
+                attributeValueObj.feedstockLossFactors = changedFeedLossFactPath
+            print(attributeValueObj.feedstockLossFactors)
 
-            if self.radioButtonFedLossFactCustom.isChecked():
-                attributeValueObj.feedstockLossFactors = self.lineEditFedLossFact.text().strip()
-
-            if self.radioButtonTransGraphCustom.isChecked():
-                attributeValueObj.transportationGraph = self.lineEditTransGraph.text().strip()
+            changedTranGraphPath = self.lineEditTransGraph.text().strip()
+            if changedTranGraphPath:
+                attributeValueObj.transportationGraph = changedTranGraphPath
+            print(attributeValueObj.transportationGraph)
 
 
             ###############################################################################################################
@@ -1858,6 +1739,60 @@ class AlltabsModule(QtWidgets.QWidget):
             # Set logs to Plaintext in Result tab
             self.plainTextLog.setPlainText(attributeValueObj.logContents)
 
+            #Generate graph for MOVES module
+            fileNameMoves = self.lineEditScenaName.text().strip() + "_raw.csv"
+            dataframePathMOVES = os.path.join(self.lineEditProjectPath.text().strip(), fileNameMoves)
+            df = pd.read_csv(dataframePathMOVES)
+            df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
+            imageNameMOVES = self.lineEditScenaName.text().strip() + "_output.png"
+            imagePathMOVES = os.path.join(self.lineEditProjectPath.text().strip(), imageNameMOVES)
+            plt.savefig(imagePathMOVES, bbox_inches='tight', dpi='figure')
+            self.pixmap = QtGui.QPixmap(imagePathMOVES)
+            self.labelMOVESGraph.resize(self.width(), self.height())
+            self.labelMOVESGraph.setPixmap(
+                self.pixmap.scaled(self.labelMOVESGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+
+            # Generate graph for NONROAD module
+            fileNameNONROAD = self.lineEditScenaName.text().strip() + "_raw.csv"
+            dataframePathNONROAD = os.path.join(self.lineEditProjectPath.text().strip(), fileNameNONROAD)
+            df = pd.read_csv(dataframePathNONROAD)
+            df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
+            imageNameNONROAD = self.lineEditScenaName.text().strip() + "_output.png"
+            imagePathNONROAD = os.path.join(self.lineEditProjectPath.text().strip(), imageNameNONROAD)
+            plt.savefig(imagePathNONROAD, bbox_inches='tight')
+            self.pixmap = QtGui.QPixmap(imagePathNONROAD)
+            self.labelNONROADGraph.resize(self.width(), self.height())
+            self.labelNONROADGraph.setPixmap(
+                self.pixmap.scaled(self.labelNONROADGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+
+            # Generate graph for Emissionfactors module
+            fileNameEF = self.lineEditScenaName.text().strip() + "_raw.csv"
+            dataframePathEF = os.path.join(self.lineEditProjectPath.text().strip(), fileNameEF)
+            df = pd.read_csv(dataframePathEF)
+            df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
+            imageNameEF = self.lineEditScenaName.text().strip() + "_output.png"
+            imagePathEF = os.path.join(self.lineEditProjectPath.text().strip(), imageNameEF)
+            plt.savefig(imagePathEF, bbox_inches='tight')
+            self.pixmap = QtGui.QPixmap(imagePathEF)
+            self.labelEmissionFactorsGraph.resize(self.width(), self.height())
+            self.labelEmissionFactorsGraph.setPixmap(
+                self.pixmap.scaled(self.labelEmissionFactorsGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+
+            # Generate graph for Emissionfactors module
+            fileNameFD = self.lineEditScenaName.text().strip() + "_raw.csv"
+            dataframePathFD = os.path.join(self.lineEditProjectPath.text().strip(), fileNameFD)
+            df = pd.read_csv(dataframePathFD)
+            df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
+            imageNameFD = self.lineEditScenaName.text().strip() + "_output.png"
+            imagePathFD = os.path.join(self.lineEditProjectPath.text().strip(), imageNameFD)
+            plt.savefig(imagePathFD, bbox_inches='tight')
+            self.pixmap = QtGui.QPixmap(imagePathFD)
+            self.labelFugitivedustGraph.resize(self.width(), self.height())
+            self.labelFugitivedustGraph.setPixmap(
+                self.pixmap.scaled(self.labelFugitivedustGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+
+
+
     #########################################################################################################################
 
 
@@ -1874,32 +1809,38 @@ class AlltabsModule(QtWidgets.QWidget):
         windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
 
         self.windowLayout.setColumnStretch(6, 1)
-        # self.windowLayout.setColumnStretch(4, 1)
 
         self.plainTextLog = QPlainTextEdit()
         self.plainTextLog.setPlainText("")
         self.plainTextLog.setReadOnly(True)
-        windowLayout.addWidget(self.plainTextLog, 0, 0, 1, 3)
+        self.plainTextLog.setFixedHeight(200)
+        windowLayout.addWidget(self.plainTextLog, 0, 0, 1 , 4)
 
-        self.plainTextMOVESGraph = QPlainTextEdit()
-        self.plainTextMOVESGraph.setReadOnly(True)
-        self.plainTextMOVESGraph.setPlainText("MOVES Graph")
-        windowLayout.addWidget(self.plainTextMOVESGraph, 1, 0)
+        self.labelMOVESGraph = QLabel()
+        self.labelMOVESGraph.setFixedHeight(350)
+        self.labelMOVESGraph.setFixedWidth(500)
+        windowLayout.addWidget(self.labelMOVESGraph,1 , 0)
 
-        self.plainTextNONROADGraph = QPlainTextEdit()
-        self.plainTextNONROADGraph.setReadOnly(True)
-        self.plainTextNONROADGraph.setPlainText("NONROAD Graph")
-        windowLayout.addWidget(self.plainTextNONROADGraph, 1, 1)
+        self.plainLabel1 = QLabel()
+        windowLayout.addWidget(self.plainLabel1, 1, 1)
 
-        self.plainTextEmissionFactorsGraph = QPlainTextEdit()
-        self.plainTextEmissionFactorsGraph.setReadOnly(True)
-        self.plainTextEmissionFactorsGraph.setPlainText("Emissionfactors Graph")
-        windowLayout.addWidget(self.plainTextEmissionFactorsGraph, 2, 0)
+        self.labelNONROADGraph = QLabel()
+        self.labelNONROADGraph.setFixedHeight(350)
+        self.labelNONROADGraph.setFixedWidth(500)
+        windowLayout.addWidget(self.labelNONROADGraph, 1, 2)
 
-        self.plainTextFugitivedustGraph = QPlainTextEdit()
-        self.plainTextFugitivedustGraph.setReadOnly(True)
-        self.plainTextFugitivedustGraph.setPlainText("Fugitivedust Graph")
-        windowLayout.addWidget(self.plainTextFugitivedustGraph, 2, 1)
+        self.labelEmissionFactorsGraph = QLabel()
+        self.labelEmissionFactorsGraph.setFixedHeight(350)
+        self.labelEmissionFactorsGraph.setFixedWidth(500)
+        windowLayout.addWidget(self.labelEmissionFactorsGraph,2 , 0)
+
+        self.plainLabel2 = QLabel()
+        windowLayout.addWidget(self.plainLabel2, 2, 1)
+
+        self.labelFugitivedustGraph = QLabel()
+        self.labelFugitivedustGraph.setFixedHeight(350)
+        self.labelFugitivedustGraph.setFixedWidth(500)
+        windowLayout.addWidget(self.labelFugitivedustGraph, 2, 2)
 
         self.tabResult.setLayout(windowLayout)
 
