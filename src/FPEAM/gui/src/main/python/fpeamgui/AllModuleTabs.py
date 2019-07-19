@@ -1308,14 +1308,17 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedYearNonroad:
                 attributeValueObj.yearNonroad = changedYearNonroad
 
-            if self.radioButtonFipsNonCustom.isChecked():
-                attributeValueObj.regionFipsMapNonroad = self.lineEditFipsNon.text().strip()
+            changedRegionFIPSMapNonroad = self.lineEditFipsNon.text().strip()
+            if changedRegionFIPSMapNonroad:
+                attributeValueObj.regionFipsMapNonroad = changedRegionFIPSMapNonroad
 
-            if self.radioButtonDatafilesNonCustom.isChecked():
-                attributeValueObj.nonroadDatafilesPath = self.lineEditDatafilesNon.text().strip()
+            changedNonroadDatafiles = self.lineEditDatafilesNon.text().strip()
+            if changedNonroadDatafiles:
+                attributeValueObj.nonroadDatafilesPath = changedNonroadDatafiles
 
-            if self.radioButtonNonIrrigCustom.isChecked():
-                attributeValueObj.irrigation = self.lineEditNonIrrig.text().strip()
+            changedNonroadIrrigation = self.lineEditNonIrrig.text().strip()
+            if changedNonroadIrrigation:
+                attributeValueObj.irrigation = changedNonroadIrrigation
 
             changedEncodeName = self.comboBoxEncodeNames.currentText()
             if changedEncodeName:
