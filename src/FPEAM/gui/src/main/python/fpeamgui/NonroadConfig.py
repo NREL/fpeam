@@ -19,7 +19,12 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
     ## forest feedstocks have different allocation indicators
     #forestry_feedstock_names = '{forestry_feedstock_names}'
     
-    
+    ### NONROAD database connection options
+    #nonroad_database = '{nonroad_database}'
+    #nonroad_db_user = '{nonroad_db_user}'
+    #nonroad_db_pass = '{nonroad_db_pass}'
+    #nonroad_db_host = '{nonroad_db_host}'
+
     ### input data files
     
     ## production region to NONROAD FIPS mapping
@@ -62,6 +67,10 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
                                                feedstock_measure_type = attributeValueObj.feedMeasureTypeEF,
                                                time_resource_name = attributeValueObj.timeResourceNameNon,
                                                forestry_feedstock_names = attributeValueObj.forestryFeedstockNames,
+                                               nonroad_database = attributeValueObj.dbNameNONROAD,
+                                               nonroad_db_user = attributeValueObj.dbUsernameNONROAD,
+                                               nonroad_db_pass = attributeValueObj.dbPwdNONROAD,
+                                               nonroad_db_host = attributeValueObj.dbHost,
                                                region_fips_map = attributeValueObj.regionFipsMapNonroad,
                                                nonroad_datafiles_path = attributeValueObj.nonroadDatafilesPath,
                                                nonroad_temp_min = attributeValueObj.tempMin,

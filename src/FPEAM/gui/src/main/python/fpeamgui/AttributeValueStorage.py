@@ -18,7 +18,6 @@ class AttributeValueStorage:
         self.production = 'data/production/production_2015_bc1060.csv'
         self.feedstockLossFactors = 'data/inputs/feedstock_loss_factors.csv'
         self.transportationGraph = 'data/inputs/transportation_graph.csv'
-        #self.countyNodes = 'data/inputs/county_nodes.csv'
         self.backfill = True
         self.useRouterEngine = True
 
@@ -28,14 +27,14 @@ class AttributeValueStorage:
 
         # Emission Factors Module - Attribute Initialization
         self.feedMeasureTypeEF = "harvested"
-        self.emissionFactorsEF = None
-        self.resourceDistributionEF = None
+        self.emissionFactorsEF = 'data/inputs/emission_factors.csv'
+        self.resourceDistributionEF = 'data/inputs/resource_distribution.csv'
 
         # Nonroad Module - Attribute Initialization
         self.yearNonroad = 2017
         self.feedstockMeasureTypeNon = "harvested"
         self.timeResourceNameNon = "time"
-        self.forestryFeedstockNames = ['forest whole tree', 'forest residues']
+        self.forestryFeedstockNames = 'forest whole tree', 'forest residues'
         self.regionFipsMapNonroad = "../data/inputs/region_fips_map.csv"
         self.nonroadDatafilesPath = "C:/Nonroad"
         self.tempMin = 50.0
@@ -51,12 +50,16 @@ class AttributeValueStorage:
         self.encodeNames = True
 
         # Moves Module - Attribute Initialization
-        self.aggegationLevel = "Moves By Each County"
+        self.aggegationLevel = "By County"
         self.cachedResults = "Yes"
-        self.feedstockMeasureTypeMoves = "production"
+        self.feedstockMeasureType = "production"
         self.vMTPerTruck = 20
         self.noOfTrucksUsed = 1
         self.yearMoves = 2017
+        self.dbHost = "localhost"
+        self.dbUsername = "root"
+        self.dbName = "movesdb20151028"
+        self.dbPwd = "root"
         self.movesDatafilesPath = "C:\MOVESdata"
         self.movesPath = "C:\MOVES2014a"
         self.truckCapacity = "../data/inputs/truck_capacity.csv"

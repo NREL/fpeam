@@ -26,6 +26,12 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
 
     #moves_path = '{moves_path}'
     #moves_datafiles_path = '{moves_datafiles_path}'
+    
+    ### MOVES database connection options
+    #moves_db_host = '{moves_db_host}'
+    #moves_db_user = '{moves_db_user}'
+    #moves_db_pass = '{moves_db_pass}'
+    #moves_database = '{moves_database}'
 
 
     ### input files
@@ -65,6 +71,10 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
                                                year=attributeValueObj.yearMoves,
                                                moves_path=attributeValueObj.movesPath,
                                                moves_datafiles_path=attributeValueObj.movesDatafilesPath,
+                                               moves_db_host = attributeValueObj.dbHost,
+                                               moves_db_user = attributeValueObj.dbUsername,
+                                               moves_db_pass = attributeValueObj.dbPwd,
+                                               moves_database = attributeValueObj.dbName,
                                                truck_capacity=attributeValueObj.truckCapacity,
                                                avft=attributeValueObj.avft,
                                                region_fips_map=attributeValueObj.regionFipsMapMoves,
