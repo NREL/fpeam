@@ -11,7 +11,7 @@ class AttributeValueStorage:
 
         # FPEAM home page - Attribute Initialization
         self.scenarioName = ""
-        self.projectPath = None
+        self.projectPath = ""
         self.module = 'NONROAD', 'MOVES', 'emissionfactors', 'fugitivedust'
         self.loggerLevel = "DEBUG"
         self.equipment = 'data/equipment/bts16_equipment.csv'

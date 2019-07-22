@@ -512,12 +512,7 @@ class AlltabsModule(QtWidgets.QWidget):
         ###########################################################################################################################################################################
 
     def setupUIMoves(self):
-        # MOves tab created
-        self.tabMoves = QtWidgets.QWidget()
 
-
-        # Moves tab added
-        self.centralwidget.addTab(self.tabMoves, "MOVES")
 
         # Moves code start
         self.windowLayout = QGridLayout()
@@ -525,16 +520,23 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(6, 1)
 
+        # MOves tab created
+        self.tabMoves = QtWidgets.QWidget()
+
+        # Moves tab added
+        self.centralwidget.addTab(self.tabMoves, "MOVES")
+
         self.tabMoves.setLayout(self.windowLayout)
 
 
-        # self.vScrollArea = QScrollArea(self.tabMoves)
+        # self.vScrollArea = QScrollArea()
+        # self.windowLayout = QtGui.QWidget(self.vScrollArea)
         # self.vScrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        # self.vScrollArea.setWidgetResizable(False)
-        # self.vScrollArea.setWidget(self.centralwidget)
+        # self.vScrollArea.setWidgetResizable(True)
+        #
         # self.windowLayout.addWidget(self.vScrollArea)
-        # self.vScrollArea.show()
-
+        #
+        # self.vScrollArea.setWidget(self.tabMoves)
 
         # Created UI element - Title MOVES
         self.labelTitleMOVES = QLabel()
@@ -1248,6 +1250,36 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.browseBtnDatafilesNon, 2, 1)
         self.windowLayout.addWidget(self.lineEditDatafilesNon, 2, 2, 1, 4)
 
+        # Created UI element Year - Nonroad
+        self.labelYearNon = QLabel()
+        self.labelYearNon.setObjectName("allLabels")
+        self.labelYearNon.setFixedHeight(30)
+        self.labelYearNon.setFixedWidth(160)
+        self.labelYearNon.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelYearNon.setText("Analysis Year")
+        self.labelYearNon.setToolTip("Start year of equipment")
+        self.comboBoxYearNon = QComboBox(self)
+        self.comboBoxYearNon.setFixedHeight(30)
+        for i in range(2018, 1990, -1):
+            self.number = i
+            self.comboBoxYearNon.addItem(str(i))
+        self.index = self.comboBoxYearNon.findText("2017")
+        self.comboBoxYearNon.setCurrentIndex(self.index)
+        self.comboBoxYearNon.setEditable(True)
+        self.leditYear = self.comboBoxYearNon.lineEdit()
+        self.leditYear.setAlignment(QtCore.Qt.AlignCenter)
+        self.leditYear = self.comboBoxYearNon.lineEdit()
+        self.leditYear.setReadOnly(True)
+        self.labelYearNonErrorMsg = QLabel()
+        self.labelYearNonErrorMsg.setObjectName("yearErrorMsg")
+        self.labelYearNonErrorMsg.setFixedHeight(30)
+        self.labelYearNonErrorMsg.setText("")
+        self.windowLayout.addWidget(self.labelYearNon, 3, 0)
+        self.windowLayout.addWidget(self.comboBoxYearNon, 3, 1)
+        self.windowLayout.addWidget(self.labelYearNonErrorMsg, 3, 2)
+        # Check whether Moves year matches with Nonroad year
+        self.comboBoxYearNon.currentIndexChanged.connect(self.handleItemPressed)
+
         # Database Connection Parameters Label NONROAD
         self.dbConnectionParaLabelN = QLabel()
         self.dbConnectionParaLabelN.setText("Database Connection Parameters")
@@ -1259,7 +1291,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap = pixmapLine.scaledToHeight(25)
         self.labelDbConnectionArrowN.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
-        self.windowLayout.addWidget(self.dbConnectionParaLabelN, 3, 0, 1, 4)
+        self.windowLayout.addWidget(self.dbConnectionParaLabelN, 4, 0, 1, 4)
         self.windowLayout.addWidget(self.labelDbConnectionArrowN)
 
         # Created UI element - Advanced Optiones below Line NONROAD
@@ -1268,7 +1300,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.dbConnectionParaLineN.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
-        self.windowLayout.addWidget(self.dbConnectionParaLineN, 4, 0, 1, 5)
+        self.windowLayout.addWidget(self.dbConnectionParaLineN, 5, 0, 1, 5)
 
         # Created UI element Database Host
         self.labelDbHostN = QLabel()
@@ -1286,8 +1318,8 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditDbHostN.setValidator(validator)
         self.lineEditDbHostN.setText("localhost")
-        self.windowLayout.addWidget(self.labelDbHostN, 5, 0)
-        self.windowLayout.addWidget(self.lineEditDbHostN, 5, 1)
+        self.windowLayout.addWidget(self.labelDbHostN, 6, 0)
+        self.windowLayout.addWidget(self.lineEditDbHostN, 6, 1)
 
         # Created UI element Database Username
         self.labelDbUsernameN = QLabel()
@@ -1302,8 +1334,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbUsernameN.setFixedHeight(30)
         self.lineEditDbUsernameN.setFixedWidth(125)
         self.lineEditDbUsernameN.setText("root")
-        self.windowLayout.addWidget(self.labelDbUsernameN, 5, 2)
-        self.windowLayout.addWidget(self.lineEditDbUsernameN, 5, 3)
+        self.windowLayout.addWidget(self.labelDbUsernameN, 6, 2)
+        self.windowLayout.addWidget(self.lineEditDbUsernameN, 6, 3)
 
         # Created UI element Database Name
         self.labelDbNameN = QLabel()
@@ -1318,8 +1350,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbNameN.setFixedHeight(30)
         self.lineEditDbNameN.setFixedWidth(125)
         self.lineEditDbNameN.setText("movesdb20151028")
-        self.windowLayout.addWidget(self.labelDbNameN, 6, 0)
-        self.windowLayout.addWidget(self.lineEditDbNameN, 6, 1)
+        self.windowLayout.addWidget(self.labelDbNameN, 7, 0)
+        self.windowLayout.addWidget(self.lineEditDbNameN, 7, 1)
 
         # Created UI element Database Password
         self.labelDbPwdN = QLabel()
@@ -1336,8 +1368,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbPwdN.setEchoMode(QtGui.QLineEdit.Password)
         self.lineEditDbPwdN.show()
         self.lineEditDbPwdN.setText("root")
-        self.windowLayout.addWidget(self.labelDbPwdN, 6, 2)
-        self.windowLayout.addWidget(self.lineEditDbPwdN, 6, 3)
+        self.windowLayout.addWidget(self.labelDbPwdN, 7, 2)
+        self.windowLayout.addWidget(self.lineEditDbPwdN, 7, 3)
 
         #Data Label
         self.dataLabel = QLabel()
@@ -1350,7 +1382,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap = pixmapLine.scaledToHeight(25)
         self.dataLabelArrow.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
-        self.windowLayout.addWidget(self.dataLabel, 7, 0, 1, 4)
+        self.windowLayout.addWidget(self.dataLabel, 8, 0, 1, 4)
         self.windowLayout.addWidget(self.dataLabelArrow)
 
         # Created UI element - Data Labels Line
@@ -1359,7 +1391,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.dataLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
-        self.windowLayout.addWidget(self.dataLabelLine, 8, 0, 1, 5)
+        self.windowLayout.addWidget(self.dataLabelLine, 9, 0, 1, 5)
 
         # Created UI element Feedstock Measure Type Nonroad
         self.labelFeedMeasureTypeNon = QLabel()
@@ -1378,8 +1410,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFeedMeasureTypeNon.setValidator(validator)
         # Set Default text
         self.lineEditFeedMeasureTypeNon.setText("harvested")
-        self.windowLayout.addWidget(self.labelFeedMeasureTypeNon, 9, 0)
-        self.windowLayout.addWidget(self.lineEditFeedMeasureTypeNon, 9, 1)
+        self.windowLayout.addWidget(self.labelFeedMeasureTypeNon, 10, 0)
+        self.windowLayout.addWidget(self.lineEditFeedMeasureTypeNon, 10, 1)
 
         # Created UI element Forestry Feedstock Names
         self.labelForestryNamesNon = QLabel()
@@ -1397,8 +1429,8 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditForestryNamesNon.setValidator(validator)
         self.lineEditForestryNamesNon.setText("forest residues, forest whole tree")
-        self.windowLayout.addWidget(self.labelForestryNamesNon, 9, 2)
-        self.windowLayout.addWidget(self.lineEditForestryNamesNon, 9, 3)
+        self.windowLayout.addWidget(self.labelForestryNamesNon, 10, 2)
+        self.windowLayout.addWidget(self.lineEditForestryNamesNon, 10, 3)
 
         # Created UI element Irrigation Feedstock Measure Type Nonroad
         self.labelFeedMeasureTypeIrrigNon = QLabel()
@@ -1417,8 +1449,8 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedMeasureTypeIrrigNon.setValidator(validator)
         self.lineEditFeedMeasureTypeIrrigNon.setText("planted")
-        self.windowLayout.addWidget(self.labelFeedMeasureTypeIrrigNon, 10, 0)
-        self.windowLayout.addWidget(self.lineEditFeedMeasureTypeIrrigNon, 10, 1)
+        self.windowLayout.addWidget(self.labelFeedMeasureTypeIrrigNon, 11, 0)
+        self.windowLayout.addWidget(self.lineEditFeedMeasureTypeIrrigNon, 11, 1)
 
 
         # Created UI element Time Resource Name
@@ -1437,8 +1469,8 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditTimeResNamesNon.setValidator(validator)
         self.lineEditTimeResNamesNon.setText("time")
-        self.windowLayout.addWidget(self.labelTimeResNamesNon, 10, 2)
-        self.windowLayout.addWidget(self.lineEditTimeResNamesNon, 10, 3)
+        self.windowLayout.addWidget(self.labelTimeResNamesNon, 11, 2)
+        self.windowLayout.addWidget(self.lineEditTimeResNamesNon, 11, 3)
 
         # Created UI element Irrigation Feedstock Names
         self.labelIrrigationFeedNamesNon = QLabel()
@@ -1456,8 +1488,8 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedIrrigNamesNon.setValidator(validator)
         self.lineEditFeedIrrigNamesNon.setText("corn garin")
-        self.windowLayout.addWidget(self.labelIrrigationFeedNamesNon, 11, 0)
-        self.windowLayout.addWidget(self.lineEditFeedIrrigNamesNon, 11, 1)
+        self.windowLayout.addWidget(self.labelIrrigationFeedNamesNon, 12, 0)
+        self.windowLayout.addWidget(self.lineEditFeedIrrigNamesNon, 12, 1)
 
         # Custom Data Filepaths Label
         self.cusromDatafileLabel = QLabel()
@@ -1470,7 +1502,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap = pixmapLine.scaledToHeight(25)
         self.customDatafileLabelArrow.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
-        self.windowLayout.addWidget(self.cusromDatafileLabel, 12, 0, 1, 4)
+        self.windowLayout.addWidget(self.cusromDatafileLabel, 13, 0, 1, 4)
         self.windowLayout.addWidget(self.customDatafileLabelArrow)
 
         # Custom Data Filepaths Label Line
@@ -1479,7 +1511,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.customDatafileLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
-        self.windowLayout.addWidget(self.customDatafileLabelLine, 13, 0, 1, 5)
+        self.windowLayout.addWidget(self.customDatafileLabelLine, 14, 0, 1, 5)
 
         # Created UI element Region Nonroad Irrigation
         self.labelNonIrrig = QLabel()
@@ -1500,10 +1532,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditNonIrrig.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditNonIrrig.setFixedHeight(30)
         self.lineEditNonIrrig.setFixedWidth(125)
-        self.windowLayout.addWidget(self.labelNonIrrig, 14, 0)
-        self.windowLayout.addWidget(self.browseBtnNonIrrig, 14, 1)
-        self.windowLayout.addWidget(self.emptyPlainTextNonIrri, 14, 2)
-        self.windowLayout.addWidget(self.lineEditNonIrrig, 14, 3)
+        self.windowLayout.addWidget(self.labelNonIrrig, 15, 0)
+        self.windowLayout.addWidget(self.browseBtnNonIrrig, 15, 1)
+        self.windowLayout.addWidget(self.emptyPlainTextNonIrri, 15, 2)
+        self.windowLayout.addWidget(self.lineEditNonIrrig, 15, 3)
 
         # Created UI element Region FIPs Map Nonroad
         self.labelFipsNon = QLabel()
@@ -1524,10 +1556,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFipsNon.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditFipsNon.setFixedHeight(30)
         self.lineEditFipsNon.setFixedWidth(125)
-        self.windowLayout.addWidget(self.labelFipsNon, 15, 0)
-        self.windowLayout.addWidget(self.browseBtnFipsNon, 15, 1)
-        self.windowLayout.addWidget(self.emptyPlainTextNonRegFips, 15, 2)
-        self.windowLayout.addWidget(self.lineEditFipsNon, 15, 3)
+        self.windowLayout.addWidget(self.labelFipsNon, 16, 0)
+        self.windowLayout.addWidget(self.browseBtnFipsNon, 16, 1)
+        self.windowLayout.addWidget(self.emptyPlainTextNonRegFips, 16, 2)
+        self.windowLayout.addWidget(self.lineEditFipsNon, 16, 3)
 
         # Operating Temperature Label
         self.opTempLabel = QLabel()
@@ -1540,7 +1572,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap = pixmapLine.scaledToHeight(25)
         self.opTempLabelArrow.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
-        self.windowLayout.addWidget(self.opTempLabel, 16, 0, 1, 4)
+        self.windowLayout.addWidget(self.opTempLabel, 17, 0, 1, 4)
         self.windowLayout.addWidget(self.opTempLabelArrow)
 
         # Operating Temperature Label Line
@@ -1549,7 +1581,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.opTempLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
-        self.windowLayout.addWidget(self.opTempLabelLine, 17, 0, 1, 5)
+        self.windowLayout.addWidget(self.opTempLabelLine, 18, 0, 1, 5)
 
         # Created UI element Minimum Temperature
         self.labelMinTemp = QLabel()
@@ -1565,8 +1597,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditMinTemp.setValidator(self.onlyFlaot)
         self.lineEditMinTemp.setText("50")
-        self.windowLayout.addWidget(self.labelMinTemp, 18, 0)
-        self.windowLayout.addWidget(self.lineEditMinTemp, 18, 1)
+        self.windowLayout.addWidget(self.labelMinTemp, 19, 0)
+        self.windowLayout.addWidget(self.lineEditMinTemp, 19, 1)
 
         # Created UI element Average Temperature
         self.labelMeanTemp = QLabel()
@@ -1582,8 +1614,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditMeanTemp.setValidator(self.onlyFlaot)
         self.lineEditMeanTemp.setText("60")
-        self.windowLayout.addWidget(self.labelMeanTemp, 18, 2)
-        self.windowLayout.addWidget(self.lineEditMeanTemp, 18, 3)
+        self.windowLayout.addWidget(self.labelMeanTemp, 19, 2)
+        self.windowLayout.addWidget(self.lineEditMeanTemp, 19, 3)
 
         # Created UI element Maximum Temperature
         self.labelMaxTemp = QLabel()
@@ -1599,8 +1631,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditMaxTemp.setValidator(self.onlyFlaot)
         self.lineEditMaxTemp.setText("68.8")
-        self.windowLayout.addWidget(self.labelMaxTemp, 19, 0)
-        self.windowLayout.addWidget(self.lineEditMaxTemp, 19, 1)
+        self.windowLayout.addWidget(self.labelMaxTemp, 20, 0)
+        self.windowLayout.addWidget(self.lineEditMaxTemp, 20, 1)
 
         # Conversion Factors Label
         self.convFactorsLabel = QLabel()
@@ -1613,7 +1645,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap = pixmapLine.scaledToHeight(25)
         self.convFactorsLabelArrow.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
-        self.windowLayout.addWidget(self.convFactorsLabel, 20, 0, 1, 4)
+        self.windowLayout.addWidget(self.convFactorsLabel, 21, 0, 1, 4)
         self.windowLayout.addWidget(self.convFactorsLabelArrow)
 
         #  Conversion Factors Label Line
@@ -1622,7 +1654,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.convFactorsLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
-        self.windowLayout.addWidget(self.convFactorsLabelLine, 21, 0, 1, 5)
+        self.windowLayout.addWidget(self.convFactorsLabelLine, 22, 0, 1, 5)
 
         # Created UI element Low Heating Value
         self.labelLowHeat = QLabel()
@@ -1639,8 +1671,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditLowHeat.setValidator(self.onlyFlaot)
         self.lineEditLowHeat.setText("0.012845")
-        self.windowLayout.addWidget(self.labelLowHeat, 22, 0)
-        self.windowLayout.addWidget(self.lineEditLowHeat, 22, 1)
+        self.windowLayout.addWidget(self.labelLowHeat, 23, 0)
+        self.windowLayout.addWidget(self.lineEditLowHeat, 23, 1)
 
         # Created UI element Hydrocarbon to VOC Conversion Factor
         self.labelHydeo = QLabel()
@@ -1657,8 +1689,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditHydro.setValidator(self.onlyFlaot)
         self.lineEditHydro.setText("1.053")
-        self.windowLayout.addWidget(self.labelHydeo, 22, 2)
-        self.windowLayout.addWidget(self.lineEditHydro, 22, 3)
+        self.windowLayout.addWidget(self.labelHydeo, 23, 2)
+        self.windowLayout.addWidget(self.lineEditHydro, 23, 3)
 
         # Created UI element NH3 Emission Factor
         self.labelNH3 = QLabel()
@@ -1675,8 +1707,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditNH3.setValidator(self.onlyFlaot)
         self.lineEditNH3.setText("0.68")
-        self.windowLayout.addWidget(self.labelNH3, 23, 0)
-        self.windowLayout.addWidget(self.lineEditNH3, 23, 1)
+        self.windowLayout.addWidget(self.labelNH3, 24, 0)
+        self.windowLayout.addWidget(self.lineEditNH3, 24, 1)
 
 
 
@@ -1695,8 +1727,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditPM10.setValidator(self.onlyFlaot)
         self.lineEditPM10.setText("0.97")
-        self.windowLayout.addWidget(self.labelPM10, 23, 2)
-        self.windowLayout.addWidget(self.lineEditPM10, 23, 3)
+        self.windowLayout.addWidget(self.labelPM10, 24, 2)
+        self.windowLayout.addWidget(self.lineEditPM10, 24, 3)
 
         # Advanced Options Label
         self.advOptionsLabelN = QLabel()
@@ -1709,7 +1741,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap = pixmapLine.scaledToHeight(25)
         self.labelAdvOptionsArrowN.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
-        self.windowLayout.addWidget(self.advOptionsLabelN, 20, 0, 1, 4)
+        self.windowLayout.addWidget(self.advOptionsLabelN, 25, 0, 1, 4)
         self.windowLayout.addWidget(self.labelAdvOptionsArrowN)
 
         #  Advanced Options Label Line
@@ -1718,7 +1750,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.labelAdvOptionsLineN.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
-        self.windowLayout.addWidget(self.labelAdvOptionsLineN, 21, 0, 1, 5)
+        self.windowLayout.addWidget(self.labelAdvOptionsLineN, 26, 0, 1, 5)
 
         # Created UI element Region Nonroad Encode Names
         self.labelNonEncodeNames = QLabel()
@@ -1733,51 +1765,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxEncodeNames.addItem("Yes")
         self.comboBoxEncodeNames.addItem("No")
         self.comboBoxEncodeNames.setCurrentText("Yes")
-        self.windowLayout.addWidget(self.labelNonEncodeNames, 22, 0)
-        self.windowLayout.addWidget(self.comboBoxEncodeNames, 22, 1)
+        self.windowLayout.addWidget(self.labelNonEncodeNames, 27, 0)
+        self.windowLayout.addWidget(self.comboBoxEncodeNames, 27, 1)
 
-
-
-        # Created UI element Year - Nonroad
-        self.labelYearNon = QLabel()
-        self.labelYearNon.setObjectName("allLabels")
-        self.labelYearNon.setFixedHeight(30)
-        self.labelYearNon.setFixedWidth(160)
-        self.labelYearNon.setAlignment(QtCore.Qt.AlignCenter)
-        self.labelYearNon.setText("NONROAD Year")
-        self.labelYearNon.setToolTip("Start year of equipment")
-        self.comboBoxYearNon = QComboBox(self)
-        self.comboBoxYearNon.setFixedHeight(30)
-        for i in range(2018, 1990, -1):
-            self.number = i
-            self.comboBoxYearNon.addItem(str(i))
-        self.index = self.comboBoxYearNon.findText("2017")
-        self.comboBoxYearNon.setCurrentIndex(self.index)
-        self.labelYearNonErrorMsg = QLabel()
-        self.labelYearNonErrorMsg.setObjectName("yearErrorMsg")
-        self.labelYearNonErrorMsg.setFixedHeight(30)
-        self.labelYearNonErrorMsg.setText("")
-        self.windowLayout.addWidget(self.labelYearNon, 23, 0)
-        self.windowLayout.addWidget(self.comboBoxYearNon, 23, 1)
-        self.windowLayout.addWidget(self.labelYearNonErrorMsg, 23, 2)
-        # Check whether Moves year matches with Nonroad year
-        self.comboBoxYearNon.currentIndexChanged.connect(self.handleItemPressed)
-
-        # Add Empty PlainText
-        self.emptyPlainText1 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText1, 24, 0)
-
-        # Add Empty PlainText
-        self.emptyPlainText3 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText3, 25, 0)
-
-        # Add Empty PlainText
-        self.emptyPlainText3 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText3, 26, 0)
-
-        # Add Empty PlainText
-        self.emptyPlainText2 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText2, 27, 0)
 
         # Add Empty PlainText
         self.emptyPlainText = QLabel()
@@ -2283,80 +2273,80 @@ class AlltabsModule(QtWidgets.QWidget):
     def rresetFields(self):
 
 
-        # self.attributeValueObj.logContents = ""
-        # self.attributeValueObj.streamGenerated = io.StringIO()
+        self.attributeValueObj.logContents = ""
+        self.attributeValueObj.streamGenerated = io.StringIO()
 
-        # # FPEAM home page - Attribute Initialization
-        # self.lineEditScenaName.setText("")
-        # self.lineEditProjectPath.setText("")
-        # self.checkBoxMoves.setChecked(True)
-        # self.checkBoxNonroad.setChecked(True)
-        # self.checkBoxEmissionFactors.setChecked(True)
-        # self.checkBoxFugitiveDust.setChecked(True)
-        # self.index = self.comboBoxVerbosityLevel.findText("DEBUG")
-        # self.comboBoxVerbosityLevel.setCurrentIndex(self.index)
-        # self.lineEditEq.setText("data/equipment/bts16_equipment.csv")
-        # self.lineEditProd.setText("data/production/production_2015_bc1060.csv")
-        # self.lineEditFedLossFact.setText("data/inputs/feedstock_loss_factors.csv")
-        # self.lineEditTransGraph.setText("data/inputs/transportation_graph.csv")
-        # self.index = self.comboBoxBF.findText("Yes")
-        # self.comboBoxBF.setCurrentIndex(self.index)
-        # self.index = self.comboBoxRE.findText("Yes")
-        # self.comboBoxRE.setCurrentIndex(self.index)
-        #
-        # # Fugitive Dust module - Attribute Initialization
-        # self.lineEditFeedMeasureTypeFD = "harvested"
-        # self.lineEditEmiFactFD = "../data/inputs/fugitive_dust_emission_factors.csv"
-        #
-        # # Emission Factors Module - Attribute Initialization
-        # self.lineEditFeedMeasureTypeEF = "harvested"
-        # self.lineEditEmiFact = 'data/inputs/emission_factors.csv'
-        # self.lineEditResDist = 'data/inputs/resource_distribution.csv'
+        # FPEAM home page - Attribute Initialization
+        self.lineEditScenaName.setText("")
+        self.lineEditProjectPath.setText("")
+        self.checkBoxMoves.setChecked(True)
+        self.checkBoxNonroad.setChecked(True)
+        self.checkBoxEmissionFactors.setChecked(True)
+        self.checkBoxFugitiveDust.setChecked(True)
+        self.index = self.comboBoxVerbosityLevel.findText("DEBUG")
+        self.comboBoxVerbosityLevel.setCurrentIndex(self.index)
+        self.lineEditEq.setText("data/equipment/bts16_equipment.csv")
+        self.lineEditProd.setText("data/production/production_2015_bc1060.csv")
+        self.lineEditFedLossFact.setText("data/inputs/feedstock_loss_factors.csv")
+        self.lineEditTransGraph.setText("data/inputs/transportation_graph.csv")
+        self.index = self.comboBoxBF.findText("Yes")
+        self.comboBoxBF.setCurrentIndex(self.index)
+        self.index = self.comboBoxRE.findText("Yes")
+        self.comboBoxRE.setCurrentIndex(self.index)
 
-        # # Nonroad Module - Attribute Initialization
-        # self.yearNonroad = 2017
-        # self.feedstockMeasureTypeNon = "harvested"
-        # self.timeResourceNameNon = "time"
-        # self.forestryFeedstockNames = 'forest whole tree', 'forest residues'
-        # self.regionFipsMapNonroad = "../data/inputs/region_fips_map.csv"
-        # self.nonroadDatafilesPath = "C:/Nonroad"
-        # self.tempMin = 50.0
-        # self.tempMax = 68.8
-        # self.tempMean = 60.0
-        # self.dieselLHV = 0.12845
-        # self.dieselNh3Ef = 0.68
-        # self.dieselThcVocConversion = 1.053
-        # self.dieselPm10topm25 = 0.97
-        # self.irrigationFeedstockMeasureType = "planted"
-        # self.irrigatedFeedstockNames = "corn grain"
-        # self.irrigation = "../data/inputs/irrigation.csv"
-        # self.encodeNames = True
-        #
-        # # Moves Module - Attribute Initialization
-        # self.aggegationLevel = "By County"
-        # self.cachedResults = "Yes"
-        # self.feedstockMeasureType = "production"
-        # self.vMTPerTruck = 20
-        # self.noOfTrucksUsed = 1
-        # self.yearMoves = 2017
-        # self.dbHost = "localhost"
-        # self.dbUsername = "root"
-        # self.dbName = "movesdb20151028"
-        # self.dbPwd = "root"
-        # self.movesDatafilesPath = "C:\MOVESdata"
-        # self.movesPath = "C:\MOVES2014a"
-        # self.truckCapacity = "../data/inputs/truck_capacity.csv"
-        # self.avft = "../data/inputs/avft.csv"
-        # self.regionFipsMapMoves = "../data/inputs/region_fips_map.csv"
-        # self.ruralRestricted = 0.30
-        # self.ruralUnrestricted = 0.28
-        # self.urbanRestricted = 0.21
-        # self.urbanUnrestricted = 0.21
-        # self.month = 10
-        # self.date = 5
-        # self.beginningHr = 7
-        # self.endingHr = 18
-        # self.dayType = 5
+        # Fugitive Dust module - Attribute Initialization
+        self.lineEditFeedMeasureTypeFD = "harvested"
+        self.lineEditEmiFactFD = "../data/inputs/fugitive_dust_emission_factors.csv"
+
+        # Emission Factors Module - Attribute Initialization
+        self.lineEditFeedMeasureTypeEF = "harvested"
+        self.lineEditEmiFact = 'data/inputs/emission_factors.csv'
+        self.lineEditResDist = 'data/inputs/resource_distribution.csv'
+
+        # Nonroad Module - Attribute Initialization
+        self.yearNonroad = 2017
+        self.feedstockMeasureTypeNon = "harvested"
+        self.timeResourceNameNon = "time"
+        self.forestryFeedstockNames = 'forest whole tree', 'forest residues'
+        self.regionFipsMapNonroad = "../data/inputs/region_fips_map.csv"
+        self.nonroadDatafilesPath = "C:/Nonroad"
+        self.tempMin = 50.0
+        self.tempMax = 68.8
+        self.tempMean = 60.0
+        self.dieselLHV = 0.12845
+        self.dieselNh3Ef = 0.68
+        self.dieselThcVocConversion = 1.053
+        self.dieselPm10topm25 = 0.97
+        self.irrigationFeedstockMeasureType = "planted"
+        self.irrigatedFeedstockNames = "corn grain"
+        self.irrigation = "../data/inputs/irrigation.csv"
+        self.encodeNames = True
+
+        # Moves Module - Attribute Initialization
+        self.aggegationLevel = "By County"
+        self.cachedResults = "Yes"
+        self.feedstockMeasureType = "production"
+        self.vMTPerTruck = 20
+        self.noOfTrucksUsed = 1
+        self.yearMoves = 2017
+        self.dbHost = "localhost"
+        self.dbUsername = "root"
+        self.dbName = "movesdb20151028"
+        self.dbPwd = "root"
+        self.movesDatafilesPath = "C:\MOVESdata"
+        self.movesPath = "C:\MOVES2014a"
+        self.truckCapacity = "../data/inputs/truck_capacity.csv"
+        self.avft = "../data/inputs/avft.csv"
+        self.regionFipsMapMoves = "../data/inputs/region_fips_map.csv"
+        self.ruralRestricted = 0.30
+        self.ruralUnrestricted = 0.28
+        self.urbanRestricted = 0.21
+        self.urbanUnrestricted = 0.21
+        self.month = 10
+        self.date = 5
+        self.beginningHr = 7
+        self.endingHr = 18
+        self.dayType = 5
 
 
 
