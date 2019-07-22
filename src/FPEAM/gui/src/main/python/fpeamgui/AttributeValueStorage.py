@@ -34,6 +34,10 @@ class AttributeValueStorage:
         self.yearNonroad = 2017
         self.feedstockMeasureTypeNon = "harvested"
         self.timeResourceNameNon = "time"
+        self.dbHostN = "localhost"
+        self.dbUsernameN = "root"
+        self.dbNameN = "movesdb20151028"
+        self.dbPwdN = "root"
         self.forestryFeedstockNames = 'forest whole tree', 'forest residues'
         self.regionFipsMapNonroad = "../data/inputs/region_fips_map.csv"
         self.nonroadDatafilesPath = "C:/Nonroad"

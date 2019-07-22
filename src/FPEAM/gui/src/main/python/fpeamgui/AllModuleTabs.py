@@ -84,22 +84,22 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelModules.setFixedHeight(30)
         self.labelModules.setFixedWidth(160)
         self.checkBoxMoves = QCheckBox("MOVES")
-        self.checkBoxMoves.setFixedWidth(100)
+        self.checkBoxMoves.setFixedWidth(120)
         self.checkBoxMoves.setFixedHeight(30)
         self.checkBoxMoves.setChecked(True)
         self.checkBoxMoves.stateChanged.connect(self.onStateChangedMoves)
         self.checkBoxNonroad = QCheckBox("NONROAD")
-        self.checkBoxNonroad.setFixedWidth(100)
+        self.checkBoxNonroad.setFixedWidth(120)
         self.checkBoxNonroad.setFixedHeight(30)
         self.checkBoxNonroad.setChecked(True)
         self.checkBoxNonroad.stateChanged.connect(self.onStateChangedNonroad)
-        self.checkBoxEmissionFactors = QCheckBox("emissionfactors")
-        self.checkBoxEmissionFactors.setFixedWidth(100)
+        self.checkBoxEmissionFactors = QCheckBox("Emission Factors")
+        self.checkBoxEmissionFactors.setFixedWidth(120)
         self.checkBoxEmissionFactors.setFixedHeight(30)
         self.checkBoxEmissionFactors.setChecked(True)
         self.checkBoxEmissionFactors.stateChanged.connect(self.onStateChangedEmissionFactors)
-        self.checkBoxFugitiveDust = QCheckBox("fugitivedust")
-        self.checkBoxFugitiveDust.setFixedWidth(100)
+        self.checkBoxFugitiveDust = QCheckBox("Fugitve Dust")
+        self.checkBoxFugitiveDust.setFixedWidth(120)
         self.checkBoxFugitiveDust.setFixedHeight(30)
         self.checkBoxFugitiveDust.setChecked(True)
         self.checkBoxFugitiveDust.stateChanged.connect(self.onStateChangedFugitiveDust)
@@ -433,8 +433,8 @@ class AlltabsModule(QtWidgets.QWidget):
 
     # Checkbox - MOves Module - Checked
 
-    def onStateChangedMoves(self,state):
-        if state == self.checkBoxMoves.isChecked():
+    def onStateChangedMoves(self,state1):
+        if state1 == self.checkBoxMoves.isChecked():
             self.centralwidget.setTabEnabled(1, False)
 
         else:
@@ -2273,80 +2273,93 @@ class AlltabsModule(QtWidgets.QWidget):
     def rresetFields(self):
 
 
-        self.attributeValueObj.logContents = ""
-        self.attributeValueObj.streamGenerated = io.StringIO()
-
-        # FPEAM home page - Attribute Initialization
-        self.lineEditScenaName.setText("")
-        self.lineEditProjectPath.setText("")
-        self.checkBoxMoves.setChecked(True)
-        self.checkBoxNonroad.setChecked(True)
-        self.checkBoxEmissionFactors.setChecked(True)
-        self.checkBoxFugitiveDust.setChecked(True)
-        self.index = self.comboBoxVerbosityLevel.findText("DEBUG")
-        self.comboBoxVerbosityLevel.setCurrentIndex(self.index)
-        self.lineEditEq.setText("data/equipment/bts16_equipment.csv")
-        self.lineEditProd.setText("data/production/production_2015_bc1060.csv")
-        self.lineEditFedLossFact.setText("data/inputs/feedstock_loss_factors.csv")
-        self.lineEditTransGraph.setText("data/inputs/transportation_graph.csv")
-        self.index = self.comboBoxBF.findText("Yes")
-        self.comboBoxBF.setCurrentIndex(self.index)
-        self.index = self.comboBoxRE.findText("Yes")
-        self.comboBoxRE.setCurrentIndex(self.index)
-
-        # Fugitive Dust module - Attribute Initialization
-        self.lineEditFeedMeasureTypeFD = "harvested"
-        self.lineEditEmiFactFD = "../data/inputs/fugitive_dust_emission_factors.csv"
-
-        # Emission Factors Module - Attribute Initialization
-        self.lineEditFeedMeasureTypeEF = "harvested"
-        self.lineEditEmiFact = 'data/inputs/emission_factors.csv'
-        self.lineEditResDist = 'data/inputs/resource_distribution.csv'
-
-        # Nonroad Module - Attribute Initialization
-        self.yearNonroad = 2017
-        self.feedstockMeasureTypeNon = "harvested"
-        self.timeResourceNameNon = "time"
-        self.forestryFeedstockNames = 'forest whole tree', 'forest residues'
-        self.regionFipsMapNonroad = "../data/inputs/region_fips_map.csv"
-        self.nonroadDatafilesPath = "C:/Nonroad"
-        self.tempMin = 50.0
-        self.tempMax = 68.8
-        self.tempMean = 60.0
-        self.dieselLHV = 0.12845
-        self.dieselNh3Ef = 0.68
-        self.dieselThcVocConversion = 1.053
-        self.dieselPm10topm25 = 0.97
-        self.irrigationFeedstockMeasureType = "planted"
-        self.irrigatedFeedstockNames = "corn grain"
-        self.irrigation = "../data/inputs/irrigation.csv"
-        self.encodeNames = True
-
-        # Moves Module - Attribute Initialization
-        self.aggegationLevel = "By County"
-        self.cachedResults = "Yes"
-        self.feedstockMeasureType = "production"
-        self.vMTPerTruck = 20
-        self.noOfTrucksUsed = 1
-        self.yearMoves = 2017
-        self.dbHost = "localhost"
-        self.dbUsername = "root"
-        self.dbName = "movesdb20151028"
-        self.dbPwd = "root"
-        self.movesDatafilesPath = "C:\MOVESdata"
-        self.movesPath = "C:\MOVES2014a"
-        self.truckCapacity = "../data/inputs/truck_capacity.csv"
-        self.avft = "../data/inputs/avft.csv"
-        self.regionFipsMapMoves = "../data/inputs/region_fips_map.csv"
-        self.ruralRestricted = 0.30
-        self.ruralUnrestricted = 0.28
-        self.urbanRestricted = 0.21
-        self.urbanUnrestricted = 0.21
-        self.month = 10
-        self.date = 5
-        self.beginningHr = 7
-        self.endingHr = 18
-        self.dayType = 5
+        # self.attributeValueObj.logContents = ""
+        # self.attributeValueObj.streamGenerated = io.StringIO()
+        #
+        # # FPEAM home page - Attribute Initialization
+        # self.lineEditScenaName.setText("")
+        # self.lineEditProjectPath.setText("")
+        # self.checkBoxMoves.setChecked(True)
+        # self.checkBoxNonroad.setChecked(True)
+        # self.checkBoxEmissionFactors.setChecked(True)
+        # self.checkBoxFugitiveDust.setChecked(True)
+        # self.index = self.comboBoxVerbosityLevel.findText("DEBUG")
+        # self.comboBoxVerbosityLevel.setCurrentIndex(self.index)
+        # self.lineEditEq.setText("data/equipment/bts16_equipment.csv")
+        # self.lineEditProd.setText("data/production/production_2015_bc1060.csv")
+        # self.lineEditFedLossFact.setText("data/inputs/feedstock_loss_factors.csv")
+        # self.lineEditTransGraph.setText("data/inputs/transportation_graph.csv")
+        # self.index = self.comboBoxBF.findText("Yes")
+        # self.comboBoxBF.setCurrentIndex(self.index)
+        # self.index = self.comboBoxRE.findText("Yes")
+        # self.comboBoxRE.setCurrentIndex(self.index)
+        #
+        # # Fugitive Dust module - Attribute Initialization
+        # self.lineEditFeedMeasureTypeFD = "harvested"
+        # self.lineEditEmiFactFD = "../data/inputs/fugitive_dust_emission_factors.csv"
+        #
+        # # Emission Factors Module - Attribute Initialization
+        # self.lineEditFeedMeasureTypeEF = "harvested"
+        # self.lineEditEmiFact = 'data/inputs/emission_factors.csv'
+        # self.lineEditResDist = 'data/inputs/resource_distribution.csv'
+        #
+        # # Nonroad Module - Attribute Initialization
+        # self.index = self.comboBoxYearNon.findText("2017")
+        # self.comboBoxYearNon.setCurrentIndex(self.index)
+        # self.lineEditDbHostN = "localhost"
+        # self.lineEditDbUsernameN = "root"
+        # self.lineEditDbNameND = "movesdb20151028"
+        # self.lineEditDbPwdN = "root"
+        # self.lineEditFeedMeasureTypeNon = "harvested"
+        # self.lineEditTimeResNamesNon = "time"
+        # self.lineEditForestryNamesNon = 'forest whole tree', 'forest residues'
+        # self.lineEditFipsNon = "../data/inputs/region_fips_map.csv"
+        # self.lineEditDatafilesNon = "C:/Nonroad"
+        # self.lineEditMinTemp = 50.0
+        # self.lineEditMaxTemp = 68.8
+        # self.lineEditMeanTemp = 60.0
+        # self.lineEditLowHeat = 0.12845
+        # self.lineEditNH3 = 0.68
+        # self.lineEditHydro = 1.053
+        # self.lineEditPM10 = 0.97
+        # self.lineEditFeedMeasureTypeIrrigNon = "planted"
+        # self.lineEditFeedIrrigNamesNon = "corn grain"
+        # self.lineEditNonIrrig = "../data/inputs/irrigation.csv"
+        # self.comboBoxEncodeNames.setCurrentText("Yes")
+        #
+        # # Moves Module - Attribute Initialization
+        # self.index = self.comboBoxAggLevel.findText("By County")
+        # self.comboBoxAggLevel.setCurrentIndex(self.index)
+        # self.index = self.comboBoxCachedResUse.findText("Yes")
+        # self.comboBoxCachedResUse.setCurrentIndex(self.index)
+        # self.lineEditFeedMeasureType = "production"
+        # self.lineEditVMTperTruck = 20
+        # self.spinBoxNoofTruck.setValue(1)
+        # self.index = self.comboBoxYear.findText("2017")
+        # self.comboBoxYear.setCurrentIndex(self.index)
+        # self.lineEditDbHost = "localhost"
+        # self.lineEditDbUsernamem = "root"
+        # self.lineEditDbName = "movesdb20151028"
+        # self.lineEditDbPwd = "root"
+        # self.lineEditDatafiles = "C:\MOVESdata"
+        # self.lineEditMovesPath = "C:\MOVES2014a"
+        # self.lineEditTruckCapa = "../data/inputs/truck_capacity.csv"
+        # self.lineEditAVFT = "../data/inputs/avft.csv"
+        # self.lineEditFips = "../data/inputs/region_fips_map.csv"
+        # self.lineEditRuralRes = 0.30
+        # self.lineEditRuralUnres = 0.28
+        # self.lineEditUrbanRes = 0.21
+        # self.lineEditUrbanUnres = 0.21
+        # self.index = self.comboBoxMonth.findText("10")
+        # self.comboBoxMonth.setCurrentIndex(self.index)
+        # self.index = self.comboBoxBegHr.findText("7")
+        # self.comboBoxBegHr.setCurrentIndex(self.index)
+        # self.index = self.comboBoxDate.findText("5")
+        # self.comboBoxDate.setCurrentIndex(self.index)
+        # self.index = self.comboBoxEndHr.findText("18")
+        # self.comboBoxEndHr.setCurrentIndex(self.index)
+        # self.index = self.comboBoxDayType.findText("Weekday")
+        # self.comboBoxDayType.setCurrentIndex(self.index)
 
 
 
@@ -2378,25 +2391,25 @@ class AlltabsModule(QtWidgets.QWidget):
             self.selected_module_string = ""
             if self.checkBoxMoves.isChecked():
                 #attributeValueObj.module = self.selected_module_list.append(self.checkBoxMoves.text())
-                self.selected_module_string += "'" + self.checkBoxMoves.text() + "'"
+                self.selected_module_string += "'" + "MOVES" + "'"
                 self.self.attributeValueObj.module = self.selected_module_string
                 self.selected_module_string += ", "
             if self.checkBoxNonroad.isChecked():
 
                 #attributeValueObj.module = self.selected_module_list.append(self.checkBoxNonroad.text())
-                self.selected_module_string += "'" + self.checkBoxNonroad.text() + "'"
+                self.selected_module_string += "'" + "NONROAD" + "'"
                 self.attributeValueObj.module = self.selected_module_string
                 self.selected_module_string += ", "
             if self.checkBoxEmissionFactors.isChecked():
 
                 #attributeValueObj.module = self.selected_module_list.append(self.checkBoxEmissionFactors.text())
-                self.selected_module_string +=  "'" + self.checkBoxEmissionFactors.text() + "'"
+                self.selected_module_string +=  "'" + "emissionfactors" + "'"
                 self.attributeValueObj.module = self.selected_module_string
                 self.selected_module_string += ", "
             if self.checkBoxFugitiveDust.isChecked():
 
                 #attributeValueObj.module = "'" + self.selected_module_list.append(self.checkBoxFugitiveDust.text())
-                self.selected_module_string +=  "'" + self.checkBoxFugitiveDust.text() + "'"
+                self.selected_module_string +=  "'" + "fugitvedust" + "'"
                 self.attributeValueObj.module = self.selected_module_string
 
 
@@ -2551,6 +2564,22 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedFipsMapNon:
                 self.attributeValueObj.regionFipsMapNonroad = changedFipsMapNon
 
+            changedDbHostN = self.lineEditDbHostN.text().strip()
+            if changedDbHostN:
+                self.attributeValueObj.dbHostN = changedDbHostN
+
+            changedDbUsernameN = self.lineEditDbUsernameN.text().strip()
+            if changedDbUsernameN:
+                self.attributeValueObj.dbUsernameN = changedDbUsernameN
+
+            changedDbNameN = self.lineEditDbNameN.text().strip()
+            if changedDbNameN:
+                self.attributeValueObj.dbNameN = changedDbNameN
+
+            changedDbPwdN = self.lineEditDbPwdN.text().strip()
+            if changedDbPwdN:
+                self.attributeValueObj.dbPwdN = changedDbPwdN
+
             changedDatafilesNon = self.lineEditDatafilesNon.text().strip()
             if changedDatafilesNon:
                 self.attributeValueObj.nonroadDatafilesPath = changedDatafilesNon
@@ -2615,7 +2644,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         ###############################################################################################################
 
-            # Emission Factors attributs value Initialization
+            # Emission Factors attributes value Initialization
 
             changedFeedMeasureTypeFEF= self.lineEditFeedMeasureTypeEF.text().strip()
             if changedFeedMeasureTypeFEF:
