@@ -77,12 +77,12 @@ class FPEAM(object):
 
         if self.config.as_bool('use_router_engine') and ('MOVES' in self._modules.keys() or 'fugitivedust' in self._modules.keys()):
             _transportation_graph = Data.TransportationGraph(fpath=self.config.get('transportation_graph'), backfill=self.config.as_bool('backfill'))
-            _county_nodes = Data.TransportationNodeLocations(fpath=self.config.get('node_locations'), backfill=self.config.as_bool('backfill'))
+            _node_locations = Data.TransportationNodeLocations(fpath=self.config.get('node_locations'), backfill=self.config.as_bool('backfill'))
 
-            if not _transportation_graph.empty or not _county_nodes.empty:
+            if not _transportation_graph.empty and not _node_locations.empty:
                 LOGGER.info('Loading routing data; this may take a few minutes')
                 self.router = Router(edges=_transportation_graph,
-                                     node_map=_county_nodes,
+                                     node_map=_node_locations,
                                      memory=self.memory)
         else:
             if 'MOVES' in self._modules.keys() or 'fugitivedust' in self._modules.keys():

@@ -45,6 +45,8 @@ class FugitiveDust(Module):
                          'destination_lon', 'destination_lat',
                          'feedstock_amount']
 
+        self.feedstock_measure_type = self.config.get('feedstock_measure_type')
+
         # select only production rows corresponding to the user-defined crop measure
         _prod_rows_onfarm = self.production.feedstock_measure == self.onfarm_feedstock_measure_type
         _prod_rows_onroad = self.production.feedstock_measure == self.onroad_feedstock_measure_type
