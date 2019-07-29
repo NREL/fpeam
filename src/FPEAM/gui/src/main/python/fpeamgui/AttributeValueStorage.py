@@ -23,7 +23,7 @@ class AttributeValueStorage:
 
         # Fugitive Dust module - Attribute Initialization
         self.feedMeasureTypeFD = "harvested"
-        self.emissionFactorsFD = "../data/inputs/fugitive_dust_emission_factors.csv"
+        self.emissionFactorsFD = "data/inputs/fugitive_dust_emission_factors.csv"
 
         # Emission Factors Module - Attribute Initialization
         self.feedMeasureTypeEF = "harvested"
@@ -39,7 +39,7 @@ class AttributeValueStorage:
         self.dbNameN = "movesdb20151028"
         self.dbPwdN = "root"
         self.forestryFeedstockNames = 'forest whole tree'
-        self.regionFipsMapNonroad = "../data/inputs/region_fips_map.csv"
+        self.regionFipsMapNonroad = "data/inputs/region_fips_map.csv"
         self.nonroadDatafilesPath = "C:/Nonroad"
         self.tempMin = 50.0
         self.tempMax =68.8
@@ -50,7 +50,7 @@ class AttributeValueStorage:
         self.dieselPm10topm25 = 0.97
         self.irrigationFeedstockMeasureType = "planted"
         self.irrigatedFeedstockNames = "corn grain"
-        self.irrigation = "../data/inputs/irrigation.csv"
+        self.irrigation = "data/inputs/irrigation.csv"
         self.encodeNames = True
 
         # Moves Module - Attribute Initialization
@@ -66,9 +66,9 @@ class AttributeValueStorage:
         self.dbPwd = "root"
         self.movesDatafilesPath = "C:\MOVESdatb"
         self.movesPath = "C:\MOVES2014b"
-        self.truckCapacity = "../data/inputs/truck_capacity.csv"
-        self.avft = "../data/inputs/avft.csv"
-        self.regionFipsMapMoves = "../data/inputs/region_fips_map.csv"
+        self.truckCapacity = "data/inputs/truck_capacity.csv"
+        self.avft = "data/inputs/avft.csv"
+        self.regionFipsMapMoves = "data/inputs/region_fips_map.csv"
         self.ruralRestricted = 0.30
         self.ruralUnrestricted = 0.28
         self.urbanRestricted = 0.21
