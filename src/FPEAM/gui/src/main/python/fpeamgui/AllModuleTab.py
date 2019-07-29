@@ -13,13 +13,15 @@ import os
 import pandas
 import pylab
 from PyQt5 import QtCore, QtGui, QtWidgets, Qt
+from PyQt5.QtCore import QEventLoop, QTimer
 from PyQt5.QtGui import QIntValidator, QDoubleValidator, QPixmap
 from PyQt5.QtWidgets import QRadioButton, QComboBox, QPushButton, QTextEdit, QFileDialog, QMessageBox, QPlainTextEdit, \
-    QScrollArea
+    QScrollArea, QFrame, QListView, QProgressBar
 from PyQt5.QtWidgets import QGridLayout, QLabel, QButtonGroup, QLineEdit, QSpinBox, QCheckBox
 
 from pkg_resources import resource_filename
 from pyqtgraph import PlotWidget
+from qroundprogressbar import QRoundProgressBar
 
 from FPEAM.gui.src.main.python.fpeamgui.AttributeValueStorage import AttributeValueStorage
 #from FPEAM.gui.src.main.python.fpeamgui.AttributeValueStorage import attributeValueObj
@@ -41,6 +43,9 @@ plt.rcdefaults()
 import numpy as np
 import pandas as pd
 
+WIDTH = 900
+HEIGHT = 800
+
 class AlltabsModule(QtWidgets.QWidget):
 
     def setupUIHomePage(self):
@@ -54,11 +59,17 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout = QGridLayout()
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(5, 1)
-        #self.windowLayout.setColumnStretch(4, 1)
 
-        self.tabHome.setLayout(self.windowLayout)
+        self.scrollAreaFPEAM = QScrollArea(self.tabHome)
+        self.scrollAreaFPEAM.setWidgetResizable(True)
+        self.scrollAreaFPEAM.resize(WIDTH, HEIGHT)
+        self.scrollAreaFPEAM.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.scrollAreaFPEAM.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
 
-        self.windowLayout.setSpacing(15)
+        self.innerWidgetFPEAM = QtWidgets.QWidget()
+        self.innerWidgetFPEAM.resize(WIDTH, HEIGHT)
+        self.scrollAreaFPEAM.setWidget(self.innerWidgetFPEAM)
+        self.innerWidgetFPEAM.setLayout(self.windowLayout)
 
         # Created UI element - Title
         self.labelTitleFPEAM = QLabel()
@@ -70,7 +81,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Title Line
         self.labelTitleFPEAMLine = QLabel()
-        pixmapLine = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine = QPixmap('line.png')
         pixmap = pixmapLine.scaledToHeight(14)
         self.labelTitleFPEAMLine.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
@@ -176,18 +187,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDataFilepathsLabel.setText("Custom Data Filepaths")
         self.customDataFilepathsLabel.setFixedHeight(30)
         self.customDataFilepathsLabel.setObjectName("subTitleLabels")
-        self.labeCustomDatafilesArrow = QLabel()
-        self.labeCustomDatafilesArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labeCustomDatafilesArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.customDataFilepathsLabel, 6, 0, 1, 4)
-        self.windowLayout.addWidget(self.labeCustomDatafilesArrow)
 
         # Created UI element - Custom Dtatfiles below Line
         self.labelCustomDatafilsLine = QLabel()
-        pixmapLine1 = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(14)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
@@ -275,18 +279,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.advOptionsLabel.setText("Advanced Options")
         self.advOptionsLabel.setFixedHeight(30)
         self.advOptionsLabel.setObjectName("subTitleLabels")
-        self.labelAdvOptionsArrow = QLabel()
-        self.labelAdvOptionsArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labelAdvOptionsArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.advOptionsLabel, 12, 0, 1, 4)
-        self.windowLayout.addWidget(self.labelAdvOptionsArrow)
 
         # Created UI element - Advanced Optiones below Line
         self.labelAdvOptionsLine = QLabel()
-        pixmapLine2 = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine2 = QPixmap('line.png')
         pixmap2 = pixmapLine2.scaledToHeight(14)
         self.labelTitleFPEAMLine.setPixmap(pixmap2)
         self.resize(pixmap2.width(), pixmap2.height())
@@ -473,8 +470,11 @@ class AlltabsModule(QtWidgets.QWidget):
     # Project Path
     def getfiles(self):
         fileName = QFileDialog.getExistingDirectory(self, "Browse")
-        selectedFileName = str(fileName).split(',')
-        self.lineEditProjectPath.setText(selectedFileName[0])
+        if fileName != "":
+            selectedFileName = str(fileName).split(',')
+            self.lineEditProjectPath.setText(selectedFileName[0])
+        else:
+            pass
 
     # Logging Verbosity Level
     def selectionchangecombo(self):
@@ -484,35 +484,38 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesEq(self):
         fileNameEq = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameEq = fileNameEq[0].split("FPEAM/")
-        self.lineEditEq.setText(selectedFileNameEq[1])
+        if fileNameEq[0] != "":
+            selectedFileNameEq = fileNameEq[0].split("FPEAM/")
+            self.lineEditEq.setText(selectedFileNameEq[1])
 
     # Production
 
     def getfilesProd(self):
         fileNameProd = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameProd = fileNameProd[0].split("FPEAM/")
-        self.lineEditProd.setText(selectedFileNameProd[1])
+        if fileNameProd[0] != "":
+            selectedFileNameProd = fileNameProd[0].split("FPEAM/")
+            self.lineEditProd.setText(selectedFileNameProd[1])
 
     # Feedstock Loss Factors
 
     def getfilesFLoss(self):
         fileNameFLoss = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameFLoss = fileNameFLoss[0].split("FPEAM/")
-        self.lineEditFedLossFact.setText(selectedFileNameFLoss[1])
+        if fileNameFLoss[0] != "":
+            selectedFileNameFLoss = fileNameFLoss[0].split("FPEAM/")
+            self.lineEditFedLossFact.setText(selectedFileNameFLoss[1])
 
     # Transportation graph
 
     def getfilesTransGr(self):
         fileNameTransGr = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameTransGr = fileNameTransGr[0].split("FPEAM/")
-        self.lineEditTransGraph.setText(selectedFileNameTransGr[1])
+        if fileNameTransGr[0] != "":
+            selectedFileNameTransGr = fileNameTransGr[0].split("FPEAM/")
+            self.lineEditTransGraph.setText(selectedFileNameTransGr[1])
 
 
         ###########################################################################################################################################################################
 
     def setupUIMoves(self):
-
 
         # Moves code start
         self.windowLayout = QGridLayout()
@@ -526,17 +529,17 @@ class AlltabsModule(QtWidgets.QWidget):
         # Moves tab added
         self.centralwidget.addTab(self.tabMoves, "MOVES")
 
-        self.tabMoves.setLayout(self.windowLayout)
+        self.scrollAreaMOVES = QScrollArea(self.tabMoves)
+        self.scrollAreaMOVES.setWidgetResizable(True)
+        self.scrollAreaMOVES.resize(WIDTH,HEIGHT)
+        self.scrollAreaMOVES.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.scrollAreaMOVES.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
 
+        self.innerWidgetMOVES = QtWidgets.QWidget()
+        self.innerWidgetMOVES.resize(WIDTH,HEIGHT)
+        self.scrollAreaMOVES.setWidget(self.innerWidgetMOVES)
+        self.innerWidgetMOVES.setLayout(self.windowLayout)
 
-        # self.vScrollArea = QScrollArea()
-        # self.windowLayout = QtGui.QWidget(self.vScrollArea)
-        # self.vScrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        # self.vScrollArea.setWidgetResizable(True)
-        #
-        # self.windowLayout.addWidget(self.vScrollArea)
-        #
-        # self.vScrollArea.setWidget(self.tabMoves)
 
         # Created UI element - Title MOVES
         self.labelTitleMOVES = QLabel()
@@ -548,7 +551,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Title Line
         self.labelTitleMOVESLine = QLabel()
-        pixmapLine = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine = QPixmap('line.png')
         pixmap = pixmapLine.scaledToHeight(14)
         self.labelTitleMOVESLine.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
@@ -670,22 +673,40 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionParaLabel.setText("Database Connection Parameters")
         self.dbConnectionParaLabel.setFixedHeight(30)
         self.dbConnectionParaLabel.setObjectName("subTitleLabels")
-        self.labelDbConnectionArrow = QLabel()
-        self.labelDbConnectionArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labelDbConnectionArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.dbConnectionParaLabel, 7, 0, 1, 4)
-        self.windowLayout.addWidget(self.labelDbConnectionArrow)
 
-        # Created UI element - Advanced Optiones below Line
+        # Created UI element - Database Connection Parameters below Line
         self.dbConnectionParaLine = QLabel()
-        pixmapLine1M = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.dbConnectionParaLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
         self.windowLayout.addWidget(self.dbConnectionParaLine, 8, 0, 1, 5)
+
+        # Expand/Collapse code
+        # Created UI element Database Connection Parameters MOVES
+        self.labeldbConnectionsMOVESExpand = QPushButton()
+        self.labeldbConnectionsMOVESExpand.setFixedHeight(30)
+        self.labeldbConnectionsMOVESExpand.setFixedWidth(30)
+        self.labeldbConnectionsMOVESExpand.setObjectName("expandCollapseIcon")
+        self.labeldbConnectionsMOVESExpand.setText(u'\u25B2')
+        self.windowLayout.addWidget(self.labeldbConnectionsMOVESExpand, 7, 4)
+
+        self.dbConnectionsMOVESexpandWidget = QtWidgets.QWidget()
+        self.dbConnectionsMOVESGridLayout = QtWidgets.QGridLayout()
+        self.dbConnectionsMOVESexpandWidget.setLayout(self.dbConnectionsMOVESGridLayout)
+        self.dbConnectionsMOVESexpandWidget.setVisible(False)
+        self.windowLayout.addWidget(self.dbConnectionsMOVESexpandWidget, 9, 0, 1, 4)
+
+        def labelDbConnectionsMOVESOnClickEvent():
+            if self.dbConnectionsMOVESexpandWidget.isVisible():
+                self.labeldbConnectionsMOVESExpand.setText(u'\u25B2')
+                self.dbConnectionsMOVESexpandWidget.setVisible(False)
+            else:
+                self.labeldbConnectionsMOVESExpand.setText(u'\u25BC')
+                self.dbConnectionsMOVESexpandWidget.setVisible(True)
+
+        self.labeldbConnectionsMOVESExpand.clicked.connect(labelDbConnectionsMOVESOnClickEvent)
 
         # Created UI element Database Host
         self.labelDbHost = QLabel()
@@ -703,8 +724,8 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditDbHost.setValidator(validator)
         self.lineEditDbHost.setText("localhost")
-        self.windowLayout.addWidget(self.labelDbHost, 9, 0)
-        self.windowLayout.addWidget(self.lineEditDbHost, 9, 1)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.labelDbHost, 0, 0)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditDbHost, 0, 1)
 
         # Created UI element Database Username
         self.labelDbUsername = QLabel()
@@ -719,8 +740,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbUsername.setFixedHeight(30)
         self.lineEditDbUsername.setFixedWidth(125)
         self.lineEditDbUsername.setText("root")
-        self.windowLayout.addWidget(self.labelDbUsername, 9, 2)
-        self.windowLayout.addWidget(self.lineEditDbUsername, 9, 3)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.labelDbUsername, 0, 2)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditDbUsername, 0, 3)
 
         # Created UI element Database Name
         self.labelDbName = QLabel()
@@ -735,8 +756,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbName.setFixedHeight(30)
         self.lineEditDbName.setFixedWidth(125)
         self.lineEditDbName.setText("movesdb20151028")
-        self.windowLayout.addWidget(self.labelDbName, 10, 0)
-        self.windowLayout.addWidget(self.lineEditDbName, 10, 1)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.labelDbName, 1, 0)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditDbName, 1, 1)
 
         # Created UI element Database Password
         self.labelDbPwd = QLabel()
@@ -753,30 +774,52 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbPwd.setEchoMode(QtGui.QLineEdit.Password)
         self.lineEditDbPwd.show()
         self.lineEditDbPwd.setText("root")
-        self.windowLayout.addWidget(self.labelDbPwd, 10, 2)
-        self.windowLayout.addWidget(self.lineEditDbPwd, 10, 3)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.labelDbPwd, 1, 2)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditDbPwd, 1, 3)
+
+        #Empty Label
+        self.emptyLabel = QLabel()
+        self.dbConnectionsMOVESGridLayout.addWidget(self.emptyLabel, 1, 4)
 
         # Execution Timeframe Label
         self.executionTimeLabel = QLabel()
         self.executionTimeLabel.setText("Execution Timeframe")
         self.executionTimeLabel.setFixedHeight(30)
         self.executionTimeLabel.setObjectName("subTitleLabels")
-        self.labelExecutionTimeArrow = QLabel()
-        self.labelExecutionTimeArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labelExecutionTimeArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.executionTimeLabel, 11, 0, 1, 4)
-        self.windowLayout.addWidget(self.labelExecutionTimeArrow)
 
         # Created UI element - Execution Timeframe below Line
         self.executionTimeLine = QLabel()
-        pixmapLine1M = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.executionTimeLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
         self.windowLayout.addWidget(self.executionTimeLine, 12, 0, 1, 5)
+
+        # Expand/Collapse code
+        # Created UI element Execution Timeframe MOVES
+        self.labelTimeframeMOVESExpand = QPushButton()
+        self.labelTimeframeMOVESExpand.setFixedHeight(30)
+        self.labelTimeframeMOVESExpand.setFixedWidth(30)
+        self.labelTimeframeMOVESExpand.setObjectName("expandCollapseIcon")
+        self.labelTimeframeMOVESExpand.setText(u'\u25B2')
+        self.windowLayout.addWidget(self.labelTimeframeMOVESExpand, 11, 4)
+
+        self.timeframeMOVESexpandWidget = QtWidgets.QWidget()
+        self.timeframeMOVESGridLayout = QtWidgets.QGridLayout()
+        self.timeframeMOVESexpandWidget.setLayout(self.timeframeMOVESGridLayout)
+        self.timeframeMOVESexpandWidget.setVisible(False)
+        self.windowLayout.addWidget(self.timeframeMOVESexpandWidget, 13, 0, 1, 4)
+
+        def labelTimeframeMOVESOnClickEvent():
+            if self.timeframeMOVESexpandWidget.isVisible():
+                self.labelTimeframeMOVESExpand.setText(u'\u25B2')
+                self.timeframeMOVESexpandWidget.setVisible(False)
+            else:
+                self.labelTimeframeMOVESExpand.setText(u'\u25BC')
+                self.timeframeMOVESexpandWidget.setVisible(True)
+
+        self.labelTimeframeMOVESExpand.clicked.connect(labelTimeframeMOVESOnClickEvent)
 
         # Created UI element Analysis Year
         self.labelAnalysisYear = QLabel()
@@ -803,9 +846,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelYearErrorMsg.setObjectName("yearErrorMsg")
         self.labelYearErrorMsg.setFixedHeight(30)
         self.labelYearErrorMsg.setText("")
-        self.windowLayout.addWidget(self.labelAnalysisYear, 13, 0)
-        self.windowLayout.addWidget(self.comboBoxYear, 13, 1)
-        self.windowLayout.addWidget(self.labelYearErrorMsg, 13, 2, 1, 4)
+        self.timeframeMOVESGridLayout.addWidget(self.labelAnalysisYear, 0, 0)
+        self.timeframeMOVESGridLayout.addWidget(self.comboBoxYear, 0, 1)
+        self.timeframeMOVESGridLayout.addWidget(self.labelYearErrorMsg, 0, 2, 1, 4)
         self.comboBoxYear.currentIndexChanged.connect(self.handleItemPressed)
 
         # Created UI element Timestamp - Month
@@ -828,8 +871,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditMonth.setAlignment(QtCore.Qt.AlignCenter)
         self.leditMonth = self.comboBoxMonth.lineEdit()
         self.leditMonth.setReadOnly(True)
-        self.windowLayout.addWidget(self.labelMonth, 14, 0)
-        self.windowLayout.addWidget(self.comboBoxMonth, 14, 1)
+        self.timeframeMOVESGridLayout.addWidget(self.labelMonth, 1, 0)
+        self.timeframeMOVESGridLayout.addWidget(self.comboBoxMonth, 1, 1)
 
         # Created UI element Timestamp - Date
         self.labelDate = QLabel()
@@ -851,8 +894,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditDate.setAlignment(QtCore.Qt.AlignCenter)
         self.leditDate = self.comboBoxDate.lineEdit()
         self.leditDate.setReadOnly(True)
-        self.windowLayout.addWidget(self.labelDate, 14, 2)
-        self.windowLayout.addWidget(self.comboBoxDate, 14, 3)
+        self.timeframeMOVESGridLayout.addWidget(self.labelDate, 1, 2)
+        self.timeframeMOVESGridLayout.addWidget(self.comboBoxDate, 1, 3)
 
         # Created UI element Timestamp - Beginning Hour
         self.labelBegHr = QLabel()
@@ -874,8 +917,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditBeghr.setAlignment(QtCore.Qt.AlignCenter)
         self.leditBeghr = self.comboBoxBegHr.lineEdit()
         self.leditBeghr.setReadOnly(True)
-        self.windowLayout.addWidget(self.labelBegHr, 15, 0)
-        self.windowLayout.addWidget(self.comboBoxBegHr, 15, 1)
+        self.timeframeMOVESGridLayout.addWidget(self.labelBegHr, 2, 0)
+        self.timeframeMOVESGridLayout.addWidget(self.comboBoxBegHr, 2, 1)
 
         # Created UI element Timestamp - Ending Hour
         self.labelEndHr = QLabel()
@@ -897,8 +940,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditEndhr.setAlignment(QtCore.Qt.AlignCenter)
         self.leditEndhr = self.comboBoxEndHr.lineEdit()
         self.leditEndhr.setReadOnly(True)
-        self.windowLayout.addWidget(self.labelEndHr, 15, 2)
-        self.windowLayout.addWidget(self.comboBoxEndHr, 15, 3)
+        self.timeframeMOVESGridLayout.addWidget(self.labelEndHr, 2, 2)
+        self.timeframeMOVESGridLayout.addWidget(self.comboBoxEndHr, 2, 3)
 
         # Created UI element Timestamp - Day Type
         self.labelDayType = QLabel()
@@ -919,30 +962,49 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditDayType.setAlignment(QtCore.Qt.AlignCenter)
         self.leditDayType = self.comboBoxDayType.lineEdit()
         self.leditDayType.setReadOnly(True)
-        self.windowLayout.addWidget(self.labelDayType, 16, 0)
-        self.windowLayout.addWidget(self.comboBoxDayType, 16, 1)
+        self.timeframeMOVESGridLayout.addWidget(self.labelDayType, 3, 0)
+        self.timeframeMOVESGridLayout.addWidget(self.comboBoxDayType, 3, 1)
+
 
         # Custom Data Filepaths Label MOVES
         self.customDataFilepathsLabelM = QLabel()
         self.customDataFilepathsLabelM.setText("Custom Data Filepaths")
         self.customDataFilepathsLabelM.setFixedHeight(30)
         self.customDataFilepathsLabelM.setObjectName("subTitleLabels")
-        self.labelCustomDatafilesMOVESArrow = QLabel()
-        self.labelCustomDatafilesMOVESArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labelCustomDatafilesMOVESArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.customDataFilepathsLabelM, 17, 0, 1, 4)
-        self.windowLayout.addWidget(self.labelCustomDatafilesMOVESArrow)
 
         # Created UI element - Custom Dtatfiles below Line MOVES
         self.labelCustomDatafilsLineM = QLabel()
-        pixmapLine2 = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine2 = QPixmap('line.png')
         pixmap2 = pixmapLine2.scaledToHeight(14)
         self.labelCustomDatafilsLineM.setPixmap(pixmap2)
         self.resize(pixmap2.width(), pixmap2.height())
         self.windowLayout.addWidget(self.labelCustomDatafilsLineM, 18, 0, 1, 5)
+
+        # Expand/Collapse code
+        # Created UI element Custom Data Filepaths MOVES
+        self.labelCustomDatafileMOVESExpand = QPushButton()
+        self.labelCustomDatafileMOVESExpand.setFixedHeight(30)
+        self.labelCustomDatafileMOVESExpand.setFixedWidth(30)
+        self.labelCustomDatafileMOVESExpand.setObjectName("expandCollapseIcon")
+        self.labelCustomDatafileMOVESExpand.setText(u'\u25B2')
+        self.windowLayout.addWidget(self.labelCustomDatafileMOVESExpand, 17, 4)
+
+        self.customDatafileMOVESexpandWidget = QtWidgets.QWidget()
+        self.customDatafileMOVESGridLayout = QtWidgets.QGridLayout()
+        self.customDatafileMOVESexpandWidget.setLayout(self.customDatafileMOVESGridLayout)
+        self.customDatafileMOVESexpandWidget.setVisible(False)
+        self.windowLayout.addWidget(self.customDatafileMOVESexpandWidget, 19, 0, 1, 4)
+
+        def labelCustomDatafileMOVESOnClickEvent():
+            if self.customDatafileMOVESexpandWidget.isVisible():
+                self.labelCustomDatafileMOVESExpand.setText(u'\u25B2')
+                self.customDatafileMOVESexpandWidget.setVisible(False)
+            else:
+                self.labelCustomDatafileMOVESExpand.setText(u'\u25BC')
+                self.customDatafileMOVESexpandWidget.setVisible(True)
+
+        self.labelCustomDatafileMOVESExpand.clicked.connect(labelCustomDatafileMOVESOnClickEvent)
 
         # Created UI element Truck Capacity
         self.labelTruckCapacity = QLabel()
@@ -960,9 +1022,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditTruckCapa = QLineEdit(self)
         self.lineEditTruckCapa.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditTruckCapa.setFixedHeight(30)
-        self.windowLayout.addWidget(self.labelTruckCapacity, 19, 0)
-        self.windowLayout.addWidget(self.browseBtnTruckCapa, 19, 1)
-        self.windowLayout.addWidget(self.lineEditTruckCapa, 19, 2, 1, 3)
+        self.customDatafileMOVESGridLayout.addWidget(self.labelTruckCapacity, 0, 0)
+        self.customDatafileMOVESGridLayout.addWidget(self.browseBtnTruckCapa, 0, 1)
+        self.customDatafileMOVESGridLayout.addWidget(self.lineEditTruckCapa, 0, 2, 1, 3)
 
         # Created UI element AVFT
         self.labelAVFT = QLabel()
@@ -979,9 +1041,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditAVFT = QLineEdit(self)
         self.lineEditAVFT.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditAVFT.setFixedHeight(30)
-        self.windowLayout.addWidget(self.labelAVFT, 20, 0)
-        self.windowLayout.addWidget(self.browseBtnAVFT, 20, 1)
-        self.windowLayout.addWidget(self.lineEditAVFT, 20, 2, 1, 3)
+        self.customDatafileMOVESGridLayout.addWidget(self.labelAVFT, 1, 0)
+        self.customDatafileMOVESGridLayout.addWidget(self.browseBtnAVFT, 1, 1)
+        self.customDatafileMOVESGridLayout.addWidget(self.lineEditAVFT, 1, 2, 1, 3)
 
         # Created UI element MOVES Region to FIPS Map
         self.labelFips = QLabel()
@@ -998,31 +1060,49 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFips = QLineEdit(self)
         self.lineEditFips.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditFips.setFixedHeight(30)
-        self.windowLayout.addWidget(self.labelFips, 21, 0)
-        self.windowLayout.addWidget(self.browseBtnFips, 21, 1)
-        self.windowLayout.addWidget(self.lineEditFips, 21, 2, 1, 3)
+        self.customDatafileMOVESGridLayout.addWidget(self.labelFips, 2, 0)
+        self.customDatafileMOVESGridLayout.addWidget(self.browseBtnFips, 2, 1)
+        self.customDatafileMOVESGridLayout.addWidget(self.lineEditFips, 2, 2, 1, 3)
 
         # Advanced Options Label MOVES
         self.advOptionsLabelM = QLabel()
         self.advOptionsLabelM.setText("Advanced Options")
         self.advOptionsLabelM.setFixedHeight(30)
         self.advOptionsLabelM.setObjectName("subTitleLabels")
-        self.labelAdvOptionsMOVESArrow = QLabel()
-        self.labelAdvOptionsMOVESArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labelAdvOptionsMOVESArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.advOptionsLabelM, 22, 0, 1, 4)
-        self.windowLayout.addWidget(self.labelAdvOptionsMOVESArrow)
 
         # Created UI element - Advanced Optiones below Line
         self.labelAdvOptionsLineM = QLabel()
-        pixmapLine2 = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine2 = QPixmap('line.png')
         pixmap2 = pixmapLine2.scaledToHeight(14)
         self.labelAdvOptionsLineM.setPixmap(pixmap2)
         self.resize(pixmap2.width(), pixmap2.height())
         self.windowLayout.addWidget(self.labelAdvOptionsLineM, 23, 0, 1, 5)
+
+        # Expand/Collapse code
+        # Created UI element Advanced Options MOVES
+        self.labelAdvOptionsMOVESExpand = QPushButton()
+        self.labelAdvOptionsMOVESExpand.setFixedHeight(30)
+        self.labelAdvOptionsMOVESExpand.setFixedWidth(30)
+        self.labelAdvOptionsMOVESExpand.setObjectName("expandCollapseIcon")
+        self.labelAdvOptionsMOVESExpand.setText(u'\u25B2')
+        self.windowLayout.addWidget(self.labelAdvOptionsMOVESExpand, 22, 4)
+
+        self.advOptionsMOVESexpandWidget = QtWidgets.QWidget()
+        self.advOptionsMOVESGridLayout = QtWidgets.QGridLayout()
+        self.advOptionsMOVESexpandWidget.setLayout(self.advOptionsMOVESGridLayout)
+        self.advOptionsMOVESexpandWidget.setVisible(False)
+        self.windowLayout.addWidget(self.advOptionsMOVESexpandWidget, 26, 0, 1, 4)
+
+        def labelAdvOptionsMOVESOnClickEvent():
+            if self.advOptionsMOVESexpandWidget.isVisible():
+                self.labelAdvOptionsMOVESExpand.setText(u'\u25B2')
+                self.advOptionsMOVESexpandWidget.setVisible(False)
+            else:
+                self.labelAdvOptionsMOVESExpand.setText(u'\u25BC')
+                self.advOptionsMOVESexpandWidget.setVisible(True)
+
+        self.labelAdvOptionsMOVESExpand.clicked.connect(labelAdvOptionsMOVESOnClickEvent)
 
         # Created UI element No of Trucks used
         self.labelNoofTruck = QLabel()
@@ -1037,8 +1117,20 @@ class AlltabsModule(QtWidgets.QWidget):
         self.spinBoxNoofTruck.setFixedHeight(30)
         self.spinBoxNoofTruck.setMinimum(1)
         self.spinBoxNoofTruck.setValue(1)
-        self.windowLayout.addWidget(self.labelNoofTruck, 24, 0)
-        self.windowLayout.addWidget(self.spinBoxNoofTruck, 24, 1, QtCore.Qt.AlignCenter)
+        self.advOptionsMOVESGridLayout.addWidget(self.labelNoofTruck, 0, 0)
+        self.advOptionsMOVESGridLayout.addWidget(self.spinBoxNoofTruck, 0, 1)
+
+        # Created UI element VMT - Empty Label
+        self.labelEmpty = QLabel()
+        self.advOptionsMOVESGridLayout.addWidget(self.labelEmpty, 0, 2)
+
+        # Created UI element VMT - Empty Label
+        self.labelEmpty1 = QLabel()
+        self.advOptionsMOVESGridLayout.addWidget(self.labelEmpty1, 0, 3)
+
+        # Created UI element VMT - Empty Label
+        self.labelEmpty2 = QLabel()
+        self.advOptionsMOVESGridLayout.addWidget(self.labelEmpty2, 0, 4)
 
 
         # Created UI element VMT per Truck
@@ -1056,8 +1148,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditVMTperTruck.setValidator(self.onlyFlaot)
         self.lineEditVMTperTruck.setText("20")
-        self.windowLayout.addWidget(self.labelVMTperTruck, 25, 0)
-        self.windowLayout.addWidget(self.lineEditVMTperTruck, 25, 1)
+        self.advOptionsMOVESGridLayout.addWidget(self.labelVMTperTruck, 1, 0)
+        self.advOptionsMOVESGridLayout.addWidget(self.lineEditVMTperTruck, 1, 1)
 
         # Created UI element VMT Fractions
         self.labelVMTFraction = QLabel()
@@ -1065,22 +1157,43 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelVMTFraction.setToolTip("Fraction of VMT(Vehicle MilesTraveled) by road type (All must sum to 1)")
         self.labelVMTFraction.setFixedHeight(30)
         self.labelVMTFraction.setObjectName("subTitleLabels")
-        self.labelVMTFractionsArrow = QLabel()
-        self.labelVMTFractionsArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labelVMTFractionsArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
-        self.windowLayout.addWidget(self.labelVMTFraction, 26, 0, 1, 4)
-        self.windowLayout.addWidget(self.labelVMTFractionsArrow)
+        self.windowLayout.addWidget(self.labelVMTFraction, 27, 0, 1, 4)
 
         # Created UI element - VMT Fractions below Line MOVES
         self.vMTFractionLine = QLabel()
-        pixmapLine3 = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine3 = QPixmap('line.png')
         pixmap3 = pixmapLine3.scaledToHeight(14)
         self.vMTFractionLine.setPixmap(pixmap2)
         self.resize(pixmap3.width(), pixmap3.height())
-        self.windowLayout.addWidget(self.vMTFractionLine, 27, 0, 1, 5)
+        self.windowLayout.addWidget(self.vMTFractionLine, 28, 0, 1, 5)
+
+
+
+        #Expand/Collapse code
+
+        # Created UI element VMT Fractions
+        self.labelVMTFractionExpand = QPushButton()
+        self.labelVMTFractionExpand.setFixedHeight(30)
+        self.labelVMTFractionExpand.setFixedWidth(30)
+        self.labelVMTFractionExpand.setObjectName("expandCollapseIcon")
+        self.labelVMTFractionExpand.setText(u'\u25B2')
+        self.windowLayout.addWidget(self.labelVMTFractionExpand, 27, 4)
+
+        self.vmtexpandWidget = QtWidgets.QWidget()
+        self.vmtGridLayout = QtWidgets.QGridLayout()
+        self.vmtexpandWidget.setLayout(self.vmtGridLayout)
+        self.vmtexpandWidget.setVisible(False)
+        self.windowLayout.addWidget(self.vmtexpandWidget, 31,0, 1, 4)
+
+        def labelVMTFractionOnClickEvent():
+            if self.vmtexpandWidget.isVisible():
+                self.labelVMTFractionExpand.setText(u'\u25B2')
+                self.vmtexpandWidget.setVisible(False)
+            else:
+                self.labelVMTFractionExpand.setText(u'\u25BC')
+                self.vmtexpandWidget.setVisible(True)
+
+        self.labelVMTFractionExpand.clicked.connect(labelVMTFractionOnClickEvent)
 
         # Created UI element VMT - Rural Restricted
         self.labelRuralRes = QLabel()
@@ -1090,12 +1203,13 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelRuralRes.setFixedHeight(30)
         self.labelRuralRes.setFixedWidth(165)
         self.lineEditRuralRes = QLineEdit(self)
-        self.lineEditRuralRes.setFixedWidth(100)
+        self.lineEditRuralRes.setFixedWidth(116)
+        self.lineEditRuralRes.setFixedHeight(30)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditRuralRes.setValidator(self.onlyFlaot)
         self.lineEditRuralRes.setText("0.3")
-        self.windowLayout.addWidget(self.labelRuralRes, 28, 0)
-        self.windowLayout.addWidget(self.lineEditRuralRes, 28, 1)
+        self.vmtGridLayout.addWidget(self.labelRuralRes, 0, 0)
+        self.vmtGridLayout.addWidget(self.lineEditRuralRes, 0, 1)
 
         # Created UI element VMT - Urban Restricted
         self.labelUrbanRes = QLabel()
@@ -1105,12 +1219,13 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelUrbanRes.setFixedHeight(30)
         self.labelUrbanRes.setFixedWidth(165)
         self.lineEditUrbanRes = QLineEdit(self)
-        self.lineEditUrbanRes.setFixedWidth(100)
+        self.lineEditUrbanRes.setFixedWidth(116)
+        self.lineEditUrbanRes.setFixedHeight(30)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditUrbanRes.setValidator(self.onlyFlaot)
         self.lineEditUrbanRes.setText("0.21")
-        self.windowLayout.addWidget(self.labelUrbanRes, 28, 2)
-        self.windowLayout.addWidget(self.lineEditUrbanRes, 28, 3)
+        self.vmtGridLayout.addWidget(self.labelUrbanRes, 0, 2)
+        self.vmtGridLayout.addWidget(self.lineEditUrbanRes, 0, 3)
 
         # Created UI element VMT - Rural Unrestricted
         self.labelRuralUnres = QLabel()
@@ -1120,13 +1235,13 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelRuralUnres.setFixedHeight(30)
         self.labelRuralUnres.setFixedWidth(165)
         self.lineEditRuralUnres = QLineEdit(self)
-        self.lineEditRuralUnres.setFixedWidth(100)
+        self.lineEditRuralUnres.setFixedWidth(116)
+        self.lineEditRuralUnres.setFixedHeight(30)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditRuralUnres.setValidator(self.onlyFlaot)
         self.lineEditRuralUnres.setText("0.28")
-        self.windowLayout.addWidget(self.labelRuralUnres, 29, 0)
-        self.windowLayout.addWidget(self.lineEditRuralUnres, 29, 1)
-
+        self.vmtGridLayout.addWidget(self.labelRuralUnres, 1, 0)
+        self.vmtGridLayout.addWidget(self.lineEditRuralUnres, 1, 1)
 
         # Created UI element VMT - Urban Unrestricted
         self.labelUrbanUnres = QLabel()
@@ -1136,13 +1251,17 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelUrbanUnres.setFixedHeight(30)
         self.labelUrbanUnres.setFixedWidth(165)
         self.lineEditUrbanUnres = QLineEdit()
-        self.lineEditUrbanUnres.setFixedWidth(100)
+        self.lineEditUrbanUnres.setFixedWidth(116)
+        self.lineEditUrbanUnres.setFixedHeight(30)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditUrbanUnres.setValidator(self.onlyFlaot)
         self.lineEditUrbanUnres.setText("0.28")
-        self.windowLayout.addWidget(self.labelUrbanUnres, 29, 2)
-        self.windowLayout.addWidget(self.lineEditUrbanUnres, 29, 3)
+        self.vmtGridLayout.addWidget(self.labelUrbanUnres, 1, 2)
+        self.vmtGridLayout.addWidget(self.lineEditUrbanUnres, 1, 3)
 
+        # Created UI element VMT - Empty Label
+        self.labelEmpty = QLabel()
+        self.vmtGridLayout.addWidget(self.labelEmpty, 1, 4)
 
 
 
@@ -1156,8 +1275,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesMovesPath(self):
         fileNameMovesPath = QFileDialog.getExistingDirectory(self, "Browse")
-        selectedFileNameMovesPath = str(fileNameMovesPath).split(',')
-        self.lineEditMovesPath.setText(selectedFileNameMovesPath[0])
+        if fileNameMovesPath != "":
+            selectedFileNameMovesPath = str(fileNameMovesPath).split(',')
+            self.lineEditMovesPath.setText(selectedFileNameMovesPath[0])
 
 
 
@@ -1165,30 +1285,34 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesTruckCapa(self):
         fileNameTruckCapa = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
-        self.lineEditTruckCapa.setText(selectedFileNameTruckCapa[1])
+        if fileNameTruckCapa[0] != "":
+            selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
+            self.lineEditTruckCapa.setText(selectedFileNameTruckCapa[1])
 
     # Functions used for AVFT
 
     def getfilesAVFT(self):
         fileNameAVFT = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameAVFT = fileNameAVFT[0].split("FPEAM/")
-        self.lineEditAVFT.setText(selectedFileNameAVFT[1])
+        if fileNameAVFT[0] != "":
+            selectedFileNameAVFT = fileNameAVFT[0].split("FPEAM/")
+            self.lineEditAVFT.setText(selectedFileNameAVFT[1])
 
 
     # Functions used for Fips
 
     def getfilesFips(self):
         fileNameFips = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameFips = fileNameFips[0].split("FPEAM/")
-        self.lineEditFips.setText(selectedFileNameFips[1])
+        if fileNameFips[0] != "":
+            selectedFileNameFips = fileNameFips[0].split("FPEAM/")
+            self.lineEditFips.setText(selectedFileNameFips[1])
 
     # Functions used for Moves Datafiles
 
     def getfilesDatafiles(self):
         fileNameDatafile = QFileDialog.getExistingDirectory(self, "Browse")
-        selectedFileNameDatafile = str(fileNameDatafile).split(',')
-        self.lineEditDatafiles.setText(selectedFileNameDatafile[0])
+        if fileNameDatafile != "":
+            selectedFileNameDatafile = str(fileNameDatafile).split(',')
+            self.lineEditDatafiles.setText(selectedFileNameDatafile[0])
 
 
     def getEnteredText(self):
@@ -1211,9 +1335,17 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.setSpacing(15)
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(6, 1)
-        self.windowLayout.setSpacing(15)
 
-        self.tabNonroad.setLayout(self.windowLayout)
+        self.scrollAreaNONROAD = QScrollArea(self.tabNonroad)
+        self.scrollAreaNONROAD.setWidgetResizable(True)
+        self.scrollAreaNONROAD.resize(WIDTH, HEIGHT)
+        self.scrollAreaNONROAD.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.scrollAreaNONROAD.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+
+        self.innerWidgetNONROAD = QtWidgets.QWidget()
+        self.innerWidgetNONROAD.resize(WIDTH, HEIGHT)
+        self.scrollAreaNONROAD.setWidget(self.innerWidgetNONROAD)
+        self.innerWidgetNONROAD.setLayout(self.windowLayout)
 
         # Created UI element - Title NONROAD
         self.labelTitleNONROAD = QLabel()
@@ -1225,7 +1357,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Title Line NONROAD
         self.labelTitleNONROADLine = QLabel()
-        pixmapLine = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine = QPixmap('line.png')
         pixmap = pixmapLine.scaledToHeight(14)
         self.labelTitleNONROADLine.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
@@ -1285,18 +1417,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionParaLabelN.setText("Database Connection Parameters")
         self.dbConnectionParaLabelN.setFixedHeight(30)
         self.dbConnectionParaLabelN.setObjectName("subTitleLabels")
-        self.labelDbConnectionArrowN = QLabel()
-        self.labelDbConnectionArrowN.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labelDbConnectionArrowN.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.dbConnectionParaLabelN, 4, 0, 1, 4)
-        self.windowLayout.addWidget(self.labelDbConnectionArrowN)
 
         # Created UI element - Advanced Optiones below Line NONROAD
         self.dbConnectionParaLineN = QLabel()
-        pixmapLine1M = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.dbConnectionParaLineN.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1376,18 +1501,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dataLabel.setText("Data Labels")
         self.dataLabel.setFixedHeight(30)
         self.dataLabel.setObjectName("subTitleLabels")
-        self.dataLabelArrow = QLabel()
-        self.dataLabelArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.dataLabelArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.dataLabel, 8, 0, 1, 4)
-        self.windowLayout.addWidget(self.dataLabelArrow)
 
         # Created UI element - Data Labels Line
         self.dataLabelLine = QLabel()
-        pixmapLine1M = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.dataLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1496,18 +1614,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.cusromDatafileLabel.setText("Custom Data Filepaths")
         self.cusromDatafileLabel.setFixedHeight(30)
         self.cusromDatafileLabel.setObjectName("subTitleLabels")
-        self.customDatafileLabelArrow = QLabel()
-        self.customDatafileLabelArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.customDatafileLabelArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.cusromDatafileLabel, 13, 0, 1, 4)
-        self.windowLayout.addWidget(self.customDatafileLabelArrow)
 
         # Custom Data Filepaths Label Line
         self.customDatafileLabelLine = QLabel()
-        pixmapLine1M = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.customDatafileLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1566,18 +1677,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.opTempLabel.setText("Operating Temperature")
         self.opTempLabel.setFixedHeight(30)
         self.opTempLabel.setObjectName("subTitleLabels")
-        self.opTempLabelArrow = QLabel()
-        self.opTempLabelArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.opTempLabelArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.opTempLabel, 17, 0, 1, 4)
-        self.windowLayout.addWidget(self.opTempLabelArrow)
 
         # Operating Temperature Label Line
         self.opTempLabelLine = QLabel()
-        pixmapLine1M = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.opTempLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1639,18 +1743,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsLabel.setText("Conversion Factors")
         self.convFactorsLabel.setFixedHeight(30)
         self.convFactorsLabel.setObjectName("subTitleLabels")
-        self.convFactorsLabelArrow = QLabel()
-        self.convFactorsLabelArrow.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.convFactorsLabelArrow.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.convFactorsLabel, 21, 0, 1, 4)
-        self.windowLayout.addWidget(self.convFactorsLabelArrow)
 
         #  Conversion Factors Label Line
         self.convFactorsLabelLine = QLabel()
-        pixmapLine1M = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.convFactorsLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1735,18 +1832,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.advOptionsLabelN.setText("Advanced Options")
         self.advOptionsLabelN.setFixedHeight(30)
         self.advOptionsLabelN.setObjectName("subTitleLabels")
-        self.labelAdvOptionsArrowN = QLabel()
-        self.labelAdvOptionsArrowN.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labelAdvOptionsArrowN.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.advOptionsLabelN, 25, 0, 1, 4)
-        self.windowLayout.addWidget(self.labelAdvOptionsArrowN)
 
         #  Advanced Options Label Line
         self.labelAdvOptionsLineN = QLabel()
-        pixmapLine1M = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(14)
         self.labelAdvOptionsLineN.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1813,7 +1903,6 @@ class AlltabsModule(QtWidgets.QWidget):
             elif len(fieldNames) > 1:
                 tabsNamesInSentence = tabsNamesInSentence.join(fieldNames[0]) + " and " + fieldNames[1]
             message = "Values for Feedstock Measure Type should be same for tabs: " + tabsNamesInSentence
-            print(message)
             self.labelYearErrorMsg.setText(message)
             self.labelYearNonErrorMsg.setText(message)
 
@@ -1822,22 +1911,25 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesDatafilesNon(self):
         fileName = QFileDialog.getExistingDirectory(self, "Browse")
-        selectedFileName = str(fileName).split(',')
-        self.lineEditDatafilesNon.setText(selectedFileName[0])
+        if fileName != "":
+            selectedFileName = str(fileName).split(',')
+            self.lineEditDatafilesNon.setText(selectedFileName[0])
 
     # Functions used for Fips Nonroad
 
     def getfilesFipsNon(self):
         fileNameFipsNon = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameFipsNon = fileNameFipsNon[0].split("FPEAM/")
-        self.lineEditFipsNon.setText(selectedFileNameFipsNon[1])
+        if fileNameFipsNon[0] != "":
+            selectedFileNameFipsNon = fileNameFipsNon[0].split("FPEAM/")
+            self.lineEditFipsNon.setText(selectedFileNameFipsNon[1])
 
     # Functions used for Nonroad Irrigation
 
     def getfilesNonIrrig(self):
         fileNameNonEq = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameNonEq = fileNameNonEq[0].split("FPEAM/")
-        self.lineEditNonIrrig.setText(selectedFileNameNonEq[1])
+        if fileNameNonEq[0] != "":
+            selectedFileNameNonEq = fileNameNonEq[0].split("FPEAM/")
+            self.lineEditNonIrrig.setText(selectedFileNameNonEq[1])
 
     ###########################################################################################################################################################
 
@@ -1855,9 +1947,17 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout = QGridLayout()
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(6, 1)
-        self.windowLayout.setSpacing(15)
 
-        self.tabEmissionFactors.setLayout(self.windowLayout)
+        self.scrollAreaEF = QScrollArea(self.tabEmissionFactors)
+        self.scrollAreaEF.setWidgetResizable(True)
+        self.scrollAreaEF.resize(WIDTH, HEIGHT)
+        self.scrollAreaEF.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.scrollAreaEF.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+
+        self.innerWidgetEF = QtWidgets.QWidget()
+        self.innerWidgetEF.resize(WIDTH, HEIGHT)
+        self.scrollAreaEF.setWidget(self.innerWidgetEF)
+        self.innerWidgetEF.setLayout(self.windowLayout)
 
         # Created UI element - Title EF
         self.labelTitleEF = QLabel()
@@ -1869,7 +1969,8 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Title Line EF
         self.labelTitleEFLine = QLabel()
-        pixmapLine = QPixmap('C:\Project\snehal/line.png')
+        print(os.getcwd())
+        pixmapLine = QPixmap('line.png')
         pixmap = pixmapLine.scaledToHeight(14)
         self.labelTitleEFLine.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
@@ -1899,18 +2000,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDataFilepathLabelEF.setText("Custom Data Filepaths")
         self.customDataFilepathLabelEF.setFixedHeight(30)
         self.customDataFilepathLabelEF.setObjectName("subTitleLabels")
-        self.labeCustomDatafilesArrowEF = QLabel()
-        self.labeCustomDatafilesArrowEF.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labeCustomDatafilesArrowEF.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.customDataFilepathLabelEF, 3, 0, 1, 4)
-        self.windowLayout.addWidget(self.labeCustomDatafilesArrowEF)
 
         # Created UI element - Custom Dtatfiles below Line
         self.labelCustomDatafilsLine = QLabel()
-        pixmapLine1 = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(14)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
@@ -2055,15 +2149,17 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesEmiFact(self):
         fileNameTruckCapa = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
-        self.lineEditEmiFact.setText(selectedFileNameTruckCapa[1])
+        if fileNameTruckCapa[0] != "":
+            selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
+            self.lineEditEmiFact.setText(selectedFileNameTruckCapa[1])
 
     # Functions used for Resource Distribution
 
     def getfilesResDist(self):
         fileNameTruckCapa = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
-        self.lineEditResDist.setText(selectedFileNameTruckCapa[1])
+        if fileNameTruckCapa[0] != "":
+            selectedFileNameTruckCapa = fileNameTruckCapa[0].split("FPEAM/")
+            self.lineEditResDist.setText(selectedFileNameTruckCapa[1])
 
 
     ###################################################################################################################################################################
@@ -2082,7 +2178,17 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout = QGridLayout()
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(6, 1)
-        self.windowLayout.setSpacing(15)
+
+        self.scrollAreaFD = QScrollArea(self.tabFugitiveDust)
+        self.scrollAreaFD.setWidgetResizable(True)
+        self.scrollAreaFD.resize(WIDTH, HEIGHT)
+        self.scrollAreaFD.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.scrollAreaFD.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+
+        self.innerWidgetFD = QtWidgets.QWidget()
+        self.innerWidgetFD.resize(WIDTH, HEIGHT)
+        self.scrollAreaFD.setWidget(self.innerWidgetFD)
+        self.innerWidgetFD.setLayout(self.windowLayout)
 
         # Created UI element - Title FD
         self.labelTitleFD = QLabel()
@@ -2094,13 +2200,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Title Line FD
         self.labelTitleFDLine = QLabel()
-        pixmapLine = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine = QPixmap('line.png')
         pixmap = pixmapLine.scaledToHeight(14)
         self.labelTitleFDLine.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.labelTitleFDLine, 1, 0, 1, 5)
 
-        self.tabFugitiveDust.setLayout(self.windowLayout)
 
         # Created UI element Feedstock Measure Type - Fugitive Dust
         self.labelFeedMeasureTypeFD = QLabel()
@@ -2126,18 +2231,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDataFilepathLabelFD.setText("Custom Data Filepaths")
         self.customDataFilepathLabelFD.setFixedHeight(30)
         self.customDataFilepathLabelFD.setObjectName("subTitleLabels")
-        self.labeCustomDatafilesArrowFD = QLabel()
-        self.labeCustomDatafilesArrowFD.setAlignment(QtCore.Qt.AlignCenter)
-        pixmapLine = QPixmap('C:\Project\snehal/arrow.png')
-        pixmap = pixmapLine.scaledToHeight(25)
-        self.labeCustomDatafilesArrowFD.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.customDataFilepathLabelFD, 3, 0, 1, 4)
-        self.windowLayout.addWidget(self.labeCustomDatafilesArrowFD)
 
         # Created UI element - Custom Dtatfiles below Line
         self.labelCustomDatafilsLine = QLabel()
-        pixmapLine1 = QPixmap('C:\Project\snehal/line.png')
+        pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(14)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
@@ -2267,99 +2365,99 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def getfilesEmiFactFD(self):
         fileNameTruckCapaFD = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        selectedFileNameTruckCapaFD = fileNameTruckCapaFD[0].split("FPEAM/")
-        self.lineEditEmiFactFD.setText(selectedFileNameTruckCapaFD[1])
+        if fileNameTruckCapaFD[0] != "":
+            selectedFileNameTruckCapaFD = fileNameTruckCapaFD[0].split("FPEAM/")
+            self.lineEditEmiFactFD.setText(selectedFileNameTruckCapaFD[1])
 
     def rresetFields(self):
 
 
-        # self.attributeValueObj.logContents = ""
-        # self.attributeValueObj.streamGenerated = io.StringIO()
-        #
-        # # FPEAM home page - Attribute Initialization
-        # self.lineEditScenaName.setText("")
-        # self.lineEditProjectPath.setText("")
-        # self.checkBoxMoves.setChecked(True)
-        # self.checkBoxNonroad.setChecked(True)
-        # self.checkBoxEmissionFactors.setChecked(True)
-        # self.checkBoxFugitiveDust.setChecked(True)
-        # self.index = self.comboBoxVerbosityLevel.findText("DEBUG")
-        # self.comboBoxVerbosityLevel.setCurrentIndex(self.index)
-        # self.lineEditEq.setText("data/equipment/bts16_equipment.csv")
-        # self.lineEditProd.setText("data/production/production_2015_bc1060.csv")
-        # self.lineEditFedLossFact.setText("data/inputs/feedstock_loss_factors.csv")
-        # self.lineEditTransGraph.setText("data/inputs/transportation_graph.csv")
-        # self.index = self.comboBoxBF.findText("Yes")
-        # self.comboBoxBF.setCurrentIndex(self.index)
-        # self.index = self.comboBoxRE.findText("Yes")
-        # self.comboBoxRE.setCurrentIndex(self.index)
-        #
-        # # Fugitive Dust module - Attribute Initialization
-        # self.lineEditFeedMeasureTypeFD = "harvested"
-        # self.lineEditEmiFactFD = "../data/inputs/fugitive_dust_emission_factors.csv"
-        #
-        # # Emission Factors Module - Attribute Initialization
-        # self.lineEditFeedMeasureTypeEF = "harvested"
-        # self.lineEditEmiFact = 'data/inputs/emission_factors.csv'
-        # self.lineEditResDist = 'data/inputs/resource_distribution.csv'
-        #
-        # # Nonroad Module - Attribute Initialization
-        # self.index = self.comboBoxYearNon.findText("2017")
-        # self.comboBoxYearNon.setCurrentIndex(self.index)
-        # self.lineEditDbHostN = "localhost"
-        # self.lineEditDbUsernameN = "root"
-        # self.lineEditDbNameND = "movesdb20151028"
-        # self.lineEditDbPwdN = "root"
-        # self.lineEditFeedMeasureTypeNon = "harvested"
-        # self.lineEditTimeResNamesNon = "time"
-        # self.lineEditForestryNamesNon = 'forest whole tree', 'forest residues'
-        # self.lineEditFipsNon = "../data/inputs/region_fips_map.csv"
-        # self.lineEditDatafilesNon = "C:/Nonroad"
-        # self.lineEditMinTemp = 50.0
-        # self.lineEditMaxTemp = 68.8
-        # self.lineEditMeanTemp = 60.0
-        # self.lineEditLowHeat = 0.12845
-        # self.lineEditNH3 = 0.68
-        # self.lineEditHydro = 1.053
-        # self.lineEditPM10 = 0.97
-        # self.lineEditFeedMeasureTypeIrrigNon = "planted"
-        # self.lineEditFeedIrrigNamesNon = "corn grain"
-        # self.lineEditNonIrrig = "../data/inputs/irrigation.csv"
-        # self.comboBoxEncodeNames.setCurrentText("Yes")
-        #
-        # # Moves Module - Attribute Initialization
-        # self.index = self.comboBoxAggLevel.findText("By County")
-        # self.comboBoxAggLevel.setCurrentIndex(self.index)
-        # self.index = self.comboBoxCachedResUse.findText("Yes")
-        # self.comboBoxCachedResUse.setCurrentIndex(self.index)
-        # self.lineEditFeedMeasureType = "production"
-        # self.lineEditVMTperTruck = 20
-        # self.spinBoxNoofTruck.setValue(1)
-        # self.index = self.comboBoxYear.findText("2017")
-        # self.comboBoxYear.setCurrentIndex(self.index)
-        # self.lineEditDbHost = "localhost"
-        # self.lineEditDbUsernamem = "root"
-        # self.lineEditDbName = "movesdb20151028"
-        # self.lineEditDbPwd = "root"
-        # self.lineEditDatafiles = "C:\MOVESdata"
-        # self.lineEditMovesPath = "C:\MOVES2014a"
-        # self.lineEditTruckCapa = "../data/inputs/truck_capacity.csv"
-        # self.lineEditAVFT = "../data/inputs/avft.csv"
-        # self.lineEditFips = "../data/inputs/region_fips_map.csv"
-        # self.lineEditRuralRes = 0.30
-        # self.lineEditRuralUnres = 0.28
-        # self.lineEditUrbanRes = 0.21
-        # self.lineEditUrbanUnres = 0.21
-        # self.index = self.comboBoxMonth.findText("10")
-        # self.comboBoxMonth.setCurrentIndex(self.index)
-        # self.index = self.comboBoxBegHr.findText("7")
-        # self.comboBoxBegHr.setCurrentIndex(self.index)
-        # self.index = self.comboBoxDate.findText("5")
-        # self.comboBoxDate.setCurrentIndex(self.index)
-        # self.index = self.comboBoxEndHr.findText("18")
-        # self.comboBoxEndHr.setCurrentIndex(self.index)
-        # self.index = self.comboBoxDayType.findText("Weekday")
-        # self.comboBoxDayType.setCurrentIndex(self.index)
+        self.plainTextLog = ""
+
+        # FPEAM home page - Attribute Initialization
+        self.lineEditScenaName.setText("")
+        self.lineEditProjectPath.setText("")
+        self.checkBoxMoves.setChecked(True)
+        self.checkBoxNonroad.setChecked(True)
+        self.checkBoxEmissionFactors.setChecked(True)
+        self.checkBoxFugitiveDust.setChecked(True)
+        self.index = self.comboBoxVerbosityLevel.findText("DEBUG")
+        self.comboBoxVerbosityLevel.setCurrentIndex(self.index)
+        self.lineEditEq.setText("data/equipment/bts16_equipment.csv")
+        self.lineEditProd.setText("data/production/production_2015_bc1060.csv")
+        self.lineEditFedLossFact.setText("data/inputs/feedstock_loss_factors.csv")
+        self.lineEditTransGraph.setText("data/inputs/transportation_graph.csv")
+        self.index = self.comboBoxBF.findText("Yes")
+        self.comboBoxBF.setCurrentIndex(self.index)
+        self.index = self.comboBoxRE.findText("Yes")
+        self.comboBoxRE.setCurrentIndex(self.index)
+
+        # Fugitive Dust module - Attribute Initialization
+        self.lineEditFeedMeasureTypeFD.setText("harvested")
+        self.lineEditEmiFactFD.setText("../data/inputs/fugitive_dust_emission_factors.csv")
+
+        # Emission Factors Module - Attribute Initialization
+        self.lineEditFeedMeasureTypeEF.setText("harvested")
+        self.lineEditEmiFact.setText('data/inputs/emission_factors.csv')
+        self.lineEditResDist.setText('data/inputs/resource_distribution.csv')
+
+        # Nonroad Module - Attribute Initialization
+        self.index = self.comboBoxYearNon.findText("2017")
+        self.comboBoxYearNon.setCurrentIndex(self.index)
+        self.lineEditDbHostN.setText("localhost")
+        self.lineEditDbUsernameN.setText("root")
+        self.lineEditDbNameN.setText("movesdb20151028")
+        self.lineEditDbPwdN.setText("root")
+        self.lineEditFeedMeasureTypeNon.setText("harvested")
+        self.lineEditTimeResNamesNon.setText("time")
+        self.lineEditForestryNamesNon.setText('forest whole tree')
+        self.lineEditFipsNon.setText("../data/inputs/region_fips_map.csv")
+        self.lineEditDatafilesNon.setText("C:/Nonroad")
+        self.lineEditMinTemp.setText("50.0")
+        self.lineEditMaxTemp.setText("68.8")
+        self.lineEditMeanTemp.setText("60.0")
+        self.lineEditLowHeat.setText("0.12845")
+        self.lineEditNH3.setText("0.68")
+        self.lineEditHydro.setText("1.053")
+        self.lineEditPM10.setText("0.97")
+        self.lineEditFeedMeasureTypeIrrigNon.setText("planted")
+        self.lineEditFeedIrrigNamesNon.setText("corn grain")
+        self.lineEditNonIrrig.setText("../data/inputs/irrigation.csv")
+        self.comboBoxEncodeNames.setCurrentText("Yes")
+
+        # Moves Module - Attribute Initialization
+        self.index = self.comboBoxAggLevel.findText("By County")
+        self.comboBoxAggLevel.setCurrentIndex(self.index)
+        self.index = self.comboBoxCachedResUse.findText("Yes")
+        self.comboBoxCachedResUse.setCurrentIndex(self.index)
+        self.lineEditFeedMeasureType.setText("production")
+        self.lineEditVMTperTruck.setText("20")
+        self.spinBoxNoofTruck.setValue(1)
+        self.index = self.comboBoxYear.findText("2017")
+        self.comboBoxYear.setCurrentIndex(self.index)
+        self.lineEditDbHost.setText("localhost")
+        self.lineEditDbUsername.setText("root")
+        self.lineEditDbName.setText("movesdb20151028")
+        self.lineEditDbPwd.setText("root")
+        self.lineEditDatafiles.setText("C:\MOVESdatb")
+        self.lineEditMovesPath.setText("C:\MOVES2014b")
+        self.lineEditTruckCapa.setText("../data/inputs/truck_capacity.csv")
+        self.lineEditAVFT.setText("../data/inputs/avft.csv")
+        self.lineEditFips.setText("../data/inputs/region_fips_map.csv")
+        self.lineEditRuralRes.setText("0.30")
+        self.lineEditRuralUnres.setText("0.28")
+        self.lineEditUrbanRes.setText("0.21")
+        self.lineEditUrbanUnres.setText("0.21")
+        self.index = self.comboBoxMonth.findText("10")
+        self.comboBoxMonth.setCurrentIndex(self.index)
+        self.index = self.comboBoxBegHr.findText("7")
+        self.comboBoxBegHr.setCurrentIndex(self.index)
+        self.index = self.comboBoxDate.findText("5")
+        self.comboBoxDate.setCurrentIndex(self.index)
+        self.index = self.comboBoxEndHr.findText("18")
+        self.comboBoxEndHr.setCurrentIndex(self.index)
+        self.index = self.comboBoxDayType.findText("Weekday")
+        self.comboBoxDayType.setCurrentIndex(self.index)
 
 
 
@@ -2514,7 +2612,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.attributeValueObj.dayType = "5"
             else:
                 self.attributeValueObj.dayType = "2"
-            print("---------------------------", self.attributeValueObj.dayType)
 
             # changedDayType = self.comboBoxDayType.currentText()
             # if changedDayType:
@@ -2674,85 +2771,139 @@ class AlltabsModule(QtWidgets.QWidget):
             ###############################################################################################################
 
             # Call config file creation function - working code
-            # if self.checkBoxMoves.isChecked():
-            #     movesConfigCreationObj = movesConfigCreation(tmpFolder)
-            # if self.checkBoxNonroad.isChecked():
-            #     nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder)
+            if self.checkBoxMoves.isChecked():
+                movesConfigCreationObj = movesConfigCreation(tmpFolder)
+            if self.checkBoxNonroad.isChecked():
+                nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder)
             if self.checkBoxEmissionFactors.isChecked():
                 emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(tmpFolder, self.attributeValueObj)
-            # if self.checkBoxFugitiveDust.isChecked():
-            #     fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder)
+            if self.checkBoxFugitiveDust.isChecked():
+                fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder)
             runConfigObj = runConfigCreation(tmpFolder, self.attributeValueObj)
 
             # run FugitiveDust module
             command = "fpeam " + runConfigObj + " --emissionfactors_config " + emissionFactorsConfigCreationObj
             print(command)
-            t = threading.Thread(target= runCommand , args = (runConfigObj , emissionFactorsConfigCreationObj, self.attributeValueObj, ))
-            t.start()
-
-            while t.is_alive():
-                print("alive. Waiting for 1 second to recheck")
-                time.sleep(1)
-
-            t.join()
 
             # Display logs in result tab after completion of running
             self.centralwidget.setCurrentWidget(self.tabResult)
 
+
+            threadMOVES = None
+            threadNONROAD = None
+            threadEF = None
+            threadFD = None
+            self.centralwidget.setTabEnabled(0, False)
+
+            if self.centralwidget.isTabEnabled(1):
+                self.centralwidget.setTabEnabled(1, False)
+                threadMOVES = threading.Thread(target= runCommand , args = (runConfigObj , movesConfigCreationObj, self.attributeValueObj, ))
+                threadMOVES.start()
+
+            if self.centralwidget.isTabEnabled(2):
+                self.centralwidget.setTabEnabled(2, False)
+                threadNONROAD = threading.Thread(target= runCommand , args = (runConfigObj , nonroadConfigCreationObj, self.attributeValueObj, ))
+                threadNONROAD.start()
+
+            if self.centralwidget.isTabEnabled(3):
+                self.centralwidget.setTabEnabled(3, False)
+                threadEF = threading.Thread(target= runCommand , args = (runConfigObj , emissionFactorsConfigCreationObj, self.attributeValueObj, ))
+                threadEF.start()
+
+            if self.centralwidget.isTabEnabled(4):
+                self.centralwidget.setTabEnabled(4, False)
+                threadFD = threading.Thread(target= runCommand , args = (runConfigObj , fugitiveDustConfigCreationObj, self.attributeValueObj, ))
+                threadFD.start()
+
+            while (threadMOVES and threadMOVES.is_alive()) or \
+                    (threadNONROAD and threadNONROAD.is_alive()) or \
+                    (threadEF and threadEF.is_alive()) or \
+                    (threadFD and threadFD.is_alive()):
+                print("alive. Waiting for 1 second to recheck")
+
+                self.completed += 1
+                self.progressBar.setValue(self.completed)
+                self.completed %= 100
+
+                loop = QEventLoop()
+                QTimer.singleShot(10, loop.quit)
+                loop.exec_()
+
+            if threadMOVES:
+                threadMOVES.join()
+            if threadNONROAD:
+                threadNONROAD.join()
+            if threadEF:
+                threadEF.join()
+            if threadFD:
+                threadFD.join()
+
+            self.progressBar.setVisible(False)
+
+            if threadMOVES:
+                self.centralwidget.setTabEnabled(1, True)
+            if threadNONROAD:
+                self.centralwidget.setTabEnabled(2, True)
+            if threadEF:
+                self.centralwidget.setTabEnabled(3, True)
+            if threadFD:
+                self.centralwidget.setTabEnabled(4, True)
+            self.centralwidget.setTabEnabled(0, True)
+
             # Set logs to Plaintext in Result tab
             self.plainTextLog.setPlainText(self.attributeValueObj.logContents)
 
-            #Generate graph for MOVES module
-            fileNameMoves = self.lineEditScenaName.text().strip() + "_raw.csv"
-            dataframePathMOVES = os.path.join(self.lineEditProjectPath.text().strip(), fileNameMoves)
-            df = pd.read_csv(dataframePathMOVES)
-            df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
-            imageNameMOVES = self.lineEditScenaName.text().strip() + "_output.png"
-            imagePathMOVES = os.path.join(self.lineEditProjectPath.text().strip(), imageNameMOVES)
-            plt.savefig(imagePathMOVES, bbox_inches='tight', dpi='figure')
-            self.pixmap = QtGui.QPixmap(imagePathMOVES)
-            self.labelMOVESGraph.resize(self.width(), self.height())
-            self.labelMOVESGraph.setPixmap(
-                self.pixmap.scaled(self.labelMOVESGraph.size(), QtCore.Qt.IgnoreAspectRatio))
-
-            # Generate graph for NONROAD module
-            fileNameNONROAD = self.lineEditScenaName.text().strip() + "_raw.csv"
-            dataframePathNONROAD = os.path.join(self.lineEditProjectPath.text().strip(), fileNameNONROAD)
-            df = pd.read_csv(dataframePathNONROAD)
-            df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
-            imageNameNONROAD = self.lineEditScenaName.text().strip() + "_output.png"
-            imagePathNONROAD = os.path.join(self.lineEditProjectPath.text().strip(), imageNameNONROAD)
-            plt.savefig(imagePathNONROAD, bbox_inches='tight')
-            self.pixmap = QtGui.QPixmap(imagePathNONROAD)
-            self.labelNONROADGraph.resize(self.width(), self.height())
-            self.labelNONROADGraph.setPixmap(
-                self.pixmap.scaled(self.labelNONROADGraph.size(), QtCore.Qt.IgnoreAspectRatio))
-
-            # Generate graph for Emissionfactors module
-            fileNameEF = self.lineEditScenaName.text().strip() + "_raw.csv"
-            dataframePathEF = os.path.join(self.lineEditProjectPath.text().strip(), fileNameEF)
-            df = pd.read_csv(dataframePathEF)
-            df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
-            imageNameEF = self.lineEditScenaName.text().strip() + "_output.png"
-            imagePathEF = os.path.join(self.lineEditProjectPath.text().strip(), imageNameEF)
-            plt.savefig(imagePathEF, bbox_inches='tight')
-            self.pixmap = QtGui.QPixmap(imagePathEF)
-            self.labelEmissionFactorsGraph.resize(self.width(), self.height())
-            self.labelEmissionFactorsGraph.setPixmap(
-                self.pixmap.scaled(self.labelEmissionFactorsGraph.size(), QtCore.Qt.IgnoreAspectRatio))
-
-            # Generate graph for Emissionfactors module
-            fileNameFD = self.lineEditScenaName.text().strip() + "_raw.csv"
-            dataframePathFD = os.path.join(self.lineEditProjectPath.text().strip(), fileNameFD)
-            df = pd.read_csv(dataframePathFD)
-            df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
-            imageNameFD = self.lineEditScenaName.text().strip() + "_output.png"
-            imagePathFD = os.path.join(self.lineEditProjectPath.text().strip(), imageNameFD)
-            plt.savefig(imagePathFD, bbox_inches='tight')
-            self.pixmap = QtGui.QPixmap(imagePathFD)
-            self.labelFugitivedustGraph.resize(self.width(), self.height())
-            self.labelFugitivedustGraph.setPixmap(
-                self.pixmap.scaled(self.labelFugitivedustGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+            # #Generate graph for MOVES module
+            # fileNameMoves = self.lineEditScenaName.text().strip() + "_raw.csv"
+            # dataframePathMOVES = os.path.join(self.lineEditProjectPath.text().strip(), fileNameMoves)
+            # df = pd.read_csv(dataframePathMOVES)
+            # df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
+            # imageNameMOVES = self.lineEditScenaName.text().strip() + "_output.png"
+            # imagePathMOVES = os.path.join(self.lineEditProjectPath.text().strip(), imageNameMOVES)
+            # plt.savefig(imagePathMOVES, bbox_inches='tight', dpi='figure')
+            # self.pixmap = QtGui.QPixmap(imagePathMOVES)
+            # self.labelMOVESGraph.resize(self.width(), self.height())
+            # self.labelMOVESGraph.setPixmap(
+            #     self.pixmap.scaled(self.labelMOVESGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+            #
+            # # Generate graph for NONROAD module
+            # fileNameNONROAD = self.lineEditScenaName.text().strip() + "_raw.csv"
+            # dataframePathNONROAD = os.path.join(self.lineEditProjectPath.text().strip(), fileNameNONROAD)
+            # df = pd.read_csv(dataframePathNONROAD)
+            # df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
+            # imageNameNONROAD = self.lineEditScenaName.text().strip() + "_output.png"
+            # imagePathNONROAD = os.path.join(self.lineEditProjectPath.text().strip(), imageNameNONROAD)
+            # plt.savefig(imagePathNONROAD, bbox_inches='tight')
+            # self.pixmap = QtGui.QPixmap(imagePathNONROAD)
+            # self.labelNONROADGraph.resize(self.width(), self.height())
+            # self.labelNONROADGraph.setPixmap(
+            #     self.pixmap.scaled(self.labelNONROADGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+            #
+            # # Generate graph for Emissionfactors module
+            # fileNameEF = self.lineEditScenaName.text().strip() + "_raw.csv"
+            # dataframePathEF = os.path.join(self.lineEditProjectPath.text().strip(), fileNameEF)
+            # df = pd.read_csv(dataframePathEF)
+            # df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
+            # imageNameEF = self.lineEditScenaName.text().strip() + "_output.png"
+            # imagePathEF = os.path.join(self.lineEditProjectPath.text().strip(), imageNameEF)
+            # plt.savefig(imagePathEF, bbox_inches='tight')
+            # self.pixmap = QtGui.QPixmap(imagePathEF)
+            # self.labelEmissionFactorsGraph.resize(self.width(), self.height())
+            # self.labelEmissionFactorsGraph.setPixmap(
+            #     self.pixmap.scaled(self.labelEmissionFactorsGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+            #
+            # # Generate graph for Emissionfactors module
+            # fileNameFD = self.lineEditScenaName.text().strip() + "_raw.csv"
+            # dataframePathFD = os.path.join(self.lineEditProjectPath.text().strip(), fileNameFD)
+            # df = pd.read_csv(dataframePathFD)
+            # df.groupby(['pollutant', 'feedstock_measure']).size().unstack().plot(kind='bar', stacked=True)
+            # imageNameFD = self.lineEditScenaName.text().strip() + "_output.png"
+            # imagePathFD = os.path.join(self.lineEditProjectPath.text().strip(), imageNameFD)
+            # plt.savefig(imagePathFD, bbox_inches='tight')
+            # self.pixmap = QtGui.QPixmap(imagePathFD)
+            # self.labelFugitivedustGraph.resize(self.width(), self.height())
+            # self.labelFugitivedustGraph.setPixmap(
+            #     self.pixmap.scaled(self.labelFugitivedustGraph.size(), QtCore.Qt.IgnoreAspectRatio))
 
 
 
@@ -2768,55 +2919,71 @@ class AlltabsModule(QtWidgets.QWidget):
         self.centralwidget.addTab(self.tabResult, "RESULT")
 
         # Result code start
-        windowLayout = QGridLayout()
-        windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
+        windowLayoutResult = QGridLayout()
+        windowLayoutResult.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
+        windowLayoutResult.setColumnStretch(6, 1)
 
-        self.windowLayout.setColumnStretch(6, 1)
+        self.scrollAreaResult = QScrollArea(self.tabResult)
+        self.scrollAreaResult.setWidgetResizable(True)
+        self.scrollAreaResult.resize(WIDTH, HEIGHT)
+        self.scrollAreaResult.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.scrollAreaResult.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+
+        self.innerWidgetResult = QtWidgets.QWidget()
+        self.innerWidgetResult.resize(WIDTH, HEIGHT)
+        self.scrollAreaResult.setWidget(self.innerWidgetResult)
+        self.innerWidgetResult.setLayout(windowLayoutResult)
 
         self.plainTextLog = QPlainTextEdit()
         self.plainTextLog.setPlainText("")
         self.plainTextLog.setReadOnly(True)
         self.plainTextLog.setFixedHeight(100)
-        windowLayout.addWidget(self.plainTextLog, 0, 0, 1 , 4)
+        windowLayoutResult.addWidget(self.plainTextLog, 0, 0, 1 , 4)
 
         self.labelMOVESGraph = QLabel()
         self.labelMOVESGraph.setFixedHeight(300)
         self.labelMOVESGraph.setFixedWidth(400)
-        windowLayout.addWidget(self.labelMOVESGraph,1 , 0)
+        windowLayoutResult.addWidget(self.labelMOVESGraph,1 , 0)
 
         self.plainLabel1 = QLabel()
-        windowLayout.addWidget(self.plainLabel1, 1, 1)
+        windowLayoutResult.addWidget(self.plainLabel1, 1, 1)
 
         self.labelNONROADGraph = QLabel()
         self.labelNONROADGraph.setFixedHeight(300)
         self.labelNONROADGraph.setFixedWidth(400)
-        windowLayout.addWidget(self.labelNONROADGraph, 1, 2)
+        windowLayoutResult.addWidget(self.labelNONROADGraph, 1, 2)
 
         self.labelEmissionFactorsGraph = QLabel()
         self.labelEmissionFactorsGraph.setFixedHeight(300)
         self.labelEmissionFactorsGraph.setFixedWidth(400)
-        windowLayout.addWidget(self.labelEmissionFactorsGraph,2 , 0)
+        windowLayoutResult.addWidget(self.labelEmissionFactorsGraph,2 , 0)
 
         self.plainLabel2 = QLabel()
-        windowLayout.addWidget(self.plainLabel2, 2, 1)
+        windowLayoutResult.addWidget(self.plainLabel2, 2, 1)
 
         self.labelFugitivedustGraph = QLabel()
         self.labelFugitivedustGraph.setFixedHeight(300)
         self.labelFugitivedustGraph.setFixedWidth(400)
-        windowLayout.addWidget(self.labelFugitivedustGraph, 2, 2)
+        windowLayoutResult.addWidget(self.labelFugitivedustGraph, 2, 2)
 
-        self.tabResult.setLayout(windowLayout)
 
+        self.progressBar = QRoundProgressBar()
+        self.progressBar.setBarStyle(QRoundProgressBar.BarStyle.DONUT)
+
+        self.completed = 0
+
+
+        windowLayoutResult.addWidget(self.progressBar, 0, 0)
 
         #########################################################################################################################
 
     def setupUi(self, OtherWindow):
 
         OtherWindow.setObjectName("OtherWindow")
-        OtherWindow.setGeometry(0,0,400,400)
+        #OtherWindow.setGeometry(0,0,400,400)
         self.centralwidget = QtWidgets.QTabWidget(OtherWindow)
         OtherWindow.setCentralWidget(self.centralwidget)
-        self.centralwidget.setGeometry(0,0,400,400)
+        #self.centralwidget.setGeometry(0,0,400,400)
 
         #self.centralwidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
 
@@ -2834,6 +3001,23 @@ class AlltabsModule(QtWidgets.QWidget):
 
 
         ####### ==================================================================
+
+
+class SelectedModuleThreadExecution(QtCore.QThread):
+    taskFinished = QtCore.pyqtSignal()
+
+    def __init__(self, runConfigObj, emissionFactorsConfigCreationObj, attributeValueObj):
+        super.__init__()
+        self.runConfigObj = runConfigObj
+        self.emissionFactorsConfigCreationObj = emissionFactorsConfigCreationObj
+        self.attributeValueObj = attributeValueObj
+
+
+    def run(self):
+        runCommand(self.runConfigObj,self.emissionFactorsConfigCreationObj,self.attributeValueObj)
+        #self.taskFinished.emit()
+
+        ############################################################################
 
 def runCommand(runConfigObj , emissionFactorsConfigCreationObj, attributeValueStorageObj):
     # Generate Logs
@@ -2873,6 +3057,8 @@ def runCommand(runConfigObj , emissionFactorsConfigCreationObj, attributeValueSt
         print("Done")
 
     attributeValueStorageObj.logContents = attributeValueStorageObj.streamGenerated.getvalue()
+
+
 
 ##############################################################################################
 
@@ -3009,6 +3195,16 @@ if __name__ == "__main__":
         border-radius: 5px
     }
     
+    QPushButton#expandCollapseIcon {
+        background: #ffffff;
+        align-items: center;
+        text-align: center;        
+        color: #000000;  
+        border: 1px solid #ffffff; 
+        font-style: bold;
+        font-size : 30px   
+    }
+    
     QLineEdit {
         background: #FFFFFF;
         border: 1px solid #495965;
@@ -3076,13 +3272,22 @@ if __name__ == "__main__":
         
     }
     
+    QScrollBar {
+        background-color: grey;
+    }
+    
+    
+    
     """
 
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(styleSheet)
     OtherWindow = QtWidgets.QMainWindow()
+
+    OtherWindow.setFixedSize(WIDTH,HEIGHT+25)
+    #OtherWindow.resize(1024, 600)
     OtherWindow.setWindowTitle("FPEAM")
-    OtherWindow.setWindowFlags(QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
+    #OtherWindow.setWindowFlags(QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
     ui = AlltabsModule()
     ui.setupUi(OtherWindow)
     OtherWindow.show()
