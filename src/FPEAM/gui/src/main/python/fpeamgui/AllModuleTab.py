@@ -2672,7 +2672,7 @@ class AlltabsModule(QtWidgets.QWidget):
     def rresetFields(self):
 
 
-        self.plainTextLog = ""
+        self.plainTextLog.setVisible(False)
 
         # FPEAM home page - Attribute Initialization
         self.lineEditScenaName.setText("")
@@ -3121,9 +3121,12 @@ class AlltabsModule(QtWidgets.QWidget):
                     (threadFD and threadFD.is_alive()):
                 print("alive. Waiting for 1 second to recheck")
 
-                self.completed += 1
-                self.progressBar.setValue(self.completed)
-                self.completed %= 100
+                self.progressBar.setVisible(True)
+                self.progressBar.move(300,200)
+                # self.completed += 1
+                # self.progressBar.setValue(self.completed)
+                # self.completed %= 100
+                self.progressBar.setRange(0,0)
 
                 loop = QEventLoop()
                 QTimer.singleShot(10, loop.quit)
@@ -3139,6 +3142,8 @@ class AlltabsModule(QtWidgets.QWidget):
                 threadFD.join()
 
             self.progressBar.setVisible(False)
+            self.plainTextLog.setVisible(True)
+
 
             if threadMOVES:
                 self.centralwidget.setTabEnabled(1, True)
@@ -3235,6 +3240,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.innerWidgetResult.setLayout(windowLayoutResult)
 
         self.plainTextLog = QPlainTextEdit()
+        self.plainTextLog.setVisible(False)
         self.plainTextLog.setPlainText("")
         self.plainTextLog.setReadOnly(True)
         self.plainTextLog.setFixedHeight(100)
@@ -3267,12 +3273,10 @@ class AlltabsModule(QtWidgets.QWidget):
         windowLayoutResult.addWidget(self.labelFugitivedustGraph, 2, 2)
 
 
-        self.progressBar = QRoundProgressBar()
-        self.progressBar.setBarStyle(QRoundProgressBar.BarStyle.DONUT)
-
-        self.completed = 0
-
-
+        self.progressBar = QProgressBar()
+        self.progressBar.setVisible(False)
+        #self.progressBar.setBarStyle(QRoundProgressBar.BarStyle.DONUT)
+        #self.completed = 0
         windowLayoutResult.addWidget(self.progressBar, 0, 0)
 
         #########################################################################################################################
@@ -3344,9 +3348,9 @@ def runCommand(runConfigObj , emissionFactorsConfigCreationObj, attributeValueSt
     print(_config)
 
     with FPEAM(run_config=_config) as _fpeam:
+
         # count no of record based on how many counties are running
         _fpeam.run()
-
 
         # save the raw results to the project path folder specified in run_config
         _fpath = os.path.join(_fpeam.config['project_path'],
