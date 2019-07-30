@@ -55,7 +55,7 @@ TABLE: List of columns and data types in equipment dataset.
 
 Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered, albeit with the numbers stored as characters rather than integers, and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset (discussed in the next section), to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset; any equipment data without matching feedstock production data or vice versa will be excluded from FPEAM calculations.
 
-The `rotation_year` column in the equipment dataset refers to the year in a multi-year crop rotation such as a switchgrass cropping system. `rotation_year` should not contain calendar years but rather integers greater than or equal to 1. The calendar year in which the rotation begins is defined using the `year` parameter in the MOVES and/or NONROAD config files, discussed further below. This `year` parameter specifies the calendar year in which biomass is first grown, harvested and transported in a scenario.
+The `rotation_year` column in the equipment dataset refers to the year in a multi-year crop rotation such as a switchgrass cropping system. `rotation_year` should not contain calendar years but rather integers greater than or equal to 1. The calendar year in which the rotation begins is specified for each scenario within the FPEAM GUI. This `year` parameter specifies the calendar year in which biomass is first grown, harvested and transported in a scenario.
 
 <!-- TABLE: Equipment data examples
 
@@ -90,9 +90,11 @@ TABLE: Loading equipment information source from BTS 2016. This data was added t
 
 ## Feedstock production
 
-The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by what agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, `equipment_group` (values must match those in the equipment dataset) and `region_production`, that indicate where feedstocks were produced. (Latitude and longitude values are also specified for feedstock production and destination locations. These values are used in the router engine.) `region_production` values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the `region_production` column are not FIPS codes, an additional input file giving the mapping of the `region_production` values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
+The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by which agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, `equipment_group` (values must match those in the equipment dataset) and `region_production`, that indicate where feedstocks were produced. `region_production` values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the `region_production` column are not FIPS codes, an additional input file giving the mapping of the `region_production` values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
 
-The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the `year` parameter in the MOVES and NONROAD config files, discussed further below.
+Latitude and longitude values are also specified for feedstock production and destination locations. These values are used in the router engine. If precise latitude and longitude values are not available for any production or destination locations, these columns can be left blank in the production dataset. Instead, the FIPS for the production and destination locations can be specified, and a lookup table included in the default input data will be used to find the latitude-longitude pairs for the county centroids. 
+
+The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the FPEAM GUI.
 
 TABLE: List of columns in feedstock production data set with data types and descriptions
 
@@ -238,7 +240,7 @@ Currently the FPEAM MOVES module can only run MOVES at the FIPS (county) level, 
 
 MOVES can be run for all FIPS for which a mapping from region_production to FIPS was provided, or at two levels of aggregation: one FIPS per state based on which FIPS had the highest total feedstock production, or multiple FIPS per states based on which FIPS had the highest production of each feedstock. By default, MOVES is run once per state with FIPS selected based on highest total feedstock production. This aggregation is done by default to keep FPEAM run times reasonable; MOVES requires between 10 and 15 minutes to run each FIPS and can easily extend model run times into days.
 
-MOVES aggregation levels are set using the moves_by_state and moves_by_state_and_feedstock parameters, both Booleans that can be set either via the FPEAM GUI or in the MOVES config file. These parameters are mutually exclusive: at most one of them can be True. If neither moves_by_state nor moves_by_state_and_feedstock are True, then MOVES automatically runs every FIPS for which sufficient data is provided.
+MOVES aggregation levels are set using the `moves_by_state` and `moves_by_state_and_feedstock` parameters, both Booleans that are set within the FPEAM GUI. These parameters are mutually exclusive: at most one of them can be True. If neither `moves_by_state` nor `moves_by_state_and_feedstock` are True, then MOVES automatically runs every FIPS for which sufficient data is provided.
 
 TABLE: MOVES module user options
 
@@ -269,13 +271,13 @@ TABLE: MOVES database connection and software parameters.
 
 ## MOVES installation and setup
 
-During the MOVES installation process, users will need to select a folder in which MOVES is installed. By default, MOVES is installed to `C:\Users\Public\EPA\MOVES\MOVES2014a`, but the length of this file path causes problems when setting up and running NONROAD in batch mode (the NONROAD model is contained within MOVES). Users should instead install MOVES to a directory contained directly within the `C:` drive, such as `C:\MOVES2014a`. This is because the path to the NONROAD executable, which is contained within the MOVES directory, must be less than 60 characters in order for NONROAD to process it correctly. It is recommended that the `moves_path` and `nonroad_path` parameters be kept to a maximum of 30 characters for this reason. The exact directory name should be specified in the MOVES and NONROAD config files using the `moves_path` and `nonroad_path` parameters. Config files are discussed further below.
+During the MOVES installation process, users will need to select a folder in which MOVES is installed. By default, MOVES is installed to `C:\Users\Public\EPA\MOVES\MOVES2014a`, but the length of this file path causes problems when setting up and running NONROAD in batch mode (the NONROAD model is contained within MOVES). Users should instead install MOVES to a directory contained directly within the `C:` drive, such as `C:\MOVES2014a`. This is because the path to the NONROAD executable, which is contained within the MOVES directory, must be less than 60 characters in order for NONROAD to process it correctly. It is recommended that the `moves_path` and `nonroad_path` parameters be kept to a maximum of 30 characters for this reason. The exact directory name should be specified in the MOVES and NONROAD tabs of the FPEAM GUI.
 
 After installing MOVES and before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above)  using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the "General Output" screen, under "Output." Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.
 
 ## User options
 
-These options can be changed manually using the FPEAM GUI or directly in the MOVES config file. The vmt_short_haul parameter is only used if the Router module is either unavailable or if the user specifies that the router should not be used. In this case vmt_short_haul specifies the number of vehicle miles used to calculate transportation emissions within each FIPS where a feedstock is produced.
+These options can be changed manually using the FPEAM GUI or left at their default values. The `vmt_short_haul` parameter is only used if the Router module is either unavailable or if the user specifies that the router should not be used. In this case `vmt_short_haul`specifies the number of vehicle miles used to calculate transportation emissions within each FIPS where a feedstock is produced.
 
 TABLE: Transportation distance and transportation mode parameters.
 
@@ -339,7 +341,7 @@ Each of these methods is called by the `run` method, which also preprocesses a c
 
 # Router Engine
 
-The Router engine is used within the MOVES module to obtain the routes taken by feedstock transportation vehicles and calculate the vehicle miles traveled by FIPS over each route. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the Router engine is only used internally to FPEAM, there are no user options for running the router and there is no config file for the Router.
+The Router engine is used within the MOVES module to obtain the routes taken by feedstock transportation vehicles and calculate the vehicle miles traveled by FIPS over each route. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the Router engine is only used internally to FPEAM, there are no user options for running the router.
 
 Currently the Router uses a graph of all known, publicly accessible roads in the contiguous U.S., obtained from the [Global Roads Open Access Data Sets](http://sedac.ciesin.columbia.edu/data/set/groads-global-roads-open-access-v1) (gROADS) v1. This graph does not contain transportation pathways such as rivers, canals and train tracks, and therefore limits the transportation modes that can be used in FPEAM to on-road vehicles such as trucks. Future FPEAM development will expand the available routes to include multiple route types and transportation modes. Dijkstra's algorithm is applied to find the shortest path from the biomass production region to the destination region (both mapped to FIPS as discussed previously), and the shortest path is used to obtain a list of FIPS through which the biomass is transported as well as the vehicle miles traveled within each FIPS.
 
@@ -349,7 +351,7 @@ Currently the Router uses a graph of all known, publicly accessible roads in the
 
 ## User options and input data
 
-User options that can be set within the NONROAD config file (also accessible via the GUI) consist of identifiers used to select which entries in the feedstock production and equipment datasets should be used in NONROAD runs, NONROAD temperature specifications and a set of multipliers used to calculate criteria air pollutants of interest from those returned by NONROAD. These options are listed in the table below with default values and descriptions.
+User options that can be set within the NONROAD tab of the FPEAM GUI consist of identifiers used to select which entries in the feedstock production and equipment datasets should be used in NONROAD runs, NONROAD temperature specifications and a set of multipliers used to calculate criteria air pollutants of interest from those returned by NONROAD. These options are listed in the table below with default values and descriptions.
 
 There are a variety of input files required to run NONROAD, many of which are nested several sub-directories deep. NONROAD requires that the complete file paths to all input files be 60 characters or less (although some file paths may extend to 80 characters, developers have chosen to limit input file paths to 60 characters for simplicity), and so to avoid file path length errors, NONROAD input files have coded names that indicate feedstock type, tillage type and activity. CSV files recording the encoded feedstock, tillage and activity names are saved automatically to the main FPEAM directory when the names are encoded, to allow users to review the input files if necessary.
 
@@ -555,251 +557,5 @@ Open either a Windows Command Prompt or an Anaconda Prompt and navigate to the o
 
 This will install FPEAM on your computer as a Python module and allow you to use the command `fpeam` to run a scenario.
 
-## Defining and using config files
+## Structure and workflow using the GUI
 
-Each module can take user-defined input parameters from a module-specific config file with file extension .ini. Because these parameters are scenario-specific, only empty config files are packaged with the code base. Config file templates are provided in the next section and can be used to develop scenario-specific configs. All parameters that can be set via config file have default values defined in the config specification files (.spec file extension) of the same name as the module to which the specification file applies. The specification files are required for running FPEAM and are packaged with the code base.
-
-All parameter definitions in the template config files below are commented out, indicating that the default values from the specification files will be used in running FPEAM. To change these parameters from their default values, uncomment the line where the parameter is defined and change the default value to the desired value. Then, in order to use the custom parameter definitions, the full file path to the custom config file must be specified when FPEAM is run.
-
-An additional config file, the run config, that defines the FPEAM scenario must also be specified in order to run FPEAM. Because the values in this file will be user- and machine-specific, and will vary according to the FPEAM scenario definition, this file is not supplied with the code base. Instead, a file template is provided below. 
-
-## Config file templates
-
-To create a config file and edit parameter definitions, copy and paste the template into a text file and save with the .ini file extension (config file names can be arbitrary, but it may be helpful to include the corresponding module name in the config file name), then uncomment the parameters to be defined and edit the values as necessary. Unused parameter values can also be deleted from the config file. A list of suggested parameters to define is included with each config file template; these parameters are either necessary for FPEAM to function on specific machines or are commonly used in defining biomass production scenarios. The suggested parameters are listed assuming that users are either using the default FPEAM input datasets as-is or are using custom data with the same identifier variables (for instance, `feedstock_measure` and `forestry_feedstock_names`) as in the default datasets.
-
-### MOVES config
-
-```
-[moves]
-## run identifier; defaults to FPEAM scenario name
-#scenario_name = 'scenario'
-
-
-### MOVES execution options
-
-## use a single representative county for all counties in each state
-#moves_by_state = True
-
-## use a single representative county for each crop for all counties in each state
-#moves_by_state_and_feedstock = False
-
-## use existing results in MOVES output database or run MOVES for all counties
-#use_cached_results = True
-
-## production table identifier (feedstock_measure in production data)
-#feedstock_measure_type = 'production'
-
-## annual vehicle miles traveled by combination short-haul trucks
-#vmt_short_haul = 100
-
-## population of combination short-haul trucks per trip
-#pop_short_haul = 1
-
-## vehicle category: combination trucks
-#hpmsv_type_id = 60
-
-## specific vehicle type: short-haul combination truck
-#source_type_id = 61
-
-## start year (equipment year #1)
-#year = 2017
-
-
-### MOVES database connection options
-#moves_db_host = 'localhost'
-#moves_db_user = 'moves'
-#moves_db_pass = 'moves'
-#moves_database = 'movesdb20151028'
-#moves_output_db = 'moves_output_db'
-
-
-### MOVES application options
-#moves_version = 'MOVES2014a-20151028'
-#moves_path = 'C:\MOVES2014a'
-#moves_datafiles_path = 'C:\MOVESdata'
-
-
-### MySQL options
-#mysql_binary = 'C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe'
-#mysqldump_binary = 'C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe'
-
-
-### input files
-
-## MOVES routing graph
-#transportation_graph ='../data/inputs/transportation_graph.csv'
-
-## graph nodes representing each county
-#county_nodes = '../data/inputs/county_nodes.csv'
-
-## truck capacities for feedstock transportation
-#truck_capacity = '../data/inputs/truck_capacity.csv'
-
-## fuel fraction by engine type
-#avft = '../data/inputs/avft.csv'
-
-## production region to MOVES FIPS mapping
-#region_fips_map = '../data/inputs/region_fips_map.csv'
-
-
-### MOVES input options
-
-## fraction of VMT by road type (must sum to 1)
-#[vmt_fraction]
-#rural_restricted = 0.30
-#rural_unrestricted = 0.28
-#urban_restricted = 0.21
-#urban_unrestricted = 0.21
-
-## timespan(s)
-#[moves_timespan]
-#month = 10
-#day = 5
-#beginning_hour = 7
-#ending_hour = 18
-```
-
-Suggested parameters to define in the MOVES config file are `scenario_name`, `year`, `moves_database`, `moves_output_db`, `moves_path` and `moves_datafiles_path`. `scenario_name` identifies the biomass production scenario being run, and it is recommended that every unique scenario have a unique `scenario_name` to avoid overwriting results from previous scenarios. The `year` parameter defines the harvest and transportation year for the scenario. The remaining parameters specify where MOVES is installed (`moves_path`), where input files are saved during batch runs (`moves_datafiles_path`) and which default and output databases should be used in the scenario (`moves_database` and `moves_output_db`).
-
-
-### NONROAD config
-
-```
-[nonroad]
-## run identifier; defaults to FPEAM scenario name
-#scenario_name = 'scenario'
-
-## start year (equipment year #1)
-#year = 2017
-
-
-### input data options
-
-## production table row identifier (feedstock_measure in production data)
-#feedstock_measure_type = 'harvested'
-
-## equipment table row identifier (resource in equipment data)
-#time_resource_name = 'time'
-
-## forest feedstocks have different allocation indicators
-#forestry_feedstock_names = 'forest whole tree', 'forest residues'
-
-
-### input data files
-
-## production region to NONROAD FIPS mapping
-#region_fips_map = '../data/inputs/region_fips_map.csv'
-
-## state abbreviation to FIPS mapping
-#state_fips_map = '../data/inputs/state_fips_map.csv'
-
-## equipment name to NONROAD equipment name and SCC mapping
-#nonroad_equipment = '../data/inputs/nonroad_equipment.csv'
-
-
-### NONROAD database connection options
-#nonroad_database = 'movesdb10282017'
-#nonroad_db_user = 'root'
-#nonroad_db_pass = 'root'
-#nonroad_db_host = 'localhost'
-
-
-### NONROAD application options
-#nonroad_path = 'C:\MOVES2014a\NONROAD\NR08a\'
-#nonroad_datafiles_path = 'C:\Nonroad'
-#nonroad_exe = 'NONROAD.exe'
-
-
-### NONROAD input options
-
-# temperature range
-#nonroad_temp_min = 50.0
-#nonroad_temp_max = 68.8
-#nonroad_temp_mean = 60.0
-
-## lower heating value for diesel fuel (mmBTU/gallon)
-#diesel_lhv = 0.12845
-
-# nh3 emission factor for diesel fuel (grams NH3/mmBTU diesel)
-#diesel_nh3_ef = 0.68
-
-## VOC conversion factor
-#diesel_thc_voc_conversion = 1.053
-
-## pm10 to PM2.5 conversion factor
-#diesel_pm10topm25 = 0.97
-```
-
-Suggested parameters to define in the config file are `scenario_name`, `year`, `nonroad_database`, `nonroad_path`, and `nonroad_datafiles_path`. The `scenario_name` and `year` values should match the ones in the MOVES config file, if MOVES is also being run in the scenario, and the `nonroad_database` value should also be the same as the `moves_database`, again if MOVES is also included in the scenario. `nonroad_path` will depend on the MOVES installation path, and `nonroad_datafiles_path` is a user-created directory containing NONROAD input files. `nonroad_datafiles_path` should be a short directory path containing as few subdirectories as possible because NONROAD cannot process filepaths that are longer than 60 characters total and several subdirectories will be created automatically under `nonroad_datafiles_path`. It is recommended that `nonroad_datafiles_path` be kept to 30 characters or less for this reason.
-
-### FugitiveDust config
-
-```
-[fugitivedust]
-
-## production table identifier (feedstock_measure in production data)
-#feedstock_measure_type = 'harvested'
-
-## pollutant emission factors for resources
-#emission_factors ='../data/inputs/fugitive_dust_emission_factors.csv'
-```
-
-Neither parameter needs to be set in the `FugitiveDust` config file to run FPEAM using the default input data.
-
-### EmissionFactors config
-
-```
-[emissionfactors]
-
-## production table identifier (feedstock_measure in production data)
-#feedstock_measure_type = 'harvested'
-
-## emission factors as lb pollutant per lb resource subtype
-#emission_factors = '../data/inputs/emission_factors.csv'
-
-## resource subtype distribution for all resources
-#resource_distribution = '../data/inputs/resource_distribution.csv'
-```
-
-None of the parameters need to be set in the `EmissionFactors` config file to run FPEAM using the default input data.
-
-### Run_config
-
-```
-[run_config]
-## run identifier
-scenario_name = 'test'
-
-## project output directory
-project_path = 'C:/Users/rhanes/Desktop'
-
-## modules to run
-modules = 'NONROAD', 'MOVES', 'emissionfactors', 'fugitivedust'
-
-## logging verbosity level (CRITICAL, ERROR, WARNING, INFO, DEBUG, UNSET)
-logger_level = DEBUG
-
-## data paths
-equipment = '../data/equipment/bts16_equipment.csv'
-production = '../data/production/prod_2015_bc1060.csv'
-```
-
-In the `run_config` file, `scenario_name` (matching the values in the MOVES and NONROAD config files if MOVES and NONROAD are part of the scenario) and `project_path` should be specified for every scenario run. `modules` only needs to be specified if one or more modules are being excluded from the scenario, or if a module is being re-run for a scenario.
-
-## Command line syntax
-
-FPEAM can be called directly from the command line using the fpeam.py (all lower case) file. Running FPEAM this way requires passing in the run_config.ini file. Config files for each module can also be passed in but are not required. The default values defined in the .spec files will be used if no module-specific config files are given. If module-specific config files are used, the complete file path to the config file location must be specified.
-
-The syntax to run FPEAM via command line without any module-specific config files is:
-
-```
-fpeam path/to/run_config.ini
-```
-
-This command can be executed in any directory, including the one containing the config files. On a Windows machine, use `cd` to change the current working directory.
-
-If FPEAM is run with one or more module-specific config files, the syntax expands with the full filepaths to these config files and flags that indicate which config file is being specified. For instance, running FPEAM with all four module-specific config files would look like:
-
-```
-fpeam path/to/run_config.ini --emissionfactors_config path/to/emissionfactors.ini --moves_config path/to/moves.ini --nonroad_config path/to/nonroad.ini --fugitivedust_config path/to/fugitivedust.ini
-```
