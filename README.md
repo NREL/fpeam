@@ -52,10 +52,6 @@ TABLE: List of columns and data types in equipment dataset.
 | rate | float | Quantity of resource used |
 | unit_numerator | string | Numerator of resource rate unit |
 | unit_denominator | string | Denominator of resource rate unit |
-| source_lon | float | Longitude of feedstock production location |
-| source_lat | float | Latitude of feedstock production location |
-| destination_lon | float | Longitude of feedstock destination location |
-| destination_lat | float | Latitude of feedstock destination location |
 
 Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered, albeit with the numbers stored as characters rather than integers, and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset (discussed in the next section), to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset; any equipment data without matching feedstock production data or vice versa will be excluded from FPEAM calculations.
 
@@ -94,7 +90,7 @@ TABLE: Loading equipment information source from BTS 2016. This data was added t
 
 ## Feedstock production
 
-The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by what agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, `equipment_group` (values must match those in the equipment dataset) and `region_production`, that indicate where feedstocks were produced. `region_production` values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the `region_production` column are not FIPS codes, an additional input file giving the mapping of the `region_production` values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
+The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by what agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, `equipment_group` (values must match those in the equipment dataset) and `region_production`, that indicate where feedstocks were produced. (Latitude and longitude values are also specified for feedstock production and destination locations. These values are used in the router engine.) `region_production` values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the `region_production` column are not FIPS codes, an additional input file giving the mapping of the `region_production` values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
 
 The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the `year` parameter in the MOVES and NONROAD config files, discussed further below.
 
@@ -111,6 +107,10 @@ TABLE: List of columns in feedstock production data set with data types and desc
 | feedstock_amount | float | Feedstock amount defined by feedstock_measure, with units given by unit_numerator and unit_denominator |
 | unit_numerator | string | Numerator of feedstock_amount unit |
 | unit_denominator | string | Denominator of feedstock_amount unit, if any |
+| source_lon | float | Longitude of feedstock production location |
+| source_lat | float | Latitude of feedstock production location |
+| destination_lon | float | Longitude of feedstock destination location |
+| destination_lat | float | Latitude of feedstock destination location |
 
 <!--TABLE: Feedstock production data examples
 
@@ -200,9 +200,9 @@ TABLE: Map of state FIPS codes to two-letter state abbreviations
 | state_abbreviation | string | Two-character state name abbreviation |
 | state_fips | string | Two-digit state FIPS code, stored as string |
 
-## Input data validation
+## Input data backfilling
 
-how missing data is backfilled for each type of input data - users can choose to backfill or not; numerical data is always backfilled with zero; categorical/identifier variables are NEVER backfilled and so if one of those is missing that data entry is left out of the calculations; backfilling with zero means that data entry shows up in the results but as all zeros
+Users have the option of backfilling any missing numeric data in the input datasets with the default value of 0 or a value of their choice. This option prevents FPEAM from excluding from the results any counties, feedstocks etc. that did not have complete input data for one or more pollutant processes. Instead, the pollutant inventories resulting from incomplete input data will appear in the results as 0. There is no option to backfill categorical and identifier variables (feedstock name, for instance) - if there are missing values in these variables, then the pollutant inventories for those variable values will not be included in the FPEAM results.
 
 ## FPEAM Output
 
