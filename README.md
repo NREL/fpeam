@@ -52,6 +52,10 @@ TABLE: List of columns and data types in equipment dataset.
 | rate | float | Quantity of resource used |
 | unit_numerator | string | Numerator of resource rate unit |
 | unit_denominator | string | Denominator of resource rate unit |
+| source_lon | float | Longitude of feedstock production location |
+| source_lat | float | Latitude of feedstock production location |
+| destination_lon | float | Longitude of feedstock destination location |
+| destination_lat | float | Latitude of feedstock destination location |
 
 Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered, albeit with the numbers stored as characters rather than integers, and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset (discussed in the next section), to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset; any equipment data without matching feedstock production data or vice versa will be excluded from FPEAM calculations.
 
@@ -178,9 +182,9 @@ TABLE: Dry matter loss factors by feedstock and supply chain stage.
 | whole trees | biorefinery gate | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
 | forest residues | biorefinery gate | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
 
-`region_production` and `region_destination` values in the feedstock production dataset must be mapped to FIPS codes for use in MOVES and NONROAD (`region_production`) and in the router module (`region_production` and `region_destination`). Only one mapping is provided, thus the region column in the mapping should contain all `region_production` and `region_destination` values found in the feedstock production dataset. Any regions for which a FIPS mapping is not provided will be excluded from FPEAM calculations and results. Currently the region-to-FIPS mapping must be one-to-one, meaning that each unique `region_production` and `region_destination` code must map to one unique FIPS. Mappings which are not one-to-one will produce an error when the data is read in and must be corrected before FPEAM is run. Further development can allow for many-to-one and one-to-many mappings, if there is demand. 
+`region_production` and `region_destination` values in the feedstock production dataset must be mapped to FIPS codes for use in MOVES and NONROAD. Only one mapping is provided, thus the region column in the mapping should contain all `region_production` and `region_destination` values found in the feedstock production dataset. Any regions for which a FIPS mapping is not provided will be excluded from FPEAM calculations and results. Currently the region-to-FIPS mapping must be one-to-one, meaning that each unique `region_production` and `region_destination` code must map to one unique FIPS. Mappings which are not one-to-one will produce an error when the data is read in and must be corrected before FPEAM is run. Further development can allow for many-to-one and one-to-many mappings, if there is demand. 
 
-TABLE: List of columns, data types and descriptions in the map of region_production and region_destination values to FIPS codes
+TABLE: List of columns, data types and descriptions in the map of `region_production` and `region_destination` values to FIPS codes
 
 | Column name | Data type | Description |
 | :---------- | :-------- | :---------- |
@@ -488,7 +492,7 @@ TABLE: Parameter values for calculating particulate matter from feedstock transp
 | PM<sub>10</sub>  | 0.0022                 | 0.91          | 1.02          | 0.045                           | 3.2             |
 | PM<sub>2.5</sub> | 0.00054                | 0.91          | 1.02          | 0.045                           | 3.2             |
 
-EQUATION: On-unpaved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over unpaved roads. Parameter values for k<sub>P</sub>, a<sub>P</sub> and b<sub>P</sub> are given in the table following. The parameter s<sub>st</sub> varies by state; a partial list of values are given in the second table following.
+EQUATION: On-unpaved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over unpaved roads. Parameter values for k<sub>P</sub>, a<sub>P</sub> and b<sub>P</sub> are given in the table following. The silt content parameter s<sub>st</sub> varies by state; a partial list of values are given in the second table following.
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\text{Rate}_P&space;\text{&space;(lb/VMT)}&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{Rate}_P&space;\text{&space;(lb/VMT)}&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" title="\text{Rate}_P \text{ (lb/VMT)} = k_P \left ( \frac{s_{st}}{12} \right )^{a_P} \left ( \frac{W}{3} \right )^{b_P}" /></a>
 
