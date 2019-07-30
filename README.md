@@ -204,6 +204,10 @@ TABLE: Map of state FIPS codes to two-letter state abbreviations
 
 Users have the option of backfilling any missing numeric data in the input datasets with the default value of 0 or a value of their choice. This option prevents FPEAM from excluding from the results any counties, feedstocks etc. that did not have complete input data for one or more pollutant processes. Instead, the pollutant inventories resulting from incomplete input data will appear in the results as 0. There is no option to backfill categorical and identifier variables (feedstock name, for instance) - if there are missing values in these variables, then the pollutant inventories for those variable values will not be included in the FPEAM results.
 
+## Input data validation
+
+
+
 ## FPEAM Output
 
 Raw output calculated by FPEAM is a data frame containing several identifier columns as well as pollutant names and amounts. The columns in this data frame are described in the table below. Not every module produces values for every identifier column - the MOVES module, for instance, does not involve resource subtypes, and the fugitive dust calculations have no associated activity - and so some identifier columns may be partially empty. However, every entry in the output data frame will have a feedstock, region_production, region_destination, tillage_type, module, pollutant and pollutant_amount.
