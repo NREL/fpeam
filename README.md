@@ -345,11 +345,11 @@ Allow users to specify non-default national and county scale data files as an al
 
 Explore parallelization options for running MOVES to reduce total runtime and allow results to be calculated for all relevant FIPS.
 
-# Router Module
+# Router Engine
 
-The Router module is used within the MOVES module to obtain the routes taken by feedstock transportation vehicles and calculate the vehicle miles traveled by FIPS over each route. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the Router module is only used internally to FPEAM, there are no user options for running the router and there is no config file for the Router module.
+The Router engine is used within the MOVES module to obtain the routes taken by feedstock transportation vehicles and calculate the vehicle miles traveled by FIPS over each route. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the Router engine is only used internally to FPEAM, there are no user options for running the router and there is no config file for the Router.
 
-Currently the Router module uses a graph of all known, publicly accessible roads in the contiguous U.S., obtained from the [Global Roads Open Access Data Sets](http://sedac.ciesin.columbia.edu/data/set/groads-global-roads-open-access-v1) (gROADS) v1. This graph does not contain transportation pathways such as rivers, canals and train tracks, and therefore limits the transportation modes that can be used in FPEAM to on-road vehicles such as trucks. Future FPEAM development will expand the available routes to include multiple route types and transportation modes. Dijkstra's algorithm is applied to find the shortest path from the biomass production region to the destination region (both mapped to FIPS as discussed previously), and the shortest path is used to obtain a list of FIPS through which the biomass is transported as well as the vehicle miles traveled within each FIPS.
+Currently the Router uses a graph of all known, publicly accessible roads in the contiguous U.S., obtained from the [Global Roads Open Access Data Sets](http://sedac.ciesin.columbia.edu/data/set/groads-global-roads-open-access-v1) (gROADS) v1. This graph does not contain transportation pathways such as rivers, canals and train tracks, and therefore limits the transportation modes that can be used in FPEAM to on-road vehicles such as trucks. Future FPEAM development will expand the available routes to include multiple route types and transportation modes. Dijkstra's algorithm is applied to find the shortest path from the biomass production region to the destination region (both mapped to FIPS as discussed previously), and the shortest path is used to obtain a list of FIPS through which the biomass is transported as well as the vehicle miles traveled within each FIPS.
 
 # NONROAD Module
 
@@ -404,11 +404,7 @@ After the input files have been generated, the `create_batch_files` method creat
 
 The `run` method calls all other methods including the `postprocess` method. Postprocessing is different for NONROAD than for MOVES because NONROAD writes raw results to individual text files (one file per NONROAD run) with the extension .out. Postprocessing then involves gathering each .out file, extracting the FPEAM-relevant data, calculating a few pollutants that are not returned by NONROAD, and then concatenating and formatting the NONROAD results so they can be combined with the results of other modules.
 
-## Additional development
-
-Allow for users to select which pollutants are returned by the postprocessing method.
-
-# EmissionFactors Module
+# Emission Factors Module
 
 The EmissionFactors module was developed from a module in the previous version of FPEAM that calculated NO<sub>x</sub> and NH<sub>3</sub> emissions from nitrogen fertilizer application and VOC emissions from herbicide and insecticide application. Rather than limit the module functionality to these pollutants and pollutant causes, the EmissionFactors module was written to calculate any pollutant from any pollutant process if sufficient input data is provided. This flexibility allows users to model pollutants from other fertilizers and agricultural chemicals, and could allow EmissionFactors to replace MOVES and NONROAD in the calculation of agricultural equipment and transportation vehicle emissions, albeit with a loss in spatial detail.
 
@@ -466,13 +462,13 @@ where R is the pesticide or herbicide application rate (lb/harvested acre/year),
 
 # Fugitive Dust Module
 
-The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from feedstock transportation is not calculated due to a lack of spatially detailed road silt data, but this calculation may be added to FPEAM in the future if an adequate data source can be found.
+The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities and on-road feedstock transportation over paved and unpaved roads.
 
 ## User options and input data
 
-Like the EmissionFactors module, the only user input parameter for the FugitiveDust module is the feedstock_measure_type, which specifies the feedstock measure used to scale the fugitive dust emission factors and calculate total pollutant amounts.
+Users must specify both `onfarm_feedstock_measure_type` (units: acres) and `onroad_feedstock_measure_type` (units: dry short tons), which are the feedstock measures used to scale on-farm fugitive dust emission factors and to calculate on-road fugitive dust emissions, respectively. 
 
-PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf), which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf). 
+On-farm PM<sub>10</sub> emissions are calculated using feedstock-specific emission rates by acre (pounds of pollutant per acre) developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf), which are available in Chapter 9 of the 2016 Update to the Billion Ton Study and are packaged with the FPEAM code base in the default input data files. On-farm PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission rates by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf). The following two tables give the column names, data types, and a few sample rows for the fugitive dust emission rates input data.
 
 TABLE: List of columns and data types in fugitive dust emissions factors dataset.
 
@@ -485,7 +481,7 @@ TABLE: List of columns and data types in fugitive dust emissions factors dataset
 | unit_numerator | string | Numerator of rate unit |
 | unit_denominator | string | Denominator of rate unit |
 
-TABLE: Fugitive dust input file example
+TABLE: Example rows in the fugitive dust emissions factors dataset.
 
 | feedstock | tillage_type | pollutant | rate | unit_numerator | unit_denominator |
 | :-------- | :----------- | :-------: | :--: | :--------- | :--------- |
@@ -494,9 +490,31 @@ TABLE: Fugitive dust input file example
 | sorghum stubble | conventional tillage | PM<sub>10</sub> | 0 | pound | acre |
 | sorghum stubble | conventional tillage | PM<sub>25</sub> | 0 | pound | acre |
 
-## Additional development
+On-road PM<sub>10</sub> and PM<sub>2.5</sub> emissions are calculated using empirical functions, parameters and data from EPA
+ ([https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf](2006), [https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0201.pdf](2011)), [https://inldigitallibrary.inl.gov/sti/6038147.pdf](INL (2016)) and [http://energy.gov/sites/prod/files/2016/07/f33/2016_billion_ton_report_0.pdf]((DOE 2016)). Additional information is available in the Appendix to Chapter 9 of the Billion Ton Study 2016 Update.
 
-Allow for county- or region-specific fugitive dust emission factors.
+EQUATION: On-paved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over paved roads. Values for parameters <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;k_P,&space;s_L,&space;a_P,&space;W" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;k_P,&space;s_L,&space;a_P,&space;W" title="k_P, s_L, a_P, W" /></a> and <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;b_P" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;b_P" title="b_P" /></a> are given in the table following.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\text{Rate}_P\text{&space;(lb/VMT)}&space;=&space;k_P&space;s_L^{a_P}&space;W^{b_P}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{Rate}_P\text{&space;(lb/VMT)}&space;=&space;k_P&space;s_L^{a_P}&space;W^{b_P}" title="\text{Rate}_P\text{ (lb/VMT)} = k_P s_L^{a_P} W^{b_P}" /></a>
+
+TABLE: Parameter values for calculating particulate matter from feedstock transportation over paved roads
+
+|    P             | k<sub>P</sub> (lb/VMT) | a<sub>P</sub> | b<sub>P</sub> | s<sub>L</sub> (g/m<sup>2</sup>) |  W (short tons) |
+| :------------- : | :-: | :-: | :-: | :-: | :-: |
+| PM<sub>10</sub>  | 0.0022 | 0.91 | 1.02 | 0.045 | 3.2 |
+| PM<sub>2.5</sub> | 0.00054 | 0.91 | 1.02 | 0.045 | 3.2 |
+
+EQUATION: On-unpaved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over unpaved roads. Parameter values for k<sub>P</sub>, a<sub>P</sub> and b<sub>P</sub> are given in the table following. The parameter s<sub></st> varies by state; a partial list of values are given in the second table following.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\text{Rate}_P&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{Rate}_P&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" title="\text{Rate}_P = k_P \left ( \frac{s_{st}}{12} \right )^{a_P} \left ( \frac{W}{3} \right )^{b_P}" /></a>
+
+TABLE: Parameter values for calculating particulate matter from feedstock transportation over unpaved roads.
+
+|   P              | k<sub>P</sub> (lb/VMT) | a<sub>P</sub> | b<sub>P</sub> |
+| :-------------:  | :-:                    | :-:           | :-:           |
+| PM<sub>10</sub>  | 1.5                    | 0.9           | 0.45          |
+| PM<sub>2.5</sub> | 0.15                   | 0.9           | 0.45          |
+
 
 # Installing and Running FPEAM
 
