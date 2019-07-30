@@ -329,22 +329,6 @@ After MOVES is run, the `postprocess` method is used to extract raw MOVES output
 
 Each of these methods is called by the `run` method, which also preprocesses a copy of the feedstock production dataset to determine for which FIPS MOVES should be run. User input parameters determine if MOVES is run once per state, several times per state, or for every FIPS in the input database, and are combined with the feedstock production dataset to pull out a list of FIPS to run MOVES on. `run` also calls the `_get_cached_results` method which checks the MOVES output database to determine if raw MOVES results already exist for any of the FIPS and years involved in an FPEAM scenario. Users can opt to use these cached results with the use_cached_results parameter or run MOVES for every FIPS regardless of whether results already exist.
 
-## Additional development
-
-Create a new input file subdirectory for each uniquely named FPEAM scenario, to prevent files being overwritten.
-
-Use the Router module to generate a list of FIPS through which biomass is transported, and run MOVES for all of these FIPS or a user-determined subset.
-
-Allow for multiple vehicle, fuel and engine type selections, with selections possibly varying by feedstock or by region.
-
-Allow for users to select which pollutants and pollutant processes to calculate from the full list of pollutants and pollutant processes included in MOVES.
-
-Allow for users to specify vmt_short_haul by FIPS, as an alternative to both the Router module and the flat VMT value.
-
-Allow users to specify non-default national and county scale data files as an alternative to pulling defaults from the MOVES database.
-
-Explore parallelization options for running MOVES to reduce total runtime and allow results to be calculated for all relevant FIPS.
-
 # Router Engine
 
 The Router engine is used within the MOVES module to obtain the routes taken by feedstock transportation vehicles and calculate the vehicle miles traveled by FIPS over each route. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the Router engine is only used internally to FPEAM, there are no user options for running the router and there is no config file for the Router.
@@ -491,22 +475,22 @@ TABLE: Example rows in the fugitive dust emissions factors dataset.
 | sorghum stubble | conventional tillage | PM<sub>25</sub> | 0 | pound | acre |
 
 On-road PM<sub>10</sub> and PM<sub>2.5</sub> emissions are calculated using empirical functions, parameters and data from EPA
- ([https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf](2006), [https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0201.pdf](2011)), [https://inldigitallibrary.inl.gov/sti/6038147.pdf](INL (2016)) and [http://energy.gov/sites/prod/files/2016/07/f33/2016_billion_ton_report_0.pdf]((DOE 2016)). Additional information is available in the Appendix to Chapter 9 of the Billion Ton Study 2016 Update.
+ ([2006](https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf), [2011](https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0201.pdf)), [INL 2016](https://inldigitallibrary.inl.gov/sti/6038147.pdf) and [DOE 2016](http://energy.gov/sites/prod/files/2016/07/f33/2016_billion_ton_report_0.pdf). Additional information is available in the Appendix to Chapter 9 of the Billion Ton Study 2016 Update.
 
 EQUATION: On-paved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over paved roads. Values for parameters <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;k_P,&space;s_L,&space;a_P,&space;W" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;k_P,&space;s_L,&space;a_P,&space;W" title="k_P, s_L, a_P, W" /></a> and <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;b_P" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;b_P" title="b_P" /></a> are given in the table following.
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\text{Rate}_P\text{&space;(lb/VMT)}&space;=&space;k_P&space;s_L^{a_P}&space;W^{b_P}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{Rate}_P\text{&space;(lb/VMT)}&space;=&space;k_P&space;s_L^{a_P}&space;W^{b_P}" title="\text{Rate}_P\text{ (lb/VMT)} = k_P s_L^{a_P} W^{b_P}" /></a>
 
-TABLE: Parameter values for calculating particulate matter from feedstock transportation over paved roads
+TABLE: Parameter values for calculating particulate matter from feedstock transportation over paved roads.
 
 |    P             | k<sub>P</sub> (lb/VMT) | a<sub>P</sub> | b<sub>P</sub> | s<sub>L</sub> (g/m<sup>2</sup>) |  W (short tons) |
-| :------------- : | :-: | :-: | :-: | :-: | :-: |
-| PM<sub>10</sub>  | 0.0022 | 0.91 | 1.02 | 0.045 | 3.2 |
-| PM<sub>2.5</sub> | 0.00054 | 0.91 | 1.02 | 0.045 | 3.2 |
+| :--------------: | :-------------------:  | :-----------: | :-----------: | :-----------------------------: | :-------------: |
+| PM<sub>10</sub>  | 0.0022                 | 0.91          | 1.02          | 0.045                           | 3.2             |
+| PM<sub>2.5</sub> | 0.00054                | 0.91          | 1.02          | 0.045                           | 3.2             |
 
-EQUATION: On-unpaved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over unpaved roads. Parameter values for k<sub>P</sub>, a<sub>P</sub> and b<sub>P</sub> are given in the table following. The parameter s<sub></st> varies by state; a partial list of values are given in the second table following.
+EQUATION: On-unpaved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over unpaved roads. Parameter values for k<sub>P</sub>, a<sub>P</sub> and b<sub>P</sub> are given in the table following. The parameter s<sub>st</sub> varies by state; a partial list of values are given in the second table following.
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=\text{Rate}_P&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{Rate}_P&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" title="\text{Rate}_P = k_P \left ( \frac{s_{st}}{12} \right )^{a_P} \left ( \frac{W}{3} \right )^{b_P}" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=\text{Rate}_P&space;\text{&space;(lb/VMT)}&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{Rate}_P&space;\text{&space;(lb/VMT)}&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" title="\text{Rate}_P \text{ (lb/VMT)} = k_P \left ( \frac{s_{st}}{12} \right )^{a_P} \left ( \frac{W}{3} \right )^{b_P}" /></a>
 
 TABLE: Parameter values for calculating particulate matter from feedstock transportation over unpaved roads.
 
@@ -515,6 +499,13 @@ TABLE: Parameter values for calculating particulate matter from feedstock transp
 | PM<sub>10</sub>  | 1.5                    | 0.9           | 0.45          |
 | PM<sub>2.5</sub> | 0.15                   | 0.9           | 0.45          |
 
+TABLE: Sample values for s<sub>st</sub>. The complete list can be found in the fugitive_dust_silt_content.csv file packaged with the default input data set.
+
+| st      | s<sub>st</sub> |
+| :------ | :------------: |
+| Alabama | 3.9            |
+| Alaska  | 3.8            |
+| Arizona | 3.0            |
 
 # Installing and Running FPEAM
 
@@ -527,6 +518,7 @@ Due to its dependence on MOVES, FPEAM can currently be installed and run only on
 	* Recommended installation is via [Anaconda](http://docs.anaconda.com/anaconda/install/windows/)
 * Python modules - install the most recent full release
 	* [numpy](https://www.scipy.org/scipylib/download.html)
+	* [scipy](https://www.scipy.org/scipylib/download.html)
 	* [pandas](http://pandas.pydata.org/pandas-docs/stable/install.html)
 	* [pymysql](https://pymysql.readthedocs.io/en/latest/user/installation.html)
 	* [configobj](https://configobj.readthedocs.io/en/latest/configobj.html#downloading)
