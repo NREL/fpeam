@@ -5,26 +5,21 @@
 # Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
-import io
+
 import logging
 import os
+import sys,time
+import random, string
 
-#import args as args
-import pandas
-import pylab
+from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 from PyQt5.QtCore import QEventLoop, QTimer
-from PyQt5.QtGui import QIntValidator, QDoubleValidator, QPixmap
-from PyQt5.QtWidgets import QRadioButton, QComboBox, QPushButton, QTextEdit, QFileDialog, QMessageBox, QPlainTextEdit, \
-    QScrollArea, QFrame, QListView, QProgressBar
-from PyQt5.QtWidgets import QGridLayout, QLabel, QButtonGroup, QLineEdit, QSpinBox, QCheckBox
-
-from pkg_resources import resource_filename
-from pyqtgraph import PlotWidget
-from qroundprogressbar import QRoundProgressBar
+from PyQt5.QtGui import  QDoubleValidator, QPixmap
+from PyQt5.QtWidgets import QComboBox, QPushButton, QFileDialog, QPlainTextEdit, \
+    QScrollArea, QProgressBar
+from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QSpinBox, QCheckBox
 
 from FPEAM.gui.src.main.python.fpeamgui.AttributeValueStorage import AttributeValueStorage
-#from FPEAM.gui.src.main.python.fpeamgui.AttributeValueStorage import attributeValueObj
 from FPEAM import (IO, FPEAM, utils)
 
 from FPEAM.gui.src.main.python.fpeamgui.run_config import runConfigCreation
@@ -33,15 +28,11 @@ from FPEAM.gui.src.main.python.fpeamgui.NonroadConfig import nonroadConfigCreati
 from FPEAM.gui.src.main.python.fpeamgui.emissionFactorsConfig import emissionFactorsConfigCreation
 from FPEAM.gui.src.main.python.fpeamgui.fugitiveDustConfig import fugitiveDustConfigCreation
 
-from FPEAM.scripts.fpeam import main
-
 import tempfile
-import threading, time
+import threading
 
 import matplotlib.pyplot as plt
 plt.rcdefaults()
-import numpy as np
-import pandas as pd
 
 WIDTH = 900
 HEIGHT = 800
@@ -51,9 +42,9 @@ class AlltabsModule(QtWidgets.QWidget):
     def setupUIHomePage(self):
         # Home Page tab created
         self.tabHome = QtWidgets.QWidget()
-        self.tabHome.setWindowTitle("FPEAM")
+        self.tabHome.setWindowTitle("HOME")
         # Home Page tab added
-        self.centralwidget.addTab(self.tabHome, "FPEAM")
+        self.centralwidget.addTab(self.tabHome, "HOME")
 
         # Home Page code start
         self.windowLayout = QGridLayout()
@@ -87,40 +78,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.resize(pixmap.width(), pixmap.height())
         self.windowLayout.addWidget(self.labelTitleFPEAMLine, 1, 0, 1, 5)
 
-        # Created UI element Module Selection
-        self.labelModules = QLabel()
-        self.labelModules.setText("Modules")
-        self.labelModules.setObjectName("allLabels")
-        self.labelModules.setAlignment(QtCore.Qt.AlignCenter)
-        self.labelModules.setFixedHeight(30)
-        self.labelModules.setFixedWidth(160)
-        self.checkBoxMoves = QCheckBox("MOVES")
-        self.checkBoxMoves.setFixedWidth(120)
-        self.checkBoxMoves.setFixedHeight(30)
-        self.checkBoxMoves.setChecked(True)
-        self.checkBoxMoves.stateChanged.connect(self.onStateChangedMoves)
-        self.checkBoxNonroad = QCheckBox("NONROAD")
-        self.checkBoxNonroad.setFixedWidth(120)
-        self.checkBoxNonroad.setFixedHeight(30)
-        self.checkBoxNonroad.setChecked(True)
-        self.checkBoxNonroad.stateChanged.connect(self.onStateChangedNonroad)
-        self.checkBoxEmissionFactors = QCheckBox("Emission Factors")
-        self.checkBoxEmissionFactors.setFixedWidth(120)
-        self.checkBoxEmissionFactors.setFixedHeight(30)
-        self.checkBoxEmissionFactors.setChecked(True)
-        self.checkBoxEmissionFactors.stateChanged.connect(self.onStateChangedEmissionFactors)
-        self.checkBoxFugitiveDust = QCheckBox("Fugitve Dust")
-        self.checkBoxFugitiveDust.setFixedWidth(115)
-        self.checkBoxFugitiveDust.setFixedHeight(30)
-        self.checkBoxFugitiveDust.setChecked(True)
-        self.checkBoxFugitiveDust.stateChanged.connect(self.onStateChangedFugitiveDust)
-        self.windowLayout.addWidget(self.labelModules, 2, 0)
-        self.windowLayout.addWidget(self.checkBoxMoves, 2, 1)
-        self.windowLayout.addWidget(self.checkBoxNonroad, 2, 2)
-        self.windowLayout.addWidget(self.checkBoxEmissionFactors, 2, 3)
-        self.windowLayout.addWidget(self.checkBoxFugitiveDust, 2, 4)
-
-
         # Created UI element Scenario Name
         self.labelScenaName = QLabel()
         self.labelScenaName.setText("Scenario Name")
@@ -135,8 +92,8 @@ class AlltabsModule(QtWidgets.QWidget):
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditScenaName.setValidator(validator)
-        self.windowLayout.addWidget(self.labelScenaName, 3,0)
-        self.windowLayout.addWidget(self.lineEditScenaName, 3, 1, 1, 4)
+        self.windowLayout.addWidget(self.labelScenaName, 2,0)
+        self.windowLayout.addWidget(self.lineEditScenaName, 2, 1, 1, 4)
 
         # UI element - Project Path
         self.labelProjPath = QLabel()
@@ -153,18 +110,49 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditProjectPath = QLineEdit(self)
         self.lineEditProjectPath.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditProjectPath.setFixedHeight(30)
-        self.windowLayout.addWidget(self.labelProjPath, 4, 0)
-        self.windowLayout.addWidget(self.browseBtn, 4, 1)
-        self.windowLayout.addWidget(self.lineEditProjectPath, 4, 2, 1, 3)
+        self.windowLayout.addWidget(self.labelProjPath, 3, 0)
+        self.windowLayout.addWidget(self.browseBtn, 3, 1)
+        self.windowLayout.addWidget(self.lineEditProjectPath, 3, 2, 1, 3)
+
+        # Created UI element Module Selection
+        self.labelModules = QLabel()
+        self.labelModules.setText("Select Modules")
+        self.labelModules.setFixedHeight(30)
+        self.labelModules.setObjectName("subTitleLabels")
+        self.checkBoxMoves = QCheckBox("MOVES")
+        self.checkBoxMoves.setFixedWidth(120)
+        self.checkBoxMoves.setFixedHeight(30)
+        self.checkBoxMoves.setChecked(True)
+        self.checkBoxMoves.stateChanged.connect(self.onStateChangedMoves)
+        self.checkBoxNonroad = QCheckBox("NONROAD")
+        self.checkBoxNonroad.setFixedWidth(120)
+        self.checkBoxNonroad.setFixedHeight(30)
+        self.checkBoxNonroad.setChecked(True)
+        self.checkBoxNonroad.stateChanged.connect(self.onStateChangedNonroad)
+        self.checkBoxEmissionFactors = QCheckBox("Emission Factors")
+        self.checkBoxEmissionFactors.setFixedWidth(120)
+        self.checkBoxEmissionFactors.setFixedHeight(30)
+        self.checkBoxEmissionFactors.setChecked(True)
+        self.checkBoxEmissionFactors.stateChanged.connect(self.onStateChangedEmissionFactors)
+        self.checkBoxFugitiveDust = QCheckBox("Fugitve Dust")
+        self.checkBoxFugitiveDust.setFixedWidth(120)
+        self.checkBoxFugitiveDust.setFixedHeight(30)
+        self.checkBoxFugitiveDust.setChecked(True)
+        self.checkBoxFugitiveDust.stateChanged.connect(self.onStateChangedFugitiveDust)
+        self.windowLayout.addWidget(self.labelModules, 4, 0, 1, 6)
+        self.windowLayout.addWidget(self.checkBoxMoves, 5, 0)
+        self.windowLayout.addWidget(self.checkBoxNonroad, 5, 1)
+        self.windowLayout.addWidget(self.checkBoxEmissionFactors, 5, 2)
+        self.windowLayout.addWidget(self.checkBoxFugitiveDust, 5, 3)
 
         #NREL Logo Label
         self.logoImage = QLabel()
-        pixmap = QPixmap('C:\Project\snehal/image.png')
+        pixmap = QPixmap('logo.png')
         pixmap = pixmap.scaledToWidth(182)
         pixmap = pixmap.scaledToHeight(40)
         self.logoImage.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
-        self.windowLayout.addWidget(self.logoImage, 5, 0)
+        self.windowLayout.addWidget(self.logoImage, 6, 0)
 
         # Created UI element Reset Button
         self.resetBtn = QPushButton("Reset", self)
@@ -172,22 +160,23 @@ class AlltabsModule(QtWidgets.QWidget):
         self.resetBtn.setFixedWidth(152)
         self.resetBtn.setObjectName("resetRunBtn")
         self.resetBtn.clicked.connect(self.rresetFields)
-        self.windowLayout.addWidget(self.resetBtn, 5, 3)
+        self.windowLayout.addWidget(self.resetBtn, 6, 3)
 
         # Created UI element Run Button
         self.runBtn = QPushButton("Run", self)
         self.runBtn.setFixedWidth(152)
         self.runBtn.setFixedHeight(40)
         self.runBtn.setObjectName("resetRunBtn")
+        self.runBtn.setStyleSheet("border-color: #028ACC; color : #ffffff; background-color : #028ACC;")
         self.runBtn.clicked.connect(self.runTheSelectedModules)
-        self.windowLayout.addWidget(self.runBtn, 5, 4)
+        self.windowLayout.addWidget(self.runBtn, 6, 4)
 
         # Custom Data Filepaths Label
         self.customDataFilepathsLabel = QLabel()
         self.customDataFilepathsLabel.setText("Custom Data Filepaths")
         self.customDataFilepathsLabel.setFixedHeight(30)
         self.customDataFilepathsLabel.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.customDataFilepathsLabel, 6, 0, 1, 6)
+        self.windowLayout.addWidget(self.customDataFilepathsLabel, 7, 0, 1, 6)
 
         # Created UI element - Custom Dtatfiles below Line
         self.labelCustomDatafilsLine = QLabel()
@@ -195,7 +184,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1 = pixmapLine1.scaledToHeight(15)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
-        self.windowLayout.addWidget(self.labelCustomDatafilsLine, 7, 0, 1, 6)
+        self.windowLayout.addWidget(self.labelCustomDatafilsLine, 8, 0, 1, 6)
 
         # Expand/Collapse code
         # Created UI element Custom Data Filepaths FPEAM
@@ -204,13 +193,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelCustomDatafileFPEAMExpand.setFixedWidth(30)
         self.labelCustomDatafileFPEAMExpand.setObjectName("expandCollapseIcon")
         self.labelCustomDatafileFPEAMExpand.setText(u'\u25B2')
-        self.windowLayout.addWidget(self.labelCustomDatafileFPEAMExpand, 6, 5)
+        self.windowLayout.addWidget(self.labelCustomDatafileFPEAMExpand, 7, 5)
 
         self.customDatafileFPEAMexpandWidget = QtWidgets.QWidget()
+        self.customDatafileFPEAMexpandWidget.setStyleSheet("border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.customDatafileFPEAMGridLayout = QtWidgets.QGridLayout()
         self.customDatafileFPEAMexpandWidget.setLayout(self.customDatafileFPEAMGridLayout)
         self.customDatafileFPEAMexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.customDatafileFPEAMexpandWidget, 8, 0, 1, 5)
+        self.windowLayout.addWidget(self.customDatafileFPEAMexpandWidget, 9, 0, 1, 5)
 
         def labelCustomDatafileFPEAMOnClickEvent():
             if self.customDatafileFPEAMexpandWidget.isVisible():
@@ -308,7 +298,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.advOptionsLabel.setText("Advanced Options")
         self.advOptionsLabel.setFixedHeight(30)
         self.advOptionsLabel.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.advOptionsLabel, 12, 0, 1, 6)
+        self.windowLayout.addWidget(self.advOptionsLabel, 13, 0, 1, 6)
 
         # Created UI element - Advanced Optiones below Line
         self.labelAdvOptionsLine = QLabel()
@@ -316,7 +306,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap2 = pixmapLine2.scaledToHeight(15)
         self.labelTitleFPEAMLine.setPixmap(pixmap2)
         self.resize(pixmap2.width(), pixmap2.height())
-        self.windowLayout.addWidget(self.labelTitleFPEAMLine, 13, 0, 1, 6)
+        self.windowLayout.addWidget(self.labelTitleFPEAMLine, 14, 0, 1, 6)
 
         # Expand/Collapse code
         # Created UI element Advanced Options FPEAM
@@ -326,13 +316,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsFPEAMExpand.setFixedWidth(30)
         self.labelAdvOptionsFPEAMExpand.setObjectName("expandCollapseIcon")
         self.labelAdvOptionsFPEAMExpand.setText(u'\u25B2')
-        self.windowLayout.addWidget(self.labelAdvOptionsFPEAMExpand, 12, 5)
+        self.windowLayout.addWidget(self.labelAdvOptionsFPEAMExpand, 13, 5)
 
         self.advOptionsFPEAMexpandWidget = QtWidgets.QWidget()
+        self.advOptionsFPEAMexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;outline-style: solid; outline-color:black;border-radius: 5px;")
         self.advOptionsFPEAMGridLayout = QtWidgets.QGridLayout()
         self.advOptionsFPEAMexpandWidget.setLayout(self.advOptionsFPEAMGridLayout)
         self.advOptionsFPEAMexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.advOptionsFPEAMexpandWidget, 14, 0, 1, 4)
+        self.windowLayout.addWidget(self.advOptionsFPEAMexpandWidget, 15, 0, 1, 5)
 
         def labelAdvOptionsFPEAMOnClickEvent():
             if self.advOptionsFPEAMexpandWidget.isVisible():
@@ -350,9 +342,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelLoggVerboLevel.setAlignment(QtCore.Qt.AlignCenter)
         self.labelLoggVerboLevel.setText("Logging Level")
         self.labelLoggVerboLevel.setFixedHeight(30)
-        self.labelLoggVerboLevel.setFixedWidth(160)
+        self.labelLoggVerboLevel.setFixedWidth(155)
         self.comboBoxVerbosityLevel = QComboBox(self)
-        self.comboBoxVerbosityLevel.setFixedWidth(100)
+        self.comboBoxVerbosityLevel.setFixedWidth(155)
         self.comboBoxVerbosityLevel.setFixedHeight(30)
         self.comboBoxVerbosityLevel.addItem("INFO")
         self.comboBoxVerbosityLevel.addItem("ERROR")
@@ -368,18 +360,18 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditVerboLevel = self.comboBoxVerbosityLevel.lineEdit()
         self.leditVerboLevel.setReadOnly(True)
         self.advOptionsFPEAMGridLayout.addWidget(self.labelLoggVerboLevel, 0, 0)
-        self.advOptionsFPEAMGridLayout.addWidget(self.comboBoxVerbosityLevel, 0, 1)
+        self.advOptionsFPEAMGridLayout.addWidget(self.comboBoxVerbosityLevel, 1, 0)
 
         # UI element  -  Router Engine
         self.labelRE = QLabel()
         self.labelRE.setObjectName("allLabels")
         self.labelRE.setAlignment(QtCore.Qt.AlignCenter)
         self.labelRE.setFixedHeight(30)
-        self.labelRE.setFixedWidth(160)
+        self.labelRE.setFixedWidth(155)
         self.labelRE.setText("Use Router Engine")
         self.labelRE.setToolTip("Do you want to set Router Engine - Yes/No")
         self.comboBoxRE = QComboBox(self)
-        self.comboBoxRE.setFixedWidth(100)
+        self.comboBoxRE.setFixedWidth(155)
         self.comboBoxRE.setFixedHeight(30)
         self.comboBoxRE.addItem("Yes")
         self.comboBoxRE.addItem("No")
@@ -391,19 +383,19 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditRE.setAlignment(QtCore.Qt.AlignCenter)
         self.leditRE = self.comboBoxRE.lineEdit()
         self.leditRE.setReadOnly(True)
-        self.advOptionsFPEAMGridLayout.addWidget(self.labelRE, 1, 0)
+        self.advOptionsFPEAMGridLayout.addWidget(self.labelRE, 0, 1)
         self.advOptionsFPEAMGridLayout.addWidget(self.comboBoxRE, 1, 1)
 
         # UI element -  Backfill Flag
         self.labelBF = QLabel()
         self.labelBF.setObjectName("allLabels")
         self.labelBF.setFixedHeight(30)
-        self.labelBF.setFixedWidth(160)
+        self.labelBF.setFixedWidth(155)
         self.labelBF.setAlignment(QtCore.Qt.AlignCenter)
         self.labelBF.setText("Backfill Missing Data")
         self.labelBF.setToolTip("Do you want to set Backfill Flag - Yes/No")
         self.comboBoxBF = QComboBox(self)
-        self.comboBoxBF.setFixedWidth(100)
+        self.comboBoxBF.setFixedWidth(155)
         self.comboBoxBF.setFixedHeight(30)
         self.comboBoxBF.addItem("Yes")
         self.comboBoxBF.addItem("No")
@@ -415,24 +407,23 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditBE.setAlignment(QtCore.Qt.AlignCenter)
         self.leditBF = self.comboBoxBF.lineEdit()
         self.leditBF.setReadOnly(True)
-        self.advOptionsFPEAMGridLayout.addWidget(self.labelBF, 2, 0)
-        self.advOptionsFPEAMGridLayout.addWidget(self.comboBoxBF, 2, 1)
+        self.advOptionsFPEAMGridLayout.addWidget(self.labelBF, 0, 2)
+        self.advOptionsFPEAMGridLayout.addWidget(self.comboBoxBF, 1, 2)
 
         # Add Empty PlainText
         self.emptyPlainText3 = QLabel()
-        self.advOptionsFPEAMGridLayout.addWidget(self.emptyPlainText3, 2, 2)
+        self.emptyPlainText3.setStyleSheet( "border-color: white;")
+        self.emptyPlainText3.setFixedWidth(155)
+        self.emptyPlainText3.setFixedHeight(60)
+        self.advOptionsFPEAMGridLayout.addWidget(self.emptyPlainText3, 0, 3)
 
         # Add Empty PlainText
         self.emptyPlainText2 = QLabel()
-        self.advOptionsFPEAMGridLayout.addWidget(self.emptyPlainText2, 2, 3)
+        self.emptyPlainText2.setStyleSheet("border-color: white;")
+        self.emptyPlainText2.setFixedWidth(155)
+        self.emptyPlainText2.setFixedHeight(30)
+        self.advOptionsFPEAMGridLayout.addWidget(self.emptyPlainText2, 0, 4)
 
-        # Add Empty PlainText
-        self.emptyPlainText = QLabel()
-        self.advOptionsFPEAMGridLayout.addWidget(self.emptyPlainText, 2, 4)
-
-        #Empty space
-        self.labelEmpty = QLabel()
-        self.windowLayout.addWidget(self.labelEmpty, 17, 0, 1, 5)
 
         # Empty space
         self.labelEmpty1 = QLabel()
@@ -443,48 +434,48 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelEmpty2, 19, 0, 1, 5)
 
         # Add Empty PlainText
-        self.emptyPlainText3 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText3, 20, 0)
+        self.emptyPlainTextt = QLabel()
+        self.windowLayout.addWidget(self.emptyPlainTextt, 20, 0)
 
         # Add Empty PlainText
-        self.emptyPlainText2 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText2, 21, 0)
+        self.emptyPlainText10 = QLabel()
+        self.windowLayout.addWidget(self.emptyPlainText10, 21, 0)
 
         # Add Empty PlainText
         self.emptyPlainText = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText, 22, 0)
 
         # Add Empty PlainText
-        self.emptyPlainText1 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText1, 23, 0)
+        self.emptyPlainText14 = QLabel()
+        self.windowLayout.addWidget(self.emptyPlainText14, 23, 0)
 
         # Add Empty PlainText
-        self.emptyPlainText3 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText3, 24, 0)
+        self.emptyPlainText7 = QLabel()
+        self.windowLayout.addWidget(self.emptyPlainText7, 24, 0)
 
         # Add Empty PlainText
-        self.emptyPlainText2 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText2, 25, 0)
+        self.emptyPlainText11 = QLabel()
+        self.windowLayout.addWidget(self.emptyPlainText11, 25, 0)
 
         # Add Empty PlainText
         self.emptyPlainText = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText, 26, 0)
 
         # Add Empty PlainText
-        self.emptyPlainText1 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText1, 27, 0)
+        self.emptyPlainText13 = QLabel()
+        self.windowLayout.addWidget(self.emptyPlainText13, 27, 0)
 
         # Add Empty PlainText
-        self.emptyPlainText3 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText3, 28, 0)
+        self.emptyPlainText8 = QLabel()
+        self.windowLayout.addWidget(self.emptyPlainText8, 28, 0)
 
         # Add Empty PlainText
-        self.emptyPlainText3 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText3, 29, 0)
+        self.emptyPlainText9 = QLabel()
+        self.windowLayout.addWidget(self.emptyPlainText9, 29, 0)
 
         # Add Empty PlainText
-        self.emptyPlainText2 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText2, 30, 0)
+        self.emptyPlainText12 = QLabel()
+        self.windowLayout.addWidget(self.emptyPlainText12, 30, 0)
 
         # Add Empty PlainText
         self.emptyPlainText = QLabel()
@@ -592,7 +583,6 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # MOves tab created
         self.tabMoves = QtWidgets.QWidget()
-
         # Moves tab added
         self.centralwidget.addTab(self.tabMoves, "MOVES")
 
@@ -761,6 +751,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labeldbConnectionsMOVESExpand, 7, 4)
 
         self.dbConnectionsMOVESexpandWidget = QtWidgets.QWidget()
+        self.dbConnectionsMOVESexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.dbConnectionsMOVESGridLayout = QtWidgets.QGridLayout()
         self.dbConnectionsMOVESexpandWidget.setLayout(self.dbConnectionsMOVESGridLayout)
         self.dbConnectionsMOVESexpandWidget.setVisible(False)
@@ -839,7 +831,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbPwd.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditDbPwd.setFixedHeight(30)
         self.lineEditDbPwd.setFixedWidth(125)
-        self.lineEditDbPwd.setEchoMode(QtGui.QLineEdit.Password)
+        self.lineEditDbPwd.setEchoMode(QLineEdit.Password)
         self.lineEditDbPwd.show()
         self.lineEditDbPwd.setText("root")
         self.dbConnectionsMOVESGridLayout.addWidget(self.labelDbPwd, 1, 2)
@@ -847,6 +839,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #Empty Label
         self.emptyLabel = QLabel()
+        self.emptyLabel.setStyleSheet("border-color: white; ")
         self.dbConnectionsMOVESGridLayout.addWidget(self.emptyLabel, 1, 4)
 
         # Execution Timeframe Label
@@ -874,6 +867,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelTimeframeMOVESExpand, 11, 4)
 
         self.timeframeMOVESexpandWidget = QtWidgets.QWidget()
+        self.timeframeMOVESexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.timeframeMOVESGridLayout = QtWidgets.QGridLayout()
         self.timeframeMOVESexpandWidget.setLayout(self.timeframeMOVESGridLayout)
         self.timeframeMOVESexpandWidget.setVisible(False)
@@ -1059,6 +1054,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelCustomDatafileMOVESExpand, 17, 4)
 
         self.customDatafileMOVESexpandWidget = QtWidgets.QWidget()
+        self.customDatafileMOVESexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.customDatafileMOVESGridLayout = QtWidgets.QGridLayout()
         self.customDatafileMOVESexpandWidget.setLayout(self.customDatafileMOVESGridLayout)
         self.customDatafileMOVESexpandWidget.setVisible(False)
@@ -1160,6 +1157,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelAdvOptionsMOVESExpand, 22, 4)
 
         self.advOptionsMOVESexpandWidget = QtWidgets.QWidget()
+        self.advOptionsMOVESexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.advOptionsMOVESGridLayout = QtWidgets.QGridLayout()
         self.advOptionsMOVESexpandWidget.setLayout(self.advOptionsMOVESGridLayout)
         self.advOptionsMOVESexpandWidget.setVisible(False)
@@ -1188,19 +1187,26 @@ class AlltabsModule(QtWidgets.QWidget):
         self.spinBoxNoofTruck.setFixedHeight(30)
         self.spinBoxNoofTruck.setMinimum(1)
         self.spinBoxNoofTruck.setValue(1)
+        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
+        self.leditNofTrucksUsed.setAlignment(QtCore.Qt.AlignCenter)
+        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
+        self.leditNofTrucksUsed.setReadOnly(True)
         self.advOptionsMOVESGridLayout.addWidget(self.labelNoofTruck, 0, 0)
         self.advOptionsMOVESGridLayout.addWidget(self.spinBoxNoofTruck, 0, 1)
 
         # Created UI element VMT - Empty Label
         self.labelEmpty = QLabel()
+        self.labelEmpty.setStyleSheet("border-color: white; ")
         self.advOptionsMOVESGridLayout.addWidget(self.labelEmpty, 0, 2)
 
         # Created UI element VMT - Empty Label
         self.labelEmpty1 = QLabel()
+        self.labelEmpty1.setStyleSheet("border-color: white; ")
         self.advOptionsMOVESGridLayout.addWidget(self.labelEmpty1, 0, 3)
 
         # Created UI element VMT - Empty Label
         self.labelEmpty2 = QLabel()
+        self.labelEmpty2.setStyleSheet("border-color: white; ")
         self.advOptionsMOVESGridLayout.addWidget(self.labelEmpty2, 0, 4)
 
 
@@ -1251,6 +1257,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelVMTFractionExpand, 27, 4)
 
         self.vmtexpandWidget = QtWidgets.QWidget()
+        self.vmtexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.vmtGridLayout = QtWidgets.QGridLayout()
         self.vmtexpandWidget.setLayout(self.vmtGridLayout)
         self.vmtexpandWidget.setVisible(False)
@@ -1337,6 +1345,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element VMT - Empty Label
         self.labelEmpty = QLabel()
+        self.labelEmpty.setStyleSheet("border-color: white; ")
         self.vmtGridLayout.addWidget(self.labelEmpty, 1, 4)
 
 
@@ -1402,7 +1411,7 @@ class AlltabsModule(QtWidgets.QWidget):
     def setupUINonroad(self):
         # Nonroad tab created
         self.tabNonroad = QtWidgets.QWidget()
-
+        self.tabNonroad.resize(WIDTH, HEIGHT - 200)
         # Nonroad tab added
         self.centralwidget.addTab(self.tabNonroad, "NONROAD")
 
@@ -1515,6 +1524,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labeldbConnectionsNONROADExpand, 4, 4)
 
         self.dbConnectionsNONROADexpandWidget = QtWidgets.QWidget()
+        self.dbConnectionsNONROADexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.dbConnectionsNONROADGridLayout = QtWidgets.QGridLayout()
         self.dbConnectionsNONROADexpandWidget.setLayout(self.dbConnectionsNONROADGridLayout)
         self.dbConnectionsNONROADexpandWidget.setVisible(False)
@@ -1593,7 +1604,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbPwdN.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditDbPwdN.setFixedHeight(30)
         self.lineEditDbPwdN.setFixedWidth(125)
-        self.lineEditDbPwdN.setEchoMode(QtGui.QLineEdit.Password)
+        self.lineEditDbPwdN.setEchoMode(QLineEdit.Password)
         self.lineEditDbPwdN.show()
         self.lineEditDbPwdN.setText("root")
         self.dbConnectionsNONROADGridLayout.addWidget(self.labelDbPwdN, 1, 2)
@@ -1601,6 +1612,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #Empty Label
         self.emptyLberl = QLabel()
+        self.emptyLberl.setStyleSheet("border-color: white; ")
         self.dbConnectionsNONROADGridLayout.addWidget(self.emptyLberl, 1, 4)
 
         #Data Label
@@ -1628,6 +1640,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelDataLabelsNONROADExpand, 8, 4)
 
         self.dataLabelsNONROADexpandWidget = QtWidgets.QWidget()
+        self.dataLabelsNONROADexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.dtaLabelsNONROADGridLayout = QtWidgets.QGridLayout()
         self.dataLabelsNONROADexpandWidget.setLayout(self.dtaLabelsNONROADGridLayout)
         self.dataLabelsNONROADexpandWidget.setVisible(False)
@@ -1724,6 +1738,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #Empty Label
         self.emptyLabel = QLabel()
+        self.emptyLabel.setStyleSheet("border-color: white; ")
         self.dtaLabelsNONROADGridLayout.addWidget(self.emptyLabel, 1, 4)
 
         # Created UI element Irrigation Feedstock Names
@@ -1770,6 +1785,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelcustomDatafileNONROADExpand, 13, 4)
 
         self.customDatafileNONROADexpandWidget = QtWidgets.QWidget()
+        self.customDatafileNONROADexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.customDatafileNONROADGridLayout = QtWidgets.QGridLayout()
         self.customDatafileNONROADexpandWidget.setLayout(self.customDatafileNONROADGridLayout)
         self.customDatafileNONROADexpandWidget.setVisible(False)
@@ -1850,6 +1867,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelTempNONROADExpand, 17, 4)
 
         self.tempNONROADexpandWidget = QtWidgets.QWidget()
+        self.tempNONROADexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.tempNONROADGridLayout = QtWidgets.QGridLayout()
         self.tempNONROADexpandWidget.setLayout(self.tempNONROADGridLayout)
         self.tempNONROADexpandWidget.setVisible(False)
@@ -1901,6 +1920,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #Empty Label
         self.emptyLabe = QLabel()
+        self.emptyLabe.setStyleSheet("border-color: white; ")
         self.tempNONROADGridLayout.addWidget(self.emptyLabe, 0, 4)
 
         # Created UI element Maximum Temperature
@@ -1945,6 +1965,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelConvFactorsNONROADExpand, 21, 4)
 
         self.convFactorsNONROADexpandWidget = QtWidgets.QWidget()
+        self.convFactorsNONROADexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.convFactorsNONROADGridLayout = QtWidgets.QGridLayout()
         self.convFactorsNONROADexpandWidget.setLayout(self.convFactorsNONROADGridLayout)
         self.convFactorsNONROADexpandWidget.setVisible(False)
@@ -2034,6 +2056,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #Empty Label
         self.emptyLabel = QLabel()
+        self.emptyLabel.setStyleSheet("border-color: white; ")
         self.convFactorsNONROADGridLayout.addWidget(self.emptyLabel, 1, 4)
 
         # Advanced Options Label
@@ -2062,6 +2085,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelAdvOptionsNONROADExpand, 25, 4)
 
         self.advOptionsNONROADexpandWidget = QtWidgets.QWidget()
+        self.advOptionsNONROADexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.advOptionsNONROADGridLayout = QtWidgets.QGridLayout()
         self.advOptionsNONROADexpandWidget.setLayout(self.advOptionsNONROADGridLayout)
         self.advOptionsNONROADexpandWidget.setVisible(False)
@@ -2090,19 +2115,30 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxEncodeNames.addItem("Yes")
         self.comboBoxEncodeNames.addItem("No")
         self.comboBoxEncodeNames.setCurrentText("Yes")
+        self.comboBoxEncodeNames.setEditable(True)
+        self.leditEncodeName = self.comboBoxEncodeNames.lineEdit()
+        self.leditEncodeName.setAlignment(QtCore.Qt.AlignCenter)
+        self.leditEncodeName = self.comboBoxEncodeNames.lineEdit()
+        self.leditEncodeName.setReadOnly(True)
         self.advOptionsNONROADGridLayout.addWidget(self.labelNonEncodeNames, 0, 0)
         self.advOptionsNONROADGridLayout.addWidget(self.comboBoxEncodeNames, 0, 1)
 
         # Add Empty PlainText
         self.emptyPlainText = QLabel()
+        self.emptyPlainText.setStyleSheet(
+            "border-color: white; ")
         self.advOptionsNONROADGridLayout.addWidget(self.emptyPlainText, 0, 2)
 
         # Add Empty PlainText
         self.emptyPlainText1 = QLabel()
+        self.emptyPlainText1.setStyleSheet(
+            "border-color: white; ")
         self.advOptionsNONROADGridLayout.addWidget(self.emptyPlainText1, 0, 3)
 
         # Add Empty PlainText
         self.emptyPlainText3 = QLabel()
+        self.emptyPlainText3.setStyleSheet(
+            "border-color: white; ")
         self.advOptionsNONROADGridLayout.addWidget(self.emptyPlainText3, 0, 4)
 
 
@@ -2186,7 +2222,7 @@ class AlltabsModule(QtWidgets.QWidget):
     def setupUIEmissionFactors(self):
         # Emission Factors tab created
         self.tabEmissionFactors = QtWidgets.QWidget()
-
+        self.tabEmissionFactors.resize(WIDTH, HEIGHT - 200)
         # Emission Factors tab added
         self.centralwidget.addTab(self.tabEmissionFactors, "EMISSION FACTORS")
 
@@ -2267,6 +2303,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelcustomDatafileEFExpand, 3, 4)
 
         self.customDatafileEFexpandWidget = QtWidgets.QWidget()
+        self.customDatafileEFexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.customDatafileEFGridLayout = QtWidgets.QGridLayout()
         self.customDatafileEFexpandWidget.setLayout(self.customDatafileEFGridLayout)
         self.customDatafileEFexpandWidget.setVisible(False)
@@ -2444,7 +2482,7 @@ class AlltabsModule(QtWidgets.QWidget):
     def setupUIFugitiveDust(self):
         # Fugitive Dust tab created
         self.tabFugitiveDust = QtWidgets.QWidget()
-
+        self.tabFugitiveDust.resize(WIDTH, HEIGHT - 200)
         # Fugitive Dust tab added
         self.centralwidget.addTab(self.tabFugitiveDust, "FUGITIVE DUST")
 
@@ -2525,6 +2563,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelcustomDatafileFDExpand, 3, 4)
 
         self.customDatafileFDexpandWidget = QtWidgets.QWidget()
+        self.customDatafileFDexpandWidget.setStyleSheet(
+            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
         self.customDatafileFDGridLayout = QtWidgets.QGridLayout()
         self.customDatafileFDexpandWidget.setLayout(self.customDatafileFDGridLayout)
         self.customDatafileFDexpandWidget.setVisible(False)
@@ -2661,7 +2701,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.emptyPlainText3, 30, 0)
 
 
-    # Functions used for Emission Factors - - Fugitive Dust
+    # Functions used for Fugitive Dust
 
     def getfilesEmiFactFD(self):
         fileNameTruckCapaFD = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -2671,8 +2711,10 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def rresetFields(self):
 
+        self.lineEditScenaName.setStyleSheet("border: 2px solid black;")
+        self.lineEditProjectPath.setStyleSheet("border: 2px solid black;")
 
-        self.plainTextLog.setVisible(False)
+        self.plainTextLog.setPlainText("")
 
         # FPEAM home page - Attribute Initialization
         self.lineEditScenaName.setText("")
@@ -2759,8 +2801,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.index = self.comboBoxDayType.findText("Weekday")
         self.comboBoxDayType.setCurrentIndex(self.index)
 
-
-
         print("-------------------------Reset clicked")
 
 ###################################################################
@@ -2773,9 +2813,17 @@ class AlltabsModule(QtWidgets.QWidget):
         tmpFolder = tempfile.mkdtemp()
 
         # check if scenario name and project path is entered or not
-        if self.lineEditProjectPath.text() == "":
-            self.lineEditProjectPath.setStyleSheet("border: 2px solid red;")
-            self.lineEditScenaName.setStyleSheet("border: 2px solid red;")
+        if self.lineEditScenaName.text() == "" or self.lineEditProjectPath.text() == "":
+            if self.lineEditScenaName.text() == "" and self.lineEditProjectPath.text() != "":
+                self.lineEditScenaName.setStyleSheet("border: 2px solid red;")
+                self.lineEditProjectPath.setStyleSheet("border: 2px solid black;")
+            if self.lineEditProjectPath.text() == "" and self.lineEditScenaName.text() != "":
+                self.lineEditScenaName.setStyleSheet("border: 2px solid black;")
+                self.lineEditProjectPath.setStyleSheet("border: 2px solid red;")
+            if self.lineEditScenaName.text() == "" and self.lineEditProjectPath.text() == "":
+                self.lineEditProjectPath.setStyleSheet("border: 2px solid red;")
+                self.lineEditScenaName.setStyleSheet("border: 2px solid red;")
+
             return
         else:
 
@@ -2912,10 +2960,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.attributeValueObj.dayType = "5"
             else:
                 self.attributeValueObj.dayType = "2"
-
-            # changedDayType = self.comboBoxDayType.currentText()
-            # if changedDayType:
-            #     self.attributeValueObj.dayType = changedDayType
 
             changedTruckCapacityPath = self.lineEditTruckCapa.text().strip()
             if changedTruckCapacityPath:
@@ -3097,29 +3141,29 @@ class AlltabsModule(QtWidgets.QWidget):
 
             if self.centralwidget.isTabEnabled(1):
                 self.centralwidget.setTabEnabled(1, False)
-                threadMOVES = threading.Thread(target= runCommand , args = (runConfigObj , movesConfigCreationObj, self.attributeValueObj, ))
+                threadMOVES = threading.Thread(target= runCommand , args = (runConfigObj , movesConfigCreationObj, self.attributeValueObj, self.plainTextLog, ))
                 threadMOVES.start()
 
             if self.centralwidget.isTabEnabled(2):
                 self.centralwidget.setTabEnabled(2, False)
-                threadNONROAD = threading.Thread(target= runCommand , args = (runConfigObj , nonroadConfigCreationObj, self.attributeValueObj, ))
+                threadNONROAD = threading.Thread(target= runCommand , args = (runConfigObj , nonroadConfigCreationObj, self.attributeValueObj, self.plainTextLog, ))
                 threadNONROAD.start()
 
             if self.centralwidget.isTabEnabled(3):
                 self.centralwidget.setTabEnabled(3, False)
-                threadEF = threading.Thread(target= runCommand , args = (runConfigObj , emissionFactorsConfigCreationObj, self.attributeValueObj, ))
+                threadEF = threading.Thread(target= runCommand , args = (runConfigObj , emissionFactorsConfigCreationObj, self.attributeValueObj, self.plainTextLog, ))
                 threadEF.start()
 
             if self.centralwidget.isTabEnabled(4):
                 self.centralwidget.setTabEnabled(4, False)
-                threadFD = threading.Thread(target= runCommand , args = (runConfigObj , fugitiveDustConfigCreationObj, self.attributeValueObj, ))
+                threadFD = threading.Thread(target= runCommand , args = (runConfigObj , fugitiveDustConfigCreationObj, self.attributeValueObj, self.plainTextLog, ))
                 threadFD.start()
 
             while (threadMOVES and threadMOVES.is_alive()) or \
                     (threadNONROAD and threadNONROAD.is_alive()) or \
                     (threadEF and threadEF.is_alive()) or \
                     (threadFD and threadFD.is_alive()):
-                print("alive. Waiting for 1 second to recheck")
+                #print("alive. Waiting for 1 second to recheck")
 
                 self.progressBar.setVisible(True)
                 self.progressBar.move(300,200)
@@ -3132,31 +3176,26 @@ class AlltabsModule(QtWidgets.QWidget):
                 QTimer.singleShot(10, loop.quit)
                 loop.exec_()
 
+            self.progressBar.setVisible(False)
+            #self.plainTextLog.setVisible(True)
+
+
             if threadMOVES:
                 threadMOVES.join()
-            if threadNONROAD:
-                threadNONROAD.join()
-            if threadEF:
-                threadEF.join()
-            if threadFD:
-                threadFD.join()
-
-            self.progressBar.setVisible(False)
-            self.plainTextLog.setVisible(True)
-
-
-            if threadMOVES:
                 self.centralwidget.setTabEnabled(1, True)
             if threadNONROAD:
+                threadNONROAD.join()
                 self.centralwidget.setTabEnabled(2, True)
             if threadEF:
+                threadEF.join()
                 self.centralwidget.setTabEnabled(3, True)
             if threadFD:
+                threadFD.join()
                 self.centralwidget.setTabEnabled(4, True)
             self.centralwidget.setTabEnabled(0, True)
 
             # Set logs to Plaintext in Result tab
-            self.plainTextLog.setPlainText(self.attributeValueObj.logContents)
+            #self.plainTextLog.setPlainText(self.attributeValueObj.logContents)
 
             # #Generate graph for MOVES module
             # fileNameMoves = self.lineEditScenaName.text().strip() + "_raw.csv"
@@ -3219,7 +3258,7 @@ class AlltabsModule(QtWidgets.QWidget):
     def setupUIResult(self):
         # Result tab created
         self.tabResult = QtWidgets.QWidget()
-
+        self.tabResult.resize(WIDTH, HEIGHT - 200)
         # Result tab added
         self.centralwidget.addTab(self.tabResult, "RESULT")
 
@@ -3240,7 +3279,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.innerWidgetResult.setLayout(windowLayoutResult)
 
         self.plainTextLog = QPlainTextEdit()
-        self.plainTextLog.setVisible(False)
+        #self.plainTextLog.setVisible(False)
         self.plainTextLog.setPlainText("")
         self.plainTextLog.setReadOnly(True)
         self.plainTextLog.setFixedHeight(100)
@@ -3284,13 +3323,9 @@ class AlltabsModule(QtWidgets.QWidget):
     def setupUi(self, OtherWindow):
 
         OtherWindow.setObjectName("OtherWindow")
-        #OtherWindow.setGeometry(0,0,400,400)
         self.centralwidget = QtWidgets.QTabWidget(OtherWindow)
+        self.centralwidget.setStyleSheet("background-color: #oooooo")
         OtherWindow.setCentralWidget(self.centralwidget)
-        #self.centralwidget.setGeometry(0,0,400,400)
-
-        #self.centralwidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
-
         self.centralwidget.setObjectName("centralwidget")
         font = QtGui.QFont()
         font.setPointSize(22)
@@ -3322,12 +3357,27 @@ class SelectedModuleThreadExecution(QtCore.QThread):
 
         ############################################################################
 
-def runCommand(runConfigObj , emissionFactorsConfigCreationObj, attributeValueStorageObj):
+def logsPrinter(textField, loggerOutputFilePath, doRun):
+    with open(loggerOutputFilePath) as f:
+        while doRun:
+
+            line = f.readline()
+            if not line:
+                time.sleep(0.1)
+            else:
+                textField.appendPlainText(line)
+
+def runCommand(runConfigObj , emissionFactorsConfigCreationObj, attributeValueStorageObj, textFieldLog):
     # Generate Logs
+    loggerOutputFilePath = time.strftime("%Y%m%d-%H%M%S") + ''.join(
+        random.choice(string.ascii_letters) for _ in range(10)) + ".log"
+    tempfile.gettempdir()
+    loggerOutputFilePath = os.path.join(tempfile.gettempdir(), loggerOutputFilePath)
+
     logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
                                               ' [%(filename)s:%(module)s.'
                                               '%(funcName)s.%(lineno)d] %(message)s',
-                        stream=attributeValueStorageObj.streamGenerated)
+                        filename=loggerOutputFilePath)
 
     # Set Logger level according to selection of Verbosity Logger Level on Home Page
     if attributeValueStorageObj.loggerLevel == "INFO":
@@ -3347,6 +3397,12 @@ def runCommand(runConfigObj , emissionFactorsConfigCreationObj, attributeValueSt
     _config = IO.load_configs(emissionFactorsConfigCreationObj, runConfigObj)
     print(_config)
 
+    doRun = True
+
+    t = threading.Thread(target=logsPrinter, args=(textFieldLog, loggerOutputFilePath, doRun,))
+    t.daemon = True
+    t.start()
+
     with FPEAM(run_config=_config) as _fpeam:
 
         # count no of record based on how many counties are running
@@ -3361,17 +3417,16 @@ def runCommand(runConfigObj , emissionFactorsConfigCreationObj, attributeValueSt
         _fpeam.summarize()
         print("Done")
 
-    attributeValueStorageObj.logContents = attributeValueStorageObj.streamGenerated.getvalue()
+    #attributeValueStorageObj.logContents = attributeValueStorageObj.streamGenerated.getvalue()
 
-
+    with open(loggerOutputFilePath) as lg:
+        print(lg.readlines())
 
 ##############################################################################################
 
 
 
 if __name__ == "__main__":
-    import sys
-
 
     styleSheet = """
 
@@ -3444,7 +3499,6 @@ if __name__ == "__main__":
         align-items: center;
         text-align: center;        
         color: #000000;
-        backgroud-color: #000000
     }
 
     QCheckBox {
@@ -3483,7 +3537,6 @@ if __name__ == "__main__":
     }
     
     QPushButton#resetRunBtn {
-        background: #C6CDD1;
         border: 1px solid #000000;
         box-sizing: border-box;
         box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
@@ -3545,19 +3598,13 @@ if __name__ == "__main__":
     
     QComboBox#AggLevelCombo {
         background: #FFFFFF;
-        border: 1px solid #495965;
-        box-sizing: border-box;
         border-radius: 5px;
         font-family: Roboto;
         font-style: normal;
         font-weight: normal;
         font-size: 14px;
-        line-height: 16px;
-        display: flex;
         text-align: center;        
-        color: #000000;        
-        border-radius: 5px;
-        
+        color: #000000;          
     }
     
     QSpinBox {
@@ -3588,9 +3635,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(styleSheet)
     OtherWindow = QtWidgets.QMainWindow()
-
     OtherWindow.setFixedSize(WIDTH,HEIGHT+25)
-    #OtherWindow.resize(1024, 600)
     OtherWindow.setWindowTitle("FPEAM")
     #OtherWindow.setWindowFlags(QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
     ui = AlltabsModule()
