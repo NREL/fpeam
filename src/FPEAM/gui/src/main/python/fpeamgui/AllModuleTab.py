@@ -119,6 +119,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelModules.setText("Select Modules")
         self.labelModules.setFixedHeight(30)
         self.labelModules.setObjectName("subTitleLabels")
+        self.labelModules.setStyleSheet("color: #000000;")
         self.checkBoxMoves = QCheckBox("MOVES")
         self.checkBoxMoves.setFixedWidth(120)
         self.checkBoxMoves.setFixedHeight(30)
@@ -192,11 +193,13 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelCustomDatafileFPEAMExpand.setFixedHeight(30)
         self.labelCustomDatafileFPEAMExpand.setFixedWidth(30)
         self.labelCustomDatafileFPEAMExpand.setObjectName("expandCollapseIcon")
-        self.labelCustomDatafileFPEAMExpand.setText(u'\u25B2')
+        self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
+        #self.labelCustomDatafileFPEAMExpand.setText(u'\u25B2')
         self.windowLayout.addWidget(self.labelCustomDatafileFPEAMExpand, 7, 5)
 
         self.customDatafileFPEAMexpandWidget = QtWidgets.QWidget()
-        self.customDatafileFPEAMexpandWidget.setStyleSheet("border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+        self.customDatafileFPEAMexpandWidget.setStyleSheet("border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.customDatafileFPEAMGridLayout = QtWidgets.QGridLayout()
         self.customDatafileFPEAMexpandWidget.setLayout(self.customDatafileFPEAMGridLayout)
         self.customDatafileFPEAMexpandWidget.setVisible(False)
@@ -204,10 +207,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileFPEAMOnClickEvent():
             if self.customDatafileFPEAMexpandWidget.isVisible():
-                self.labelCustomDatafileFPEAMExpand.setText(u'\u25B2')
+                #self.labelCustomDatafileFPEAMExpand.setText(u'\u25B2')
+                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
+                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(40, 40))
                 self.customDatafileFPEAMexpandWidget.setVisible(False)
             else:
-                self.labelCustomDatafileFPEAMExpand.setText(u'\u25BC')
+                #self.labelCustomDatafileFPEAMExpand.setText(u'\u25BC')
+                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
+                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(40, 40))
                 self.customDatafileFPEAMexpandWidget.setVisible(True)
 
         self.labelCustomDatafileFPEAMExpand.clicked.connect(labelCustomDatafileFPEAMOnClickEvent)
@@ -315,12 +322,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsFPEAMExpand.setFixedHeight(30)
         self.labelAdvOptionsFPEAMExpand.setFixedWidth(30)
         self.labelAdvOptionsFPEAMExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsFPEAMExpand.setText(u'\u25B2')
+        #elf.labelAdvOptionsFPEAMExpand.setText(u'\u25B2')
+        self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(36, 40))
+        self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsFPEAMExpand, 13, 5)
 
         self.advOptionsFPEAMexpandWidget = QtWidgets.QWidget()
         self.advOptionsFPEAMexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;outline-style: solid; outline-color:black;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;outline-style: solid; outline-color:black;border-radius: 5px;")
         self.advOptionsFPEAMGridLayout = QtWidgets.QGridLayout()
         self.advOptionsFPEAMexpandWidget.setLayout(self.advOptionsFPEAMGridLayout)
         self.advOptionsFPEAMexpandWidget.setVisible(False)
@@ -328,10 +337,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsFPEAMOnClickEvent():
             if self.advOptionsFPEAMexpandWidget.isVisible():
-                self.labelAdvOptionsFPEAMExpand.setText(u'\u25B2')
+                #self.labelAdvOptionsFPEAMExpand.setText(u'\u25B2')
+                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(36, 40))
+                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.advOptionsFPEAMexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsFPEAMExpand.setText(u'\u25BC')
+                #self.labelAdvOptionsFPEAMExpand.setText(u'\u25BC')
+                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(36, 40))
+                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.advOptionsFPEAMexpandWidget.setVisible(True)
 
         self.labelAdvOptionsFPEAMExpand.clicked.connect(labelAdvOptionsFPEAMOnClickEvent)
@@ -747,12 +760,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labeldbConnectionsMOVESExpand.setFixedHeight(30)
         self.labeldbConnectionsMOVESExpand.setFixedWidth(30)
         self.labeldbConnectionsMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labeldbConnectionsMOVESExpand.setText(u'\u25B2')
+        #self.labeldbConnectionsMOVESExpand.setText(u'\u25B2')
+        self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labeldbConnectionsMOVESExpand, 7, 4)
 
         self.dbConnectionsMOVESexpandWidget = QtWidgets.QWidget()
         self.dbConnectionsMOVESexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.dbConnectionsMOVESGridLayout = QtWidgets.QGridLayout()
         self.dbConnectionsMOVESexpandWidget.setLayout(self.dbConnectionsMOVESGridLayout)
         self.dbConnectionsMOVESexpandWidget.setVisible(False)
@@ -760,10 +775,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelDbConnectionsMOVESOnClickEvent():
             if self.dbConnectionsMOVESexpandWidget.isVisible():
-                self.labeldbConnectionsMOVESExpand.setText(u'\u25B2')
+                #self.labeldbConnectionsMOVESExpand.setText(u'\u25B2')
+                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.dbConnectionsMOVESexpandWidget.setVisible(False)
             else:
-                self.labeldbConnectionsMOVESExpand.setText(u'\u25BC')
+                #self.labeldbConnectionsMOVESExpand.setText(u'\u25BC')
+                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.dbConnectionsMOVESexpandWidget.setVisible(True)
 
         self.labeldbConnectionsMOVESExpand.clicked.connect(labelDbConnectionsMOVESOnClickEvent)
@@ -863,12 +882,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTimeframeMOVESExpand.setFixedHeight(30)
         self.labelTimeframeMOVESExpand.setFixedWidth(30)
         self.labelTimeframeMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelTimeframeMOVESExpand.setText(u'\u25B2')
+        self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
+        #self.labelTimeframeMOVESExpand.setText(u'\u25B2')
         self.windowLayout.addWidget(self.labelTimeframeMOVESExpand, 11, 4)
 
         self.timeframeMOVESexpandWidget = QtWidgets.QWidget()
         self.timeframeMOVESexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.timeframeMOVESGridLayout = QtWidgets.QGridLayout()
         self.timeframeMOVESexpandWidget.setLayout(self.timeframeMOVESGridLayout)
         self.timeframeMOVESexpandWidget.setVisible(False)
@@ -876,10 +897,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelTimeframeMOVESOnClickEvent():
             if self.timeframeMOVESexpandWidget.isVisible():
-                self.labelTimeframeMOVESExpand.setText(u'\u25B2')
+                #self.labelTimeframeMOVESExpand.setText(u'\u25B2')
+                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.timeframeMOVESexpandWidget.setVisible(False)
             else:
-                self.labelTimeframeMOVESExpand.setText(u'\u25BC')
+                #self.labelTimeframeMOVESExpand.setText(u'\u25BC')
+                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.timeframeMOVESexpandWidget.setVisible(True)
 
         self.labelTimeframeMOVESExpand.clicked.connect(labelTimeframeMOVESOnClickEvent)
@@ -1050,12 +1075,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelCustomDatafileMOVESExpand.setFixedHeight(30)
         self.labelCustomDatafileMOVESExpand.setFixedWidth(30)
         self.labelCustomDatafileMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelCustomDatafileMOVESExpand.setText(u'\u25B2')
+        #self.labelCustomDatafileMOVESExpand.setText(u'\u25B2')
+        self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelCustomDatafileMOVESExpand, 17, 4)
 
         self.customDatafileMOVESexpandWidget = QtWidgets.QWidget()
         self.customDatafileMOVESexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.customDatafileMOVESGridLayout = QtWidgets.QGridLayout()
         self.customDatafileMOVESexpandWidget.setLayout(self.customDatafileMOVESGridLayout)
         self.customDatafileMOVESexpandWidget.setVisible(False)
@@ -1063,10 +1090,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileMOVESOnClickEvent():
             if self.customDatafileMOVESexpandWidget.isVisible():
-                self.labelCustomDatafileMOVESExpand.setText(u'\u25B2')
+                #self.labelCustomDatafileMOVESExpand.setText(u'\u25B2')
+                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.customDatafileMOVESexpandWidget.setVisible(False)
             else:
-                self.labelCustomDatafileMOVESExpand.setText(u'\u25BC')
+                #self.labelCustomDatafileMOVESExpand.setText(u'\u25BC')
+                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.customDatafileMOVESexpandWidget.setVisible(True)
 
         self.labelCustomDatafileMOVESExpand.clicked.connect(labelCustomDatafileMOVESOnClickEvent)
@@ -1153,12 +1184,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsMOVESExpand.setFixedHeight(30)
         self.labelAdvOptionsMOVESExpand.setFixedWidth(30)
         self.labelAdvOptionsMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsMOVESExpand.setText(u'\u25B2')
+        #self.labelAdvOptionsMOVESExpand.setText(u'\u25B2')
+        self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsMOVESExpand, 22, 4)
 
         self.advOptionsMOVESexpandWidget = QtWidgets.QWidget()
         self.advOptionsMOVESexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.advOptionsMOVESGridLayout = QtWidgets.QGridLayout()
         self.advOptionsMOVESexpandWidget.setLayout(self.advOptionsMOVESGridLayout)
         self.advOptionsMOVESexpandWidget.setVisible(False)
@@ -1166,10 +1199,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsMOVESOnClickEvent():
             if self.advOptionsMOVESexpandWidget.isVisible():
-                self.labelAdvOptionsMOVESExpand.setText(u'\u25B2')
+                #self.labelAdvOptionsMOVESExpand.setText(u'\u25B2')
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.advOptionsMOVESexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsMOVESExpand.setText(u'\u25BC')
+                #self.labelAdvOptionsMOVESExpand.setText(u'\u25BC')
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.advOptionsMOVESexpandWidget.setVisible(True)
 
         self.labelAdvOptionsMOVESExpand.clicked.connect(labelAdvOptionsMOVESOnClickEvent)
@@ -1253,12 +1290,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelVMTFractionExpand.setFixedHeight(30)
         self.labelVMTFractionExpand.setFixedWidth(30)
         self.labelVMTFractionExpand.setObjectName("expandCollapseIcon")
-        self.labelVMTFractionExpand.setText(u'\u25B2')
+        #self.labelVMTFractionExpand.setText(u'\u25B2')
+        self.labelVMTFractionExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelVMTFractionExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelVMTFractionExpand, 27, 4)
 
         self.vmtexpandWidget = QtWidgets.QWidget()
         self.vmtexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.vmtGridLayout = QtWidgets.QGridLayout()
         self.vmtexpandWidget.setLayout(self.vmtGridLayout)
         self.vmtexpandWidget.setVisible(False)
@@ -1266,10 +1305,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelVMTFractionOnClickEvent():
             if self.vmtexpandWidget.isVisible():
-                self.labelVMTFractionExpand.setText(u'\u25B2')
+                #self.labelVMTFractionExpand.setText(u'\u25B2')
+                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.vmtexpandWidget.setVisible(False)
             else:
-                self.labelVMTFractionExpand.setText(u'\u25BC')
+               # self.labelVMTFractionExpand.setText(u'\u25BC')
+                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.vmtexpandWidget.setVisible(True)
 
         self.labelVMTFractionExpand.clicked.connect(labelVMTFractionOnClickEvent)
@@ -1520,12 +1563,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labeldbConnectionsNONROADExpand.setFixedHeight(30)
         self.labeldbConnectionsNONROADExpand.setFixedWidth(30)
         self.labeldbConnectionsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labeldbConnectionsNONROADExpand.setText(u'\u25B2')
+        #self.labeldbConnectionsNONROADExpand.setText(u'\u25B2')
+        self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labeldbConnectionsNONROADExpand, 4, 4)
 
         self.dbConnectionsNONROADexpandWidget = QtWidgets.QWidget()
         self.dbConnectionsNONROADexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.dbConnectionsNONROADGridLayout = QtWidgets.QGridLayout()
         self.dbConnectionsNONROADexpandWidget.setLayout(self.dbConnectionsNONROADGridLayout)
         self.dbConnectionsNONROADexpandWidget.setVisible(False)
@@ -1533,10 +1578,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelDbConnectionsNONROADOnClickEvent():
             if self.dbConnectionsNONROADexpandWidget.isVisible():
-                self.labeldbConnectionsNONROADExpand.setText(u'\u25B2')
+                #self.labeldbConnectionsNONROADExpand.setText(u'\u25B2')
+                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.dbConnectionsNONROADexpandWidget.setVisible(False)
             else:
-                self.labeldbConnectionsNONROADExpand.setText(u'\u25BC')
+                #self.labeldbConnectionsNONROADExpand.setText(u'\u25BC')
+                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.dbConnectionsNONROADexpandWidget.setVisible(True)
 
         self.labeldbConnectionsNONROADExpand.clicked.connect(labelDbConnectionsNONROADOnClickEvent)
@@ -1636,12 +1685,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelDataLabelsNONROADExpand.setFixedHeight(30)
         self.labelDataLabelsNONROADExpand.setFixedWidth(30)
         self.labelDataLabelsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelDataLabelsNONROADExpand.setText(u'\u25B2')
+        #self.labelDataLabelsNONROADExpand.setText(u'\u25B2')
+        self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelDataLabelsNONROADExpand, 8, 4)
 
         self.dataLabelsNONROADexpandWidget = QtWidgets.QWidget()
         self.dataLabelsNONROADexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.dtaLabelsNONROADGridLayout = QtWidgets.QGridLayout()
         self.dataLabelsNONROADexpandWidget.setLayout(self.dtaLabelsNONROADGridLayout)
         self.dataLabelsNONROADexpandWidget.setVisible(False)
@@ -1649,10 +1700,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelDataLabelsNONROADOnClickEvent():
             if self.dataLabelsNONROADexpandWidget.isVisible():
-                self.labelDataLabelsNONROADExpand.setText(u'\u25B2')
+                #self.labelDataLabelsNONROADExpand.setText(u'\u25B2')
+                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.dataLabelsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelDataLabelsNONROADExpand.setText(u'\u25BC')
+                #self.labelDataLabelsNONROADExpand.setText(u'\u25BC')
+                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.dataLabelsNONROADexpandWidget.setVisible(True)
 
         self.labelDataLabelsNONROADExpand.clicked.connect(labelDataLabelsNONROADOnClickEvent)
@@ -1781,12 +1836,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileNONROADExpand.setFixedHeight(30)
         self.labelcustomDatafileNONROADExpand.setFixedWidth(30)
         self.labelcustomDatafileNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelcustomDatafileNONROADExpand.setText(u'\u25B2')
+        #self.labelcustomDatafileNONROADExpand.setText(u'\u25B2')
+        self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileNONROADExpand, 13, 4)
 
         self.customDatafileNONROADexpandWidget = QtWidgets.QWidget()
         self.customDatafileNONROADexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.customDatafileNONROADGridLayout = QtWidgets.QGridLayout()
         self.customDatafileNONROADexpandWidget.setLayout(self.customDatafileNONROADGridLayout)
         self.customDatafileNONROADexpandWidget.setVisible(False)
@@ -1794,10 +1851,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileNONROADOnClickEvent():
             if self.customDatafileNONROADexpandWidget.isVisible():
-                self.labelcustomDatafileNONROADExpand.setText(u'\u25B2')
+                #self.labelcustomDatafileNONROADExpand.setText(u'\u25B2')
+                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.customDatafileNONROADexpandWidget.setVisible(False)
             else:
-                self.labelcustomDatafileNONROADExpand.setText(u'\u25BC')
+                #self.labelcustomDatafileNONROADExpand.setText(u'\u25BC')
+                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.customDatafileNONROADexpandWidget.setVisible(True)
 
         self.labelcustomDatafileNONROADExpand.clicked.connect(labelCustomDatafileNONROADOnClickEvent)
@@ -1863,12 +1924,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTempNONROADExpand.setFixedHeight(30)
         self.labelTempNONROADExpand.setFixedWidth(30)
         self.labelTempNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelTempNONROADExpand.setText(u'\u25B2')
+        #self.labelTempNONROADExpand.setText(u'\u25B2')
+        self.labelTempNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelTempNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelTempNONROADExpand, 17, 4)
 
         self.tempNONROADexpandWidget = QtWidgets.QWidget()
         self.tempNONROADexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.tempNONROADGridLayout = QtWidgets.QGridLayout()
         self.tempNONROADexpandWidget.setLayout(self.tempNONROADGridLayout)
         self.tempNONROADexpandWidget.setVisible(False)
@@ -1876,10 +1939,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelTempNONROADOnClickEvent():
             if self.tempNONROADexpandWidget.isVisible():
-                self.labelTempNONROADExpand.setText(u'\u25B2')
+                #self.labelTempNONROADExpand.setText(u'\u25B2')
+                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.tempNONROADexpandWidget.setVisible(False)
             else:
-                self.labelTempNONROADExpand.setText(u'\u25BC')
+                #self.labelTempNONROADExpand.setText(u'\u25BC')
+                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.tempNONROADexpandWidget.setVisible(True)
 
         self.labelTempNONROADExpand.clicked.connect(labelTempNONROADOnClickEvent)
@@ -1961,12 +2028,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelConvFactorsNONROADExpand.setFixedHeight(30)
         self.labelConvFactorsNONROADExpand.setFixedWidth(30)
         self.labelConvFactorsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelConvFactorsNONROADExpand.setText(u'\u25B2')
+        #self.labelConvFactorsNONROADExpand.setText(u'\u25B2')
+        self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelConvFactorsNONROADExpand, 21, 4)
 
         self.convFactorsNONROADexpandWidget = QtWidgets.QWidget()
         self.convFactorsNONROADexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.convFactorsNONROADGridLayout = QtWidgets.QGridLayout()
         self.convFactorsNONROADexpandWidget.setLayout(self.convFactorsNONROADGridLayout)
         self.convFactorsNONROADexpandWidget.setVisible(False)
@@ -1974,10 +2043,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelConvFactorsNONROADOnClickEvent():
             if self.convFactorsNONROADexpandWidget.isVisible():
-                self.labelConvFactorsNONROADExpand.setText(u'\u25B2')
+                #self.labelConvFactorsNONROADExpand.setText(u'\u25B2')
+                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.convFactorsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelConvFactorsNONROADExpand.setText(u'\u25BC')
+                #self.labelConvFactorsNONROADExpand.setText(u'\u25BC')
+                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.convFactorsNONROADexpandWidget.setVisible(True)
 
         self.labelConvFactorsNONROADExpand.clicked.connect(labelConvFactorsNONROADOnClickEvent)
@@ -2081,12 +2154,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsNONROADExpand.setFixedHeight(30)
         self.labelAdvOptionsNONROADExpand.setFixedWidth(30)
         self.labelAdvOptionsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsNONROADExpand.setText(u'\u25B2')
+        #self.labelAdvOptionsNONROADExpand.setText(u'\u25B2')
+        self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(36, 40))
+        self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsNONROADExpand, 25, 4)
 
         self.advOptionsNONROADexpandWidget = QtWidgets.QWidget()
         self.advOptionsNONROADexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.advOptionsNONROADGridLayout = QtWidgets.QGridLayout()
         self.advOptionsNONROADexpandWidget.setLayout(self.advOptionsNONROADGridLayout)
         self.advOptionsNONROADexpandWidget.setVisible(False)
@@ -2094,10 +2169,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsNONROADOnClickEvent():
             if self.advOptionsNONROADexpandWidget.isVisible():
-                self.labelAdvOptionsNONROADExpand.setText(u'\u25B2')
+                #self.labelAdvOptionsNONROADExpand.setText(u'\u25B2')
+                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(36, 40))
+                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.advOptionsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsNONROADExpand.setText(u'\u25BC')
+                #self.labelAdvOptionsNONROADExpand.setText(u'\u25BC')
+                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(36, 40))
+                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.advOptionsNONROADexpandWidget.setVisible(True)
 
         self.labelAdvOptionsNONROADExpand.clicked.connect(labelAdvOptionsNONROADOnClickEvent)
@@ -2299,12 +2378,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileEFExpand.setFixedHeight(30)
         self.labelcustomDatafileEFExpand.setFixedWidth(30)
         self.labelcustomDatafileEFExpand.setObjectName("expandCollapseIcon")
-        self.labelcustomDatafileEFExpand.setText(u'\u25B2')
+        #self.labelcustomDatafileEFExpand.setText(u'\u25B2')
+        self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileEFExpand, 3, 4)
 
         self.customDatafileEFexpandWidget = QtWidgets.QWidget()
         self.customDatafileEFexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.customDatafileEFGridLayout = QtWidgets.QGridLayout()
         self.customDatafileEFexpandWidget.setLayout(self.customDatafileEFGridLayout)
         self.customDatafileEFexpandWidget.setVisible(False)
@@ -2312,10 +2393,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileEFOnClickEvent():
             if self.customDatafileEFexpandWidget.isVisible():
-                self.labelcustomDatafileEFExpand.setText(u'\u25B2')
+                #self.labelcustomDatafileEFExpand.setText(u'\u25B2')
+                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.customDatafileEFexpandWidget.setVisible(False)
             else:
-                self.labelcustomDatafileEFExpand.setText(u'\u25BC')
+                #self.labelcustomDatafileEFExpand.setText(u'\u25BC')
+                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.customDatafileEFexpandWidget.setVisible(True)
 
         self.labelcustomDatafileEFExpand.clicked.connect(labelCustomDatafileEFOnClickEvent)
@@ -2559,12 +2644,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileFDExpand.setFixedHeight(30)
         self.labelcustomDatafileFDExpand.setFixedWidth(30)
         self.labelcustomDatafileFDExpand.setObjectName("expandCollapseIcon")
-        self.labelcustomDatafileFDExpand.setText(u'\u25B2')
+        #self.labelcustomDatafileFDExpand.setText(u'\u25B2')
+        self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(40, 40))
+        self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileFDExpand, 3, 4)
 
         self.customDatafileFDexpandWidget = QtWidgets.QWidget()
         self.customDatafileFDexpandWidget.setStyleSheet(
-            "border-color: black; border-style: outset; border-width: 2px;border-radius: 5px;")
+            "border-color: #028ACC; border-style: outset; border-width: 1px;border-radius: 5px;")
         self.customDatafileFDGridLayout = QtWidgets.QGridLayout()
         self.customDatafileFDexpandWidget.setLayout(self.customDatafileFDGridLayout)
         self.customDatafileFDexpandWidget.setVisible(False)
@@ -2572,10 +2659,14 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileFDOnClickEvent():
             if self.customDatafileFDexpandWidget.isVisible():
-                self.labelcustomDatafileFDExpand.setText(u'\u25B2')
+                #self.labelcustomDatafileFDExpand.setText(u'\u25B2')
+                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.customDatafileFDexpandWidget.setVisible(False)
             else:
-                self.labelcustomDatafileFDExpand.setText(u'\u25BC')
+                #self.labelcustomDatafileFDExpand.setText(u'\u25BC')
+                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(40, 40))
+                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.customDatafileFDexpandWidget.setVisible(True)
 
         self.labelcustomDatafileFDExpand.clicked.connect(labelCustomDatafileFDOnClickEvent)
@@ -3324,7 +3415,6 @@ class AlltabsModule(QtWidgets.QWidget):
 
         OtherWindow.setObjectName("OtherWindow")
         self.centralwidget = QtWidgets.QTabWidget(OtherWindow)
-        self.centralwidget.setStyleSheet("background-color: #oooooo")
         OtherWindow.setCentralWidget(self.centralwidget)
         self.centralwidget.setObjectName("centralwidget")
         font = QtGui.QFont()
@@ -3460,14 +3550,14 @@ if __name__ == "__main__":
     QLabel#allLabels {
         width: 160px;
         height: 30px;
-        background: #C6CDD1;
+        background: #ffffff;
         border: 1px solid #495965;
         box-sizing: border-box;
         box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
         border-radius: 5px;
         font-family: Roboto;
         font-style: normal;
-        font-weight: normal;
+        font-weight: bold;
         font-size: 13px;
         line-height: 16px;
         display: flex;
@@ -3485,7 +3575,7 @@ if __name__ == "__main__":
         display: flex;
         align-items: center;
         text-align: center;
-        color: #000000;
+        color: #028ACC;
         
     }
 
@@ -3498,7 +3588,7 @@ if __name__ == "__main__":
         display: flex;
         align-items: center;
         text-align: center;        
-        color: #000000;
+        color: #028ACC;
     }
 
     QCheckBox {
