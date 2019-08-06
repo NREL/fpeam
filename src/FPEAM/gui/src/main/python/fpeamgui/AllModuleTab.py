@@ -3373,7 +3373,7 @@ class AlltabsModule(QtWidgets.QWidget):
         #self.plainTextLog.setVisible(False)
         self.plainTextLog.setPlainText("")
         self.plainTextLog.setReadOnly(True)
-        self.plainTextLog.setFixedHeight(100)
+        self.plainTextLog.setFixedHeight(200)
         windowLayoutResult.addWidget(self.plainTextLog, 0, 0, 1 , 4)
 
         self.labelMOVESGraph = QLabel()
@@ -3407,7 +3407,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.progressBar.setVisible(False)
         #self.progressBar.setBarStyle(QRoundProgressBar.BarStyle.DONUT)
         #self.completed = 0
-        windowLayoutResult.addWidget(self.progressBar, 0, 0)
+        windowLayoutResult.addWidget(self.progressBar, 2, 0)
 
         #########################################################################################################################
 
