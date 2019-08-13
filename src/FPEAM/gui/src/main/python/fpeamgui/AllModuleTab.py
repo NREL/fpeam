@@ -40,40 +40,41 @@ HEIGHT = 600
 
 class AlltabsModule(QtWidgets.QWidget):
 
+    # Function to adjust all tab's position
     def getSpacedNames(self, name, leftSpaces=16, rightSpaces=16):
         halfNameLen = int(len(name) / 2)
         return "".join([" "] * (leftSpaces - halfNameLen)) + name + "".join([" "] * (rightSpaces - halfNameLen))
 
+    # Function to set UI for HOME Page
     def setupUIHomePage(self):
         # Home Page tab created
-        self.tabHome = QtWidgets.QWidget()
-        self.tabHome.setWindowTitle("HOME")
+        tabHome = QtWidgets.QWidget()
+        tabHome.setWindowTitle("HOME")
         # Home Page tab added
-        self.centralwidget.addTab(self.tabHome, self.getSpacedNames("Home"))
+        self.centralwidget.addTab(tabHome, self.getSpacedNames("Home"))
 
         # Home Page code start
         self.windowLayout = QGridLayout()
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(5, 1)
 
-        self.scrollAreaFPEAM = QScrollArea(self.tabHome)
+        #Add Scrollbar to HOME Page
+        self.scrollAreaFPEAM = QScrollArea(tabHome)
         self.scrollAreaFPEAM.setWidgetResizable(True)
         self.scrollAreaFPEAM.resize(WIDTH, HEIGHT)
         self.scrollAreaFPEAM.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.scrollAreaFPEAM.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-
         self.innerWidgetFPEAM = QtWidgets.QWidget()
         self.innerWidgetFPEAM.resize(WIDTH, HEIGHT)
         self.scrollAreaFPEAM.setWidget(self.innerWidgetFPEAM)
         self.innerWidgetFPEAM.setLayout(self.windowLayout)
 
-        # Empty label
+        # Add Vertical Space at the top
         emptyLabelTop = QLabel()
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
-
-        # Created UI element Scenario Name
+        # Create UI element Scenario Name HOME Page
         self.labelScenaName = QLabel()
         self.labelScenaName.setText("Scenario Name")
         self.labelScenaName.setToolTip("Enter the Scenario Name")
@@ -90,12 +91,12 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelScenaName, 2, 0)
         self.windowLayout.addWidget(self.lineEditScenaName, 2, 1, 1, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         self.windowLayout.addWidget(emptyLabelE, 3, 0, 1, 5)
 
-        # UI element - Project Path
+        # UI element - Project Path - HOME Page
         self.labelProjPath = QLabel()
         self.labelProjPath.setText("Project Path")
         self.labelProjPath.setObjectName("allLabels")
@@ -114,12 +115,12 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.browseBtn, 4, 1)
         self.windowLayout.addWidget(self.lineEditProjectPath, 4, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         self.windowLayout.addWidget(emptyLabelE, 5, 0, 1, 5)
 
-        # Created UI element Module Selection
+        # Created UI element Module Selection - HOME Page
         self.labelModules = QLabel()
         self.labelModules.setText("Select Modules")
         self.labelModules.setObjectName("allLabels")
@@ -153,20 +154,20 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.checkBoxEmissionFactors, 6, 3)
         self.windowLayout.addWidget(self.checkBoxFugitiveDust, 6, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(20)
         self.windowLayout.addWidget(emptyLabelE, 7, 0, 1, 5)
 
-        # Created UI element Reset Button
+        # Created UI element Reset Button - HOME Page
         self.resetBtn = QPushButton("Reset", self)
         self.resetBtn.setFixedHeight(40)
         self.resetBtn.setFixedWidth(152)
         self.resetBtn.setObjectName("resetRunBtn")
-        self.resetBtn.clicked.connect(self.rresetFields)
+        self.resetBtn.clicked.connect(self.resetFields)
         self.windowLayout.addWidget(self.resetBtn, 8, 3)
 
-        # Created UI element Run Button
+        # Created UI element Run Button - HOME Page
         self.runBtn = QPushButton("Run", self)
         self.runBtn.setFixedWidth(152)
         self.runBtn.setFixedHeight(40)
@@ -175,19 +176,19 @@ class AlltabsModule(QtWidgets.QWidget):
         self.runBtn.clicked.connect(self.runTheSelectedModules)
         self.windowLayout.addWidget(self.runBtn, 8, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(20)
         self.windowLayout.addWidget(emptyLabelE, 9, 0, 1, 5)
 
-        # Custom Data Filepaths Label
+        # Custom Data Filepaths Label - HOME Page
         self.customDataFilepathsLabel = QLabel()
         self.customDataFilepathsLabel.setText("Custom Data Filepaths")
         self.customDataFilepathsLabel.setFixedHeight(30)
         self.customDataFilepathsLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.customDataFilepathsLabel, 10, 0, 1, 6)
 
-        # Created UI element - Custom Dtatfiles below Line
+        # Custom Dtatfiles below Line - HOME PAge
         self.labelCustomDatafilsLine = QLabel()
         pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(15)
@@ -196,14 +197,13 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelCustomDatafilsLine, 11, 0, 1, 6)
 
         # Expand/Collapse code
-        # Created UI element Custom Data Filepaths FPEAM
+        # Custom Data Filepaths FPEAM - HOME Page
         self.labelCustomDatafileFPEAMExpand = QPushButton()
         self.labelCustomDatafileFPEAMExpand.setFixedHeight(30)
         self.labelCustomDatafileFPEAMExpand.setFixedWidth(30)
         self.labelCustomDatafileFPEAMExpand.setObjectName("expandCollapseIcon")
         self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(40, 40))
         self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
-        # self.labelCustomDatafileFPEAMExpand.setText(u'\u25B2')
         self.windowLayout.addWidget(self.labelCustomDatafileFPEAMExpand, 10, 5)
 
         self.customDatafileFPEAMexpandWidget = QtWidgets.QWidget()
@@ -216,25 +216,23 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileFPEAMOnClickEvent():
             if self.customDatafileFPEAMexpandWidget.isVisible():
-                # self.labelCustomDatafileFPEAMExpand.setText(u'\u25B2')
                 self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
                 self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(40, 40))
                 self.customDatafileFPEAMexpandWidget.setVisible(False)
             else:
-                # self.labelCustomDatafileFPEAMExpand.setText(u'\u25BC')
                 self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('downWardArrow.png'))
                 self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(40, 40))
                 self.customDatafileFPEAMexpandWidget.setVisible(True)
 
         self.labelCustomDatafileFPEAMExpand.clicked.connect(labelCustomDatafileFPEAMOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(15)
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 0, 0, 1, 5)
 
-        # UI element - Equipment
+        # UI element - Equipment - HOME
         self.labelEq = QLabel()
         self.labelEq.setObjectName("allLabels")
         self.labelEq.setStyleSheet(" border: 1px solid #000000; ")
@@ -257,13 +255,13 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnEq, 1, 1)
         self.customDatafileFPEAMGridLayout.addWidget(self.lineEditEq, 1, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(15)
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 2, 0, 1, 5)
 
-        # UI element - Production
+        # UI element - Production - HOME
         self.labelProd = QLabel()
         self.labelProd.setObjectName("allLabels")
         self.labelProd.setStyleSheet(" border: 1px solid #000000; ")
@@ -286,13 +284,13 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnProd, 3, 1)
         self.customDatafileFPEAMGridLayout.addWidget(self.lineEditProd, 3, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(15)
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 4, 0, 1, 5)
 
-        # Feedstock Loss Factors
+        # Feedstock Loss Factors - HOME
         self.labelFedLossFact = QLabel()
         self.labelFedLossFact.setObjectName("allLabels")
         self.labelFedLossFact.setAlignment(QtCore.Qt.AlignCenter)
@@ -315,13 +313,13 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnFLoss, 5, 1)
         self.customDatafileFPEAMGridLayout.addWidget(self.lineEditFedLossFact, 5, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(15)
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 6, 0, 1, 5)
 
-        # Transportation graph
+        # Transportation graph - HOME
         self.labelTransGraph = QLabel()
         self.labelTransGraph.setObjectName("allLabels")
         self.labelTransGraph.setStyleSheet(" border: 1px solid #000000; ")
@@ -344,20 +342,20 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnTransGr, 7, 1)
         self.customDatafileFPEAMGridLayout.addWidget(self.lineEditTransGraph, 7, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(15)
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 8, 0, 1, 5)
 
-        # Advanced Options Label
+        # Advanced Options Label - HOME
         self.advOptionsLabel = QLabel()
         self.advOptionsLabel.setText("Advanced Options")
         self.advOptionsLabel.setFixedHeight(30)
         self.advOptionsLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.advOptionsLabel, 18, 0, 1, 6)
 
-        # Created UI element - Advanced Optiones below Line
+        # Advanced Optiones below Line
         self.labelAdvOptionsLine = QLabel()
         pixmapLine2 = QPixmap('line.png')
         pixmap2 = pixmapLine2.scaledToHeight(15)
@@ -366,13 +364,12 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelAdvOptionsLine, 19, 0, 1, 6)
 
         # Expand/Collapse code
-        # Created UI element Advanced Options FPEAM
+        # Advanced Options FPEAM - HOME
         self.labelAdvOptionsFPEAMExpand = QPushButton()
         self.labelAdvOptionsFPEAMExpand.setStyleSheet("QPushButton { text-align : right}")
         self.labelAdvOptionsFPEAMExpand.setFixedHeight(30)
         self.labelAdvOptionsFPEAMExpand.setFixedWidth(30)
         self.labelAdvOptionsFPEAMExpand.setObjectName("expandCollapseIcon")
-        # elf.labelAdvOptionsFPEAMExpand.setText(u'\u25B2')
         self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(36, 40))
         self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsFPEAMExpand, 18, 5)
@@ -399,13 +396,13 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelAdvOptionsFPEAMExpand.clicked.connect(labelAdvOptionsFPEAMOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(15)
         emptyLabelE.setStyleSheet("border: white")
         self.advOptionsFPEAMGridLayout.addWidget(emptyLabelE, 0, 0, 1, 5)
 
-        # Ui Element - Logging Verbosity Level
+        # Ui Element - Logging Verbosity Level - HOME
         self.labelLoggVerboLevel = QLabel()
         self.labelLoggVerboLevel.setObjectName("allLabels")
         self.labelLoggVerboLevel.setStyleSheet(" border: 1px solid #000000; ")
@@ -440,7 +437,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText3.setFixedHeight(30)
         self.advOptionsFPEAMGridLayout.addWidget(self.emptyPlainText3, 1, 1)
 
-        # UI element  -  Router Engine
+        # UI element  -  Router Engine - HOME
         self.labelRE = QLabel()
         self.labelRE.setObjectName("allLabels")
         self.labelRE.setStyleSheet(" border: 1px solid #000000; ")
@@ -473,7 +470,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText2.setFixedHeight(30)
         self.advOptionsFPEAMGridLayout.addWidget(self.emptyPlainText2, 1, 3)
 
-        # UI element -  Backfill Flag
+        # UI element -  Backfill Flag - HOME
         self.labelBF = QLabel()
         self.labelBF.setObjectName("allLabels")
         self.labelBF.setFixedHeight(30)
@@ -499,13 +496,13 @@ class AlltabsModule(QtWidgets.QWidget):
         self.advOptionsFPEAMGridLayout.addWidget(self.labelBF, 1, 4)
         self.advOptionsFPEAMGridLayout.addWidget(self.comboBoxBF, 2, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(15)
         emptyLabelE.setStyleSheet("border: white")
         self.advOptionsFPEAMGridLayout.addWidget(emptyLabelE, 3, 0, 1, 5)
 
-
+        # Add space to adjust position of the elements
         # Add Empty PlainText
         self.emptyPlainText10 = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText10, 21, 0)
@@ -554,8 +551,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText1 = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText1, 32, 0)
 
-    # Checkbox - MOves Module - Checked
-
+    # Checkbox - MOVES Module - Checked
     def onStateChangedMoves(self, state1):
         if state1 == self.checkBoxMoves.isChecked():
             self.centralwidget.setTabEnabled(1, False)
@@ -563,8 +559,7 @@ class AlltabsModule(QtWidgets.QWidget):
         else:
             self.centralwidget.setTabEnabled(1, True)
 
-    # Checkbox - Nonroad Module- Checked
-
+    # Checkbox - NONROAD Module- Checked
     def onStateChangedNonroad(self, state2):
 
         if state2 == self.checkBoxNonroad.isChecked():
@@ -573,7 +568,6 @@ class AlltabsModule(QtWidgets.QWidget):
             self.centralwidget.setTabEnabled(2, True)
 
     # Checkbox - Emission Factors Module- Checked
-
     def onStateChangedEmissionFactors(self, state3):
 
         if state3 == self.checkBoxEmissionFactors.isChecked():
@@ -582,28 +576,21 @@ class AlltabsModule(QtWidgets.QWidget):
             self.centralwidget.setTabEnabled(3, True)
 
     # Checkbox - Fugitive Dust Module- Checked
-
     def onStateChangedFugitiveDust(self, state4):
         if state4 == self.checkBoxFugitiveDust.isChecked():
             self.centralwidget.setTabEnabled(4, False)
         else:
             self.centralwidget.setTabEnabled(4, True)
 
-    # Project Path
+    # Get Project Path
     def getfiles(self):
         fileName = QFileDialog.getExistingDirectory(self, "Browse")
         if fileName != "":
             selectedFileName = str(fileName).split(',')
             self.lineEditProjectPath.setText(selectedFileName[0])
-        else:
-            pass
 
-    # Logging Verbosity Level
-    def selectionchangecombo(self):
-        self.comboBoxVerbosityLevel.currentText()
 
     # Equipment
-
     def getfilesEq(self):
         fileNameEq = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
         if fileNameEq[0] != "":
@@ -611,7 +598,6 @@ class AlltabsModule(QtWidgets.QWidget):
             self.lineEditEq.setText(selectedFileNameEq[1])
 
     # Production
-
     def getfilesProd(self):
         fileNameProd = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
         if fileNameProd[0] != "":
@@ -619,7 +605,6 @@ class AlltabsModule(QtWidgets.QWidget):
             self.lineEditProd.setText(selectedFileNameProd[1])
 
     # Feedstock Loss Factors
-
     def getfilesFLoss(self):
         fileNameFLoss = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
         if fileNameFLoss[0] != "":
@@ -627,7 +612,6 @@ class AlltabsModule(QtWidgets.QWidget):
             self.lineEditFedLossFact.setText(selectedFileNameFLoss[1])
 
     # Transportation graph
-
     def getfilesTransGr(self):
         fileNameTransGr = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
         if fileNameTransGr[0] != "":
@@ -638,35 +622,34 @@ class AlltabsModule(QtWidgets.QWidget):
 
     def setupUIMoves(self):
 
-        # Moves code start
+        # MOVES code start
         self.windowLayout = QGridLayout()
         self.windowLayout.setSpacing(15)
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(6, 1)
 
-        # MOves tab created
+        # MOVES tab created
         self.tabMoves = QtWidgets.QWidget()
         # Moves tab added
         self.centralwidget.addTab(self.tabMoves, self.getSpacedNames("MOVES"))
 
+        #Add Scrollbar to MOVES tab
         self.scrollAreaMOVES = QScrollArea(self.tabMoves)
         self.scrollAreaMOVES.setWidgetResizable(True)
         self.scrollAreaMOVES.resize(WIDTH, HEIGHT)
         self.scrollAreaMOVES.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.scrollAreaMOVES.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-
         self.innerWidgetMOVES = QtWidgets.QWidget()
         self.innerWidgetMOVES.resize(WIDTH, HEIGHT)
         self.scrollAreaMOVES.setWidget(self.innerWidgetMOVES)
         self.innerWidgetMOVES.setLayout(self.windowLayout)
 
-        # Empty label
+        # Add Vertical space at the top
         emptyLabelTop = QLabel()
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
-
-        # Created UI element Aggregation Level
+        # Created UI element Aggregation Level - MOVES
         self.labelAggLevel = QLabel()
         self.labelAggLevel.setText("Aggregation Level")
         self.labelAggLevel.setObjectName("allLabels")
@@ -826,7 +809,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labeldbConnectionsMOVESExpand.clicked.connect(labelDbConnectionsMOVESOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -879,7 +862,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsMOVESGridLayout.addWidget(self.labelDbUsername, 1, 3)
         self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditDbUsername, 1, 4)
 
-        ## Empty label
+        ## Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -930,7 +913,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsMOVESGridLayout.addWidget(self.labelDbPwd, 3, 3)
         self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditDbPwd, 3, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -984,7 +967,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelTimeframeMOVESExpand.clicked.connect(labelTimeframeMOVESOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1023,7 +1006,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.timeframeMOVESGridLayout.addWidget(self.labelYearErrorMsg, 1, 2, 1, 3)
         self.comboBoxYear.currentIndexChanged.connect(self.handleItemPressed)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1086,7 +1069,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.timeframeMOVESGridLayout.addWidget(self.labelDate, 3, 3)
         self.timeframeMOVESGridLayout.addWidget(self.comboBoxDate, 3, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1149,7 +1132,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.timeframeMOVESGridLayout.addWidget(self.labelEndHr, 5, 3)
         self.timeframeMOVESGridLayout.addWidget(self.comboBoxEndHr, 5, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1179,7 +1162,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.timeframeMOVESGridLayout.addWidget(self.labelDayType, 7, 0)
         self.timeframeMOVESGridLayout.addWidget(self.comboBoxDayType, 7, 1)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1233,7 +1216,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelCustomDatafileMOVESExpand.clicked.connect(labelCustomDatafileMOVESOnClickEvent)
 
-        # Empty label
+        #Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1263,7 +1246,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileMOVESGridLayout.addWidget(self.browseBtnTruckCapa, 1, 1)
         self.customDatafileMOVESGridLayout.addWidget(self.lineEditTruckCapa, 1, 2, 1, 3)
 
-        # Empty label
+        #Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1292,7 +1275,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileMOVESGridLayout.addWidget(self.browseBtnAVFT, 3, 1)
         self.customDatafileMOVESGridLayout.addWidget(self.lineEditAVFT, 3, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1321,7 +1304,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileMOVESGridLayout.addWidget(self.browseBtnFips, 5, 1)
         self.customDatafileMOVESGridLayout.addWidget(self.lineEditFips, 5, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1375,7 +1358,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelAdvOptionsMOVESExpand.clicked.connect(labelAdvOptionsMOVESOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1430,7 +1413,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.advOptionsMOVESGridLayout.addWidget(self.labelVMTperTruck, 1, 3)
         self.advOptionsMOVESGridLayout.addWidget(self.lineEditVMTperTruck, 1, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1453,7 +1436,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.vMTFractionLine, 28, 0, 1, 5)
 
         # Expand/Collapse code
-
         # Created UI element VMT Fractions
         self.labelVMTFractionExpand = QPushButton()
         self.labelVMTFractionExpand.setFixedHeight(30)
@@ -1486,7 +1468,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelVMTFractionExpand.clicked.connect(labelVMTFractionOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1537,7 +1519,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.vmtGridLayout.addWidget(self.labelUrbanRes, 1, 3)
         self.vmtGridLayout.addWidget(self.lineEditUrbanRes, 1, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1589,7 +1571,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.vmtGridLayout.addWidget(self.labelUrbanUnres, 3, 3)
         self.vmtGridLayout.addWidget(self.lineEditUrbanUnres, 3, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1649,35 +1631,35 @@ class AlltabsModule(QtWidgets.QWidget):
         #### Nonroad Module   #####
 
     def setupUINonroad(self):
-        # Nonroad tab created
+        # NONROAD tab created
         self.tabNonroad = QtWidgets.QWidget()
         self.tabNonroad.resize(WIDTH, HEIGHT - 200)
-        # Nonroad tab added
+        # NONROAD tab added
         self.centralwidget.addTab(self.tabNonroad, self.getSpacedNames("NONROAD"))
 
-        # Nonroad code start
+        # NONROAD code start
         self.windowLayout = QGridLayout()
         self.windowLayout.setSpacing(15)
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(6, 1)
 
+        #Add Scrollbar to NONROAD tab
         self.scrollAreaNONROAD = QScrollArea(self.tabNonroad)
         self.scrollAreaNONROAD.setWidgetResizable(True)
         self.scrollAreaNONROAD.resize(WIDTH, HEIGHT)
         self.scrollAreaNONROAD.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.scrollAreaNONROAD.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-
         self.innerWidgetNONROAD = QtWidgets.QWidget()
         self.innerWidgetNONROAD.resize(WIDTH, HEIGHT)
         self.scrollAreaNONROAD.setWidget(self.innerWidgetNONROAD)
         self.innerWidgetNONROAD.setLayout(self.windowLayout)
 
-        # Empty label
+        # Add Vertical spce at the top
         emptyLabelTop = QLabel()
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
-        # Created UI element Nonroad Datafiles
+        # Created UI element NONROAD Datafiles
         self.labelDatafilesNon = QLabel()
         self.labelDatafilesNon.setObjectName("allLabels")
         self.labelDatafilesNon.setFixedHeight(30)
@@ -1697,7 +1679,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.browseBtnDatafilesNon, 2, 1)
         self.windowLayout.addWidget(self.lineEditDatafilesNon, 2, 2, 1, 3)
 
-        # Created UI element Year - Nonroad
+        # Created UI element Year - NONROAD
         self.labelYearNon = QLabel()
         self.labelYearNon.setObjectName("allLabels")
         self.labelYearNon.setFixedHeight(30)
@@ -1776,7 +1758,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labeldbConnectionsNONROADExpand.clicked.connect(labelDbConnectionsNONROADOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1828,7 +1810,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsNONROADGridLayout.addWidget(self.labelDbUsernameN, 1, 3)
         self.dbConnectionsNONROADGridLayout.addWidget(self.lineEditDbUsernameN, 1, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1879,7 +1861,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsNONROADGridLayout.addWidget(self.labelDbPwdN, 3, 3)
         self.dbConnectionsNONROADGridLayout.addWidget(self.lineEditDbPwdN, 3, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1934,7 +1916,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelDataLabelsNONROADExpand.clicked.connect(labelDataLabelsNONROADOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1990,7 +1972,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dtaLabelsNONROADGridLayout.addWidget(self.labelForestryNamesNon, 1, 3)
         self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditForestryNamesNon, 1, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2046,7 +2028,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dtaLabelsNONROADGridLayout.addWidget(self.labelTimeResNamesNon, 3, 3)
         self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditTimeResNamesNon, 3, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2073,7 +2055,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dtaLabelsNONROADGridLayout.addWidget(self.labelIrrigationFeedNamesNon, 5, 0)
         self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditFeedIrrigNamesNon, 5, 1)
 
-        # Empty label
+        #Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2127,7 +2109,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelcustomDatafileNONROADExpand.clicked.connect(labelCustomDatafileNONROADOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2156,7 +2138,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileNONROADGridLayout.addWidget(self.browseBtnNonIrrig, 1, 1)
         self.customDatafileNONROADGridLayout.addWidget(self.lineEditNonIrrig, 1, 2, 1, 5)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2212,7 +2194,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTempNONROADExpand.setFixedHeight(30)
         self.labelTempNONROADExpand.setFixedWidth(30)
         self.labelTempNONROADExpand.setObjectName("expandCollapseIcon")
-        # self.labelTempNONROADExpand.setText(u'\u25B2')
         self.labelTempNONROADExpand.setIconSize(QtCore.QSize(40, 40))
         self.labelTempNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelTempNONROADExpand, 17, 4)
@@ -2239,7 +2220,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelTempNONROADExpand.clicked.connect(labelTempNONROADOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2290,7 +2271,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.tempNONROADGridLayout.addWidget(self.labelMeanTemp, 1, 3)
         self.tempNONROADGridLayout.addWidget(self.lineEditMeanTemp, 1, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2315,7 +2296,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.tempNONROADGridLayout.addWidget(self.labelMaxTemp, 3, 0)
         self.tempNONROADGridLayout.addWidget(self.lineEditMaxTemp, 3, 1)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2342,7 +2323,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelConvFactorsNONROADExpand.setFixedHeight(30)
         self.labelConvFactorsNONROADExpand.setFixedWidth(30)
         self.labelConvFactorsNONROADExpand.setObjectName("expandCollapseIcon")
-        # self.labelConvFactorsNONROADExpand.setText(u'\u25B2')
         self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(40, 40))
         self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('upWardArrow.png'))
         self.windowLayout.addWidget(self.labelConvFactorsNONROADExpand, 21, 4)
@@ -2369,7 +2349,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelConvFactorsNONROADExpand.clicked.connect(labelConvFactorsNONROADOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2422,7 +2402,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(self.labelHydeo, 1, 3)
         self.convFactorsNONROADGridLayout.addWidget(self.lineEditHydro, 1, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2475,7 +2455,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(self.labelPM10, 3, 3)
         self.convFactorsNONROADGridLayout.addWidget(self.lineEditPM10, 3, 4)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2530,7 +2510,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelAdvOptionsNONROADExpand.clicked.connect(labelAdvOptionsNONROADOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2588,7 +2568,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText2.setFixedHeight(30)
         self.advOptionsNONROADGridLayout.addWidget(self.emptyPlainText2, 1, 5)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2606,7 +2586,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText3 = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText3, 30, 0)
 
-    # CHeck for consistent input for year
+    # Check for consistent input for year
     def handleItemPressed(self, index):
 
         fieldValues = set()
@@ -2720,7 +2700,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelFeedMeasureTypeEF, 2, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeEF, 2, 1)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(20)
         self.windowLayout.addWidget(emptyLabelE, 3, 0, 1, 5)
@@ -2773,7 +2753,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelcustomDatafileEFExpand.clicked.connect(labelCustomDatafileEFOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2802,7 +2782,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileEFGridLayout.addWidget(self.browseBtnEmiFact, 1, 1)
         self.customDatafileEFGridLayout.addWidget(self.lineEditEmiFact, 1, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2831,7 +2811,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileEFGridLayout.addWidget(self.browseBtnReDist, 3, 1)
         self.customDatafileEFGridLayout.addWidget(self.lineEditResDist, 3, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2996,7 +2976,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelFeedMeasureTypeFD, 2, 0)
         self.windowLayout.addWidget(self.lineEditFeedMeasureTypeFD, 2, 1)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(20)
         self.windowLayout.addWidget(emptyLabelE, 3, 0, 1, 5)
@@ -3049,7 +3029,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelcustomDatafileFDExpand.clicked.connect(labelCustomDatafileFDOnClickEvent)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -3078,7 +3058,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFDGridLayout.addWidget(self.browseBtnEmiFactFD, 1, 1)
         self.customDatafileFDGridLayout.addWidget(self.lineEditEmiFactFD, 1, 2, 1, 3)
 
-        # Empty label
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -3181,15 +3161,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText3 = QLabel()
         self.windowLayout.addWidget(self.emptyPlainText3, 30, 0)
 
-    # Functions used for Fugitive Dust
-
+    # Functions used for Fugitive Dust - EMission factor
     def getfilesEmiFactFD(self):
         fileNameTruckCapaFD = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
         if fileNameTruckCapaFD[0] != "":
             selectedFileNameTruckCapaFD = fileNameTruckCapaFD[0].split("FPEAM/")
             self.lineEditEmiFactFD.setText(selectedFileNameTruckCapaFD[1])
 
-    def rresetFields(self):
+    # Reset Button Code
+    def resetFields(self):
 
         self.lineEditScenaName.setStyleSheet("border: 2px solid black;")
         self.lineEditProjectPath.setStyleSheet("border: 2px solid black;")
@@ -3284,7 +3264,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     ###################################################################
 
-    # Run Button
+    # Run Button Code
     def runTheSelectedModules(self):
 
         self.attributeValueObj = AttributeValueStorage()
@@ -3586,7 +3566,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
             runConfigObj = runConfigCreation(tmpFolder, self.attributeValueObj)
 
-            # Display logs in result tab after completion of running
+            # Display logs in result tab after completion of running the respective module
             self.centralwidget.setCurrentWidget(self.tabResult)
 
             threadMOVES = None
@@ -3595,6 +3575,7 @@ class AlltabsModule(QtWidgets.QWidget):
             threadFD = None
             self.centralwidget.setTabEnabled(0, False)
 
+            #Check for MOVES tab
             if self.centralwidget.isTabEnabled(1):
                 self.centralwidget.setTabEnabled(1, False)
                 movesConfigCreationObj = movesConfigCreation(tmpFolder, self.attributeValueObj)
@@ -3602,6 +3583,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 runConfigObj, movesConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
                 threadMOVES.start()
 
+            # Check for NONROAD tab
             if self.centralwidget.isTabEnabled(2):
                 self.centralwidget.setTabEnabled(2, False)
                 nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder, self.attributeValueObj)
@@ -3609,6 +3591,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 runConfigObj, nonroadConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
                 threadNONROAD.start()
 
+            # Check for Emission Factors tab
             if self.centralwidget.isTabEnabled(3):
                 self.centralwidget.setTabEnabled(3, False)
                 emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(tmpFolder, self.attributeValueObj)
@@ -3616,6 +3599,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 runConfigObj, emissionFactorsConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
                 threadEF.start()
 
+            # Check for Fugitive Dust tab
             if self.centralwidget.isTabEnabled(4):
                 self.centralwidget.setTabEnabled(4, False)
                 fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder, self.attributeValueObj)
@@ -3623,6 +3607,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 runConfigObj, fugitiveDustConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
                 threadFD.start()
 
+            # Check which module thread is alive
             while (threadMOVES and threadMOVES.is_alive()) or \
                     (threadNONROAD and threadNONROAD.is_alive()) or \
                     (threadEF and threadEF.is_alive()) or \
@@ -3656,6 +3641,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
     #########################################################################################################################
 
+    # Result Tab Code
     def setupUIResult(self):
         # Result tab created
         self.tabResult = QtWidgets.QWidget()
@@ -3663,27 +3649,28 @@ class AlltabsModule(QtWidgets.QWidget):
         # Result tab added
         self.centralwidget.addTab(self.tabResult, self.getSpacedNames("RESULT", 16, 16))
 
-        # Result code start
+        # Result tab code started
         windowLayoutResult = QGridLayout()
         windowLayoutResult.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         windowLayoutResult.setColumnStretch(6, 1)
 
+        #Add scrollbar to Result tab
         self.scrollAreaResult = QScrollArea(self.tabResult)
         self.scrollAreaResult.setWidgetResizable(True)
         self.scrollAreaResult.resize(WIDTH, HEIGHT)
         self.scrollAreaResult.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.scrollAreaResult.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-
         self.innerWidgetResult = QtWidgets.QWidget()
         self.innerWidgetResult.resize(WIDTH, HEIGHT)
         self.scrollAreaResult.setWidget(self.innerWidgetResult)
         self.innerWidgetResult.setLayout(windowLayoutResult)
 
-        # Empty label
+        # Add vertical space at the top
         emptyLabelTop = QLabel()
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
+        #Created UI element - Display Logs
         self.plainTextLog = QPlainTextEdit()
         self.plainTextLog.setVisible(False)
         self.plainTextLog.setPlainText("")
@@ -3691,6 +3678,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.plainTextLog.setFixedHeight(200)
         windowLayoutResult.addWidget(self.plainTextLog, 1, 0, 1, 5)
 
+        #Addedd other elements for temporory to adjust the position
         self.labelMOVESGraph = QLabel()
         self.labelMOVESGraph.setFixedHeight(300)
         self.labelMOVESGraph.setFixedWidth(400)
@@ -3717,12 +3705,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelFugitivedustGraph.setFixedWidth(400)
         windowLayoutResult.addWidget(self.labelFugitivedustGraph, 3, 2)
 
+        #Created UI element - Progress bar
         self.progressBar = QProgressBar()
         self.progressBar.setVisible(False)
         windowLayoutResult.addWidget(self.progressBar, 3, 0)
 
         #########################################################################################################################
 
+    # Function which calls other function of tabs
     def setupUi(self, OtherWindow):
 
         OtherWindow.setObjectName("OtherWindow")
@@ -3740,7 +3730,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.setupUIFugitiveDust()
         self.setupUIResult()
 
-        ####### ==================================================================
+        #############################################################################################################################
 
 
 class SelectedModuleThreadExecution(QtCore.QThread):
@@ -3757,7 +3747,7 @@ class SelectedModuleThreadExecution(QtCore.QThread):
 
         ############################################################################
 
-
+# Display logs in Result tab
 def logsPrinter(textField, loggerOutputFilePath, doRun):
     with open(loggerOutputFilePath) as f:
         while doRun:
@@ -3768,7 +3758,7 @@ def logsPrinter(textField, loggerOutputFilePath, doRun):
             else:
                 textField.appendPlainText(line)
 
-
+# Run the selected module and categorized logs based on logger level
 def runCommand(runConfigObj, configCreationObj, attributeValueStorageObj, textFieldLog):
     # Generate Logs
     loggerOutputFilePath = time.strftime("%Y%m%d-%H%M%S") + ''.join(
@@ -3821,8 +3811,10 @@ def runCommand(runConfigObj, configCreationObj, attributeValueStorageObj, textFi
 
 ##############################################################################################
 
-
+# Main function
 if __name__ == "__main__":
+
+    # CSS Code
     styleSheet = """
 
     QWidget {
@@ -4150,17 +4142,18 @@ if __name__ == "__main__":
     # OtherWindow.setWindowFlags(QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
     ui = AlltabsModule()
 
+    #Header Code
     headerlabel = QLabel(OtherWindow)
     pixmapLine = QPixmap('header.png')
     pixmap = pixmapLine.scaledToHeight(80)
     headerlabel.setPixmap(pixmap)
     headerlabel.setFixedHeight(55)
-
     header = QDockWidget(OtherWindow)
     header.setFloating(False)
     header.setTitleBarWidget(headerlabel)
     OtherWindow.addDockWidget(QtCore.Qt.TopDockWidgetArea, header)
 
+    #Footer Code
     footerlabel = QLabel(OtherWindow)
     footerlabel.setFixedHeight(105)
     pixmapLine = QPixmap('footer.png')
