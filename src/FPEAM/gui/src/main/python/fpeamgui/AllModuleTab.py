@@ -1,17 +1,9 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'OtherWindow.ui'
-#
-# Created by: PyQt5 UI code generator 5.6
-#
-# WARNING! All changes made in this file will be lost!
-
 import logging
 import os
 import sys, time
 import random, string
 
-from PyQt5 import QtCore, QtGui, QtWidgets, Qt
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QEventLoop, QTimer
 from PyQt5.QtGui import QDoubleValidator, QPixmap
 from PyQt5.QtWidgets import QComboBox, QPushButton, QFileDialog, QPlainTextEdit, \
@@ -30,20 +22,45 @@ from FPEAM.gui.src.main.python.fpeamgui.fugitiveDustConfig import fugitiveDustCo
 import tempfile
 import threading
 
-import matplotlib.pyplot as plt
-
-plt.rcdefaults()
-
 WIDTH = 900
-HEIGHT = 600
+HEIGHT = 650
+
+
+# Provieds resize event to mainWindow
+class Window(QtWidgets.QMainWindow):
+    resized = QtCore.pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(Window, self).__init__(parent=parent)
+        self.resized.connect(self.resizeDependentUiObjects)
+        scrollArea = []
+
+    def setSizeDependency(self, scrollAreaList):
+        self.scrollAreaList = scrollAreaList
+
+    def resizeEvent(self, event):
+        self.resized.emit()
+        return super(Window, self).resizeEvent(event)
+
+    def resizeDependentUiObjects(self):
+        for scrollArea in self.scrollAreaList:
+            scrollArea.resize(self.width(), self.height() - 222)
 
 
 class AlltabsModule(QtWidgets.QWidget):
 
-    # Function to adjust all tab's position
-    def getSpacedNames(self, name, leftSpaces=16, rightSpaces=16):
+    # Function to adjust all tab's position ( Currently disabled.
+    # It can be changed by modifying the default values of leftSpaces and rightSpaces)
+    def getSpacedNames(self, name, leftSpaces=0, rightSpaces=0):
         halfNameLen = int(len(name) / 2)
         return "".join([" "] * (leftSpaces - halfNameLen)) + name + "".join([" "] * (rightSpaces - halfNameLen))
+
+    def createLabel(self, text, width=160, height=30):
+        label = QLabel()
+        label.setText(text)
+        label.setFixedWidth(width)
+        label.setFixedHeight(height)
+        return label
 
     # Function to set UI for HOME Page
     def setupUIHomePage(self):
@@ -58,7 +75,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(5, 1)
 
-        #Add Scrollbar to HOME Page
+        # Add Scrollbar to HOME Page
         self.scrollAreaFPEAM = QScrollArea(tabHome)
         self.scrollAreaFPEAM.setWidgetResizable(True)
         self.scrollAreaFPEAM.resize(WIDTH, HEIGHT)
@@ -75,11 +92,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
         # Create UI element Scenario Name HOME Page
-        self.labelScenaName = QLabel()
-        self.labelScenaName.setText("Scenario Name")
+        self.labelScenaName = self.createLabel(text="Scenario Name")
+        # self.labelScenaName.setText("Scenario Name")
         self.labelScenaName.setToolTip("Enter the Scenario Name")
-        self.labelScenaName.setFixedHeight(30)
-        self.labelScenaName.setFixedWidth(160)
+        # self.labelScenaName.setFixedHeight(30)
+        # self.labelScenaName.setFixedWidth(160)
         self.labelScenaName.setObjectName("allLabels")
         self.labelScenaName.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditScenaName = QLineEdit(self)
@@ -589,7 +606,6 @@ class AlltabsModule(QtWidgets.QWidget):
             selectedFileName = str(fileName).split(',')
             self.lineEditProjectPath.setText(selectedFileName[0])
 
-
     # Equipment
     def getfilesEq(self):
         fileNameEq = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
@@ -633,7 +649,7 @@ class AlltabsModule(QtWidgets.QWidget):
         # Moves tab added
         self.centralwidget.addTab(self.tabMoves, self.getSpacedNames("MOVES"))
 
-        #Add Scrollbar to MOVES tab
+        # Add Scrollbar to MOVES tab
         self.scrollAreaMOVES = QScrollArea(self.tabMoves)
         self.scrollAreaMOVES.setWidgetResizable(True)
         self.scrollAreaMOVES.resize(WIDTH, HEIGHT)
@@ -748,7 +764,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelFeedMeasureType.setAlignment(QtCore.Qt.AlignCenter)
         self.labelFeedMeasureType.setFixedHeight(40)
         self.labelFeedMeasureType.setFixedWidth(165)
-        self.labelFeedMeasureType.setText("Feedstock Measure"+ "\n"+ " Type")
+        self.labelFeedMeasureType.setText("Feedstock Measure" + "\n" + " Type")
         self.labelFeedMeasureType.setToolTip("Enter Feedstock Measure Type Identifier")
         self.lineEditFeedMeasureType = QLineEdit(self)
         self.lineEditFeedMeasureType.setAlignment(QtCore.Qt.AlignCenter)
@@ -842,7 +858,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText2.setFixedWidth(55)
         self.emptyPlainText2.setFixedHeight(30)
         self.dbConnectionsMOVESGridLayout.addWidget(self.emptyPlainText2, 1, 2)
-
 
         # Created UI element Database Username
         self.labelDbUsername = QLabel()
@@ -1216,7 +1231,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         self.labelCustomDatafileMOVESExpand.clicked.connect(labelCustomDatafileMOVESOnClickEvent)
 
-        #Add Vertical Space between the elements
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1246,7 +1261,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileMOVESGridLayout.addWidget(self.browseBtnTruckCapa, 1, 1)
         self.customDatafileMOVESGridLayout.addWidget(self.lineEditTruckCapa, 1, 2, 1, 3)
 
-        #Add Vertical Space between the elements
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -1643,7 +1658,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         self.windowLayout.setColumnStretch(6, 1)
 
-        #Add Scrollbar to NONROAD tab
+        # Add Scrollbar to NONROAD tab
         self.scrollAreaNONROAD = QScrollArea(self.tabNonroad)
         self.scrollAreaNONROAD.setWidgetResizable(True)
         self.scrollAreaNONROAD.resize(WIDTH, HEIGHT)
@@ -1867,7 +1882,6 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.dbConnectionsNONROADGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
 
-
         # Data Label
         self.dataLabel = QLabel()
         self.dataLabel.setText("Data Labels")
@@ -1958,7 +1972,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelForestryNamesNon.setFixedHeight(40)
         self.labelForestryNamesNon.setFixedWidth(175)
         self.labelForestryNamesNon.setAlignment(QtCore.Qt.AlignCenter)
-        self.labelForestryNamesNon.setText("Forestry Feedstock" + "\n" +" Name")
+        self.labelForestryNamesNon.setText("Forestry Feedstock" + "\n" + " Name")
         self.labelForestryNamesNon.setToolTip("Different allocation indicators of forest feedstocks")
         self.lineEditForestryNamesNon = QLineEdit(self)
         self.lineEditForestryNamesNon.setStyleSheet(" border: 1px solid #000000; ")
@@ -2041,7 +2055,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelIrrigationFeedNamesNon.setFixedHeight(40)
         self.labelIrrigationFeedNamesNon.setFixedWidth(175)
         self.labelIrrigationFeedNamesNon.setAlignment(QtCore.Qt.AlignCenter)
-        self.labelIrrigationFeedNamesNon.setText("Irrigation Feedstock" + "\n" +"Name")
+        self.labelIrrigationFeedNamesNon.setText("Irrigation Feedstock" + "\n" + "Name")
         self.labelIrrigationFeedNamesNon.setToolTip("List of irrigated feedstocks")
         self.lineEditFeedIrrigNamesNon = QLineEdit()
         self.lineEditFeedIrrigNamesNon.setStyleSheet(" border: 1px solid #000000; ")
@@ -2055,7 +2069,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dtaLabelsNONROADGridLayout.addWidget(self.labelIrrigationFeedNamesNon, 5, 0)
         self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditFeedIrrigNamesNon, 5, 1)
 
-        #Add Vertical Space between the elements
+        # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
@@ -2362,7 +2376,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelLowHeat.setFixedHeight(40)
         self.labelLowHeat.setFixedWidth(170)
         self.labelLowHeat.setAlignment(QtCore.Qt.AlignCenter)
-        self.labelLowHeat.setText("Diesel Low Heating" + "\n" +" Value")
+        self.labelLowHeat.setText("Diesel Low Heating" + "\n" + " Value")
         self.labelLowHeat.setToolTip("Lower Heating Value for diesel fuel")
         self.lineEditLowHeat = QLineEdit(self)
         self.lineEditLowHeat.setStyleSheet(" border: 1px solid #000000; ")
@@ -2601,7 +2615,7 @@ class AlltabsModule(QtWidgets.QWidget):
             fieldNames.append("NONROAD")
 
         if len(fieldValues) == 1:
-            #self.labelYearErrorMsg.setVisible(False)
+            # self.labelYearErrorMsg.setVisible(False)
             self.comboBoxYearNon.setStyleSheet("border: 1px solid black;color: black ")
             self.comboBoxYear.setStyleSheet("border: 1px solid black;color: black ")
             self.labelYearErrorMsg.setStyleSheet("border: 1px solid white;")
@@ -2610,7 +2624,7 @@ class AlltabsModule(QtWidgets.QWidget):
             self.labelYearNonErrorMsg.setText("")
 
         else:
-            #self.labelYearErrorMsg.setVisible(True)
+            # self.labelYearErrorMsg.setVisible(True)
             self.comboBoxYearNon.setStyleSheet("border: 2px solid red;color: red ")
             self.comboBoxYear.setStyleSheet("border: 2px solid red;color: red ")
             self.labelYearErrorMsg.setStyleSheet("color: red ;border: 1px solid red;")
@@ -2963,7 +2977,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelFeedMeasureTypeFD.setFixedHeight(40)
         self.labelFeedMeasureTypeFD.setFixedWidth(170)
         self.labelFeedMeasureTypeFD.setAlignment(QtCore.Qt.AlignCenter)
-        self.labelFeedMeasureTypeFD.setText("Feedstock Measure" + "\n" +" Type")
+        self.labelFeedMeasureTypeFD.setText("Feedstock Measure" + "\n" + " Type")
         self.labelFeedMeasureTypeFD.setToolTip("Production table identifier ")
         self.lineEditFeedMeasureTypeFD = QLineEdit(self)
         self.lineEditFeedMeasureTypeFD.setAlignment(QtCore.Qt.AlignCenter)
@@ -3063,7 +3077,6 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFDGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
-
 
         # Add Empty PlainText
         self.emptyPlainText2 = QLabel()
@@ -3261,7 +3274,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.index = self.comboBoxDayType.findText("Weekday")
         self.comboBoxDayType.setCurrentIndex(self.index)
 
-
     ###################################################################
 
     # Run Button Code
@@ -3292,26 +3304,22 @@ class AlltabsModule(QtWidgets.QWidget):
             self.attributeValueObj.projectPath = self.lineEditProjectPath.text().strip()
 
             # Check which module is selected
-            self.selected_module_string = ""
+            selected_module_string = ""
             if self.checkBoxMoves.isChecked():
-                # attributeValueObj.module = self.selected_module_list.append(self.checkBoxMoves.text())
-                self.selected_module_string += "'" + "MOVES" + "'"
-                self.attributeValueObj.module = self.selected_module_string
-                self.selected_module_string += ", "
+                selected_module_string += "'" + "MOVES" + "'"
+                self.attributeValueObj.module = selected_module_string
+                selected_module_string += ", "
             if self.checkBoxNonroad.isChecked():
-                # attributeValueObj.module = self.selected_module_list.append(self.checkBoxNonroad.text())
-                self.selected_module_string += "'" + "NONROAD" + "'"
-                self.attributeValueObj.module = self.selected_module_string
-                self.selected_module_string += ", "
+                selected_module_string += "'" + "NONROAD" + "'"
+                self.attributeValueObj.module = selected_module_string
+                selected_module_string += ", "
             if self.checkBoxEmissionFactors.isChecked():
-                # attributeValueObj.module = self.selected_module_list.append(self.checkBoxEmissionFactors.text())
-                self.selected_module_string += "'" + "emissionfactors" + "'"
-                self.attributeValueObj.module = self.selected_module_string
-                self.selected_module_string += ", "
+                selected_module_string += "'" + "emissionfactors" + "'"
+                self.attributeValueObj.module = selected_module_string
+                selected_module_string += ", "
             if self.checkBoxFugitiveDust.isChecked():
-                # attributeValueObj.module = "'" + self.selected_module_list.append(self.checkBoxFugitiveDust.text())
-                self.selected_module_string += "'" + "fugitivedust" + "'"
-                self.attributeValueObj.module = self.selected_module_string
+                selected_module_string += "'" + "fugitivedust" + "'"
+                self.attributeValueObj.module = selected_module_string
 
             changedVerboLoggerLevel = self.comboBoxVerbosityLevel.currentText()
             if changedVerboLoggerLevel:
@@ -3569,18 +3577,19 @@ class AlltabsModule(QtWidgets.QWidget):
             # Display logs in result tab after completion of running the respective module
             self.centralwidget.setCurrentWidget(self.tabResult)
 
+            # Creation of all threads
             threadMOVES = None
             threadNONROAD = None
             threadEF = None
             threadFD = None
             self.centralwidget.setTabEnabled(0, False)
 
-            #Check for MOVES tab
+            # Check for MOVES tab
             if self.centralwidget.isTabEnabled(1):
                 self.centralwidget.setTabEnabled(1, False)
                 movesConfigCreationObj = movesConfigCreation(tmpFolder, self.attributeValueObj)
                 threadMOVES = threading.Thread(target=runCommand, args=(
-                runConfigObj, movesConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
+                    runConfigObj, movesConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
                 threadMOVES.start()
 
             # Check for NONROAD tab
@@ -3588,7 +3597,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.centralwidget.setTabEnabled(2, False)
                 nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder, self.attributeValueObj)
                 threadNONROAD = threading.Thread(target=runCommand, args=(
-                runConfigObj, nonroadConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
+                    runConfigObj, nonroadConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
                 threadNONROAD.start()
 
             # Check for Emission Factors tab
@@ -3596,7 +3605,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.centralwidget.setTabEnabled(3, False)
                 emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(tmpFolder, self.attributeValueObj)
                 threadEF = threading.Thread(target=runCommand, args=(
-                runConfigObj, emissionFactorsConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
+                    runConfigObj, emissionFactorsConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
                 threadEF.start()
 
             # Check for Fugitive Dust tab
@@ -3604,19 +3613,19 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.centralwidget.setTabEnabled(4, False)
                 fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder, self.attributeValueObj)
                 threadFD = threading.Thread(target=runCommand, args=(
-                runConfigObj, fugitiveDustConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
+                    runConfigObj, fugitiveDustConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
                 threadFD.start()
 
             # Check which module thread is alive
+            self.progressBar.setVisible(True)
+            self.plainTextLog.setVisible(True)
+            self.progressBar.setRange(0, 0)
+
             while (threadMOVES and threadMOVES.is_alive()) or \
                     (threadNONROAD and threadNONROAD.is_alive()) or \
                     (threadEF and threadEF.is_alive()) or \
                     (threadFD and threadFD.is_alive()):
-
-                self.progressBar.setVisible(True)
-                self.plainTextLog.setVisible(True)
                 self.progressBar.move(300, 200)
-                self.progressBar.setRange(0, 0)
 
                 loop = QEventLoop()
                 QTimer.singleShot(10, loop.quit)
@@ -3638,7 +3647,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.centralwidget.setTabEnabled(4, True)
             self.centralwidget.setTabEnabled(0, True)
 
-
     #########################################################################################################################
 
     # Result Tab Code
@@ -3647,14 +3655,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.tabResult = QtWidgets.QWidget()
         self.tabResult.resize(WIDTH, HEIGHT - 200)
         # Result tab added
-        self.centralwidget.addTab(self.tabResult, self.getSpacedNames("RESULT", 16, 16))
+        self.centralwidget.addTab(self.tabResult, self.getSpacedNames("RESULT"))
 
         # Result tab code started
         windowLayoutResult = QGridLayout()
         windowLayoutResult.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
         windowLayoutResult.setColumnStretch(6, 1)
 
-        #Add scrollbar to Result tab
+        # Add scrollbar to Result tab
         self.scrollAreaResult = QScrollArea(self.tabResult)
         self.scrollAreaResult.setWidgetResizable(True)
         self.scrollAreaResult.resize(WIDTH, HEIGHT)
@@ -3670,7 +3678,7 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
-        #Created UI element - Display Logs
+        # Created UI element - Display Logs
         self.plainTextLog = QPlainTextEdit()
         self.plainTextLog.setVisible(False)
         self.plainTextLog.setPlainText("")
@@ -3678,7 +3686,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.plainTextLog.setFixedHeight(200)
         windowLayoutResult.addWidget(self.plainTextLog, 1, 0, 1, 5)
 
-        #Addedd other elements for temporory to adjust the position
+        # Addedd other elements for temporory to adjust the position
         self.labelMOVESGraph = QLabel()
         self.labelMOVESGraph.setFixedHeight(300)
         self.labelMOVESGraph.setFixedWidth(400)
@@ -3705,7 +3713,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelFugitivedustGraph.setFixedWidth(400)
         windowLayoutResult.addWidget(self.labelFugitivedustGraph, 3, 2)
 
-        #Created UI element - Progress bar
+        # Created UI element - Progress bar
         self.progressBar = QProgressBar()
         self.progressBar.setVisible(False)
         windowLayoutResult.addWidget(self.progressBar, 3, 0)
@@ -3713,12 +3721,12 @@ class AlltabsModule(QtWidgets.QWidget):
         #########################################################################################################################
 
     # Function which calls other function of tabs
-    def setupUi(self, OtherWindow):
+    def setupUi(self, mainWindow):
 
-        OtherWindow.setObjectName("OtherWindow")
+        mainWindow.setObjectName("mainWindow")
 
-        self.centralwidget = QtWidgets.QTabWidget(OtherWindow)
-        OtherWindow.setCentralWidget(self.centralwidget)
+        self.centralwidget = QtWidgets.QTabWidget(mainWindow)
+        mainWindow.setCentralWidget(self.centralwidget)
         self.centralwidget.setObjectName("centralwidget")
         font = QtGui.QFont()
         font.setPointSize(22)
@@ -3733,20 +3741,6 @@ class AlltabsModule(QtWidgets.QWidget):
         #############################################################################################################################
 
 
-class SelectedModuleThreadExecution(QtCore.QThread):
-    taskFinished = QtCore.pyqtSignal()
-
-    def __init__(self, runConfigObj, configCreationObj, attributeValueObj):
-        super.__init__()
-        self.runConfigObj = runConfigObj
-        self.configCreationObj = configCreationObj
-        self.attributeValueObj = attributeValueObj
-
-    def run(self):
-        runCommand(self.runConfigObj, self.configCreationObj, self.attributeValueObj)
-
-        ############################################################################
-
 # Display logs in Result tab
 def logsPrinter(textField, loggerOutputFilePath, doRun):
     with open(loggerOutputFilePath) as f:
@@ -3757,6 +3751,7 @@ def logsPrinter(textField, loggerOutputFilePath, doRun):
                 time.sleep(0.1)
             else:
                 textField.appendPlainText(line)
+
 
 # Run the selected module and categorized logs based on logger level
 def runCommand(runConfigObj, configCreationObj, attributeValueStorageObj, textFieldLog):
@@ -3790,6 +3785,7 @@ def runCommand(runConfigObj, configCreationObj, attributeValueStorageObj, textFi
 
     doRun = True
 
+    # Displays the logs of the respective running module simultaneously.
     t = threading.Thread(target=logsPrinter, args=(textFieldLog, loggerOutputFilePath, doRun,))
     t.daemon = True
     t.start()
@@ -3813,7 +3809,6 @@ def runCommand(runConfigObj, configCreationObj, attributeValueStorageObj, textFi
 
 # Main function
 if __name__ == "__main__":
-
     # CSS Code
     styleSheet = """
 
@@ -4030,7 +4025,7 @@ if __name__ == "__main__":
     font-weight: normal;
     font-style: normal;
     }
-     
+
     @font-face {
         font-family: 'Roboto';
         src: url('Roboto-Italic-webfont.eot');
@@ -4041,7 +4036,7 @@ if __name__ == "__main__":
         font-weight: normal;
         font-style: italic;
     }
-     
+
     @font-face {
         font-family: 'Roboto';
         src: url('Roboto-Bold-webfont.eot');
@@ -4052,7 +4047,7 @@ if __name__ == "__main__":
         font-weight: bold;
         font-style: normal;
     }
-     
+
     @font-face {
         font-family: 'Roboto';
         src: url('Roboto-BoldItalic-webfont.eot');
@@ -4063,7 +4058,7 @@ if __name__ == "__main__":
         font-weight: bold;
         font-style: italic;
     }
-     
+
     @font-face {
         font-family: 'Roboto';
         src: url('Roboto-Thin-webfont.eot');
@@ -4074,7 +4069,7 @@ if __name__ == "__main__":
         font-weight: 200;
         font-style: normal;
     }
-     
+
     @font-face {
         font-family: 'Roboto';
         src: url('Roboto-ThinItalic-webfont.eot');
@@ -4085,7 +4080,7 @@ if __name__ == "__main__":
         font-weight: 200;
         font-style: italic;
     }
-     
+
     @font-face {
         font-family: 'Roboto';
         src: url('Roboto-Light-webfont.eot');
@@ -4096,7 +4091,7 @@ if __name__ == "__main__":
         font-weight: 100;
         font-style: normal;
     }
-     
+
     @font-face {
         font-family: 'Roboto';
         src: url('Roboto-LightItalic-webfont.eot');
@@ -4107,7 +4102,7 @@ if __name__ == "__main__":
         font-weight: 100;
         font-style: italic;
     }
-     
+
     @font-face {
         font-family: 'Roboto';
         src: url('Roboto-Medium-webfont.eot');
@@ -4118,7 +4113,7 @@ if __name__ == "__main__":
         font-weight: 300;
         font-style: normal;
     }
-     
+
     @font-face {
         font-family: 'Roboto';
         src: url('Roboto-MediumItalic-webfont.eot');
@@ -4135,37 +4130,50 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(styleSheet)
-    OtherWindow = QtWidgets.QMainWindow()
-    OtherWindow.setFixedSize(WIDTH, HEIGHT + 216)
-    # OtherWindow.setGeometry(200,50,WIDTH,HEIGHT+175)
-    OtherWindow.setWindowTitle("FPEAM")
-    # OtherWindow.setWindowFlags(QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
+    mainWindow = Window()
+    mainWindow.setMinimumSize(WIDTH, HEIGHT)
+    mainWindow.setMaximumWidth(WIDTH)
+    mainWindow.setWindowTitle("FPEAM")
     ui = AlltabsModule()
 
-    #Header Code
-    headerlabel = QLabel(OtherWindow)
+    # Header Code
+    headerlabel = QLabel(mainWindow)
     pixmapLine = QPixmap('header.png')
     pixmap = pixmapLine.scaledToHeight(80)
     headerlabel.setPixmap(pixmap)
     headerlabel.setFixedHeight(55)
-    header = QDockWidget(OtherWindow)
-    header.setFloating(False)
+    header = QDockWidget(mainWindow)
+    header.setFeatures(QDockWidget.NoDockWidgetFeatures)
     header.setTitleBarWidget(headerlabel)
-    OtherWindow.addDockWidget(QtCore.Qt.TopDockWidgetArea, header)
 
-    #Footer Code
-    footerlabel = QLabel(OtherWindow)
+    hbox = QtWidgets.QHBoxLayout()
+    hbox.addWidget(mainWindow)
+
+    mainWindow.addDockWidget(QtCore.Qt.TopDockWidgetArea, header)
+
+    # Footer Code
+    footerlabel = QLabel(mainWindow)
     footerlabel.setFixedHeight(105)
     pixmapLine = QPixmap('footer.png')
     pixmap = pixmapLine.scaledToHeight(80)
     footerlabel.setPixmap(pixmap)
 
-    ui.setupUi(OtherWindow)
+    ui.setupUi(mainWindow)
 
-    footer = QDockWidget(OtherWindow)
+    scrollAreaList = []
+    scrollAreaList.append(ui.scrollAreaFPEAM)
+    scrollAreaList.append(ui.scrollAreaMOVES)
+    scrollAreaList.append(ui.scrollAreaNONROAD)
+    scrollAreaList.append(ui.scrollAreaEF)
+    scrollAreaList.append(ui.scrollAreaFD)
+    scrollAreaList.append(ui.scrollAreaResult)
+    mainWindow.setSizeDependency(scrollAreaList)
+
+    footer = QDockWidget(mainWindow)
     footer.setTitleBarWidget(footerlabel)
     footer.setFloating(False)
-    OtherWindow.addDockWidget(QtCore.Qt.BottomDockWidgetArea, footer)
+    footer.setFeatures(QDockWidget.NoDockWidgetFeatures)
+    mainWindow.addDockWidget(QtCore.Qt.BottomDockWidgetArea, footer)
 
-    OtherWindow.show()
+    mainWindow.show()
     sys.exit(app.exec_())

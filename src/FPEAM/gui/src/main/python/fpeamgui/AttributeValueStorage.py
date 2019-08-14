@@ -1,6 +1,7 @@
 
 import io
 
+#Initializes all variables to their default values
 class AttributeValueStorage:
 
     def __init__(self):

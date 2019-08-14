@@ -1,6 +1,6 @@
 import os, tempfile
 
-
+#Create Run config file
 def runConfigCreation(tmpFolder, attributeValueObj):
 
     ini_template_string = """[run_config]
@@ -43,20 +43,9 @@ use_router_engine = {use_router_engine} """
                                                backfill = attributeValueObj.backfill,
                                                use_router_engine = attributeValueObj.useRouterEngine)
 
-    print(tmpFolder)
 
     my_ini_file_path = os.path.join(tmpFolder,"run_config.ini")
     with open(my_ini_file_path, 'w') as f:
         f.write(my_ini_config)
-
-
-
-    ##########################
-
-    #
-    # with open(my_ini_file_path) as f:
-    #     print(my_ini_file_path)
-    #     #print(f.read())
-    #     pass
 
     return my_ini_file_path

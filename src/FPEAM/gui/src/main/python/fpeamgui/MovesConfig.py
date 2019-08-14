@@ -1,6 +1,6 @@
 import os, tempfile
 
-
+#Create MOVES config file
 def movesConfigCreation(tmpFolder, attributeValueObj):
     ini_template_string = """[moves]
 
@@ -87,7 +87,6 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
                                                ending_hour=attributeValueObj.endingHr,
                                                day_type=attributeValueObj.dayType)
 
-    print(tmpFolder)
 
     my_ini_file_path = os.path.join(tmpFolder, "moves.ini")
     with open(my_ini_file_path, 'w') as f:

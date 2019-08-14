@@ -1,6 +1,6 @@
 import os, tempfile
 
-
+#Create NONROAD config file
 def nonroadConfigCreation(tmpFolder, attributeValueObj):
 
     ini_template_string = """ [nonroad]
@@ -86,19 +86,8 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
                                                encode_names = attributeValueObj.encodeNames)
 
 
-    print(tmpFolder)
-
     my_ini_file_path = os.path.join(tmpFolder, "nonroad.ini")
     with open(my_ini_file_path, 'w') as f:
         f.write(my_ini_config)
 
     return my_ini_file_path
-    ##########################
-
-    #
-    # with open(my_ini_file_path) as f:
-    #     print(my_ini_file_path)
-    #     # print(f.read())
-    #     pass
-    #
-    # os.system("fpim "+my_ini_file_path)

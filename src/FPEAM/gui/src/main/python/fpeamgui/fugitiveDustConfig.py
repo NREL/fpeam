@@ -1,5 +1,6 @@
 import os, tempfile
 
+#Create Fugitve Dust config file
 def fugitiveDustConfigCreation(tmpFolder, attributeValueObj):
     ini_template_string = """[fugitivedust]
 
@@ -14,15 +15,8 @@ emission_factors ='{emission_factors}'"""
                                                emission_factors=attributeValueObj.emissionFactorsFD)
 
 
-    print(tmpFolder)
-
     my_ini_file_path = os.path.join(tmpFolder, "fugitivedust.ini")
     with open(my_ini_file_path, 'w') as f:
         f.write(my_ini_config)
-
-    ##########################
-
-    # with open(my_ini_file_path) as f:
-    #     print(my_ini_file_path)
 
     return my_ini_file_path
