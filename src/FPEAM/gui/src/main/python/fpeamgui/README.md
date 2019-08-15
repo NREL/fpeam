@@ -11,5 +11,3 @@ HOME Tab screenshot
 
 ![Sample app icon](screenshots/1.png)
 
-
-
