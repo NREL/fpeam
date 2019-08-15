@@ -3,6 +3,7 @@ import os
 import sys, time
 import random, string
 
+import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QEventLoop, QTimer
 from PyQt5.QtGui import QDoubleValidator, QPixmap
@@ -21,6 +22,8 @@ from FPEAM.gui.src.main.python.fpeamgui.fugitiveDustConfig import fugitiveDustCo
 
 import tempfile
 import threading
+import numpy as np
+import seaborn as sns
 
 WIDTH = 900
 HEIGHT = 650
@@ -55,7 +58,7 @@ class AlltabsModule(QtWidgets.QWidget):
         halfNameLen = int(len(name) / 2)
         return "".join([" "] * (leftSpaces - halfNameLen)) + name + "".join([" "] * (rightSpaces - halfNameLen))
 
-    #Set Height and Width to a label as width=170 and height=40
+    # Set Height and Width to a label as width=170 and height=40
     def createLabelBig(self, text, width=170, height=40):
         label = QLabel()
         label.setText(text)
@@ -259,7 +262,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelEq.setObjectName("allLabels")
         self.labelEq.setStyleSheet(" border: 1px solid #000000; ")
         self.labelEq.setToolTip("Select equipment input dataset")
-        self.browseBtnEq =  self.createButton(text="Browse")
+        self.browseBtnEq = self.createButton(text="Browse")
         self.browseBtnEq.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnEq.clicked.connect(self.getfilesEq)
         self.lineEditEq = QLineEdit(self)
@@ -282,7 +285,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelProd.setObjectName("allLabels")
         self.labelProd.setStyleSheet(" border: 1px solid #000000; ")
         self.labelProd.setToolTip("Select production input dataset")
-        self.browseBtnProd =  self.createButton(text="Browse")
+        self.browseBtnProd = self.createButton(text="Browse")
         self.browseBtnProd.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnProd.clicked.connect(self.getfilesProd)
         self.lineEditProd = QLineEdit(self)
@@ -328,7 +331,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTransGraph.setObjectName("allLabels")
         self.labelTransGraph.setStyleSheet(" border: 1px solid #000000; ")
         self.labelTransGraph.setToolTip("Select Transportation graph dataset")
-        self.browseBtnTransGr =  self.createButton(text="Browse")
+        self.browseBtnTransGr = self.createButton(text="Browse")
         self.browseBtnTransGr.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnTransGr.clicked.connect(self.getfilesTransGr)
         self.lineEditTransGraph = QLineEdit(self)
@@ -676,12 +679,12 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.emptyPlainTextCachedRes, 3, 2)
 
         # Created UI element Moves Path
-        self.MovesPathLable =  self.createLabelBig(text="Executable Path")
+        self.MovesPathLable = self.createLabelBig(text="Executable Path")
         self.MovesPathLable.setObjectName("allLabels")
         self.MovesPathLable.setToolTip("Path where Moves is installed. If it's not installed, then download from the "
                                        "link - "
                                        "<a href ='https://www.epa.gov/moves/moves-versions-limited-current-use#downloading-2014a'>MOVES</a> ")
-        self.browseBtnMovesPath =  self.createButton(text="Browse", width = 116, height = 40)
+        self.browseBtnMovesPath = self.createButton(text="Browse", width=116, height=40)
         self.browseBtnMovesPath.clicked.connect(self.getfilesMovesPath)
         self.lineEditMovesPath = QLineEdit(self)
         self.lineEditMovesPath.setAlignment(QtCore.Qt.AlignCenter)
@@ -695,7 +698,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelDatafiles = self.createLabelBig(text="MOVES Datafiles")
         self.labelDatafiles.setObjectName("allLabels")
         self.labelDatafiles.setToolTip("Select all input files created for MOVES runs")
-        self.browseBtnDatafiles = self.createButton(text="Browse", width = 116, height = 40)
+        self.browseBtnDatafiles = self.createButton(text="Browse", width=116, height=40)
         self.browseBtnDatafiles.clicked.connect(self.getfilesDatafiles)
         self.lineEditDatafiles = QLineEdit(self)
         self.lineEditDatafiles.setText("C:\MOVESdatb")
@@ -706,7 +709,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.lineEditDatafiles, 5, 2, 1, 3)
 
         # Created UI element Feedstock Measure Type
-        self.labelFeedMeasureType =self.createLabelBig(text="Feedstock Measure" + "\n" + " Type")
+        self.labelFeedMeasureType = self.createLabelBig(text="Feedstock Measure" + "\n" + " Type")
         self.labelFeedMeasureType.setObjectName("allLabels")
         self.labelFeedMeasureType.setToolTip("Enter Feedstock Measure Type Identifier")
         self.lineEditFeedMeasureType = QLineEdit(self)
@@ -816,7 +819,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
         # Created UI element Database Name
-        self.labelDbName =  self.createLabelSmall(text="Database Name")
+        self.labelDbName = self.createLabelSmall(text="Database Name")
         self.labelDbName.setStyleSheet(" border: 1px solid #000000; ")
         self.labelDbName.setObjectName("allLabels")
         self.labelDbName.setToolTip("Enter database name")
@@ -910,7 +913,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.timeframeMOVESGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Analysis Year
-        self.labelAnalysisYear =self.createLabelSmall(text="Analysis Year")
+        self.labelAnalysisYear = self.createLabelSmall(text="Analysis Year")
         self.labelAnalysisYear.setStyleSheet(" border: 1px solid #000000; ")
         self.labelAnalysisYear.setObjectName("allLabels")
         self.labelAnalysisYear.setToolTip("Start year of Equipment")
@@ -1000,7 +1003,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.timeframeMOVESGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
 
         # Created UI element Timestamp - Beginning Hour
-        self.labelBegHr =self.createLabelSmall(text="Beginning Hour")
+        self.labelBegHr = self.createLabelSmall(text="Beginning Hour")
         self.labelBegHr.setStyleSheet(" border: 1px solid #000000; ")
         self.labelBegHr.setObjectName("allLabels")
         self.comboBoxBegHr = QComboBox(self)
@@ -1183,7 +1186,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelFips.setStyleSheet(" border: 1px solid #000000; ")
         self.labelFips.setObjectName("allLabels")
         self.labelFips.setToolTip("Select Region FIPS Map (production region to MOVES FIPS mapping) dataset")
-        self.browseBtnFips =self.createButton(text="Browse")
+        self.browseBtnFips = self.createButton(text="Browse")
         self.browseBtnFips.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnFips.clicked.connect(self.getfilesFips)
         self.lineEditFips = QLineEdit(self)
@@ -1253,7 +1256,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 0, 0, 1, 3)
 
         # Created UI element No of Trucks used
-        self.labelNoofTruck = self.createLabelBig(text="Number Of Trucks" + "\n" +" Used")
+        self.labelNoofTruck = self.createLabelBig(text="Number Of Trucks" + "\n" + " Used")
         self.labelNoofTruck.setStyleSheet(" border: 1px solid #000000; ")
         self.labelNoofTruck.setObjectName("allLabels")
         self.labelNoofTruck.setToolTip("Number of trucks used in a scenario")
@@ -1535,7 +1538,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.lineEditDatafilesNon, 2, 2, 1, 3)
 
         # Created UI element Year - NONROAD
-        self.labelYearNon =  self.createLabelSmall(text="Analysis Year")
+        self.labelYearNon = self.createLabelSmall(text="Analysis Year")
         self.labelYearNon.setObjectName("allLabels")
         self.labelYearNon.setToolTip("Start year of equipment")
         self.comboBoxYearNon = QComboBox(self)
@@ -1637,7 +1640,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsNONROADGridLayout.addWidget(self.emptyPlainText2, 1, 2)
 
         # Created UI element Database Username
-        self.labelDbUsernameN =  self.createLabelSmall(text="Username")
+        self.labelDbUsernameN = self.createLabelSmall(text="Username")
         self.labelDbUsernameN.setStyleSheet(" border: 1px solid #000000; ")
         self.labelDbUsernameN.setObjectName("allLabels")
         self.labelDbUsernameN.setToolTip("Enter the username used for database connection")
@@ -1751,7 +1754,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dtaLabelsNONROADGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Feedstock Measure Type Nonroad
-        self.labelFeedMeasureTypeNon = self.createLabelBig(text="Feedstock Measure" + "\n" +" Type")
+        self.labelFeedMeasureTypeNon = self.createLabelBig(text="Feedstock Measure" + "\n" + " Type")
         self.labelFeedMeasureTypeNon.setStyleSheet(" border: 1px solid #000000; ")
         self.labelFeedMeasureTypeNon.setObjectName("allLabels")
         self.labelFeedMeasureTypeNon.setToolTip("Enter Feedstock Measure Type identifier")
@@ -1921,11 +1924,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Region Nonroad Irrigation
-        self.labelNonIrrig =  self.createLabelBig(text="Irrigation")
+        self.labelNonIrrig = self.createLabelBig(text="Irrigation")
         self.labelNonIrrig.setObjectName("allLabels")
         self.labelNonIrrig.setStyleSheet(" border: 1px solid #000000; ")
         self.labelNonIrrig.setToolTip("Select irrigation dataset")
-        self.browseBtnNonIrrig = self.createButton(text="Browse", height = 40)
+        self.browseBtnNonIrrig = self.createButton(text="Browse", height=40)
         self.browseBtnNonIrrig.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnNonIrrig.clicked.connect(self.getfilesNonIrrig)
         self.lineEditNonIrrig = QLineEdit(self)
@@ -1948,7 +1951,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelFipsNon.setObjectName("allLabels")
         self.labelFipsNon.setStyleSheet(" border: 1px solid #000000; ")
         self.labelFipsNon.setToolTip("Select Region FIPS Map (production region to Nonroad FIPS mapping) dataset")
-        self.browseBtnFipsNon = self.createButton(text="Browse", height = 40)
+        self.browseBtnFipsNon = self.createButton(text="Browse", height=40)
         self.browseBtnFipsNon.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnFipsNon.clicked.connect(self.getfilesFipsNon)
         self.lineEditFipsNon = QLineEdit(self)
@@ -2178,7 +2181,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
         # Created UI element NH3 Emission Factor
-        self.labelNH3 =  self.createLabelBig(text="NH3 Emission Factor")
+        self.labelNH3 = self.createLabelBig(text="NH3 Emission Factor")
         self.labelNH3.setObjectName("allLabels")
         self.labelNH3.setStyleSheet(" border: 1px solid #000000; ")
         self.labelNH3.setToolTip("NH3 Emissionn Factor for diesel fuel")
@@ -2201,7 +2204,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(self.emptyPlainText2, 3, 2)
 
         # Created UI element PM10 to PM2.5 Conversion Factor
-        self.labelPM10 =self.createLabelBig(text="PM10 to PM2.5")
+        self.labelPM10 = self.createLabelBig(text="PM10 to PM2.5")
         self.labelPM10.setObjectName("allLabels")
         self.labelPM10.setStyleSheet(" border: 1px solid #000000; ")
         self.labelPM10.setToolTip("PM10 to PM2.5 Conversion Factor")
@@ -2513,7 +2516,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelEmiFact.setAlignment(QtCore.Qt.AlignCenter)
         self.labelEmiFact.setText("Emission Factors")
         self.labelEmiFact.setToolTip("Emission Factors as lb pollutant per lb resource subtype")
-        self.browseBtnEmiFact =self.createButton(text="Browse")
+        self.browseBtnEmiFact = self.createButton(text="Browse")
         self.browseBtnEmiFact.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnEmiFact.clicked.connect(self.getfilesEmiFact)
         self.lineEditEmiFact = QLineEdit(self)
@@ -2536,7 +2539,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelResDist.setObjectName("allLabels")
         self.labelResDist.setStyleSheet(" border: 1px solid #000000; ")
         self.labelResDist.setToolTip("Resource subtype distribution for all resources")
-        self.browseBtnReDist =self.createButton(text="Browse")
+        self.browseBtnReDist = self.createButton(text="Browse")
         self.browseBtnReDist.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnReDist.clicked.connect(self.getfilesResDist)
         self.lineEditResDist = QLineEdit(self)
@@ -3287,6 +3290,38 @@ class AlltabsModule(QtWidgets.QWidget):
             # Display logs in result tab after completion of running the respective module
             self.centralwidget.setCurrentWidget(self.tabResult)
 
+            # Generate Logs
+            loggerOutputFilePath = time.strftime("%Y%m%d-%H%M%S") + ''.join(
+                random.choice(string.ascii_letters) for _ in range(10)) + ".log"
+            tempfile.gettempdir()
+            loggerOutputFilePath = os.path.join(tempfile.gettempdir(), loggerOutputFilePath)
+            #print("#############################", loggerOutputFilePath)
+
+            logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
+                                                      ' [%(filename)s:%(module)s.'
+                                                      '%(funcName)s.%(lineno)d] %(message)s',
+                                filename=loggerOutputFilePath)
+
+            # Set Logger level according to selection of Verbosity Logger Level on Home Page
+            if self.attributeValueObj.loggerLevel == "INFO":
+                logging.getLogger().setLevel(logging.INFO)
+            elif self.attributeValueObj.loggerLevel == "DEBUG":
+                logging.getLogger().setLevel(logging.DEBUG)
+            elif self.attributeValueObj.loggerLevel == "WARNING":
+                logging.getLogger().setLevel(logging.WARNING)
+            elif self.attributeValueObj.loggerLevel == "ERROR":
+                logging.getLogger().setLevel(logging.ERROR)
+            elif self.attributeValueObj.loggerLevel == "CRITICAL":
+                logging.getLogger().setLevel(logging.CRITICAL)
+            elif self.attributeValueObj.loggerLevel == "UNSET":
+                logging.getLogger().setLevel(logging.NOTSET)
+
+            # Displays the logs of the respective running module simultaneously.
+            doRun = True
+            t = threading.Thread(target=logsPrinter, args=(self.plainTextLog, loggerOutputFilePath, doRun,))
+            t.daemon = True
+            t.start()
+
             # Creation of all threads
             threadMOVES = None
             threadNONROAD = None
@@ -3300,7 +3335,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 movesConfigCreationObj = movesConfigCreation(tmpFolder, self.attributeValueObj)
                 threadMOVES = threading.Thread(target=runCommand, args=(
                     runConfigObj, movesConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
-                threadMOVES.start()
+                #threadMOVES.start()
 
             # Check for NONROAD tab
             if self.centralwidget.isTabEnabled(2):
@@ -3308,7 +3343,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder, self.attributeValueObj)
                 threadNONROAD = threading.Thread(target=runCommand, args=(
                     runConfigObj, nonroadConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
-                threadNONROAD.start()
+                #threadNONROAD.start()
 
             # Check for Emission Factors tab
             if self.centralwidget.isTabEnabled(3):
@@ -3316,7 +3351,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(tmpFolder, self.attributeValueObj)
                 threadEF = threading.Thread(target=runCommand, args=(
                     runConfigObj, emissionFactorsConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
-                threadEF.start()
+                #threadEF.start()
 
             # Check for Fugitive Dust tab
             if self.centralwidget.isTabEnabled(4):
@@ -3324,24 +3359,31 @@ class AlltabsModule(QtWidgets.QWidget):
                 fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder, self.attributeValueObj)
                 threadFD = threading.Thread(target=runCommand, args=(
                     runConfigObj, fugitiveDustConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
-                threadFD.start()
+                #threadFD.start()
 
             # Check which module thread is alive
             self.progressBar.setVisible(True)
             self.plainTextLog.setVisible(True)
             self.progressBar.setRange(0, 0)
 
-            while (threadMOVES and threadMOVES.is_alive()) or \
-                    (threadNONROAD and threadNONROAD.is_alive()) or \
-                    (threadEF and threadEF.is_alive()) or \
-                    (threadFD and threadFD.is_alive()):
-                self.progressBar.move(300, 200)
+            threadList = [threadMOVES, threadNONROAD, threadEF, threadFD]
+            # while (threadMOVES and threadMOVES.is_alive()) or \
+            #         (threadNONROAD and threadNONROAD.is_alive()) or \
+            #         (threadEF and threadEF.is_alive()) or \
+            #         (threadFD and threadFD.is_alive()):
+            for t in threadList:
 
-                loop = QEventLoop()
-                QTimer.singleShot(10, loop.quit)
-                loop.exec_()
+                if t:
+                    t.start()
+                    while t.is_alive():
+                        self.progressBar.move(300, 200)
+                        loop = QEventLoop()
+                        QTimer.singleShot(10, loop.quit)
+                        loop.exec_()
 
             self.progressBar.setVisible(False)
+
+            doRun = False
 
             if threadMOVES:
                 threadMOVES.join()
@@ -3358,6 +3400,51 @@ class AlltabsModule(QtWidgets.QWidget):
             self.centralwidget.setTabEnabled(0, True)
 
     #########################################################################################################################
+
+    # # Generate graph
+    # def generateGraphs(self):
+    #
+    #     df = pd.read_csv('ef_fd_mv_nr_normalized_total_emissions_by_production_region.csv')[
+    #         ['feedstock', 'feedstock_measure', 'tillage_type', 'region_production', 'feedstock_amount', 'pollutant',
+    #          'normalized_pollutant_amount']]
+    #
+    #     df_subset = df.loc[
+    #         (df.feedstock_measure == 'production')
+    #         & (df.tillage_type == 'conventional tillage')
+    #         #     & (df.pollutant == 'co')
+    #         #     & (df.feedstock == 'corn stover')
+    #         & (df.normalized_pollutant_amount != np.inf)
+    #         #    & (df.region_production != 51019)
+    #         ]
+    #
+    #     df_subset['pollutant_label'] = df_subset.pollutant.str.upper()
+    #     _order = df_subset.feedstock.unique()
+    #     _names = [_.upper() for _ in df_subset.pollutant.unique()]
+    #     sns.set_context("talk", font_scale=1.5)
+    #
+    #     g = sns.catplot(x="feedstock",
+    #                     y="normalized_pollutant_amount",
+    #                     #                 hue="pollutant",
+    #                     col="pollutant_label",
+    #                     data=df_subset,
+    #                     kind="box",
+    #                     height=8,
+    #                     aspect=.8,
+    #                     color='red',
+    #                     sharex=True,
+    #                     sharey=False,
+    #                     margin_titles=False,
+    #                     col_wrap=4,
+    #                     order=_order,
+    #                     saturation=0.6,
+    #                     dodge=False,
+    #                     #                 whis=0.9
+    #                     )
+    #     (g.set_axis_labels("", "Emissions (lb/acre)")
+    #      .set_xticklabels([_.title() for _ in _order], rotation=90)
+    #      .set_titles("{col_name}")
+    #      .set(yscale='log')
+    #      )
 
     # Result Tab Code
     def setupUIResult(self):
@@ -3447,58 +3534,37 @@ class AlltabsModule(QtWidgets.QWidget):
         self.setupUIEmissionFactors()
         self.setupUIFugitiveDust()
         self.setupUIResult()
+        #self.generateGraphs()
 
         #############################################################################################################################
 
 
 # Display logs in Result tab
 def logsPrinter(textField, loggerOutputFilePath, doRun):
-    with open(loggerOutputFilePath) as f:
-        while doRun:
-
-            line = f.readline()
-            if not line:
-                time.sleep(0.1)
-            else:
-                textField.appendPlainText(line)
+    fileOpened = False
+    while not fileOpened:
+        try:
+            with open(loggerOutputFilePath) as f:
+                fileOpened = True
+                while doRun:
+                    line = f.readline()
+                    if not line:
+                        time.sleep(0.1)
+                    else:
+                        textField.appendPlainText(line)
+        except FileNotFoundError as e:
+            print("Caught Exception ", e)
+            print("Trying again")
+            time.sleep(1)
 
 
 # Run the selected module and categorized logs based on logger level
 def runCommand(runConfigObj, configCreationObj, attributeValueStorageObj, textFieldLog):
-    # Generate Logs
-    loggerOutputFilePath = time.strftime("%Y%m%d-%H%M%S") + ''.join(
-        random.choice(string.ascii_letters) for _ in range(10)) + ".log"
-    tempfile.gettempdir()
-    loggerOutputFilePath = os.path.join(tempfile.gettempdir(), loggerOutputFilePath)
 
-    logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
-                                              ' [%(filename)s:%(module)s.'
-                                              '%(funcName)s.%(lineno)d] %(message)s',
-                        filename=loggerOutputFilePath)
-
-    # Set Logger level according to selection of Verbosity Logger Level on Home Page
-    if attributeValueStorageObj.loggerLevel == "INFO":
-        logging.getLogger().setLevel(logging.INFO)
-    elif attributeValueStorageObj.loggerLevel == "DEBUG":
-        logging.getLogger().setLevel(logging.DEBUG)
-    elif attributeValueStorageObj.loggerLevel == "WARNING":
-        logging.getLogger().setLevel(logging.WARNING)
-    elif attributeValueStorageObj.loggerLevel == "ERROR":
-        logging.getLogger().setLevel(logging.ERROR)
-    elif attributeValueStorageObj.loggerLevel == "CRITICAL":
-        logging.getLogger().setLevel(logging.CRITICAL)
-    elif attributeValueStorageObj.loggerLevel == "UNSET":
-        logging.getLogger().setLevel(logging.NOTSET)
 
     # load config options
     _config = IO.load_configs(configCreationObj, runConfigObj)
 
-    doRun = True
-
-    # Displays the logs of the respective running module simultaneously.
-    t = threading.Thread(target=logsPrinter, args=(textFieldLog, loggerOutputFilePath, doRun,))
-    t.daemon = True
-    t.start()
 
     with FPEAM(run_config=_config) as _fpeam:
 
@@ -3550,7 +3616,7 @@ if __name__ == "__main__":
     }
 
     QLabel#allLabels {
-       
+
         background: #ffffff;
         border: 1px solid #000000;
         box-sizing: border-box;
@@ -3785,7 +3851,7 @@ if __name__ == "__main__":
         src: url('Roboto-ThinItalic-webfont.eot?#iefix') format('embedded-opentype'),
              url('Roboto-ThinItalic-webfont.woff') format('woff'),
              url('Roboto-ThinItalic-webfont.ttf') format('truetype'),
-             url('Roboto-ThinItalic-webfont.svg#RobotoThinItalic') format('svg'); (under the Apache Software License). 
+             url('Roboto-ThinItalic-webfont.svg#RobotoThinItalic') format('svg'); (under the Apache Software License).
         font-weight: 200;
         font-style: italic;
     }
