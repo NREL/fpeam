@@ -2376,7 +2376,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 tabsNamesInSentence = fieldNames[0]
             elif len(fieldNames) > 1:
                 tabsNamesInSentence = tabsNamesInSentence.join(fieldNames[0]) + " and " + fieldNames[1]
-            message = "Values for Feedstock Measure Type should be same for tabs: " + tabsNamesInSentence
+            message = "Values for Analysis Year should be same for tabs: " + tabsNamesInSentence
             self.labelYearErrorMsg.setText(message)
             self.labelYearNonErrorMsg.setText(message)
 
