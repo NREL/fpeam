@@ -3,7 +3,6 @@ import os
 import sys, time
 import random, string
 
-import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QEventLoop, QTimer
 from PyQt5.QtGui import QDoubleValidator, QPixmap
@@ -24,6 +23,7 @@ import tempfile
 import threading
 import numpy as np
 import seaborn as sns
+import pandas as pd
 
 WIDTH = 900
 HEIGHT = 650
