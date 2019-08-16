@@ -62,7 +62,7 @@ It contains fields which are required to run FUGITIVE DUST module along with the
 
 It displays the result in box plots along with logs. When the module is running, logs are printed simultaneously. The progress bar indicates that modules are running. While running any module, all tabs will be disabled so that user can't make any changes in inputs, while it's running.
 
-![ResultTabWhileRunningModule](screenshots/ResultTabWhileRunningModule.png)
+![ResultTabWhileRunning](screenshots/ResultTabWhileRunning.png)
 
 When the execution is done, the progress bar will be disabled and box plots will be displayed along with the log messages.
 
