@@ -24,6 +24,7 @@ import threading
 import numpy as np
 import seaborn as sns
 import pandas as pd
+from matplotlib import pyplot as plt
 
 WIDTH = 900
 HEIGHT = 650
@@ -3295,7 +3296,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 random.choice(string.ascii_letters) for _ in range(10)) + ".log"
             tempfile.gettempdir()
             loggerOutputFilePath = os.path.join(tempfile.gettempdir(), loggerOutputFilePath)
-            #print("#############################", loggerOutputFilePath)
 
             logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
                                                       ' [%(filename)s:%(module)s.'
@@ -3335,7 +3335,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 movesConfigCreationObj = movesConfigCreation(tmpFolder, self.attributeValueObj)
                 threadMOVES = threading.Thread(target=runCommand, args=(
                     runConfigObj, movesConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
-                #threadMOVES.start()
 
             # Check for NONROAD tab
             if self.centralwidget.isTabEnabled(2):
@@ -3343,7 +3342,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder, self.attributeValueObj)
                 threadNONROAD = threading.Thread(target=runCommand, args=(
                     runConfigObj, nonroadConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
-                #threadNONROAD.start()
 
             # Check for Emission Factors tab
             if self.centralwidget.isTabEnabled(3):
@@ -3351,7 +3349,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(tmpFolder, self.attributeValueObj)
                 threadEF = threading.Thread(target=runCommand, args=(
                     runConfigObj, emissionFactorsConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
-                #threadEF.start()
 
             # Check for Fugitive Dust tab
             if self.centralwidget.isTabEnabled(4):
@@ -3359,7 +3356,7 @@ class AlltabsModule(QtWidgets.QWidget):
                 fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder, self.attributeValueObj)
                 threadFD = threading.Thread(target=runCommand, args=(
                     runConfigObj, fugitiveDustConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
-                #threadFD.start()
+
 
             # Check which module thread is alive
             self.progressBar.setVisible(True)
@@ -3367,16 +3364,12 @@ class AlltabsModule(QtWidgets.QWidget):
             self.progressBar.setRange(0, 0)
 
             threadList = [threadMOVES, threadNONROAD, threadEF, threadFD]
-            # while (threadMOVES and threadMOVES.is_alive()) or \
-            #         (threadNONROAD and threadNONROAD.is_alive()) or \
-            #         (threadEF and threadEF.is_alive()) or \
-            #         (threadFD and threadFD.is_alive()):
+
             for t in threadList:
 
                 if t:
                     t.start()
                     while t.is_alive():
-                        self.progressBar.move(300, 200)
                         loop = QEventLoop()
                         QTimer.singleShot(10, loop.quit)
                         loop.exec_()
@@ -3399,52 +3392,65 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.centralwidget.setTabEnabled(4, True)
             self.centralwidget.setTabEnabled(0, True)
 
+            resultImagePath = self.generateGraphs("ef_fd_mv_nr_normalized_total_emissions_by_production_region.csv",tmpFolder)
+
+            # set image in UI
+            self.pixmap = QtGui.QPixmap(resultImagePath)
+            self.labelResultGraph.resize(self.width(), self.height())
+            self.labelResultGraph.setPixmap(self.pixmap.scaled(self.labelResultGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+
     #########################################################################################################################
 
-    # # Generate graph
-    # def generateGraphs(self):
-    #
-    #     df = pd.read_csv('ef_fd_mv_nr_normalized_total_emissions_by_production_region.csv')[
-    #         ['feedstock', 'feedstock_measure', 'tillage_type', 'region_production', 'feedstock_amount', 'pollutant',
-    #          'normalized_pollutant_amount']]
-    #
-    #     df_subset = df.loc[
-    #         (df.feedstock_measure == 'production')
-    #         & (df.tillage_type == 'conventional tillage')
-    #         #     & (df.pollutant == 'co')
-    #         #     & (df.feedstock == 'corn stover')
-    #         & (df.normalized_pollutant_amount != np.inf)
-    #         #    & (df.region_production != 51019)
-    #         ]
-    #
-    #     df_subset['pollutant_label'] = df_subset.pollutant.str.upper()
-    #     _order = df_subset.feedstock.unique()
-    #     _names = [_.upper() for _ in df_subset.pollutant.unique()]
-    #     sns.set_context("talk", font_scale=1.5)
-    #
-    #     g = sns.catplot(x="feedstock",
-    #                     y="normalized_pollutant_amount",
-    #                     #                 hue="pollutant",
-    #                     col="pollutant_label",
-    #                     data=df_subset,
-    #                     kind="box",
-    #                     height=8,
-    #                     aspect=.8,
-    #                     color='red',
-    #                     sharex=True,
-    #                     sharey=False,
-    #                     margin_titles=False,
-    #                     col_wrap=4,
-    #                     order=_order,
-    #                     saturation=0.6,
-    #                     dodge=False,
-    #                     #                 whis=0.9
-    #                     )
-    #     (g.set_axis_labels("", "Emissions (lb/acre)")
-    #      .set_xticklabels([_.title() for _ in _order], rotation=90)
-    #      .set_titles("{col_name}")
-    #      .set(yscale='log')
-    #      )
+    # Generate graph
+    def generateGraphs(self, csv_file, tempFolder):
+        # ef_fd_mv_nr_normalized_total_emissions_by_production_region.csv
+        df = pd.read_csv(csv_file)[
+            ['feedstock', 'feedstock_measure', 'tillage_type', 'region_production', 'feedstock_amount', 'pollutant',
+             'normalized_pollutant_amount']]
+
+        df_subset = df.loc[
+            (df.feedstock_measure == 'production')
+            & (df.tillage_type == 'conventional tillage')
+            #     & (df.pollutant == 'co')
+            #     & (df.feedstock == 'corn stover')
+            & (df.normalized_pollutant_amount != np.inf)
+            #    & (df.region_production != 51019)
+            ]
+
+        df_subset['pollutant_label'] = df_subset.pollutant.str.upper()
+        _order = df_subset.feedstock.unique()
+        _names = [_.upper() for _ in df_subset.pollutant.unique()]
+        sns.set_context("talk", font_scale=1.5)
+
+        g = sns.catplot(x="feedstock",
+                        y="normalized_pollutant_amount",
+                        #                 hue="pollutant",
+                        col="pollutant_label",
+                        data=df_subset,
+                        kind="box",
+                        height=8,
+                        aspect=.8,
+                        color='red',
+                        sharex=True,
+                        sharey=False,
+                        margin_titles=False,
+                        col_wrap=4,
+                        order=_order,
+                        saturation=0.6,
+                        dodge=False,
+                        #                 whis=0.9
+                        )
+        (g.set_axis_labels("", "Emissions (lb/acre)")
+         .set_xticklabels([_.title() for _ in _order], rotation=90)
+         .set_titles("{col_name}")
+         .set(yscale='log')
+         )
+        resultPath  = os.path.join(tempFolder, "result.png")
+        plt.savefig(resultPath)
+
+        return resultPath
+
+    #############################################################################################################
 
     # Result Tab Code
     def setupUIResult(self):
@@ -3457,7 +3463,7 @@ class AlltabsModule(QtWidgets.QWidget):
         # Result tab code started
         windowLayoutResult = QGridLayout()
         windowLayoutResult.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
-        windowLayoutResult.setColumnStretch(6, 1)
+        #windowLayoutResult.setColumnStretch(6, 1)
 
         # Add scrollbar to Result tab
         self.scrollAreaResult = QScrollArea(self.tabResult)
@@ -3473,7 +3479,7 @@ class AlltabsModule(QtWidgets.QWidget):
         # Add vertical space at the top
         emptyLabelTop = QLabel()
         emptyLabelTop.setFixedHeight(30)
-        self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
+        self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 1)
 
         # Created UI element - Display Logs
         self.plainTextLog = QPlainTextEdit()
@@ -3481,39 +3487,24 @@ class AlltabsModule(QtWidgets.QWidget):
         self.plainTextLog.setPlainText("")
         self.plainTextLog.setReadOnly(True)
         self.plainTextLog.setFixedHeight(200)
-        windowLayoutResult.addWidget(self.plainTextLog, 1, 0, 1, 5)
+        windowLayoutResult.addWidget(self.plainTextLog, 1, 0, 1, 1)
 
-        # Addedd other elements for temporory to adjust the position
-        self.labelMOVESGraph = QLabel()
-        self.labelMOVESGraph.setFixedHeight(300)
-        self.labelMOVESGraph.setFixedWidth(400)
-        windowLayoutResult.addWidget(self.labelMOVESGraph, 2, 0)
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(20)
+        self.windowLayout.addWidget(emptyLabelE, 2, 0, 1, 1)
 
-        self.plainLabel1 = QLabel()
-        windowLayoutResult.addWidget(self.plainLabel1, 2, 1)
-
-        self.labelNONROADGraph = QLabel()
-        self.labelNONROADGraph.setFixedHeight(300)
-        self.labelNONROADGraph.setFixedWidth(400)
-        windowLayoutResult.addWidget(self.labelNONROADGraph, 2, 2)
-
-        self.labelEmissionFactorsGraph = QLabel()
-        self.labelEmissionFactorsGraph.setFixedHeight(300)
-        self.labelEmissionFactorsGraph.setFixedWidth(400)
-        windowLayoutResult.addWidget(self.labelEmissionFactorsGraph, 3, 0)
-
-        self.plainLabel2 = QLabel()
-        windowLayoutResult.addWidget(self.plainLabel2, 3, 1)
-
-        self.labelFugitivedustGraph = QLabel()
-        self.labelFugitivedustGraph.setFixedHeight(300)
-        self.labelFugitivedustGraph.setFixedWidth(400)
-        windowLayoutResult.addWidget(self.labelFugitivedustGraph, 3, 2)
+        # Created UI element - Display result
+        self.labelResultGraph = QLabel()
+        self.labelResultGraph.setFixedHeight(500)
+        self.labelResultGraph.setFixedWidth(WIDTH)
+        windowLayoutResult.addWidget(self.labelResultGraph, 3, 0, 1, 1)
 
         # Created UI element - Progress bar
         self.progressBar = QProgressBar()
         self.progressBar.setVisible(False)
-        windowLayoutResult.addWidget(self.progressBar, 3, 0)
+        self.progressBar.setStyleSheet("")
+        windowLayoutResult.addWidget(self.progressBar, 2, 0,1,1)
 
         #########################################################################################################################
 
@@ -3534,7 +3525,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.setupUIEmissionFactors()
         self.setupUIFugitiveDust()
         self.setupUIResult()
-        #self.generateGraphs()
 
         #############################################################################################################################
 
