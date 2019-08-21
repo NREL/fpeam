@@ -71,19 +71,16 @@ class Router(object):
         _edges = _route.apply(lambda x: self.Graph.get_edge_data(u=x.start_node,
                                                                  v=x.end_node)['edge_id'], axis=1)
 
-        try:
-            _summary = self.edges.loc[self.edges.edge_id.isin(_edges.values.tolist()) &
-                                      ~self.edges.countyfp.isna() &
-                                      ~self.edges.statefp.isna()][['edge_id',
-                                                                   'statefp',
-                                                                   'countyfp',
-                                                                   'weight',
-                                                                   'fclass']].groupby(['statefp',
-                                                                                       'countyfp',
-                                                                                       'fclass'])\
-                .sum().reset_index()
-        except:
-            pass
+        _summary = self.edges.loc[self.edges.edge_id.isin(_edges.values.tolist()) &
+                                  ~self.edges.countyfp.isna() &
+                                  ~self.edges.statefp.isna()][['edge_id',
+                                                               'statefp',
+                                                               'countyfp',
+                                                               'weight',
+                                                               'fclass']].groupby(['statefp',
+                                                                                   'countyfp',
+                                                                                   'fclass'])\
+            .sum().reset_index()
 
         _summary['region_transportation'] = _summary['statefp'] + _summary['countyfp']
         _summary['vmt'] = _summary['weight'] / 1000.0 * 0.621371
