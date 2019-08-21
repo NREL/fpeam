@@ -5,7 +5,6 @@ from .Module import Module
 from ..Data import FugitiveDustFactors, TruckCapacity, SiltContent,\
     FugitiveDustOnroadConstants
 
-import pdb
 LOGGER = utils.logger(name=__name__)
 
 
@@ -329,7 +328,7 @@ class FugitiveDust(Module):
 
         # take out duplicate rows to clean up df
         _fugdust = _fugdust.drop_duplicates()
-        pdb.set_trace()
+
         # create column with just pollutant name by trimming last 4 characters
         _fugdust['pollutant'] = _fugdust.loc[:, 'road_pollutant'].str[-4:]
 
