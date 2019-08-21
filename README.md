@@ -55,7 +55,7 @@ TABLE: List of columns and data types in equipment dataset.
 
 Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered, albeit with the numbers stored as characters rather than integers, and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset (discussed in the next section), to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset; any equipment data without matching feedstock production data or vice versa will be excluded from FPEAM calculations.
 
-The `rotation_year` column in the equipment dataset refers to the year in a multi-year crop rotation such as a switchgrass cropping system. `rotation_year` should not contain calendar years but rather integers greater than or equal to 1. The calendar year in which the rotation begins is defined using the `year` parameter in the MOVES and/or NONROAD config files, discussed further below. This `year` parameter specifies the calendar year in which biomass is first grown, harvested and transported in a scenario.
+The `rotation_year` column in the equipment dataset refers to the year in a multi-year crop rotation such as a switchgrass cropping system. `rotation_year` should not contain calendar years but rather integers greater than or equal to 1. The calendar year in which the rotation begins is specified for each scenario within the FPEAM GUI. This `year` parameter specifies the calendar year in which biomass is first grown, harvested and transported in a scenario.
 
 <!-- TABLE: Equipment data examples
 
@@ -90,9 +90,11 @@ TABLE: Loading equipment information source from BTS 2016. This data was added t
 
 ## Feedstock production
 
-The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by what agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, `equipment_group` (values must match those in the equipment dataset) and `region_production`, that indicate where feedstocks were produced. `region_production` values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the `region_production` column are not FIPS codes, an additional input file giving the mapping of the `region_production` values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
+The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by which agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, `equipment_group` (values must match those in the equipment dataset) and `region_production`, that indicate where feedstocks were produced. `region_production` values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the `region_production` column are not FIPS codes, an additional input file giving the mapping of the `region_production` values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
 
-The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the `year` parameter in the MOVES and NONROAD config files, discussed further below.
+Latitude and longitude values are also specified for feedstock production and destination locations. These values are used in the router engine. If precise latitude and longitude values are not available for any production or destination locations, these columns can be left blank in the production dataset. Instead, the FIPS for the production and destination locations can be specified, and a lookup table included in the default input data will be used to find the latitude-longitude pairs for the county centroids. 
+
+The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the FPEAM GUI.
 
 TABLE: List of columns in feedstock production data set with data types and descriptions
 
@@ -107,6 +109,10 @@ TABLE: List of columns in feedstock production data set with data types and desc
 | feedstock_amount | float | Feedstock amount defined by feedstock_measure, with units given by unit_numerator and unit_denominator |
 | unit_numerator | string | Numerator of feedstock_amount unit |
 | unit_denominator | string | Denominator of feedstock_amount unit, if any |
+| source_lon | float | Longitude of feedstock production location |
+| source_lat | float | Latitude of feedstock production location |
+| destination_lon | float | Longitude of feedstock destination location |
+| destination_lat | float | Latitude of feedstock destination location |
 
 <!--TABLE: Feedstock production data examples
 
@@ -178,9 +184,9 @@ TABLE: Dry matter loss factors by feedstock and supply chain stage.
 | whole trees | biorefinery gate | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
 | forest residues | biorefinery gate | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
 
-`region_production` and `region_destination` values in the feedstock production dataset must be mapped to FIPS codes for use in MOVES and NONROAD (`region_production`) and in the router module (`region_production` and `region_destination`). Only one mapping is provided, thus the region column in the mapping should contain all `region_production` and `region_destination` values found in the feedstock production dataset. Any regions for which a FIPS mapping is not provided will be excluded from FPEAM calculations and results. Currently the region-to-FIPS mapping must be one-to-one, meaning that each unique `region_production` and `region_destination` code must map to one unique FIPS. Mappings which are not one-to-one will produce an error when the data is read in and must be corrected before FPEAM is run. Further development can allow for many-to-one and one-to-many mappings, if there is demand. 
+`region_production` and `region_destination` values in the feedstock production dataset must be mapped to FIPS codes for use in MOVES and NONROAD. Only one mapping is provided, thus the region column in the mapping should contain all `region_production` and `region_destination` values found in the feedstock production dataset. Any regions for which a FIPS mapping is not provided will be excluded from FPEAM calculations and results. Currently the region-to-FIPS mapping must be one-to-one, meaning that each unique `region_production` and `region_destination` code must map to one unique FIPS. Mappings which are not one-to-one will produce an error when the data is read in and must be corrected before FPEAM is run. Further development can allow for many-to-one and one-to-many mappings, if there is demand. 
 
-TABLE: List of columns, data types and descriptions in the map of region_production and region_destination values to FIPS codes
+TABLE: List of columns, data types and descriptions in the map of `region_production` and `region_destination` values to FIPS codes
 
 | Column name | Data type | Description |
 | :---------- | :-------- | :---------- |
@@ -196,9 +202,13 @@ TABLE: Map of state FIPS codes to two-letter state abbreviations
 | state_abbreviation | string | Two-character state name abbreviation |
 | state_fips | string | Two-digit state FIPS code, stored as string |
 
+## Input data backfilling
+
+Users have the option of backfilling any missing numeric data in the input datasets with the default value of 0 or a value of their choice. This option prevents FPEAM from excluding from the results any counties, feedstocks etc. that did not have complete input data for one or more pollutant processes. Instead, the pollutant inventories resulting from incomplete input data will appear in the results as 0. There is no option to backfill categorical and identifier variables (feedstock name, for instance) - if there are missing values in these variables, then the pollutant inventories for those variable values will not be included in the FPEAM results.
+
 ## Input data validation
 
-how missing data is backfilled for each type of input data - users can choose to backfill or not; numerical data is always backfilled with zero; categorical/identifier variables are NEVER backfilled and so if one of those is missing that data entry is left out of the calculations; backfilling with zero means that data entry shows up in the results but as all zeros
+
 
 ## FPEAM Output
 
@@ -230,7 +240,7 @@ Currently the FPEAM MOVES module can only run MOVES at the FIPS (county) level, 
 
 MOVES can be run for all FIPS for which a mapping from region_production to FIPS was provided, or at two levels of aggregation: one FIPS per state based on which FIPS had the highest total feedstock production, or multiple FIPS per states based on which FIPS had the highest production of each feedstock. By default, MOVES is run once per state with FIPS selected based on highest total feedstock production. This aggregation is done by default to keep FPEAM run times reasonable; MOVES requires between 10 and 15 minutes to run each FIPS and can easily extend model run times into days.
 
-MOVES aggregation levels are set using the moves_by_state and moves_by_state_and_feedstock parameters, both Booleans that can be set either via the FPEAM GUI or in the MOVES config file. These parameters are mutually exclusive: at most one of them can be True. If neither moves_by_state nor moves_by_state_and_feedstock are True, then MOVES automatically runs every FIPS for which sufficient data is provided.
+MOVES aggregation levels are set using the `moves_by_state` and `moves_by_state_and_feedstock` parameters, both Booleans that are set within the FPEAM GUI. These parameters are mutually exclusive: at most one of them can be True. If neither `moves_by_state` nor `moves_by_state_and_feedstock` are True, then MOVES automatically runs every FIPS for which sufficient data is provided.
 
 TABLE: MOVES module user options
 
@@ -261,13 +271,13 @@ TABLE: MOVES database connection and software parameters.
 
 ## MOVES installation and setup
 
-During the MOVES installation process, users will need to select a folder in which MOVES is installed. By default, MOVES is installed to `C:\Users\Public\EPA\MOVES\MOVES2014a`, but the length of this file path causes problems when setting up and running NONROAD in batch mode (the NONROAD model is contained within MOVES). Users should instead install MOVES to a directory contained directly within the `C:` drive, such as `C:\MOVES2014a`. This is because the path to the NONROAD executable, which is contained within the MOVES directory, must be less than 60 characters in order for NONROAD to process it correctly. It is recommended that the `moves_path` and `nonroad_path` parameters be kept to a maximum of 30 characters for this reason. The exact directory name should be specified in the MOVES and NONROAD config files using the `moves_path` and `nonroad_path` parameters. Config files are discussed further below.
+During the MOVES installation process, users will need to select a folder in which MOVES is installed. By default, MOVES is installed to `C:\Users\Public\EPA\MOVES\MOVES2014a`, but the length of this file path causes problems when setting up and running NONROAD in batch mode (the NONROAD model is contained within MOVES). Users should instead install MOVES to a directory contained directly within the `C:` drive, such as `C:\MOVES2014a`. This is because the path to the NONROAD executable, which is contained within the MOVES directory, must be less than 60 characters in order for NONROAD to process it correctly. It is recommended that the `moves_path` and `nonroad_path` parameters be kept to a maximum of 30 characters for this reason. The exact directory name should be specified in the MOVES and NONROAD tabs of the FPEAM GUI.
 
 After installing MOVES and before using FPEAM to run MOVES for the first time, the user must create the MOVES output database (moves_output_db in the table above)  using the MOVES GUI. To complete this step, open the MOVES2014a Master software and go to the "General Output" screen, under "Output." Enter the desired MOVES output database name in the Database field under Output Database and click Create Database. A database will be initialized with all tables required to run MOVES in batch mode. Once the database has been created, the MOVES software can be closed without saving the run specification and the user can proceed to using FPEAM.
 
 ## User options
 
-These options can be changed manually using the FPEAM GUI or directly in the MOVES config file. The vmt_short_haul parameter is only used if the Router module is either unavailable or if the user specifies that the router should not be used. In this case vmt_short_haul specifies the number of vehicle miles used to calculate transportation emissions within each FIPS where a feedstock is produced.
+These options can be changed manually using the FPEAM GUI or left at their default values. The `vmt_short_haul` parameter is only used if the Router module is either unavailable or if the user specifies that the router should not be used. In this case `vmt_short_haul`specifies the number of vehicle miles used to calculate transportation emissions within each FIPS where a feedstock is produced.
 
 TABLE: Transportation distance and transportation mode parameters.
 
@@ -329,27 +339,11 @@ After MOVES is run, the `postprocess` method is used to extract raw MOVES output
 
 Each of these methods is called by the `run` method, which also preprocesses a copy of the feedstock production dataset to determine for which FIPS MOVES should be run. User input parameters determine if MOVES is run once per state, several times per state, or for every FIPS in the input database, and are combined with the feedstock production dataset to pull out a list of FIPS to run MOVES on. `run` also calls the `_get_cached_results` method which checks the MOVES output database to determine if raw MOVES results already exist for any of the FIPS and years involved in an FPEAM scenario. Users can opt to use these cached results with the use_cached_results parameter or run MOVES for every FIPS regardless of whether results already exist.
 
-## Additional development
+# Router Engine
 
-Create a new input file subdirectory for each uniquely named FPEAM scenario, to prevent files being overwritten.
+The Router engine is used within the MOVES module to obtain the routes taken by feedstock transportation vehicles and calculate the vehicle miles traveled by FIPS over each route. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the Router engine is only used internally to FPEAM, there are no user options for running the router.
 
-Use the Router module to generate a list of FIPS through which biomass is transported, and run MOVES for all of these FIPS or a user-determined subset.
-
-Allow for multiple vehicle, fuel and engine type selections, with selections possibly varying by feedstock or by region.
-
-Allow for users to select which pollutants and pollutant processes to calculate from the full list of pollutants and pollutant processes included in MOVES.
-
-Allow for users to specify vmt_short_haul by FIPS, as an alternative to both the Router module and the flat VMT value.
-
-Allow users to specify non-default national and county scale data files as an alternative to pulling defaults from the MOVES database.
-
-Explore parallelization options for running MOVES to reduce total runtime and allow results to be calculated for all relevant FIPS.
-
-# Router Module
-
-The Router module is used within the MOVES module to obtain the routes taken by feedstock transportation vehicles and calculate the vehicle miles traveled by FIPS over each route. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the Router module is only used internally to FPEAM, there are no user options for running the router and there is no config file for the Router module.
-
-Currently the Router module uses a graph of all known, publicly accessible roads in the contiguous U.S., obtained from the [Global Roads Open Access Data Sets](http://sedac.ciesin.columbia.edu/data/set/groads-global-roads-open-access-v1) (gROADS) v1. This graph does not contain transportation pathways such as rivers, canals and train tracks, and therefore limits the transportation modes that can be used in FPEAM to on-road vehicles such as trucks. Future FPEAM development will expand the available routes to include multiple route types and transportation modes. Dijkstra's algorithm is applied to find the shortest path from the biomass production region to the destination region (both mapped to FIPS as discussed previously), and the shortest path is used to obtain a list of FIPS through which the biomass is transported as well as the vehicle miles traveled within each FIPS.
+Currently the Router uses a graph of all known, publicly accessible roads in the contiguous U.S., obtained from the [Global Roads Open Access Data Sets](http://sedac.ciesin.columbia.edu/data/set/groads-global-roads-open-access-v1) (gROADS) v1. This graph does not contain transportation pathways such as rivers, canals and train tracks, and therefore limits the transportation modes that can be used in FPEAM to on-road vehicles such as trucks. Future FPEAM development will expand the available routes to include multiple route types and transportation modes. Dijkstra's algorithm is applied to find the shortest path from the biomass production region to the destination region (both mapped to FIPS as discussed previously), and the shortest path is used to obtain a list of FIPS through which the biomass is transported as well as the vehicle miles traveled within each FIPS.
 
 # NONROAD Module
 
@@ -357,7 +351,7 @@ Currently the Router module uses a graph of all known, publicly accessible roads
 
 ## User options and input data
 
-User options that can be set within the NONROAD config file (also accessible via the GUI) consist of identifiers used to select which entries in the feedstock production and equipment datasets should be used in NONROAD runs, NONROAD temperature specifications and a set of multipliers used to calculate criteria air pollutants of interest from those returned by NONROAD. These options are listed in the table below with default values and descriptions.
+User options that can be set within the NONROAD tab of the FPEAM GUI consist of identifiers used to select which entries in the feedstock production and equipment datasets should be used in NONROAD runs, NONROAD temperature specifications and a set of multipliers used to calculate criteria air pollutants of interest from those returned by NONROAD. These options are listed in the table below with default values and descriptions.
 
 There are a variety of input files required to run NONROAD, many of which are nested several sub-directories deep. NONROAD requires that the complete file paths to all input files be 60 characters or less (although some file paths may extend to 80 characters, developers have chosen to limit input file paths to 60 characters for simplicity), and so to avoid file path length errors, NONROAD input files have coded names that indicate feedstock type, tillage type and activity. CSV files recording the encoded feedstock, tillage and activity names are saved automatically to the main FPEAM directory when the names are encoded, to allow users to review the input files if necessary.
 
@@ -404,11 +398,7 @@ After the input files have been generated, the `create_batch_files` method creat
 
 The `run` method calls all other methods including the `postprocess` method. Postprocessing is different for NONROAD than for MOVES because NONROAD writes raw results to individual text files (one file per NONROAD run) with the extension .out. Postprocessing then involves gathering each .out file, extracting the FPEAM-relevant data, calculating a few pollutants that are not returned by NONROAD, and then concatenating and formatting the NONROAD results so they can be combined with the results of other modules.
 
-## Additional development
-
-Allow for users to select which pollutants are returned by the postprocessing method.
-
-# EmissionFactors Module
+# Emission Factors Module
 
 The EmissionFactors module was developed from a module in the previous version of FPEAM that calculated NO<sub>x</sub> and NH<sub>3</sub> emissions from nitrogen fertilizer application and VOC emissions from herbicide and insecticide application. Rather than limit the module functionality to these pollutants and pollutant causes, the EmissionFactors module was written to calculate any pollutant from any pollutant process if sufficient input data is provided. This flexibility allows users to model pollutants from other fertilizers and agricultural chemicals, and could allow EmissionFactors to replace MOVES and NONROAD in the calculation of agricultural equipment and transportation vehicle emissions, albeit with a loss in spatial detail.
 
@@ -466,13 +456,13 @@ where R is the pesticide or herbicide application rate (lb/harvested acre/year),
 
 # Fugitive Dust Module
 
-The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities. On-road fugitive dust from feedstock transportation is not calculated due to a lack of spatially detailed road silt data, but this calculation may be added to FPEAM in the future if an adequate data source can be found.
+The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities and on-road feedstock transportation over paved and unpaved roads.
 
 ## User options and input data
 
-Like the EmissionFactors module, the only user input parameter for the FugitiveDust module is the feedstock_measure_type, which specifies the feedstock measure used to scale the fugitive dust emission factors and calculate total pollutant amounts.
+Users must specify both `onfarm_feedstock_measure_type` (units: acres) and `onroad_feedstock_measure_type` (units: dry short tons), which are the feedstock measures used to scale on-farm fugitive dust emission factors and to calculate on-road fugitive dust emissions, respectively. 
 
-PM<sub>10</sub> emissions are calculated using feedstock-specific emissions factors developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf), which are available in Chapter 9 of the Billion Ton Study 2016 Update and packaged with the FPEAM code base in the default input data files. PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission factors by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf). 
+On-farm PM<sub>10</sub> emissions are calculated using feedstock-specific emission rates by acre (pounds of pollutant per acre) developed by the [California Air Resources Board](http://www.arb.ca.gov/ei/areasrc/fullpdf/full7-5.pdf), which are available in Chapter 9 of the 2016 Update to the Billion Ton Study and are packaged with the FPEAM code base in the default input data files. On-farm PM<sub>2.5</sub> emission factors, which are also included in the default FPEAM input data files, are calculated by multiplying the PM<sub>10</sub> emission rates by 0.2. This fraction represents agricultural tilling and was developed by the [Midwest Research Institute](http://www.epa.gov/ttnchie1/ap42/ch13/bgdocs/b13s02.pdf). The following two tables give the column names, data types, and a few sample rows for the fugitive dust emission rates input data.
 
 TABLE: List of columns and data types in fugitive dust emissions factors dataset.
 
@@ -485,7 +475,7 @@ TABLE: List of columns and data types in fugitive dust emissions factors dataset
 | unit_numerator | string | Numerator of rate unit |
 | unit_denominator | string | Denominator of rate unit |
 
-TABLE: Fugitive dust input file example
+TABLE: Example rows in the fugitive dust emissions factors dataset.
 
 | feedstock | tillage_type | pollutant | rate | unit_numerator | unit_denominator |
 | :-------- | :----------- | :-------: | :--: | :--------- | :--------- |
@@ -494,9 +484,38 @@ TABLE: Fugitive dust input file example
 | sorghum stubble | conventional tillage | PM<sub>10</sub> | 0 | pound | acre |
 | sorghum stubble | conventional tillage | PM<sub>25</sub> | 0 | pound | acre |
 
-## Additional development
+On-road PM<sub>10</sub> and PM<sub>2.5</sub> emissions are calculated using empirical functions, parameters and data from EPA
+ ([2006](https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf), [2011](https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0201.pdf)), [INL 2016](https://inldigitallibrary.inl.gov/sti/6038147.pdf) and [DOE 2016](http://energy.gov/sites/prod/files/2016/07/f33/2016_billion_ton_report_0.pdf). Additional information is available in the Appendix to Chapter 9 of the Billion Ton Study 2016 Update.
 
-Allow for county- or region-specific fugitive dust emission factors.
+EQUATION: On-paved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over paved roads. Values for parameters <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;k_P,&space;s_L,&space;a_P,&space;W" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;k_P,&space;s_L,&space;a_P,&space;W" title="k_P, s_L, a_P, W" /></a> and <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;b_P" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;b_P" title="b_P" /></a> are given in the table following.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\text{Rate}_P\text{&space;(lb/VMT)}&space;=&space;k_P&space;s_L^{a_P}&space;W^{b_P}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{Rate}_P\text{&space;(lb/VMT)}&space;=&space;k_P&space;s_L^{a_P}&space;W^{b_P}" title="\text{Rate}_P\text{ (lb/VMT)} = k_P s_L^{a_P} W^{b_P}" /></a>
+
+TABLE: Parameter values for calculating particulate matter from feedstock transportation over paved roads.
+
+|    P             | k<sub>P</sub> (lb/VMT) | a<sub>P</sub> | b<sub>P</sub> | s<sub>L</sub> (g/m<sup>2</sup>) |  W (short tons) |
+| :--------------: | :-------------------:  | :-----------: | :-----------: | :-----------------------------: | :-------------: |
+| PM<sub>10</sub>  | 0.0022                 | 0.91          | 1.02          | 0.045                           | 3.2             |
+| PM<sub>2.5</sub> | 0.00054                | 0.91          | 1.02          | 0.045                           | 3.2             |
+
+EQUATION: On-unpaved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over unpaved roads. Parameter values for k<sub>P</sub>, a<sub>P</sub> and b<sub>P</sub> are given in the table following. The silt content parameter s<sub>st</sub> varies by state; a partial list of values are given in the second table following.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\text{Rate}_P&space;\text{&space;(lb/VMT)}&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\text{Rate}_P&space;\text{&space;(lb/VMT)}&space;=&space;k_P&space;\left&space;(&space;\frac{s_{st}}{12}&space;\right&space;)^{a_P}&space;\left&space;(&space;\frac{W}{3}&space;\right&space;)^{b_P}" title="\text{Rate}_P \text{ (lb/VMT)} = k_P \left ( \frac{s_{st}}{12} \right )^{a_P} \left ( \frac{W}{3} \right )^{b_P}" /></a>
+
+TABLE: Parameter values for calculating particulate matter from feedstock transportation over unpaved roads.
+
+|   P              | k<sub>P</sub> (lb/VMT) | a<sub>P</sub> | b<sub>P</sub> |
+| :-------------:  | :-:                    | :-:           | :-:           |
+| PM<sub>10</sub>  | 1.5                    | 0.9           | 0.45          |
+| PM<sub>2.5</sub> | 0.15                   | 0.9           | 0.45          |
+
+TABLE: Sample values for s<sub>st</sub>. The complete list can be found in the fugitive_dust_silt_content.csv file packaged with the default input data set.
+
+| st      | s<sub>st</sub> |
+| :------ | :------------: |
+| Alabama | 3.9            |
+| Alaska  | 3.8            |
+| Arizona | 3.0            |
 
 # Installing and Running FPEAM
 
@@ -509,6 +528,7 @@ Due to its dependence on MOVES, FPEAM can currently be installed and run only on
 	* Recommended installation is via [Anaconda](http://docs.anaconda.com/anaconda/install/windows/)
 * Python modules - install the most recent full release
 	* [numpy](https://www.scipy.org/scipylib/download.html)
+	* [scipy](https://www.scipy.org/scipylib/download.html)
 	* [pandas](http://pandas.pydata.org/pandas-docs/stable/install.html)
 	* [pymysql](https://pymysql.readthedocs.io/en/latest/user/installation.html)
 	* [configobj](https://configobj.readthedocs.io/en/latest/configobj.html#downloading)
@@ -537,251 +557,5 @@ Open either a Windows Command Prompt or an Anaconda Prompt and navigate to the o
 
 This will install FPEAM on your computer as a Python module and allow you to use the command `fpeam` to run a scenario.
 
-## Defining and using config files
+## Structure and workflow using the GUI
 
-Each module can take user-defined input parameters from a module-specific config file with file extension .ini. Because these parameters are scenario-specific, only empty config files are packaged with the code base. Config file templates are provided in the next section and can be used to develop scenario-specific configs. All parameters that can be set via config file have default values defined in the config specification files (.spec file extension) of the same name as the module to which the specification file applies. The specification files are required for running FPEAM and are packaged with the code base.
-
-All parameter definitions in the template config files below are commented out, indicating that the default values from the specification files will be used in running FPEAM. To change these parameters from their default values, uncomment the line where the parameter is defined and change the default value to the desired value. Then, in order to use the custom parameter definitions, the full file path to the custom config file must be specified when FPEAM is run.
-
-An additional config file, the run config, that defines the FPEAM scenario must also be specified in order to run FPEAM. Because the values in this file will be user- and machine-specific, and will vary according to the FPEAM scenario definition, this file is not supplied with the code base. Instead, a file template is provided below. 
-
-## Config file templates
-
-To create a config file and edit parameter definitions, copy and paste the template into a text file and save with the .ini file extension (config file names can be arbitrary, but it may be helpful to include the corresponding module name in the config file name), then uncomment the parameters to be defined and edit the values as necessary. Unused parameter values can also be deleted from the config file. A list of suggested parameters to define is included with each config file template; these parameters are either necessary for FPEAM to function on specific machines or are commonly used in defining biomass production scenarios. The suggested parameters are listed assuming that users are either using the default FPEAM input datasets as-is or are using custom data with the same identifier variables (for instance, `feedstock_measure` and `forestry_feedstock_names`) as in the default datasets.
-
-### MOVES config
-
-```
-[moves]
-## run identifier; defaults to FPEAM scenario name
-#scenario_name = 'scenario'
-
-
-### MOVES execution options
-
-## use a single representative county for all counties in each state
-#moves_by_state = True
-
-## use a single representative county for each crop for all counties in each state
-#moves_by_state_and_feedstock = False
-
-## use existing results in MOVES output database or run MOVES for all counties
-#use_cached_results = True
-
-## production table identifier (feedstock_measure in production data)
-#feedstock_measure_type = 'production'
-
-## annual vehicle miles traveled by combination short-haul trucks
-#vmt_short_haul = 100
-
-## population of combination short-haul trucks per trip
-#pop_short_haul = 1
-
-## vehicle category: combination trucks
-#hpmsv_type_id = 60
-
-## specific vehicle type: short-haul combination truck
-#source_type_id = 61
-
-## start year (equipment year #1)
-#year = 2017
-
-
-### MOVES database connection options
-#moves_db_host = 'localhost'
-#moves_db_user = 'moves'
-#moves_db_pass = 'moves'
-#moves_database = 'movesdb20151028'
-#moves_output_db = 'moves_output_db'
-
-
-### MOVES application options
-#moves_version = 'MOVES2014a-20151028'
-#moves_path = 'C:\MOVES2014a'
-#moves_datafiles_path = 'C:\MOVESdata'
-
-
-### MySQL options
-#mysql_binary = 'C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe'
-#mysqldump_binary = 'C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe'
-
-
-### input files
-
-## MOVES routing graph
-#transportation_graph ='../data/inputs/transportation_graph.csv'
-
-## graph nodes representing each county
-#county_nodes = '../data/inputs/county_nodes.csv'
-
-## truck capacities for feedstock transportation
-#truck_capacity = '../data/inputs/truck_capacity.csv'
-
-## fuel fraction by engine type
-#avft = '../data/inputs/avft.csv'
-
-## production region to MOVES FIPS mapping
-#region_fips_map = '../data/inputs/region_fips_map.csv'
-
-
-### MOVES input options
-
-## fraction of VMT by road type (must sum to 1)
-#[vmt_fraction]
-#rural_restricted = 0.30
-#rural_unrestricted = 0.28
-#urban_restricted = 0.21
-#urban_unrestricted = 0.21
-
-## timespan(s)
-#[moves_timespan]
-#month = 10
-#day = 5
-#beginning_hour = 7
-#ending_hour = 18
-```
-
-Suggested parameters to define in the MOVES config file are `scenario_name`, `year`, `moves_database`, `moves_output_db`, `moves_path` and `moves_datafiles_path`. `scenario_name` identifies the biomass production scenario being run, and it is recommended that every unique scenario have a unique `scenario_name` to avoid overwriting results from previous scenarios. The `year` parameter defines the harvest and transportation year for the scenario. The remaining parameters specify where MOVES is installed (`moves_path`), where input files are saved during batch runs (`moves_datafiles_path`) and which default and output databases should be used in the scenario (`moves_database` and `moves_output_db`).
-
-
-### NONROAD config
-
-```
-[nonroad]
-## run identifier; defaults to FPEAM scenario name
-#scenario_name = 'scenario'
-
-## start year (equipment year #1)
-#year = 2017
-
-
-### input data options
-
-## production table row identifier (feedstock_measure in production data)
-#feedstock_measure_type = 'harvested'
-
-## equipment table row identifier (resource in equipment data)
-#time_resource_name = 'time'
-
-## forest feedstocks have different allocation indicators
-#forestry_feedstock_names = 'forest whole tree', 'forest residues'
-
-
-### input data files
-
-## production region to NONROAD FIPS mapping
-#region_fips_map = '../data/inputs/region_fips_map.csv'
-
-## state abbreviation to FIPS mapping
-#state_fips_map = '../data/inputs/state_fips_map.csv'
-
-## equipment name to NONROAD equipment name and SCC mapping
-#nonroad_equipment = '../data/inputs/nonroad_equipment.csv'
-
-
-### NONROAD database connection options
-#nonroad_database = 'movesdb10282017'
-#nonroad_db_user = 'root'
-#nonroad_db_pass = 'root'
-#nonroad_db_host = 'localhost'
-
-
-### NONROAD application options
-#nonroad_path = 'C:\MOVES2014a\NONROAD\NR08a\'
-#nonroad_datafiles_path = 'C:\Nonroad'
-#nonroad_exe = 'NONROAD.exe'
-
-
-### NONROAD input options
-
-# temperature range
-#nonroad_temp_min = 50.0
-#nonroad_temp_max = 68.8
-#nonroad_temp_mean = 60.0
-
-## lower heating value for diesel fuel (mmBTU/gallon)
-#diesel_lhv = 0.12845
-
-# nh3 emission factor for diesel fuel (grams NH3/mmBTU diesel)
-#diesel_nh3_ef = 0.68
-
-## VOC conversion factor
-#diesel_thc_voc_conversion = 1.053
-
-## pm10 to PM2.5 conversion factor
-#diesel_pm10topm25 = 0.97
-```
-
-Suggested parameters to define in the config file are `scenario_name`, `year`, `nonroad_database`, `nonroad_path`, and `nonroad_datafiles_path`. The `scenario_name` and `year` values should match the ones in the MOVES config file, if MOVES is also being run in the scenario, and the `nonroad_database` value should also be the same as the `moves_database`, again if MOVES is also included in the scenario. `nonroad_path` will depend on the MOVES installation path, and `nonroad_datafiles_path` is a user-created directory containing NONROAD input files. `nonroad_datafiles_path` should be a short directory path containing as few subdirectories as possible because NONROAD cannot process filepaths that are longer than 60 characters total and several subdirectories will be created automatically under `nonroad_datafiles_path`. It is recommended that `nonroad_datafiles_path` be kept to 30 characters or less for this reason.
-
-### FugitiveDust config
-
-```
-[fugitivedust]
-
-## production table identifier (feedstock_measure in production data)
-#feedstock_measure_type = 'harvested'
-
-## pollutant emission factors for resources
-#emission_factors ='../data/inputs/fugitive_dust_emission_factors.csv'
-```
-
-Neither parameter needs to be set in the `FugitiveDust` config file to run FPEAM using the default input data.
-
-### EmissionFactors config
-
-```
-[emissionfactors]
-
-## production table identifier (feedstock_measure in production data)
-#feedstock_measure_type = 'harvested'
-
-## emission factors as lb pollutant per lb resource subtype
-#emission_factors = '../data/inputs/emission_factors.csv'
-
-## resource subtype distribution for all resources
-#resource_distribution = '../data/inputs/resource_distribution.csv'
-```
-
-None of the parameters need to be set in the `EmissionFactors` config file to run FPEAM using the default input data.
-
-### Run_config
-
-```
-[run_config]
-## run identifier
-scenario_name = 'test'
-
-## project output directory
-project_path = 'C:/Users/rhanes/Desktop'
-
-## modules to run
-modules = 'NONROAD', 'MOVES', 'emissionfactors', 'fugitivedust'
-
-## logging verbosity level (CRITICAL, ERROR, WARNING, INFO, DEBUG, UNSET)
-logger_level = DEBUG
-
-## data paths
-equipment = '../data/equipment/bts16_equipment.csv'
-production = '../data/production/prod_2015_bc1060.csv'
-```
-
-In the `run_config` file, `scenario_name` (matching the values in the MOVES and NONROAD config files if MOVES and NONROAD are part of the scenario) and `project_path` should be specified for every scenario run. `modules` only needs to be specified if one or more modules are being excluded from the scenario, or if a module is being re-run for a scenario.
-
-## Command line syntax
-
-FPEAM can be called directly from the command line using the fpeam.py (all lower case) file. Running FPEAM this way requires passing in the run_config.ini file. Config files for each module can also be passed in but are not required. The default values defined in the .spec files will be used if no module-specific config files are given. If module-specific config files are used, the complete file path to the config file location must be specified.
-
-The syntax to run FPEAM via command line without any module-specific config files is:
-
-```
-fpeam path/to/run_config.ini
-```
-
-This command can be executed in any directory, including the one containing the config files. On a Windows machine, use `cd` to change the current working directory.
-
-If FPEAM is run with one or more module-specific config files, the syntax expands with the full filepaths to these config files and flags that indicate which config file is being specified. For instance, running FPEAM with all four module-specific config files would look like:
-
-```
-fpeam path/to/run_config.ini --emissionfactors_config path/to/emissionfactors.ini --moves_config path/to/moves.ini --nonroad_config path/to/nonroad.ini --fugitivedust_config path/to/fugitivedust.ini
-```

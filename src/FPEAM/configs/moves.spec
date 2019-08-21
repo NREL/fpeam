@@ -17,9 +17,6 @@ use_cached_results = boolean(default=True)
 ## production table identifier (feedstock_measure in production data)
 feedstock_measure_type = string(default='production')
 
-## if router is not used, assume 20 vmt per biomass production county
-vmt_short_haul = float(default=20)
-
 ## population of combination short-haul trucks per trip
 pop_short_haul = integer(default=1)
 
@@ -62,9 +59,6 @@ mysqldump_binary = filepath(default='C:\Program Files\MySQL\MySQL Server 5.7\bin
 
 
 ### input files
-
-## truck capacities for feedstock transportation
-truck_capacity = filepath(default='data/inputs/truck_capacity.csv')
 
 ## fuel fraction by engine type
 avft = filepath(default='data/inputs/avft.csv')
