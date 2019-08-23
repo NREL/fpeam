@@ -299,7 +299,7 @@ class FPEAM(object):
                                                                 'pollutant'],
                                                                as_index=False).sum()
 
-        _summarize_by_region_production['unit_numerator'] = 'lb pollutant'
+        _summarize_by_region_production['unit_numerator'] = 'lb pollutant'  # @TODO: should we be reading this in from the data?
         _summarize_by_region_production['unit_denominator'] = 'county-year'
 
         _summarize_by_region_production[['feedstock', 'tillage_type',
@@ -334,6 +334,7 @@ class FPEAM(object):
                                                              'region_production',
                                                              'feedstock_amount',
                                                              'feedstock_unit_numerator',
+                                                             'feedstock_unit_denominator',
                                                              'pollutant',
                                                              'unit_numerator',
                                                              'normalized_pollutant_unit_numerator',
