@@ -1,5 +1,0 @@
-{
-    "app_name": "FPEAM",
-    "main_module": "src/main/python/fpeamgui/main.py",
-    "author": "Ricardo Oliveira"
-}

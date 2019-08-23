@@ -60,7 +60,7 @@ class FugitiveDust(Module):
         self.truck_capacity = truck_capacity
 
         self.fugitive_dust_factors = FugitiveDustFactors(fpath=self.config.get('fugitive_dust_factors'),
-                                          backfill=backfill)
+                                            backfill=backfill)
         self.silt_content = SiltContent(fpath=self.config.get('silt_content'),
                                         backfill=backfill)
         self.fugitive_dust_onroad_constants = FugitiveDustOnroadConstants(fpath=self.config.get('fugitive_dust_onroad_constants'),
