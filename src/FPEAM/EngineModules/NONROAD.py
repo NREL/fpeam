@@ -17,7 +17,8 @@ LOGGER = utils.logger(name=__name__)
 
 class NONROAD(Module):
 
-    def __init__(self, config, production, equipment, backfill=True, **kvals):
+    def __init__(self, config, production, equipment,
+                 forestry_feedstock_names, backfill=True, **kvals):
         """
 
         :param config: [ConfigObj]
@@ -97,7 +98,7 @@ class NONROAD(Module):
 
         # list of feedstock names from equipment and production that
         # correspond to forestry products
-        self.forestry_feedstock_names = self.config.get('forestry_feedstock_names')
+        self.forestry_feedstock_names = forestry_feedstock_names
 
         # list of irrigated feedstocks
         self.irrigated_feedstock_names = self.config.get('irrigated_feedstock_names')
@@ -1282,7 +1283,7 @@ FIPS       Year  SCC        Equipment Description                    HPmn  HPmx 
                 # names gives names to the columns that are read in - the raw
                 # column names have whitespaces so it's easier to define new
                 #  names
-                _to_append = pd.read_table(_nr_out_file,
+                _to_append = pd.read_csv(_nr_out_file,
                                            sep=',', header=9,
                                            usecols=[0, 5, 6,
                                                     7, 9, 10, 19],

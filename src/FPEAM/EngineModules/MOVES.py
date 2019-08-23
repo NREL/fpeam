@@ -21,7 +21,9 @@ LOGGER = utils.logger(name=__name__)
 
 class MOVES(Module):
 
-    def __init__(self, config, production, feedstock_loss_factors, router=None, backfill=True,
+    def __init__(self, config, production, feedstock_loss_factors, truck_capacity,
+                 vmt_short_haul,
+                 router=None, backfill=True,
                  **kvals):
         """
 
@@ -38,6 +40,10 @@ class MOVES(Module):
 
         self.feedstock_loss_factors = feedstock_loss_factors
 
+        # user input - default values used for running MOVES, actual VMT
+        #  used to compute total emission in postprocessing
+        self.vmt_short_haul = vmt_short_haul
+
         # create a dictionary of conversion factors for later use
         self.conversion_factors = self._set_conversions()
 
@@ -49,8 +55,7 @@ class MOVES(Module):
         self.feedstock_measure_type = self.config.get('feedstock_measure_type')
 
         # this is a DF read in from a csv file
-        self.truck_capacity = TruckCapacity(fpath=self.config.get('truck_capacity'),
-                                            backfill=backfill)
+        self.truck_capacity = truck_capacity
 
         # boolean controlling whether available results are used from the MOVES output database
         self.use_cached_results = self.config.get('use_cached_results')
@@ -141,10 +146,6 @@ class MOVES(Module):
             raise RuntimeError('moves_by_state and '
                                'moves_by_state_and_feedstock cannot both be '
                                'True')
-
-        # user input - default values used for running MOVES, actual VMT
-        #  used to compute total emission in postprocessing
-        self.vmt_short_haul = self.config.as_int('vmt_short_haul')
 
         # user input - population of combination short-haul trucks (assume one
         # per trip and only run MOVES for single trip)
@@ -1416,7 +1417,7 @@ class MOVES(Module):
 
             # read in the table and get the list of unique FIPS for which
             # results already exist (takes year, month, day into account)
-            _fips_cached = pd.read_sql(_results_fips_sql, self.conn).fips.unique()
+            _fips_cached = pd.read_sql(_results_fips_sql, self.conn).fips.unique().tolist()
 
         return _fips_cached
 
@@ -1894,20 +1895,19 @@ class MOVES(Module):
         # for use in postprocessing
         self.prod_moves_runs = _prod_merge.merge(self.moves_run_list,
                                                  left_on='state',
-                                                 right_on='MOVES_run_state')[
-            ['fips',
-             'MOVES_run_fips',
-             'state',
-             'region_production',
-             'region_destination',
-             'tillage_type',
-             'feedstock',
-             'feedstock_measure',
-             'feedstock_amount',
-             'source_lon',
-             'source_lat',
-             'destination_lon',
-             'destination_lat']].drop_duplicates()
+                                                 right_on='MOVES_run_state')[['fips',
+                                                                              'MOVES_run_fips',
+                                                                              'state',
+                                                                              'region_production',
+                                                                              'region_destination',
+                                                                              'tillage_type',
+                                                                              'feedstock',
+                                                                              'feedstock_measure',
+                                                                              'feedstock_amount',
+                                                                              'source_lon',
+                                                                              'source_lat',
+                                                                              'destination_lon',
+                                                                              'destination_lat']].drop_duplicates()
 
         # @NOTE prod_moves_runs is being stored in self as a potential
         # output or check on functionality; it'll also be used in

@@ -17,9 +17,6 @@ use_cached_results = boolean(default=True)
 ## production table identifier (feedstock_measure in production data)
 feedstock_measure_type = string(default='production')
 
-## if router is not used, assume 20 vmt per biomass production county
-vmt_short_haul = float(default=20)
-
 ## population of combination short-haul trucks per trip
 pop_short_haul = integer(default=1)
 
@@ -47,24 +44,21 @@ moves_output_db = string(default='moves_output_db')
 ### MOVES application options
 
 ## the moves version used only for human reference; it's ignored by MOVES
-moves_version = string(default='MOVES2014a-20151028')
+moves_version = string(default='MOVES')
 
 ## this directory contains all input files created for MOVES runs
-moves_datafiles_path = filepath(default='C:\MOVESdata')
+moves_datafiles_path = filepath(default='C:\MOVESdata', max_length=30)
 
 ## use this path to specify which version of MOVES should be run
-moves_path = filepath(default='C:\MOVES2014a')
+moves_path = filepath(default='C:\MOVES2014b')
 
 
 ### MySQL options
-mysql_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe')
-mysqldump_binary = string(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe')
+mysql_binary = filepath(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe')
+mysqldump_binary = filepath(default='C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe')
 
 
 ### input files
-
-## truck capacities for feedstock transportation
-truck_capacity = filepath(default='data/inputs/truck_capacity.csv')
 
 ## fuel fraction by engine type
 avft = filepath(default='data/inputs/avft.csv')

@@ -42,6 +42,8 @@ class FPEAM(object):
         self._fertilizer_distribution = None
         self._fugitive_dust = None
 
+        self.router = None
+
         self._temp_dir = tempfile.mkdtemp()
 
         self.memory = Memory(location=self._temp_dir)
@@ -60,6 +62,8 @@ class FPEAM(object):
             except AssertionError:
                 _module_error = True
                 LOGGER.error('invalid module name: %s; must be one of: %s' % (_module, ', '.join(list(self.MODULES.keys()))))
+            else:
+                self._modules[_module] = self.MODULES[_module]
 
         if _module_error:
             raise Exception('invalid module name')
@@ -67,16 +71,22 @@ class FPEAM(object):
         self.equipment = Data.Equipment(fpath=self.config.get('equipment'), backfill=self.config.as_bool('backfill')).reset_index().rename({'index': 'row_id'}, axis=1)
         self.production = Data.Production(fpath=self.config.get('production'), backfill=self.config.as_bool('backfill')).reset_index().rename({'index': 'row_id'}, axis=1)
         self.feedstock_loss_factors = Data.FeedstockLossFactors(fpath=self.config.get('feedstock_loss_factors'), backfill=self.config.as_bool('backfill')).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.truck_capacity = Data.TruckCapacity(fpath=self.config.get('truck_capacity'), backfill=self.config.as_bool('backfill')).reset_index().rename({'index': 'row_id'}, axis=1)
+        self.vmt_short_haul = self.config.get('vmt_short_haul')
+        self.forestry_feedstock_names = self.config.get('forestry_feedstock_names')
 
-        if self.config.as_bool('use_router_engine'):
+        if self.config.as_bool('use_router_engine') and ('MOVES' in self._modules.keys() or 'fugitivedust' in self._modules.keys()):
             _transportation_graph = Data.TransportationGraph(fpath=self.config.get('transportation_graph'), backfill=self.config.as_bool('backfill'))
-            _county_nodes = Data.CountyNode(fpath=self.config.get('county_nodes'), backfill=self.config.as_bool('backfill'))
+            _node_locations = Data.TransportationNodeLocations(fpath=self.config.get('node_locations'), backfill=self.config.as_bool('backfill'))
 
-            if not _transportation_graph.empty or not _county_nodes.empty:
+            if not _transportation_graph.empty and not _node_locations.empty:
                 LOGGER.info('Loading routing data; this may take a few minutes')
                 self.router = Router(edges=_transportation_graph,
-                                     node_map=_county_nodes,
+                                     node_map=_node_locations,
                                      memory=self.memory)
+        else:
+            if 'MOVES' in self._modules.keys() or 'fugitivedust' in self._modules.keys():
+                LOGGER.warning('Using fixed distance(s) for all transportation distances')
 
         for _module in _modules:
             _config = run_config.get(_module.lower(), None) or \
@@ -91,6 +101,9 @@ class FPEAM(object):
                                                         production=self.production,
                                                         router=self.router,
                                                         feedstock_loss_factors=self.feedstock_loss_factors,
+                                                        truck_capacity=self.truck_capacity,
+                                                        vmt_short_haul=self.vmt_short_haul,
+                                                        forestry_feedstock_names=self.forestry_feedstock_names,
                                                         backfill=self.config.as_bool('backfill')))
             except KeyError:
                 if _module not in FPEAM.MODULES.keys():
