@@ -1741,8 +1741,8 @@ class MOVES(Module):
         # trips including backhauling is 2N - 1 where N is the number of
         # trips from farm to biorefinery
         _start_hotel_emissions.eval('pollutant_amount = ratePerVehicle * '
-                                    '(2 * feedstock_amount / truck_capacity '
-                                    '- 1)',
+                                    'max((2 * feedstock_amount / truck_capacity '
+                                    '- 1), 1)',
                                     inplace=True)
 
         # append the run emissions with the start and hotelling emissions
