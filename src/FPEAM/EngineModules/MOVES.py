@@ -1703,7 +1703,7 @@ class MOVES(Module):
         # 2N - 1 accounts for backhauling trips. The last trip from farm to
         # biorefinery has no backhauling, hence the - 1.
         _run_emissions.eval('pollutant_amount = averageRatePerDistance * vmt *'
-                            ' (2 * feedstock_amount / truck_capacity - 1)',
+                            'max((2 * feedstock_amount / truck_capacity - 1), 1)',
                             inplace=True)
 
         # start and hotelling emissions
