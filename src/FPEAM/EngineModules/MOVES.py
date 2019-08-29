@@ -1667,8 +1667,8 @@ class MOVES(Module):
                 # add identifier columns for later merging with _run_emissions
                 _vmt_by_county['source_lon'] = _routes.source_lon.iloc[i]
                 _vmt_by_county['source_lat'] = _routes.source_lat.iloc[i]
-                _vmt_by_county['destination_lon'] = _routes.source_lon.iloc[i]
-                _vmt_by_county['destination_lat'] = _routes.source_lat.iloc[i]
+                _vmt_by_county['destination_lon'] = _routes.destination_lon.iloc[i]
+                _vmt_by_county['destination_lat'] = _routes.destination_lat.iloc[i]
 
                 # either create the data frame to store all routes,
                 # or append the current route
