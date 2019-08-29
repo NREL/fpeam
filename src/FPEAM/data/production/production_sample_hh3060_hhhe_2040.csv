@@ -1,0 +1,53 @@
+feedstock,tillage_type,region_production,region_destination,equipment_group,feedstock_measure,feedstock_amount,unit_numerator,unit_denominator,source_lon,source_lat,destination_lon,destination_lat
+barley,reduced tillage,24023,36085,1,planted,79.4764,acre,,-79.29473,39.46249,-74.12464,40.56421
+barley,reduced tillage,24023,36085,1,production,128.208,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+barley,conventional tillage,24023,36085,1,harvested,37.0808,acre,,-79.29473,39.46249,-74.12464,40.56421
+barley,no tillage,24023,36085,1,harvested,17.3662,acre,,-79.29473,39.46249,-74.12464,40.56421
+barley,reduced tillage,24023,36085,1,harvested,68.5296,acre,,-79.29473,39.46249,-74.12464,40.56421
+barley,conventional tillage,24023,36085,1,planted,43.0041,acre,,-79.29473,39.46249,-74.12464,40.56421
+barley,no tillage,24023,36085,1,planted,20.1403,acre,,-79.29473,39.46249,-74.12464,40.56421
+barley,conventional tillage,24023,36085,1,yield,1.82186,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+barley,no tillage,24023,36085,1,yield,1.87551,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+barley,reduced tillage,24023,36085,1,yield,1.87084,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+barley,conventional tillage,24023,36085,1,production,67.55587,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+barley,no tillage,24023,36085,1,production,32.57046,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+corn grain,reduced tillage,24023,36085,1,yield,6.04756,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+corn grain,reduced tillage,24023,36085,1,harvested,496.9103,acre,,-79.29473,39.46249,-74.12464,40.56421
+corn grain,conventional tillage,24023,36085,1,yield,5.8907,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+corn grain,conventional tillage,24023,36085,1,harvested,3509.5298,acre,,-79.29473,39.46249,-74.12464,40.56421
+corn grain,conventional tillage,24023,36085,1,production,20673.60076,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+corn grain,reduced tillage,24023,36085,1,planted,543.3047,acre,,-79.29473,39.46249,-74.12464,40.56421
+corn grain,conventional tillage,24023,36085,1,planted,3837.2002,acre,,-79.29473,39.46249,-74.12464,40.56421
+corn grain,reduced tillage,24023,36085,1,production,3005.09343,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+corn stover,reduced tillage,24023,36085,1,planted,543.3047,acre,,-79.29473,39.46249,-74.12464,40.56421
+corn stover,reduced tillage,24023,36085,1,production,547.587,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+corn stover,reduced tillage,24023,36085,1,yield,1.102,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+corn stover,reduced tillage,24023,36085,1,harvested,496.91,acre,,-79.29473,39.46249,-74.12464,40.56421
+miscanthus,conventional tillage,24023,36085,1,production,1231.1721,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+miscanthus,conventional tillage,24023,36085,1,harvested,129.7411,acre,,-79.29473,39.46249,-74.12464,40.56421
+miscanthus,conventional tillage,24023,36085,1,yield,9.4895,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+miscanthus,conventional tillage,24023,36085,1,planted,141.0597,acre,,-79.29473,39.46249,-74.12464,40.56421
+poplar,conventional tillage,24023,36085,1,planted,1340.7072,acre,,-79.29473,39.46249,-74.12464,40.56421
+poplar,conventional tillage,24023,36085,1,harvested,167.9725,acre,,-79.29473,39.46249,-74.12464,40.56421
+poplar,conventional tillage,24023,36085,1,production,12085.6153,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+poplar,conventional tillage,24023,36085,1,yield,71.95,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+soybeans,reduced tillage,24023,36085,1,planted,246.1967,acre,,-79.29473,39.46249,-74.12464,40.56421
+soybeans,no tillage,24023,36085,1,planted,299.3935,acre,,-79.29473,39.46249,-74.12464,40.56421
+soybeans,conventional tillage,24023,36085,1,harvested,662.0847,acre,,-79.29473,39.46249,-74.12464,40.56421
+soybeans,reduced tillage,24023,36085,1,harvested,243.3919,acre,,-79.29473,39.46249,-74.12464,40.56421
+soybeans,no tillage,24023,36085,1,yield,1.32158,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+soybeans,conventional tillage,24023,36085,1,planted,669.7144,acre,,-79.29473,39.46249,-74.12464,40.56421
+soybeans,no tillage,24023,36085,1,harvested,295.9827,acre,,-79.29473,39.46249,-74.12464,40.56421
+soybeans,reduced tillage,24023,36085,1,production,320.86226,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+soybeans,conventional tillage,24023,36085,1,yield,1.28213,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+soybeans,no tillage,24023,36085,1,production,391.16557,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+soybeans,conventional tillage,24023,36085,1,production,848.88002,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+soybeans,reduced tillage,24023,36085,1,yield,1.3183,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+willow,conventional tillage,24023,36085,1,harvested,1396.7434,acre,,-79.29473,39.46249,-74.12464,40.56421
+willow,conventional tillage,24023,36085,1,planted,6695.385,acre,,-79.29473,39.46249,-74.12464,40.56421
+willow,conventional tillage,24023,36085,1,production,51716.6392,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+willow,conventional tillage,24023,36085,1,yield,37.02655,dry short ton,acre,-79.29473,39.46249,-74.12464,40.56421
+forest residues,no tillage,24023,42003,northeast,harvested,722.5,acre,,-79.29473,39.46249,-74.12464,40.56421
+forest residues,no tillage,24023,42003,northeast,production,8358.6,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+forest whole tree,no tillage,24023,42003,northeast,production,38663.4,dry short ton,,-79.29473,39.46249,-74.12464,40.56421
+forest whole tree,no tillage,24023,42003,northeast,harvested,454.6,acre,,-79.29473,39.46249,-74.12464,40.56421
