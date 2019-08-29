@@ -1667,8 +1667,8 @@ class MOVES(Module):
                 # add identifier columns for later merging with _run_emissions
                 _vmt_by_county['source_lon'] = _routes.source_lon.iloc[i]
                 _vmt_by_county['source_lat'] = _routes.source_lat.iloc[i]
-                _vmt_by_county['destination_lon'] = _routes.source_lon.iloc[i]
-                _vmt_by_county['destination_lat'] = _routes.source_lat.iloc[i]
+                _vmt_by_county['destination_lon'] = _routes.destination_lon.iloc[i]
+                _vmt_by_county['destination_lat'] = _routes.destination_lat.iloc[i]
 
                 # either create the data frame to store all routes,
                 # or append the current route
@@ -1699,12 +1699,16 @@ class MOVES(Module):
 
         # evaluate running emissions
         # number of trips between farm and biorefinery is feedstock_amount /
-        # truck_capacity
-        # 2N - 1 accounts for backhauling trips. The last trip from farm to
+        # truck_capacity. using 2N - 1 accounts for backhauling trips and adding
+        # the max fundtion keeps the number of trips at least 1 in the case that
+        # feedstock_amount < truck_capacity. The last trip from farm to
         # biorefinery has no backhauling, hence the - 1.
+        # np.maximum takes the pairwise maximum of each element in a series and
+        # 1. The standard Python max() will not work here.
+        _run_emissions['trips'] = np.maximum((2 * _run_emissions.feedstock_amount / _run_emissions.truck_capacity - 1), 1)
+
         _run_emissions.eval('pollutant_amount = averageRatePerDistance * vmt *'
-                            ' (2 * feedstock_amount / truck_capacity - 1)',
-                            inplace=True)
+                            'trips', inplace=True)
 
         # start and hotelling emissions
         _avgRateVeh = _ratepervehicle.groupby(['fips', 'state', 'yearID',
@@ -1740,9 +1744,9 @@ class MOVES(Module):
         # calculate start and hotelling emissions accounting for backhauling
         # trips including backhauling is 2N - 1 where N is the number of
         # trips from farm to biorefinery
-        _start_hotel_emissions.eval('pollutant_amount = ratePerVehicle * '
-                                    '(2 * feedstock_amount / truck_capacity '
-                                    '- 1)',
+        _start_hotel_emissions['trips'] = np.maximum((2 * _start_hotel_emissions.feedstock_amount / _start_hotel_emissions.truck_capacity - 1), 1)
+
+        _start_hotel_emissions.eval('pollutant_amount = ratePerVehicle * trips',
                                     inplace=True)
 
         # append the run emissions with the start and hotelling emissions
@@ -1831,7 +1835,7 @@ class MOVES(Module):
         # pull out only on-farm feedstock losses
         # @todo the list of on-farm supply chain stages should be user input
         _loss_factors_farmgate = self.feedstock_loss_factors[
-            self.feedstock_loss_factors.supply_chain_stage.isin(['at farmgate'])]
+            self.feedstock_loss_factors.supply_chain_stage.isin(['farm gate'])]
 
         # calculate total losses on farm, remove unnecessary columns
         _loss_factors_farmgate = _loss_factors_farmgate.groupby(['feedstock'], as_index=False)
@@ -1871,7 +1875,8 @@ class MOVES(Module):
                                              'state']].drop_duplicates()
 
         elif self.moves_by_state_and_feedstock:
-            # get a list of unique fips-state-year combos to run MOVES on
+            # get a list of unique fips-state-year combos for which MOVES results
+            # are needed, either by running MOVES or retrieving cached data
             # keep feedstock in there to match results from each MOVES run
             # to the correct set of feedstock production data
             self.moves_run_list = _max_amts_feed[['fips',
@@ -1879,7 +1884,7 @@ class MOVES(Module):
                                                   'feedstock']].drop_duplicates()
         else:
             # if neither moves_by_state nor moves_by_state_and_feedstock are True,
-            # the fips-state-year combos to run MOVES on come straight from
+            # the fips-state-year combos come straight from
             # the production data
             self.moves_run_list = _prod_merge[['fips',
                                                'state']].drop_duplicates()
@@ -1913,23 +1918,27 @@ class MOVES(Module):
         # output or check on functionality; it'll also be used in
         # postprocessing
 
-        # after generating the list of FIPS over which MOVES is run,
+        # after generating the list of FIPS for which MOVES results are needed,
         # begin to create the input data and run MOVES
 
         if self.use_cached_results:
-            # run only fips for which there are no cached results
+            # downselect moves_run_list based on which FIPS already have results
+            # in the moves output database
 
+            # get a list of FIPS with results in the MOVES output database
             _exclude_fips = self._get_cached_results()
 
             _kvals = {'h': self.config.get('moves_db_host'),
                       'db': self.config.get('moves_database'),
                       'f': _exclude_fips}
 
+            # if there are any FIPS with results extant
             if _exclude_fips != [None]:
                 # report that MOVES run already complete
                 LOGGER.info('using cached results from %(h)s/%(db)s for FIPS: %(f)s)' % _kvals)
             else:
                 # report that no cached results were found
+                # MOVES will be run over all FIPS in the input data
                 LOGGER.info('no cached results from %(h)s/%(db)s were found' % _kvals)
 
             # create shortened list of fips to run through MOVES
@@ -1942,7 +1951,7 @@ class MOVES(Module):
         # only go through the setup and run steps if there are fips that
         # need to be run
         if _run_fips.__len__() > 0:
-            # create national datasets only once per FPEAM
+            # create national datasets only once per FPEAM run
             self._create_national_data()
 
             # loop through rows of moves_run_list to generate input data files
