@@ -1699,12 +1699,16 @@ class MOVES(Module):
 
         # evaluate running emissions
         # number of trips between farm and biorefinery is feedstock_amount /
-        # truck_capacity
-        # 2N - 1 accounts for backhauling trips. The last trip from farm to
+        # truck_capacity. using 2N - 1 accounts for backhauling trips and adding
+        # the max fundtion keeps the number of trips at least 1 in the case that
+        # feedstock_amount < truck_capacity. The last trip from farm to
         # biorefinery has no backhauling, hence the - 1.
+        # np.maximum takes the pairwise maximum of each element in a series and
+        # 1. The standard Python max() will not work here.
+        _run_emissions['trips'] = np.maximum((2 * _run_emissions.feedstock_amount / _run_emissions.truck_capacity - 1), 1)
+
         _run_emissions.eval('pollutant_amount = averageRatePerDistance * vmt *'
-                            'max((2 * feedstock_amount / truck_capacity - 1), 1)',
-                            inplace=True)
+                            'trips', inplace=True)
 
         # start and hotelling emissions
         _avgRateVeh = _ratepervehicle.groupby(['fips', 'state', 'yearID',
@@ -1740,9 +1744,9 @@ class MOVES(Module):
         # calculate start and hotelling emissions accounting for backhauling
         # trips including backhauling is 2N - 1 where N is the number of
         # trips from farm to biorefinery
-        _start_hotel_emissions.eval('pollutant_amount = ratePerVehicle * '
-                                    'max((2 * feedstock_amount / truck_capacity '
-                                    '- 1), 1)',
+        _start_hotel_emissions['trips'] = np.maximum((2 * _start_hotel_emissions.feedstock_amount / _start_hotel_emissions.truck_capacity - 1), 1)
+
+        _start_hotel_emissions.eval('pollutant_amount = ratePerVehicle * trips',
                                     inplace=True)
 
         # append the run emissions with the start and hotelling emissions
