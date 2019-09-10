@@ -39,7 +39,7 @@ class AttributeValueStorage:
         self.dbUsernameN = "root"
         self.dbNameN = "movesdb20180517"
         self.dbPwdN = "root"
-        self.forestryFeedstockNames = 'forest whole tree'
+        self.forestryFeedstockNames = 'forest whole tree, forest residues'
         self.regionFipsMapNonroad = "data/inputs/region_fips_map.csv"
         self.nonroadDatafilesPath = "C:/Nonroad"
         self.tempMin = 50.0

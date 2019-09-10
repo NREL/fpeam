@@ -16,9 +16,6 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
     ## equipment table row identifier (resource in equipment data)
     #time_resource_name = '{time_resource_name}'
     
-    ## forest feedstocks have different allocation indicators
-    #forestry_feedstock_names = '{forestry_feedstock_names}'
-    
     ### NONROAD database connection options
     #nonroad_database = '{nonroad_database}'
     #nonroad_db_user = '{nonroad_db_user}'
@@ -66,7 +63,6 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
     my_ini_config = ini_template_string.format(year = attributeValueObj.yearNonroad,
                                                feedstock_measure_type = attributeValueObj.feedMeasureTypeEF,
                                                time_resource_name = attributeValueObj.timeResourceNameNon,
-                                               forestry_feedstock_names = attributeValueObj.forestryFeedstockNames,
                                                nonroad_database = attributeValueObj.dbNameN,
                                                nonroad_db_user = attributeValueObj.dbUsernameN,
                                                nonroad_db_pass = attributeValueObj.dbPwdN,

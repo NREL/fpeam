@@ -509,9 +509,31 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(15)
+        emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.advOptionsFPEAMGridLayout.addWidget(emptyLabelE, 3, 0, 1, 5)
+
+        # Created UI element Forestry Feedstock Names
+        self.labelForestryNamesNon = self.createLabelBig(text="Forestry Feedstock" + "\n" + " Names")
+        self.labelForestryNamesNon.setObjectName("allLabels")
+        self.labelForestryNamesNon.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelForestryNamesNon.setToolTip("List of forestry feedstocks in production dataset")
+        self.lineEditForestryNamesNon = QLineEdit(self)
+        self.lineEditForestryNamesNon.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditForestryNamesNon.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditForestryNamesNon.setFixedHeight(40)
+        self.regex = QtCore.QRegExp("[a-z-A-Z_,]+")
+        validator = QtGui.QRegExpValidator(self.regex)
+        self.lineEditForestryNamesNon.setValidator(validator)
+        self.lineEditForestryNamesNon.setText("forest whole tree, forest residues")
+        self.advOptionsFPEAMGridLayout.addWidget(self.labelForestryNamesNon, 4, 0)
+        self.advOptionsFPEAMGridLayout.addWidget(self.lineEditForestryNamesNon, 4, 1, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.advOptionsFPEAMGridLayout.addWidget(emptyLabelE, 5, 0, 1, 5)
 
         # Add space to adjust position of the elements
         # Add Empty PlainText
@@ -1779,22 +1801,22 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText2.setFixedHeight(30)
         self.dtaLabelsNONROADGridLayout.addWidget(self.emptyPlainText2, 1, 2)
 
-        # Created UI element Forestry Feedstock Names
-        self.labelForestryNamesNon = self.createLabelBig(text="Forestry Feedstock" + "\n" + " Name")
-        self.labelForestryNamesNon.setObjectName("allLabels")
-        self.labelForestryNamesNon.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelForestryNamesNon.setToolTip("Allocation factors for forest feedstocks")
-        self.lineEditForestryNamesNon = QLineEdit(self)
-        self.lineEditForestryNamesNon.setStyleSheet(" border: 1px solid #000000; ")
-        self.lineEditForestryNamesNon.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditForestryNamesNon.setFixedHeight(40)
-        self.lineEditForestryNamesNon.setFixedWidth(125)
-        self.regex = QtCore.QRegExp("[a-z-A-Z_,]+")
+        # Created UI element Time Resource Name
+        self.labelTimeResNamesNon = self.createLabelBig(text="Time Resource Name")
+        self.labelTimeResNamesNon.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelTimeResNamesNon.setObjectName("allLabels")
+        self.labelTimeResNamesNon.setToolTip("Equipment table row identifier")
+        self.lineEditTimeResNamesNon = QLineEdit()
+        self.lineEditTimeResNamesNon.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditTimeResNamesNon.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditTimeResNamesNon.setFixedHeight(40)
+        self.lineEditTimeResNamesNon.setFixedWidth(125)
+        self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
-        self.lineEditForestryNamesNon.setValidator(validator)
-        self.lineEditForestryNamesNon.setText("forest whole tree")
-        self.dtaLabelsNONROADGridLayout.addWidget(self.labelForestryNamesNon, 1, 3)
-        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditForestryNamesNon, 1, 4)
+        self.lineEditTimeResNamesNon.setValidator(validator)
+        self.lineEditTimeResNamesNon.setText("time")
+        self.dtaLabelsNONROADGridLayout.addWidget(self.labelTimeResNamesNon, 1, 3)
+        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditTimeResNamesNon, 1, 4)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
@@ -1827,29 +1849,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText2.setFixedHeight(30)
         self.dtaLabelsNONROADGridLayout.addWidget(self.emptyPlainText2, 3, 2)
 
-        # Created UI element Time Resource Name
-        self.labelTimeResNamesNon = self.createLabelBig(text="Time Resource Name")
-        self.labelTimeResNamesNon.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelTimeResNamesNon.setObjectName("allLabels")
-        self.labelTimeResNamesNon.setToolTip("Equipment table row identifier")
-        self.lineEditTimeResNamesNon = QLineEdit()
-        self.lineEditTimeResNamesNon.setStyleSheet(" border: 1px solid #000000; ")
-        self.lineEditTimeResNamesNon.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditTimeResNamesNon.setFixedHeight(40)
-        self.lineEditTimeResNamesNon.setFixedWidth(125)
-        self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
-        validator = QtGui.QRegExpValidator(self.regex)
-        self.lineEditTimeResNamesNon.setValidator(validator)
-        self.lineEditTimeResNamesNon.setText("time")
-        self.dtaLabelsNONROADGridLayout.addWidget(self.labelTimeResNamesNon, 3, 3)
-        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditTimeResNamesNon, 3, 4)
-
-        # Add Vertical Space between the elements
-        emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(10)
-        emptyLabelE.setStyleSheet("border: white")
-        self.dtaLabelsNONROADGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
-
         # Created UI element Irrigation Feedstock Names
         self.labelIrrigationFeedNamesNon = self.createLabelBig(text="Irrigation Feedstock" + "\n" + "Name")
         self.labelIrrigationFeedNamesNon.setStyleSheet(" border: 1px solid #000000; ")
@@ -1864,14 +1863,14 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedIrrigNamesNon.setValidator(validator)
         self.lineEditFeedIrrigNamesNon.setText("corn grain")
-        self.dtaLabelsNONROADGridLayout.addWidget(self.labelIrrigationFeedNamesNon, 5, 0)
-        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditFeedIrrigNamesNon, 5, 1)
+        self.dtaLabelsNONROADGridLayout.addWidget(self.labelIrrigationFeedNamesNon, 3, 3)
+        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditFeedIrrigNamesNon, 3, 4)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
-        self.dtaLabelsNONROADGridLayout.addWidget(emptyLabelE, 6, 0, 1, 4)
+        self.dtaLabelsNONROADGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
 
         # Custom Data Filepaths Label
         self.cusromDatafileLabel = QLabel()
@@ -2939,7 +2938,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbPwdN.setText("root")
         self.lineEditFeedMeasureTypeNon.setText("harvested")
         self.lineEditTimeResNamesNon.setText("time")
-        self.lineEditForestryNamesNon.setText('forest whole tree')
+        self.lineEditForestryNamesNon.setText('forest whole tree, forest residues')
         self.lineEditFipsNon.setText("../data/inputs/region_fips_map.csv")
         self.lineEditDatafilesNon.setText("C:/Nonroad")
         self.lineEditMinTemp.setText("50.0")
@@ -3055,6 +3054,10 @@ class AlltabsModule(QtWidgets.QWidget):
                     changedRouterEngine = True
                 self.attributeValueObj.useRouterEngine = changedRouterEngine
 
+            changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
+            if changedForestryFeedNames:
+                self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
+
             changedEqPath = self.lineEditEq.text().strip()
             if changedEqPath:
                 self.attributeValueObj.equipment = changedEqPath
@@ -3070,7 +3073,7 @@ class AlltabsModule(QtWidgets.QWidget):
             changedTranGraphPath = self.lineEditTransGraph.text().strip()
             if changedTranGraphPath:
                 self.attributeValueObj.transportationGraph = changedTranGraphPath
-            
+
             changedTruckCapacityPath = self.lineEditTruckCapa.text().strip()
             if changedTruckCapacityPath:
                 self.attributeValueObj.truckCapacity = changedTruckCapacityPath
@@ -3223,10 +3226,6 @@ class AlltabsModule(QtWidgets.QWidget):
             changedTimeResName = self.lineEditTimeResNamesNon.text().strip()
             if changedTimeResName:
                 self.attributeValueObj.timeResourceNameNon = changedTimeResName
-
-            changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
-            if changedForestryFeedNames:
-                self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
 
             changedTempMin = self.lineEditMinTemp.text().strip()
             if changedTempMin:
