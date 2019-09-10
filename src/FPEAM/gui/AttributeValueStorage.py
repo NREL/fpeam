@@ -37,7 +37,7 @@ class AttributeValueStorage:
         self.timeResourceNameNon = "time"
         self.dbHostN = "localhost"
         self.dbUsernameN = "root"
-        self.dbNameN = "movesdb20151028"
+        self.dbNameN = "movesdb20180517"
         self.dbPwdN = "root"
         self.forestryFeedstockNames = 'forest whole tree'
         self.regionFipsMapNonroad = "data/inputs/region_fips_map.csv"
@@ -63,7 +63,7 @@ class AttributeValueStorage:
         self.yearMoves = 2017
         self.dbHost = "localhost"
         self.dbUsername = "root"
-        self.dbName = "movesdb20151028"
+        self.dbName = "movesdb20180517"
         self.dbPwd = "root"
         self.movesDatafilesPath = "C:\MOVESdatb"
         self.movesPath = "C:\MOVES2014b"
