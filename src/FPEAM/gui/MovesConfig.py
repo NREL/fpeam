@@ -39,9 +39,6 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
 
     ### input files
 
-    ## truck capacities for feedstock transportation
-    #truck_capacity = '{truck_capacity}'
-
     ## fuel fraction by engine type
     #avft = '{avft}'
 
@@ -91,7 +88,6 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
                                                moves_db_user = attributeValueObj.dbUsername,
                                                moves_db_pass = attributeValueObj.dbPwd,
                                                moves_database = attributeValueObj.dbName,
-                                               truck_capacity=attributeValueObj.truckCapacity,
                                                avft=attributeValueObj.avft,
                                                region_fips_map=attributeValueObj.regionFipsMapMoves,
                                                rural_restricted=attributeValueObj.ruralRestricted,

@@ -24,6 +24,8 @@ feedstock_loss_factors = '{feedstock_loss_factors}'
 ## MOVES routing graph
 transportation_graph = '{transportation_graph}'
 
+## truck capacities for feedstock transportation
+truck_capacity = '{truck_capacity}'
 
 ## data backfill flag
 backfill = {backfill}
@@ -40,6 +42,7 @@ use_router_engine = {use_router_engine} """
                                                production = attributeValueObj.production,
                                                feedstock_loss_factors = attributeValueObj.feedstockLossFactors,
                                                transportation_graph = attributeValueObj.transportationGraph,
+                                               truck_capacity=attributeValueObj.truckCapacity,
                                                backfill = attributeValueObj.backfill,
                                                use_router_engine = attributeValueObj.useRouterEngine)
 
