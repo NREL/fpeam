@@ -3077,7 +3077,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
             changedAggLevel = self.comboBoxAggLevel.currentText()
             if changedAggLevel:
-                self.attributeValueObj.aggegationLevel = changedAggLevel
+                self.attributeValueObj.aggregationLevel = changedAggLevel
 
             changedcachedResults = self.comboBoxCachedResUse.currentText()
             if changedcachedResults:

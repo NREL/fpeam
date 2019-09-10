@@ -67,10 +67,10 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
     #day_type = {day_type} """
 
     # reformat the aggregation level input into two Booleans
-    if attributeValueObj.aggegationLevel == 'By State':
+    if attributeValueObj.aggregationLevel == 'By State':
         _aggregation_level_state = True
         _aggregation_level_state_feedstock = False
-    elif attributeValueObj.aggegationLevel == 'By State-Feedstock':
+    elif attributeValueObj.aggregationLevel == 'By State-Feedstock':
         _aggregation_level_state = False
         _aggregation_level_state_feedstock = True
     else:

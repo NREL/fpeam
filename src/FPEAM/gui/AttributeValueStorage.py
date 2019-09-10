@@ -55,7 +55,7 @@ class AttributeValueStorage:
         self.encodeNames = True
 
         # Moves Module - Attribute Initialization
-        self.aggegationLevel = "By County"
+        self.aggregationLevel = "By County"
         self.cachedResults = "Yes"
         self.feedstockMeasureType = "production"
         self.vMTPerTruck = 20
