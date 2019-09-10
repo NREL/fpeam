@@ -645,8 +645,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxAggLevel.addItem("By State")
         self.comboBoxAggLevel.addItem("By County")
         self.comboBoxAggLevel.addItem("By State-Feedstock")
-        self.comboBoxAggLevel.setCurrentText("By County")
-        self.index = self.comboBoxAggLevel.findText("By County")
+        self.comboBoxAggLevel.setCurrentText("By State")
+        self.index = self.comboBoxAggLevel.findText("By State")
         self.comboBoxAggLevel.setCurrentIndex(self.index)
         self.comboBoxAggLevel.setEditable(True)
         self.leditAggLevel = self.comboBoxAggLevel.lineEdit()
@@ -2955,7 +2955,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxEncodeNames.setCurrentText("Yes")
 
         # Moves Module - Attribute Initialization
-        self.index = self.comboBoxAggLevel.findText("By County")
+        self.index = self.comboBoxAggLevel.findText("By State")
         self.comboBoxAggLevel.setCurrentIndex(self.index)
         self.index = self.comboBoxCachedResUse.findText("Yes")
         self.comboBoxCachedResUse.setCurrentIndex(self.index)
