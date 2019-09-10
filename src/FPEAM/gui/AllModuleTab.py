@@ -258,7 +258,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 0, 0, 1, 5)
 
         # UI element - Equipment - HOME
-        self.labelEq = self.createLabelSmall(text="Farm Equipment")
+        self.labelEq = self.createLabelSmall(text="Equipment Use")
         self.labelEq.setObjectName("allLabels")
         self.labelEq.setStyleSheet(" border: 1px solid #000000; ")
         self.labelEq.setToolTip("Select equipment input dataset")
@@ -348,6 +348,30 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setFixedHeight(15)
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 8, 0, 1, 5)
+
+        # Truck Capacity - HOME
+        self.labelTruckCapacity = self.createLabelSmall(text="Truck Capacity")
+        self.labelTruckCapacity.setObjectName("allLabels")
+        self.labelTruckCapacity.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelTruckCapacity.setToolTip(
+            "Select truck capacity (truck capacities for feedstock transportation) dataset")
+        self.browseBtnTruckCapa = self.createButton(text="Browse")
+        self.browseBtnTruckCapa.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnTruckCapa.clicked.connect(self.getfilesTruckCapa)
+        self.lineEditTruckCapa = QLineEdit(self)
+        self.lineEditTruckCapa.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditTruckCapa.setText("data/inputs/truck_capacity.csv")
+        self.lineEditTruckCapa.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditTruckCapa.setFixedHeight(30)
+        self.customDatafileFPEAMGridLayout.addWidget(self.labelTruckCapacity, 9, 0)
+        self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnTruckCapa, 9, 1)
+        self.customDatafileFPEAMGridLayout.addWidget(self.lineEditTruckCapa, 9, 2, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(15)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 10, 0, 1, 5)
 
         # Advanced Options Label - HOME
         self.advOptionsLabel = QLabel()
@@ -1134,30 +1158,6 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileMOVESGridLayout.addWidget(emptyLabelE, 0, 0, 1, 3)
-
-        # Created UI element Truck Capacity
-        self.labelTruckCapacity = self.createLabelSmall(text="Truck Capacity")
-        self.labelTruckCapacity.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelTruckCapacity.setObjectName("allLabels")
-        self.labelTruckCapacity.setToolTip(
-            "Select truck capacity (truck capacities for feedstock transportation) dataset")
-        self.browseBtnTruckCapa = self.createButton(text="Browse")
-        self.browseBtnTruckCapa.setStyleSheet(" border: 1px solid #000000; ")
-        self.browseBtnTruckCapa.clicked.connect(self.getfilesTruckCapa)
-        self.lineEditTruckCapa = QLineEdit(self)
-        self.lineEditTruckCapa.setStyleSheet(" border: 1px solid #000000; ")
-        self.lineEditTruckCapa.setText("data/inputs/truck_capacity.csv")
-        self.lineEditTruckCapa.setAlignment(QtCore.Qt.AlignLeft)
-        self.lineEditTruckCapa.setFixedHeight(30)
-        self.customDatafileMOVESGridLayout.addWidget(self.labelTruckCapacity, 1, 0)
-        self.customDatafileMOVESGridLayout.addWidget(self.browseBtnTruckCapa, 1, 1)
-        self.customDatafileMOVESGridLayout.addWidget(self.lineEditTruckCapa, 1, 2, 1, 3)
-
-        # Add Vertical Space between the elements
-        emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(10)
-        emptyLabelE.setStyleSheet("border: white")
-        self.customDatafileMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 3)
 
         # Created UI element AVFT
         self.labelAVFT = self.createLabelSmall(text="AVFT")
