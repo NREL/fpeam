@@ -1863,7 +1863,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedIrrigNamesNon.setValidator(validator)
-        self.lineEditFeedIrrigNamesNon.setText("corn garin")
+        self.lineEditFeedIrrigNamesNon.setText("corn grain")
         self.dtaLabelsNONROADGridLayout.addWidget(self.labelIrrigationFeedNamesNon, 5, 0)
         self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditFeedIrrigNamesNon, 5, 1)
 
