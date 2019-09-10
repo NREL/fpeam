@@ -215,7 +215,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Custom Datafiles below Line - HOME PAge
         self.labelCustomDatafilsLine = QLabel()
-        pixmapLine1 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(15)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
@@ -227,8 +227,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelCustomDatafileFPEAMExpand.setFixedHeight(30)
         self.labelCustomDatafileFPEAMExpand.setFixedWidth(30)
         self.labelCustomDatafileFPEAMExpand.setObjectName("expandCollapseIcon")
-        self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelCustomDatafileFPEAMExpand, 10, 5)
 
         self.customDatafileFPEAMexpandWidget = QtWidgets.QWidget()
@@ -241,12 +241,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileFPEAMOnClickEvent():
             if self.customDatafileFPEAMexpandWidget.isVisible():
-                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
-                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
+                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
                 self.customDatafileFPEAMexpandWidget.setVisible(False)
             else:
-                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
-                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('minus.png'))
+                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
                 self.customDatafileFPEAMexpandWidget.setVisible(True)
 
         self.labelCustomDatafileFPEAMExpand.clicked.connect(labelCustomDatafileFPEAMOnClickEvent)
@@ -358,7 +358,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Advanced Options below Line
         self.labelAdvOptionsLine = QLabel()
-        pixmapLine2 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine2 = QPixmap('line.png')
         pixmap2 = pixmapLine2.scaledToHeight(15)
         self.labelAdvOptionsLine.setPixmap(pixmap2)
         self.resize(pixmap2.width(), pixmap2.height())
@@ -371,8 +371,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsFPEAMExpand.setFixedHeight(30)
         self.labelAdvOptionsFPEAMExpand.setFixedWidth(30)
         self.labelAdvOptionsFPEAMExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(29, 29))
-        self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsFPEAMExpand, 18, 5)
 
         self.advOptionsFPEAMexpandWidget = QtWidgets.QWidget()
@@ -385,12 +385,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsFPEAMOnClickEvent():
             if self.advOptionsFPEAMexpandWidget.isVisible():
-                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.advOptionsFPEAMexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.advOptionsFPEAMexpandWidget.setVisible(True)
 
         self.labelAdvOptionsFPEAMExpand.clicked.connect(labelAdvOptionsFPEAMOnClickEvent)
@@ -732,7 +732,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Database Connection Parameters below Line
         self.dbConnectionParaLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.dbConnectionParaLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -745,7 +745,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labeldbConnectionsMOVESExpand.setFixedWidth(30)
         self.labeldbConnectionsMOVESExpand.setObjectName("expandCollapseIcon")
         self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labeldbConnectionsMOVESExpand, 7, 4)
 
 
@@ -760,11 +760,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelDbConnectionsMOVESOnClickEvent():
             if self.dbConnectionsMOVESexpandWidget.isVisible():
                 self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.dbConnectionsMOVESexpandWidget.setVisible(False)
             else:
                 self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.dbConnectionsMOVESexpandWidget.setVisible(True)
 
         self.labeldbConnectionsMOVESExpand.clicked.connect(labelDbConnectionsMOVESOnClickEvent)
@@ -871,7 +871,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Execution Timeframe below Line
         self.executionTimeLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.executionTimeLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -884,7 +884,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTimeframeMOVESExpand.setFixedWidth(30)
         self.labelTimeframeMOVESExpand.setObjectName("expandCollapseIcon")
         self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelTimeframeMOVESExpand, 11, 4)
 
         self.timeframeMOVESexpandWidget = QtWidgets.QWidget()
@@ -898,11 +898,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelTimeframeMOVESOnClickEvent():
             if self.timeframeMOVESexpandWidget.isVisible():
                 self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.timeframeMOVESexpandWidget.setVisible(False)
             else:
                 self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.timeframeMOVESexpandWidget.setVisible(True)
 
         self.labelTimeframeMOVESExpand.clicked.connect(labelTimeframeMOVESOnClickEvent)
@@ -1093,7 +1093,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Custom Dtatfiles below Line MOVES
         self.labelCustomDatafilsLineM = QLabel()
-        pixmapLine2 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine2 = QPixmap('line.png')
         pixmap2 = pixmapLine2.scaledToHeight(15)
         self.labelCustomDatafilsLineM.setPixmap(pixmap2)
         self.resize(pixmap2.width(), pixmap2.height())
@@ -1106,7 +1106,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelCustomDatafileMOVESExpand.setFixedWidth(30)
         self.labelCustomDatafileMOVESExpand.setObjectName("expandCollapseIcon")
         self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelCustomDatafileMOVESExpand, 17, 4)
 
         self.customDatafileMOVESexpandWidget = QtWidgets.QWidget()
@@ -1120,11 +1120,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelCustomDatafileMOVESOnClickEvent():
             if self.customDatafileMOVESexpandWidget.isVisible():
                 self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileMOVESexpandWidget.setVisible(False)
             else:
                 self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileMOVESexpandWidget.setVisible(True)
 
         self.labelCustomDatafileMOVESExpand.clicked.connect(labelCustomDatafileMOVESOnClickEvent)
@@ -1214,7 +1214,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Advanced Optiones below Line
         self.labelAdvOptionsLineM = QLabel()
-        pixmapLine2 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine2 = QPixmap('line.png')
         pixmap2 = pixmapLine2.scaledToHeight(15)
         self.labelAdvOptionsLineM.setPixmap(pixmap2)
         self.resize(pixmap2.width(), pixmap2.height())
@@ -1226,8 +1226,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsMOVESExpand.setFixedHeight(30)
         self.labelAdvOptionsMOVESExpand.setFixedWidth(30)
         self.labelAdvOptionsMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(29, 29))
-        self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsMOVESExpand, 22, 4)
 
         self.advOptionsMOVESexpandWidget = QtWidgets.QWidget()
@@ -1240,12 +1240,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsMOVESOnClickEvent():
             if self.advOptionsMOVESexpandWidget.isVisible():
-                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.advOptionsMOVESexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.advOptionsMOVESexpandWidget.setVisible(True)
 
         self.labelAdvOptionsMOVESExpand.clicked.connect(labelAdvOptionsMOVESOnClickEvent)
@@ -1313,7 +1313,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - VMT Fractions below Line MOVES
         self.vMTFractionLine = QLabel()
-        pixmapLine3 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine3 = QPixmap('line.png')
         pixmap3 = pixmapLine3.scaledToHeight(15)
         self.vMTFractionLine.setPixmap(pixmap2)
         self.resize(pixmap3.width(), pixmap3.height())
@@ -1326,7 +1326,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelVMTFractionExpand.setFixedWidth(30)
         self.labelVMTFractionExpand.setObjectName("expandCollapseIcon")
         self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelVMTFractionExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelVMTFractionExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelVMTFractionExpand, 27, 4)
 
         self.vmtexpandWidget = QtWidgets.QWidget()
@@ -1340,11 +1340,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelVMTFractionOnClickEvent():
             if self.vmtexpandWidget.isVisible():
                 self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.vmtexpandWidget.setVisible(False)
             else:
                 self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.vmtexpandWidget.setVisible(True)
 
         self.labelVMTFractionExpand.clicked.connect(labelVMTFractionOnClickEvent)
@@ -1574,7 +1574,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Advanced Optiones below Line NONROAD
         self.dbConnectionParaLineN = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.dbConnectionParaLineN.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1586,8 +1586,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labeldbConnectionsNONROADExpand.setFixedHeight(30)
         self.labeldbConnectionsNONROADExpand.setFixedWidth(30)
         self.labeldbConnectionsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-        self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labeldbConnectionsNONROADExpand, 4, 4)
 
         self.dbConnectionsNONROADexpandWidget = QtWidgets.QWidget()
@@ -1600,12 +1600,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelDbConnectionsNONROADOnClickEvent():
             if self.dbConnectionsNONROADexpandWidget.isVisible():
-                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.dbConnectionsNONROADexpandWidget.setVisible(False)
             else:
-                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.dbConnectionsNONROADexpandWidget.setVisible(True)
 
         self.labeldbConnectionsNONROADExpand.clicked.connect(labelDbConnectionsNONROADOnClickEvent)
@@ -1712,7 +1712,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Data Labels Line
         self.dataLabelLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.dataLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1725,7 +1725,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelDataLabelsNONROADExpand.setFixedWidth(30)
         self.labelDataLabelsNONROADExpand.setObjectName("expandCollapseIcon")
         self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelDataLabelsNONROADExpand, 8, 4)
 
         self.dataLabelsNONROADexpandWidget = QtWidgets.QWidget()
@@ -1739,11 +1739,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelDataLabelsNONROADOnClickEvent():
             if self.dataLabelsNONROADexpandWidget.isVisible():
                 self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.dataLabelsNONROADexpandWidget.setVisible(False)
             else:
                 self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.dataLabelsNONROADexpandWidget.setVisible(True)
 
         self.labelDataLabelsNONROADExpand.clicked.connect(labelDataLabelsNONROADOnClickEvent)
@@ -1882,7 +1882,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Custom Data Filepaths Label Line
         self.customDatafileLabelLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.customDatafileLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1895,7 +1895,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileNONROADExpand.setFixedWidth(30)
         self.labelcustomDatafileNONROADExpand.setObjectName("expandCollapseIcon")
         self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileNONROADExpand, 13, 4)
 
         self.customDatafileNONROADexpandWidget = QtWidgets.QWidget()
@@ -1909,11 +1909,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelCustomDatafileNONROADOnClickEvent():
             if self.customDatafileNONROADexpandWidget.isVisible():
                 self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileNONROADexpandWidget.setVisible(False)
             else:
                 self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileNONROADexpandWidget.setVisible(True)
 
         self.labelcustomDatafileNONROADExpand.clicked.connect(labelCustomDatafileNONROADOnClickEvent)
@@ -1979,7 +1979,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Operating Temperature Label Line
         self.opTempLabelLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.opTempLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1992,7 +1992,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTempNONROADExpand.setFixedWidth(30)
         self.labelTempNONROADExpand.setObjectName("expandCollapseIcon")
         self.labelTempNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelTempNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelTempNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelTempNONROADExpand, 17, 4)
 
         self.tempNONROADexpandWidget = QtWidgets.QWidget()
@@ -2006,11 +2006,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelTempNONROADOnClickEvent():
             if self.tempNONROADexpandWidget.isVisible():
                 self.labelTempNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.tempNONROADexpandWidget.setVisible(False)
             else:
                 self.labelTempNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.tempNONROADexpandWidget.setVisible(True)
 
         self.labelTempNONROADExpand.clicked.connect(labelTempNONROADOnClickEvent)
@@ -2094,7 +2094,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #  Conversion Factors Label Line
         self.convFactorsLabelLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.convFactorsLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -2107,7 +2107,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelConvFactorsNONROADExpand.setFixedWidth(30)
         self.labelConvFactorsNONROADExpand.setObjectName("expandCollapseIcon")
         self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelConvFactorsNONROADExpand, 21, 4)
 
         self.convFactorsNONROADexpandWidget = QtWidgets.QWidget()
@@ -2121,11 +2121,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelConvFactorsNONROADOnClickEvent():
             if self.convFactorsNONROADexpandWidget.isVisible():
                 self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.convFactorsNONROADexpandWidget.setVisible(False)
             else:
                 self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.convFactorsNONROADexpandWidget.setVisible(True)
 
         self.labelConvFactorsNONROADExpand.clicked.connect(labelConvFactorsNONROADOnClickEvent)
@@ -2235,7 +2235,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #  Advanced Options Label Line
         self.labelAdvOptionsLineN = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.labelAdvOptionsLineN.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -2248,8 +2248,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsNONROADExpand.setFixedHeight(30)
         self.labelAdvOptionsNONROADExpand.setFixedWidth(30)
         self.labelAdvOptionsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-        self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsNONROADExpand, 25, 4)
 
         self.advOptionsNONROADexpandWidget = QtWidgets.QWidget()
@@ -2262,12 +2262,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsNONROADOnClickEvent():
             if self.advOptionsNONROADexpandWidget.isVisible():
-                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.advOptionsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.advOptionsNONROADexpandWidget.setVisible(True)
 
         self.labelAdvOptionsNONROADExpand.clicked.connect(labelAdvOptionsNONROADOnClickEvent)
@@ -2466,7 +2466,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Custom Dtatfiles below Line
         self.labelCustomDatafilsLine = QLabel()
-        pixmapLine1 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(15)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
@@ -2479,7 +2479,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileEFExpand.setFixedWidth(30)
         self.labelcustomDatafileEFExpand.setObjectName("expandCollapseIcon")
         self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileEFExpand, 4, 4)
 
         self.customDatafileEFexpandWidget = QtWidgets.QWidget()
@@ -2493,11 +2493,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelCustomDatafileEFOnClickEvent():
             if self.customDatafileEFexpandWidget.isVisible():
                 self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileEFexpandWidget.setVisible(False)
             else:
                 self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileEFexpandWidget.setVisible(True)
 
         self.labelcustomDatafileEFExpand.clicked.connect(labelCustomDatafileEFOnClickEvent)
@@ -2727,7 +2727,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Custom Datafiles below Line
         self.labelCustomDatafilsLine = QLabel()
-        pixmapLine1 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(15)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
@@ -2740,7 +2740,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileFDExpand.setFixedWidth(30)
         self.labelcustomDatafileFDExpand.setObjectName("expandCollapseIcon")
         self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileFDExpand, 4, 4)
 
         self.customDatafileFDexpandWidget = QtWidgets.QWidget()
@@ -2754,11 +2754,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelCustomDatafileFDOnClickEvent():
             if self.customDatafileFDexpandWidget.isVisible():
                 self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileFDexpandWidget.setVisible(False)
             else:
                 self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileFDexpandWidget.setVisible(True)
 
         self.labelcustomDatafileFDExpand.clicked.connect(labelCustomDatafileFDOnClickEvent)
@@ -3901,7 +3901,7 @@ if __name__ == "__main__":
 
     # Header Code
     headerlabel = QLabel(mainWindow)
-    pixmapLine = QPixmap('src/FPEAM/gui/header.png')
+    pixmapLine = QPixmap('header.png')
     pixmap = pixmapLine.scaledToHeight(80)
     headerlabel.setPixmap(pixmap)
     headerlabel.setFixedHeight(55)
@@ -3917,7 +3917,7 @@ if __name__ == "__main__":
     # Footer Code
     footerlabel = QLabel(mainWindow)
     footerlabel.setFixedHeight(105)
-    pixmapLine = QPixmap('src/FPEAM/gui/footer.png')
+    pixmapLine = QPixmap('footer.png')
     pixmap = pixmapLine.scaledToHeight(80)
     footerlabel.setPixmap(pixmap)
 
