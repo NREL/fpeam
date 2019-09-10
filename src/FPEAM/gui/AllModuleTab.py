@@ -3070,6 +3070,10 @@ class AlltabsModule(QtWidgets.QWidget):
             changedTranGraphPath = self.lineEditTransGraph.text().strip()
             if changedTranGraphPath:
                 self.attributeValueObj.transportationGraph = changedTranGraphPath
+            
+            changedTruckCapacityPath = self.lineEditTruckCapa.text().strip()
+            if changedTruckCapacityPath:
+                self.attributeValueObj.truckCapacity = changedTruckCapacityPath
 
             ###############################################################################################################
 
@@ -3135,10 +3139,6 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.attributeValueObj.dayType = "5"
             else:
                 self.attributeValueObj.dayType = "2"
-
-            changedTruckCapacityPath = self.lineEditTruckCapa.text().strip()
-            if changedTruckCapacityPath:
-                self.attributeValueObj.truckCapacity = changedTruckCapacityPath
 
             changedAvftPath = self.lineEditAVFT.text().strip()
             if changedAvftPath:
