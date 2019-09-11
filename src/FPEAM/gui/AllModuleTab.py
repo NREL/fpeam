@@ -1249,88 +1249,13 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileMOVESGridLayout.addWidget(emptyLabelE, 6, 0, 1, 3)
 
-        # Advanced Options Label MOVES
-        self.advOptionsLabelM = QLabel()
-        self.advOptionsLabelM.setText("Advanced Options")
-        self.advOptionsLabelM.setFixedHeight(30)
-        self.advOptionsLabelM.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.advOptionsLabelM, 22, 0, 1, 4)
-
-        # Created UI element - Advanced Optiones below Line
-        self.labelAdvOptionsLineM = QLabel()
-        pixmapLine2 = QPixmap('line.png')
-        pixmap2 = pixmapLine2.scaledToHeight(15)
-        self.labelAdvOptionsLineM.setPixmap(pixmap2)
-        self.resize(pixmap2.width(), pixmap2.height())
-        self.windowLayout.addWidget(self.labelAdvOptionsLineM, 23, 0, 1, 5)
-
-        # Expand/Collapse code
-        # Created UI element Advanced Options MOVES
-        self.labelAdvOptionsMOVESExpand = QPushButton()
-        self.labelAdvOptionsMOVESExpand.setFixedHeight(30)
-        self.labelAdvOptionsMOVESExpand.setFixedWidth(30)
-        self.labelAdvOptionsMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
-        self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
-        self.windowLayout.addWidget(self.labelAdvOptionsMOVESExpand, 22, 4)
-
-        self.advOptionsMOVESexpandWidget = QtWidgets.QWidget()
-        self.advOptionsMOVESexpandWidget.setStyleSheet(
-            "border-color: #028ACC; border-style: outset; border-width: 3px;border-radius: 5px;")
-        self.advOptionsMOVESGridLayout = QtWidgets.QGridLayout()
-        self.advOptionsMOVESexpandWidget.setLayout(self.advOptionsMOVESGridLayout)
-        self.advOptionsMOVESexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.advOptionsMOVESexpandWidget, 26, 0, 1, 4)
-
-        def labelAdvOptionsMOVESOnClickEvent():
-            if self.advOptionsMOVESexpandWidget.isVisible():
-                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
-                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
-                self.advOptionsMOVESexpandWidget.setVisible(False)
-            else:
-                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
-                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
-                self.advOptionsMOVESexpandWidget.setVisible(True)
-
-        self.labelAdvOptionsMOVESExpand.clicked.connect(labelAdvOptionsMOVESOnClickEvent)
-
-        # Add Vertical Space between the elements
-        emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(10)
-        emptyLabelE.setStyleSheet("border: white")
-        self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 0, 0, 1, 3)
-
-        # Created UI element No of Trucks used
-        self.labelNoofTruck = self.createLabelBig(text="Number Of Trucks" + "\n" + " Used")
-        self.labelNoofTruck.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelNoofTruck.setObjectName("allLabels")
-        self.labelNoofTruck.setToolTip("Number of trucks used to transport feedstock")
-        self.spinBoxNoofTruck = QSpinBox()
-        self.spinBoxNoofTruck.setStyleSheet(" border: 1px solid #000000; ")
-        self.spinBoxNoofTruck.setFixedWidth(116)
-        self.spinBoxNoofTruck.setFixedHeight(30)
-        self.spinBoxNoofTruck.setMinimum(1)
-        self.spinBoxNoofTruck.setValue(1)
-        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
-        self.leditNofTrucksUsed.setAlignment(QtCore.Qt.AlignCenter)
-        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
-        self.leditNofTrucksUsed.setReadOnly(True)
-        self.advOptionsMOVESGridLayout.addWidget(self.labelNoofTruck, 1, 0)
-        self.advOptionsMOVESGridLayout.addWidget(self.spinBoxNoofTruck, 1, 1)
-
-        # Add Vertical Space between the elements
-        emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(10)
-        emptyLabelE.setStyleSheet("border: white")
-        self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 3)
-
         # Created UI element VMT Fractions
         self.labelVMTFraction = QLabel()
         self.labelVMTFraction.setText("VMT Fractions")
         self.labelVMTFraction.setToolTip("Fraction of vehicle miles traveled (VMT) by road type (must sum to 1)")
         self.labelVMTFraction.setFixedHeight(30)
         self.labelVMTFraction.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.labelVMTFraction, 27, 0, 1, 4)
+        self.windowLayout.addWidget(self.labelVMTFraction, 22, 0, 1, 4)
 
         # Created UI element - VMT Fractions below Line MOVES
         self.vMTFractionLine = QLabel()
@@ -1338,7 +1263,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap3 = pixmapLine3.scaledToHeight(15)
         self.vMTFractionLine.setPixmap(pixmap2)
         self.resize(pixmap3.width(), pixmap3.height())
-        self.windowLayout.addWidget(self.vMTFractionLine, 28, 0, 1, 5)
+        self.windowLayout.addWidget(self.vMTFractionLine, 23, 0, 1, 5)
 
         # Expand/Collapse code
         # Created UI element VMT Fractions
@@ -1348,7 +1273,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelVMTFractionExpand.setObjectName("expandCollapseIcon")
         self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
         self.labelVMTFractionExpand.setIcon(QtGui.QIcon('plus.png'))
-        self.windowLayout.addWidget(self.labelVMTFractionExpand, 27, 4)
+        self.windowLayout.addWidget(self.labelVMTFractionExpand, 22, 4)
 
         self.vmtexpandWidget = QtWidgets.QWidget()
         self.vmtexpandWidget.setStyleSheet(
@@ -1356,7 +1281,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.vmtGridLayout = QtWidgets.QGridLayout()
         self.vmtexpandWidget.setLayout(self.vmtGridLayout)
         self.vmtexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.vmtexpandWidget, 31, 0, 1, 4)
+        self.windowLayout.addWidget(self.vmtexpandWidget, 26, 0, 1, 4)
 
         def labelVMTFractionOnClickEvent():
             if self.vmtexpandWidget.isVisible():
@@ -1462,6 +1387,81 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.vmtGridLayout.addWidget(emptyLabelE, 4, 0, 1, 3)
+
+        # Advanced Options Label MOVES
+        self.advOptionsLabelM = QLabel()
+        self.advOptionsLabelM.setText("Advanced Options")
+        self.advOptionsLabelM.setFixedHeight(30)
+        self.advOptionsLabelM.setObjectName("subTitleLabels")
+        self.windowLayout.addWidget(self.advOptionsLabelM, 27, 0, 1, 4)
+
+        # Created UI element - Advanced Optiones below Line
+        self.labelAdvOptionsLineM = QLabel()
+        pixmapLine2 = QPixmap('line.png')
+        pixmap2 = pixmapLine2.scaledToHeight(15)
+        self.labelAdvOptionsLineM.setPixmap(pixmap2)
+        self.resize(pixmap2.width(), pixmap2.height())
+        self.windowLayout.addWidget(self.labelAdvOptionsLineM, 28, 0, 1, 5)
+
+        # Expand/Collapse code
+        # Created UI element Advanced Options MOVES
+        self.labelAdvOptionsMOVESExpand = QPushButton()
+        self.labelAdvOptionsMOVESExpand.setFixedHeight(30)
+        self.labelAdvOptionsMOVESExpand.setFixedWidth(30)
+        self.labelAdvOptionsMOVESExpand.setObjectName("expandCollapseIcon")
+        self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
+        self.windowLayout.addWidget(self.labelAdvOptionsMOVESExpand, 27, 4)
+
+        self.advOptionsMOVESexpandWidget = QtWidgets.QWidget()
+        self.advOptionsMOVESexpandWidget.setStyleSheet(
+            "border-color: #028ACC; border-style: outset; border-width: 3px;border-radius: 5px;")
+        self.advOptionsMOVESGridLayout = QtWidgets.QGridLayout()
+        self.advOptionsMOVESexpandWidget.setLayout(self.advOptionsMOVESGridLayout)
+        self.advOptionsMOVESexpandWidget.setVisible(False)
+        self.windowLayout.addWidget(self.advOptionsMOVESexpandWidget, 31, 0, 1, 4)
+
+        def labelAdvOptionsMOVESOnClickEvent():
+            if self.advOptionsMOVESexpandWidget.isVisible():
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
+                self.advOptionsMOVESexpandWidget.setVisible(False)
+            else:
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
+                self.advOptionsMOVESexpandWidget.setVisible(True)
+
+        self.labelAdvOptionsMOVESExpand.clicked.connect(labelAdvOptionsMOVESOnClickEvent)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 0, 0, 1, 3)
+
+        # Created UI element No of Trucks used
+        self.labelNoofTruck = self.createLabelBig(text="Number Of Trucks" + "\n" + " Used")
+        self.labelNoofTruck.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelNoofTruck.setObjectName("allLabels")
+        self.labelNoofTruck.setToolTip("Number of trucks used to transport feedstock")
+        self.spinBoxNoofTruck = QSpinBox()
+        self.spinBoxNoofTruck.setStyleSheet(" border: 1px solid #000000; ")
+        self.spinBoxNoofTruck.setFixedWidth(116)
+        self.spinBoxNoofTruck.setFixedHeight(30)
+        self.spinBoxNoofTruck.setMinimum(1)
+        self.spinBoxNoofTruck.setValue(1)
+        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
+        self.leditNofTrucksUsed.setAlignment(QtCore.Qt.AlignCenter)
+        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
+        self.leditNofTrucksUsed.setReadOnly(True)
+        self.advOptionsMOVESGridLayout.addWidget(self.labelNoofTruck, 1, 0)
+        self.advOptionsMOVESGridLayout.addWidget(self.spinBoxNoofTruck, 1, 1)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 3)
 
     # CHeck for consistent input for year
     def handleItemPressedMoves(self, index):
