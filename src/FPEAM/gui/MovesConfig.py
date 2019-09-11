@@ -7,10 +7,10 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
     ### MOVES execution options
 
     ## use a single representative county for all counties in each state
-    #moves_by_state = '{aggregation_level_state}'
+    #moves_by_state = {aggregation_level_state}
     
     ## use a single representative county for each crop for all counties in each state
-    #moves_by_state_and_feedstock = '{aggregation_level_state_feedstock}'
+    #moves_by_state_and_feedstock = {aggregation_level_state_feedstock}
 
     ## use existing results in MOVES output database or run MOVES for all counties
     #use_cached_results = {use_cached_results}
@@ -18,11 +18,8 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
     ## production table identifier (feedstock_measure in production data)
     #feedstock_measure_type = '{feedstock_measure_type}'
 
-    ## VMT per truck
-    #VMT_per_truck = '{VMT_per_truck}'
-
     ## Number of trucks used
-    #No_of_trucks_used = '{No_of_trucks_used}'
+    #No_of_trucks_used = {No_of_trucks_used}
 
     ## start year (equipment year #1)
     #year = {year}
@@ -63,23 +60,11 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
     #ending_hour = {ending_hour}
     #day_type = {day_type} """
 
-    # reformat the aggregation level input into two Booleans
-    if attributeValueObj.aggregationLevel == 'By State':
-        _aggregation_level_state = True
-        _aggregation_level_state_feedstock = False
-    elif attributeValueObj.aggregationLevel == 'By State-Feedstock':
-        _aggregation_level_state = False
-        _aggregation_level_state_feedstock = True
-    else:
-        _aggregation_level_state = False
-        _aggregation_level_state_feedstock = False
 
-
-    my_ini_config = ini_template_string.format(aggregation_level_state=_aggregation_level_state,
-                                               aggregation_level_state_feedstock=_aggregation_level_state_feedstock,
+    my_ini_config = ini_template_string.format(aggregation_level_state=attributeValueObj.aggregation_level_state,
+                                               aggregation_level_state_feedstock=attributeValueObj.aggregation_level_state_feedstock,
                                                use_cached_results=attributeValueObj.cachedResults,
                                                feedstock_measure_type=attributeValueObj.feedstockMeasureTypeMoves,
-                                               VMT_per_truck=attributeValueObj.vMTPerTruck,
                                                No_of_trucks_used=attributeValueObj.noOfTrucksUsed,
                                                year=attributeValueObj.yearMoves,
                                                moves_path=attributeValueObj.movesPath,

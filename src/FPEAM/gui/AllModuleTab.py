@@ -535,6 +535,28 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.advOptionsFPEAMGridLayout.addWidget(emptyLabelE, 5, 0, 1, 5)
 
+        # Created UI element VMT per Truck
+        self.labelVMTperTruck = self.createLabelBig(text="VMT Per Truck")
+        self.labelVMTperTruck.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelVMTperTruck.setObjectName("allLabels")
+        self.labelVMTperTruck.setToolTip("Default vehicle miles traveled (VMT) per truck. Only used if the router engine is turned off.")
+        self.lineEditVMTperTruck = QLineEdit(self)
+        self.lineEditVMTperTruck.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditVMTperTruck.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditVMTperTruck.setFixedWidth(116)
+        self.lineEditVMTperTruck.setFixedHeight(40)
+        self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
+        self.lineEditVMTperTruck.setValidator(self.onlyFlaot)
+        self.lineEditVMTperTruck.setText("20")
+        self.advOptionsFPEAMGridLayout.addWidget(self.labelVMTperTruck, 6, 0)
+        self.advOptionsFPEAMGridLayout.addWidget(self.lineEditVMTperTruck, 6, 1)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.advOptionsFPEAMGridLayout.addWidget(emptyLabelE, 7, 0, 1, 5)
+
         # Add space to adjust position of the elements
         # Add Empty PlainText
         self.emptyPlainText10 = QLabel()
@@ -1295,29 +1317,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditNofTrucksUsed.setReadOnly(True)
         self.advOptionsMOVESGridLayout.addWidget(self.labelNoofTruck, 1, 0)
         self.advOptionsMOVESGridLayout.addWidget(self.spinBoxNoofTruck, 1, 1)
-
-        # Add Empty PlainText - adjust horizontal space
-        self.emptyPlainText2 = QLabel()
-        self.emptyPlainText2.setStyleSheet("border-color: white;")
-        self.emptyPlainText2.setFixedWidth(55)
-        self.emptyPlainText2.setFixedHeight(30)
-        self.advOptionsMOVESGridLayout.addWidget(self.emptyPlainText2, 1, 2)
-
-        # Created UI element VMT per Truck
-        self.labelVMTperTruck = self.createLabelBig(text="VMT Per Truck")
-        self.labelVMTperTruck.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelVMTperTruck.setObjectName("allLabels")
-        self.labelVMTperTruck.setToolTip("Vehicle miles traveled (VMT) calculated per truck")
-        self.lineEditVMTperTruck = QLineEdit(self)
-        self.lineEditVMTperTruck.setStyleSheet(" border: 1px solid #000000; ")
-        self.lineEditVMTperTruck.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditVMTperTruck.setFixedWidth(116)
-        self.lineEditVMTperTruck.setFixedHeight(30)
-        self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
-        self.lineEditVMTperTruck.setValidator(self.onlyFlaot)
-        self.lineEditVMTperTruck.setText("20")
-        self.advOptionsMOVESGridLayout.addWidget(self.labelVMTperTruck, 1, 3)
-        self.advOptionsMOVESGridLayout.addWidget(self.lineEditVMTperTruck, 1, 4)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
@@ -2919,6 +2918,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxBF.setCurrentIndex(self.index)
         self.index = self.comboBoxRE.findText("Yes")
         self.comboBoxRE.setCurrentIndex(self.index)
+        self.lineEditVMTperTruck.setText("20")
 
         # Fugitive Dust module - Attribute Initialization
         self.lineEditFeedMeasureTypeFD.setText("harvested")
@@ -2959,7 +2959,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.index = self.comboBoxCachedResUse.findText("Yes")
         self.comboBoxCachedResUse.setCurrentIndex(self.index)
         self.lineEditFeedMeasureType.setText("production")
-        self.lineEditVMTperTruck.setText("20")
         self.spinBoxNoofTruck.setValue(1)
         self.index = self.comboBoxYear.findText("2017")
         self.comboBoxYear.setCurrentIndex(self.index)
@@ -3055,8 +3054,18 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.attributeValueObj.useRouterEngine = changedRouterEngine
 
             changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
+            # convert the forestry feedstock name input into a list
             if changedForestryFeedNames:
-                self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
+                if changedForestryFeedNames.__contains__(','):
+                    self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames.split(',')
+                elif changedForestryFeedNames.__contains__(';'):
+                    self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames.split(';')
+                else:
+                    self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
+
+            changedVMTPerTruck = self.lineEditVMTperTruck.text().strip()
+            if changedVMTPerTruck:
+                self.attributeValueObj.vMTPerTruck = changedVMTPerTruck
 
             changedEqPath = self.lineEditEq.text().strip()
             if changedEqPath:
@@ -3081,10 +3090,17 @@ class AlltabsModule(QtWidgets.QWidget):
             ###############################################################################################################
 
             # Moves attributes value initialization
-
             changedAggLevel = self.comboBoxAggLevel.currentText()
-            if changedAggLevel:
-                self.attributeValueObj.aggregationLevel = changedAggLevel
+            # reformat the aggregation level input into two Booleans
+            if changedAggLevel == 'By State':
+                self.attributeValueObj.aggregation_level_state = True
+                self.attributeValueObj.aggregation_level_state_feedstock = False
+            elif changedAggLevel == 'By State-Feedstock':
+                self.attributeValueObj.aggregation_level_state = False
+                self.attributeValueObj.aggregation_level_state_feedstock = True
+            else:
+                self.attributeValueObj.aggregation_level_state = False
+                self.attributeValueObj.aggregation_level_state_feedstock = False
 
             changedcachedResults = self.comboBoxCachedResUse.currentText()
             if changedcachedResults:
@@ -3093,10 +3109,6 @@ class AlltabsModule(QtWidgets.QWidget):
             changedFeedstockMeasureTypeMoves = self.lineEditFeedMeasureType.text().strip()
             if changedFeedstockMeasureTypeMoves:
                 self.attributeValueObj.feedstockMeasureTypeMoves = changedFeedstockMeasureTypeMoves
-
-            changedVMTPerTruck = self.lineEditVMTperTruck.text().strip()
-            if changedVMTPerTruck:
-                self.attributeValueObj.vMTPerTruck = changedVMTPerTruck
 
             changedNoOfTrucksUsed = self.spinBoxNoofTruck.text()
             if changedNoOfTrucksUsed:
