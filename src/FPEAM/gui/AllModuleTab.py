@@ -1566,9 +1566,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
         # Created UI element NONROAD Datafiles
-        self.labelDatafilesNon = self.createLabelSmall(text="Executable Path")
+        self.labelDatafilesNon = self.createLabelSmall(text="Output Folder")
         self.labelDatafilesNon.setObjectName("allLabels")
-        self.labelDatafilesNon.setToolTip("Select NONROAD output folder")
+        self.labelDatafilesNon.setToolTip("Select path where NONROAD input and output output data files will be saved")
         self.browseBtnDatafilesNon = self.createButton(text="Browse")
         self.browseBtnDatafilesNon.clicked.connect(self.getfilesDatafilesNon)
         self.lineEditDatafilesNon = QLineEdit(self)
