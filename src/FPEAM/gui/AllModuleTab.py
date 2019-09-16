@@ -376,8 +376,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTruckCapacity = self.createLabelSmall(text="Truck Capacity")
         self.labelTruckCapacity.setObjectName("allLabels")
         self.labelTruckCapacity.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelTruckCapacity.setToolTip(
-            "Select truck capacity (truck capacities for feedstock transportation) dataset")
+        self.labelTruckCapacity.setToolTip("Select truck capacity dataset")
         self.browseBtnTruckCapa = self.createButton(text="Browse")
         self.browseBtnTruckCapa.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnTruckCapa.clicked.connect(self.getfilesTruckCapa)
@@ -566,7 +565,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditVMTperTruck = QLineEdit(self)
         self.lineEditVMTperTruck.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditVMTperTruck.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditVMTperTruck.setFixedWidth(116)
+        self.lineEditVMTperTruck.setFixedWidth(75)
         self.lineEditVMTperTruck.setFixedHeight(40)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditVMTperTruck.setValidator(self.onlyFlaot)
