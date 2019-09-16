@@ -32,6 +32,7 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
     #moves_db_user = '{moves_db_user}'
     #moves_db_pass = '{moves_db_pass}'
     #moves_database = '{moves_database}'
+    #moves_output_db = '{moves_output_db}'
 
 
     ### input files
@@ -73,6 +74,7 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
                                                moves_db_user = attributeValueObj.dbUsername,
                                                moves_db_pass = attributeValueObj.dbPwd,
                                                moves_database = attributeValueObj.dbName,
+                                               moves_output_db=attributeValueObj.outDb,
                                                avft=attributeValueObj.avft,
                                                region_fips_map=attributeValueObj.regionFipsMapMoves,
                                                rural_restricted=attributeValueObj.ruralRestricted,

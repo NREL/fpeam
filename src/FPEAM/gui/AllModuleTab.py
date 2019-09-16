@@ -888,10 +888,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
         # Created UI element Database Name
-        self.labelDbName = self.createLabelSmall(text="Database Name")
+        self.labelDbName = self.createLabelSmall(text="MOVES Database")
         self.labelDbName.setStyleSheet(" border: 1px solid #000000; ")
         self.labelDbName.setObjectName("allLabels")
-        self.labelDbName.setToolTip("Database name")
+        self.labelDbName.setToolTip("Name of default MOVES database")
         self.lineEditDbName = QLineEdit(self)
         self.lineEditDbName.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditDbName.setAlignment(QtCore.Qt.AlignCenter)
@@ -929,6 +929,26 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 4, 0, 1, 5)
+
+        # Created UI element Output database
+        self.labelOutDb = self.createLabelSmall(text="Output Database")
+        self.labelOutDb.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelOutDb.setObjectName("allLabels")
+        self.labelOutDb.setToolTip("Name of database where MOVES results are stored")
+        self.lineEditOutDb = QLineEdit(self)
+        self.lineEditOutDb.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditOutDb.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditOutDb.setFixedHeight(30)
+        self.lineEditOutDb.setFixedWidth(125)
+        self.lineEditOutDb.setText('moves_output_db')
+        self.dbConnectionsMOVESGridLayout.addWidget(self.labelOutDb, 5, 0)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditOutDb, 5, 1)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 6, 0, 1, 5)
 
         # Execution Timeframe Label
         self.executionTimeLabel = QLabel()
@@ -2966,6 +2986,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbUsername.setText("root")
         self.lineEditDbName.setText("movesdb20180517")
         self.lineEditDbPwd.setText("root")
+        self.lineEditOutDb.setText('moves_output_db')
         self.lineEditDatafiles.setText("C:\MOVESdata")
         self.lineEditMovesPath.setText("C:\MOVES2014b")
         self.lineEditTruckCapa.setText("../data/inputs/truck_capacity.csv")
@@ -3137,6 +3158,10 @@ class AlltabsModule(QtWidgets.QWidget):
             changedDbPwd = self.lineEditDbPwd.text().strip()
             if changedDbPwd:
                 self.attributeValueObj.dbPwd = changedDbPwd
+
+            changedOutDb = self.lineEditOutDb.text().strip()
+            if changedOutDb:
+                self.attributeValueObj.outDb = changedOutDb
 
             changedDate = self.comboBoxDate.currentText()
             if changedDate:
