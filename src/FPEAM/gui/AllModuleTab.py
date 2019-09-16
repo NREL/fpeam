@@ -1938,7 +1938,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.customDatafileLabelLine, 14, 0, 1, 5)
 
         # Expand/Collapse code
-        # Created UI element Custom Dtatfiles NONROAD
+        # Created UI element Custom Datafiles NONROAD
         self.labelcustomDatafileNONROADExpand = QPushButton()
         self.labelcustomDatafileNONROADExpand.setFixedHeight(30)
         self.labelcustomDatafileNONROADExpand.setFixedWidth(30)
@@ -1974,7 +1974,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Region Nonroad Irrigation
-        self.labelNonIrrig = self.createLabelBig(text="Irrigation")
+        self.labelNonIrrig = self.createLabelBig(text="Irrigation Activity")
         self.labelNonIrrig.setObjectName("allLabels")
         self.labelNonIrrig.setStyleSheet(" border: 1px solid #000000; ")
         self.labelNonIrrig.setToolTip("Select irrigation dataset")
@@ -1996,6 +1996,29 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
+        # Created UI element NONROAD Equipment
+        self.labelNonEquip = self.createLabelBig(text="Equipment Specs")
+        self.labelNonEquip.setObjectName("allLabels")
+        self.labelNonEquip.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelNonEquip.setToolTip("Select NONROAD equipment specifications dataset")
+        self.browseBtnNonEquip = self.createButton(text="Browse", height=40)
+        self.browseBtnNonEquip.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnNonEquip.clicked.connect(self.getfilesNonEquip)
+        self.lineEditNonEquip = QLineEdit(self)
+        self.lineEditNonEquip.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditNonEquip.setText("data/inputs/nonroad_equipment.csv")
+        self.lineEditNonEquip.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditNonEquip.setFixedHeight(40)
+        self.customDatafileNONROADGridLayout.addWidget(self.labelNonEquip, 3, 0)
+        self.customDatafileNONROADGridLayout.addWidget(self.browseBtnNonEquip, 3, 1)
+        self.customDatafileNONROADGridLayout.addWidget(self.lineEditNonEquip, 3, 2, 1, 5)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
+
         # Created UI element Region FIPs Map Nonroad
         self.labelFipsNon = self.createLabelBig(text="Region to FIPS Map")
         self.labelFipsNon.setObjectName("allLabels")
@@ -2009,15 +2032,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFipsNon.setText("data/inputs/region_fips_map.csv")
         self.lineEditFipsNon.setAlignment(QtCore.Qt.AlignLeft)
         self.lineEditFipsNon.setFixedHeight(40)
-        self.customDatafileNONROADGridLayout.addWidget(self.labelFipsNon, 3, 0)
-        self.customDatafileNONROADGridLayout.addWidget(self.browseBtnFipsNon, 3, 1)
-        self.customDatafileNONROADGridLayout.addWidget(self.lineEditFipsNon, 3, 2, 1, 5)
+        self.customDatafileNONROADGridLayout.addWidget(self.labelFipsNon, 5, 0)
+        self.customDatafileNONROADGridLayout.addWidget(self.browseBtnFipsNon, 5, 1)
+        self.customDatafileNONROADGridLayout.addWidget(self.lineEditFipsNon, 5, 2, 1, 5)
 
         # Empty label
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
-        self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
+        self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 6, 0, 1, 4)
 
         # Operating Temperature Label
         self.opTempLabel = QLabel()
@@ -2453,6 +2476,14 @@ class AlltabsModule(QtWidgets.QWidget):
         if fileNameNonEq[0] != "":
             selectedFileNameNonEq = fileNameNonEq[0].split("FPEAM/")
             self.lineEditNonIrrig.setText(selectedFileNameNonEq[1])
+
+    # Functions used for Nonroad equipment
+
+    def getfilesNonEquip(self):
+        fileNameNonEquip = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
+        if fileNameNonEquip[0] != "":
+            selectedFileNameNonEquip = fileNameNonEquip[0].split("FPEAM/")
+            self.lineEditNonEquip.setText(selectedFileNameNonEquip[1])
 
     ###########################################################################################################################################################
 
@@ -3003,6 +3034,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFeedMeasureTypeIrrigNon.setText("planted")
         self.lineEditFeedIrrigNamesNon.setText("corn grain")
         self.lineEditNonIrrig.setText("../data/inputs/irrigation.csv")
+        self.lineEditNonEquip.setText("../data/inputs/nonroad_equipment.csv")
         self.comboBoxEncodeNames.setCurrentText("Yes")
 
         # Moves Module - Attribute Initialization
@@ -3279,6 +3311,10 @@ class AlltabsModule(QtWidgets.QWidget):
             changedIrrigNon = self.lineEditNonIrrig.text().strip()
             if changedIrrigNon:
                 self.attributeValueObj.irrigation = changedIrrigNon
+
+            changedNonEquip = self.lineEditNonEquip.text().strip()
+            if changedNonEquip:
+                self.attributeValueObj.nonroad_equipment = changedNonEquip
 
             changedEncodeName = self.comboBoxEncodeNames.currentText()
             if changedEncodeName:

@@ -37,7 +37,7 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
     region_fips_map = '{region_fips_map}'
     
     ## equipment name to NONROAD equipment name and SCC mapping
-    nonroad_equipment = ""
+    nonroad_equipment = '{nonroad_equipment}'
         
     ## irrigation dataset
     irrigation = '{irrigation_file}'
@@ -82,7 +82,7 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
                                                time_resource_name = attributeValueObj.timeResourceNameNon,
                                                irrigated_feedstock_names=attributeValueObj.irrigatedFeedstockNames,
                                                region_fips_map=attributeValueObj.regionFipsMapNonroad,
-                                               nonroad_equipment='',
+                                               nonroad_equipment=attributeValueObj.nonroad_equipment,
                                                irrigation_file=attributeValueObj.irrigation,
                                                nonroad_database = attributeValueObj.dbNameN,
                                                nonroad_db_user = attributeValueObj.dbUsernameN,
