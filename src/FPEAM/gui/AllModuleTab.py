@@ -2040,7 +2040,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.tempNONROADGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Minimum Temperature
-        self.labelMinTemp = self.createLabelSmall(text="Minimum")
+        self.labelMinTemp = self.createLabelSmall(text="Minimum Temp (" + "\N{DEGREE SIGN}" + "F)")
         self.labelMinTemp.setObjectName("allLabels")
         self.labelMinTemp.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditMinTemp = QLineEdit(self)
@@ -2062,7 +2062,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.tempNONROADGridLayout.addWidget(self.emptyPlainText2, 1, 2)
 
         # Created UI element Average Temperature
-        self.labelMeanTemp = self.createLabelSmall(text="Average")
+        self.labelMeanTemp = self.createLabelSmall(text="Average Temp (" + "\N{DEGREE SIGN}" + "F)")
         self.labelMeanTemp.setObjectName("allLabels")
         self.labelMeanTemp.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditMeanTemp = QLineEdit(self)
@@ -2083,7 +2083,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.tempNONROADGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
         # Created UI element Maximum Temperature
-        self.labelMaxTemp = self.createLabelSmall(text="Maximum")
+        self.labelMaxTemp = self.createLabelSmall(text="Maximum Temp (" + "\N{DEGREE SIGN}" + "F)")
         self.labelMaxTemp.setObjectName("allLabels")
         self.labelMaxTemp.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditMaxTemp = QLineEdit()
@@ -2155,7 +2155,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Low Heating Value
-        self.labelLowHeat = self.createLabelBig(text="Diesel Low Heating" + "\n" + " Value")
+        self.labelLowHeat = self.createLabelBig(text="Diesel Low Heating" + "\n" + " Value (mmBTU/gal)")
         self.labelLowHeat.setStyleSheet(" border: 1px solid #000000; ")
         self.labelLowHeat.setObjectName("allLabels")
         self.labelLowHeat.setToolTip("Lower heating value for diesel fuel")
@@ -2178,10 +2178,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(self.emptyPlainText2, 1, 2)
 
         # Created UI element Hydrocarbon to VOC Conversion Factor
-        self.labelHydeo = self.createLabelBig(text="Hydrocarbon to VOC")
+        self.labelHydeo = self.createLabelBig(text="Hydrocarbon to VOC"+ "\n" + "Conversion Factor")
         self.labelHydeo.setObjectName("allLabels")
         self.labelHydeo.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelHydeo.setToolTip("VOC vonversion fFactor for hydrocarbon emission components")
+        self.labelHydeo.setToolTip("Conversion between total hydrocarbons and VOCs (unitless)")
         self.lineEditHydro = QLineEdit()
         self.lineEditHydro.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditHydro.setAlignment(QtCore.Qt.AlignCenter)
@@ -2200,7 +2200,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
         # Created UI element NH3 Emission Factor
-        self.labelNH3 = self.createLabelBig(text="NH3 Emission Factor")
+        self.labelNH3 = self.createLabelBig(text="NH3 Emission Factor" + "\n" + "(g NH3/mmBTU diesel)")
         self.labelNH3.setObjectName("allLabels")
         self.labelNH3.setStyleSheet(" border: 1px solid #000000; ")
         self.labelNH3.setToolTip("NH3 emission factor for diesel fuel")
@@ -2223,10 +2223,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(self.emptyPlainText2, 3, 2)
 
         # Created UI element PM10 to PM2.5 Conversion Factor
-        self.labelPM10 = self.createLabelBig(text="PM10 to PM2.5")
+        self.labelPM10 = self.createLabelBig(text="PM10 to PM2.5"+ "\n" + "Conversion Factor")
         self.labelPM10.setObjectName("allLabels")
         self.labelPM10.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelPM10.setToolTip("PM10 to PM2.5 conversion factor")
+        self.labelPM10.setToolTip("Ratio of PM10 to PM2.5 (unitless)")
         self.lineEditPM10 = QLineEdit(self)
         self.lineEditPM10.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditPM10.setAlignment(QtCore.Qt.AlignCenter)
