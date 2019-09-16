@@ -1596,7 +1596,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
         # Created UI element NONROAD Datafiles
-        self.labelDatafilesNon = self.createLabelSmall(text="Output Folder")
+        self.labelDatafilesNon = self.createLabelSmall(text="Data Folder")
         self.labelDatafilesNon.setObjectName("allLabels")
         self.labelDatafilesNon.setToolTip("Select path where NONROAD input and output output data files will be saved")
         self.browseBtnDatafilesNon = self.createButton(text="Browse")
@@ -1608,6 +1608,20 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelDatafilesNon, 2, 0)
         self.windowLayout.addWidget(self.browseBtnDatafilesNon, 2, 1)
         self.windowLayout.addWidget(self.lineEditDatafilesNon, 2, 2, 1, 3)
+
+        # Created UI element Nonroad executable path
+        self.labelNonExePath = self.createLabelSmall(text="Path to EXE")
+        self.labelNonExePath.setObjectName("allLabels")
+        self.labelNonExePath.setToolTip("Select path where NONROAD executable is located")
+        self.browseBtnNonExePath = self.createButton(text="Browse")
+        self.browseBtnNonExePath.clicked.connect(self.getfilesNonExePath)
+        self.lineEditNonExePath = QLineEdit(self)
+        self.lineEditNonExePath.setText("C:/MOVES2014b/NONROAD/NR08a")
+        self.lineEditNonExePath.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditNonExePath.setFixedHeight(30)
+        self.windowLayout.addWidget(self.labelNonExePath, 3, 0)
+        self.windowLayout.addWidget(self.browseBtnNonExePath, 3, 1)
+        self.windowLayout.addWidget(self.lineEditNonExePath, 3, 2, 1, 3)
 
         # Created UI element Year - NONROAD
         self.labelYearNon = self.createLabelSmall(text="Analysis Year")
@@ -1630,9 +1644,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelYearNonErrorMsg.setFixedHeight(30)
         self.labelYearNonErrorMsg.setText("")
         self.labelYearNonErrorMsg.setStyleSheet("border: 1px solid white;")
-        self.windowLayout.addWidget(self.labelYearNon, 3, 0)
-        self.windowLayout.addWidget(self.comboBoxYearNon, 3, 1)
-        self.windowLayout.addWidget(self.labelYearNonErrorMsg, 3, 2, 1, 3)
+        self.windowLayout.addWidget(self.labelYearNon, 4, 0)
+        self.windowLayout.addWidget(self.comboBoxYearNon, 4, 1)
+        self.windowLayout.addWidget(self.labelYearNonErrorMsg, 4, 2, 1, 3)
         # Check whether Moves year matches with Nonroad year
         self.comboBoxYearNon.currentIndexChanged.connect(self.handleItemPressed)
 
@@ -1641,7 +1655,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionParaLabelN.setText("Database Connection Parameters")
         self.dbConnectionParaLabelN.setFixedHeight(30)
         self.dbConnectionParaLabelN.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.dbConnectionParaLabelN, 4, 0, 1, 4)
+        self.windowLayout.addWidget(self.dbConnectionParaLabelN, 5, 0, 1, 4)
 
         # Created UI element - Advanced Optiones below Line NONROAD
         self.dbConnectionParaLineN = QLabel()
@@ -1649,7 +1663,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.dbConnectionParaLineN.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
-        self.windowLayout.addWidget(self.dbConnectionParaLineN, 5, 0, 1, 5)
+        self.windowLayout.addWidget(self.dbConnectionParaLineN, 6, 0, 1, 5)
 
         # Expand/Collapse code
         # Created UI element Database Connection Parameters NONROAD
@@ -1659,7 +1673,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labeldbConnectionsNONROADExpand.setObjectName("expandCollapseIcon")
         self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
         self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
-        self.windowLayout.addWidget(self.labeldbConnectionsNONROADExpand, 4, 4)
+        self.windowLayout.addWidget(self.labeldbConnectionsNONROADExpand, 5, 4)
 
         self.dbConnectionsNONROADexpandWidget = QtWidgets.QWidget()
         self.dbConnectionsNONROADexpandWidget.setStyleSheet(
@@ -1667,7 +1681,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsNONROADGridLayout = QtWidgets.QGridLayout()
         self.dbConnectionsNONROADexpandWidget.setLayout(self.dbConnectionsNONROADGridLayout)
         self.dbConnectionsNONROADexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.dbConnectionsNONROADexpandWidget, 6, 0, 1, 4)
+        self.windowLayout.addWidget(self.dbConnectionsNONROADexpandWidget, 7, 0, 1, 4)
 
         def labelDbConnectionsNONROADOnClickEvent():
             if self.dbConnectionsNONROADexpandWidget.isVisible():
@@ -2460,6 +2474,12 @@ class AlltabsModule(QtWidgets.QWidget):
             selectedFileName = str(fileName).split(',')
             self.lineEditDatafilesNon.setText(selectedFileName[0])
 
+    def getfilesNonExePath(self):
+        fileName = QFileDialog.getExistingDirectory(self, "Browse")
+        if fileName != "":
+            selectedFileName = str(fileName).split(',')
+            self.lineEditNonExePath.setText(selectedFileName[0])
+
     # Functions used for Fips Nonroad
 
     def getfilesFipsNon(self):
@@ -3023,6 +3043,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditForestryNamesNon.setText('forest whole tree, forest residues')
         self.lineEditFipsNon.setText("../data/inputs/region_fips_map.csv")
         self.lineEditDatafilesNon.setText("C:/Nonroad")
+        self.lineEditNonExePath.setText("C:/MOVES2014b/NONROAD/NR08a")
         self.lineEditMinTemp.setText("50.0")
         self.lineEditMaxTemp.setText("68.8")
         self.lineEditMeanTemp.setText("60.0")
@@ -3306,6 +3327,10 @@ class AlltabsModule(QtWidgets.QWidget):
             changedDatafilesNon = self.lineEditDatafilesNon.text().strip()
             if changedDatafilesNon:
                 self.attributeValueObj.nonroadDatafilesPath = changedDatafilesNon
+
+            changedNonExePath = self.lineEditNonExePath.text().strip()
+            if changedNonExePath:
+                self.attributeValueObj.nonroadExePath = changedNonExePath
 
             changedIrrigNon = self.lineEditNonIrrig.text().strip()
             if changedIrrigNon:

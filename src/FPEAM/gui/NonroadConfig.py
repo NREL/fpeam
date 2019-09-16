@@ -49,7 +49,7 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
     nonroad_db_host = '{nonroad_db_host}'
     
     ### NONROAD application options
-    nonroad_path = ""
+    nonroad_path = '{nonroad_exe_path}'
     nonroad_exe = 'NONROAD.exe'
     
     
@@ -88,9 +88,7 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
                                                nonroad_db_user = attributeValueObj.dbUsernameN,
                                                nonroad_db_pass = attributeValueObj.dbPwdN,
                                                nonroad_db_host = attributeValueObj.dbHostN,
-                                               nonroad_path='',
-                                               nonroad_exe='',
-
+                                               nonroad_exe_path=attributeValueObj.nonroadExePath,
                                                nonroad_temp_min = attributeValueObj.tempMin,
                                                nonroad_temp_max = attributeValueObj.tempMax,
                                                nonroad_temp_mean = attributeValueObj.tempMean,
