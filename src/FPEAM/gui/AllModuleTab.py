@@ -755,7 +755,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.comboBoxAggLevel, 2, 1)
 
         # Created UI element Cached Result usage
-        self.labelCachedResUse = self.createLabelBig(text="Use Previous Results")
+        self.labelCachedResUse = self.createLabelBig(text="Use Cached Results")
         self.labelCachedResUse.setObjectName("allLabels")
         self.labelCachedResUse.setToolTip("Use existing results in MOVES output database")
         self.comboBoxCachedResUse = QComboBox(self)
@@ -979,6 +979,52 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 6, 0, 1, 5)
+
+        # create UI element for mysql executable @todo
+        self.MysqlBinLab = self.createLabelSmall(text="MySQL Exe")
+        self.MysqlBinLab.setStyleSheet(" border: 1px solid #000000; ")
+        self.MysqlBinLab.setObjectName("allLabels")
+        self.MysqlBinLab.setToolTip("Select path where MySQL executable file is located")
+        self.browseBtnMysqlBin = self.createButton(text="Browse", width=125, height=30)
+        self.browseBtnMysqlBin.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnMysqlBin.clicked.connect(self.getfilesMysqlBin)
+        self.lineEditMysqlBin = QLineEdit(self)
+        self.lineEditMysqlBin.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditMysqlBin.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditMysqlBin.setFixedHeight(30)
+        self.lineEditMysqlBin.setText("C:\Program Files\MySQL\MySQL Server 5.7\\bin\mysql.exe")
+        self.dbConnectionsMOVESGridLayout.addWidget(self.MysqlBinLab, 7, 0)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.browseBtnMysqlBin, 7, 1)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditMysqlBin, 7, 2, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 8, 0, 1, 5)
+
+        # create UI element for mysql dump executable
+        self.MysqlDumpBinLab = self.createLabelSmall(text="MySQL Dump Exe")
+        self.MysqlDumpBinLab.setStyleSheet(" border: 1px solid #000000; ")
+        self.MysqlDumpBinLab.setObjectName("allLabels")
+        self.MysqlDumpBinLab.setToolTip("Select path where MySQL dump executable file is located")
+        self.browseBtnMysqlDumpBin = self.createButton(text="Browse", width=125, height=30)
+        self.browseBtnMysqlDumpBin.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnMysqlDumpBin.clicked.connect(self.getfilesMysqlDumpBin)
+        self.lineEditMysqlDumpBin = QLineEdit(self)
+        self.lineEditMysqlDumpBin.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditMysqlDumpBin.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditMysqlDumpBin.setFixedHeight(30)
+        self.lineEditMysqlDumpBin.setText("C:\Program Files\MySQL\MySQL Server 5.7\\bin\mysqldump.exe")
+        self.dbConnectionsMOVESGridLayout.addWidget(self.MysqlDumpBinLab, 9, 0)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.browseBtnMysqlDumpBin, 9, 1)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditMysqlDumpBin, 9, 2, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 10, 0, 1, 5)
 
         # Execution Timeframe Label
         self.executionTimeLabel = QLabel()
@@ -1526,6 +1572,20 @@ class AlltabsModule(QtWidgets.QWidget):
         if fileNameMovesPath != "":
             selectedFileNameMovesPath = str(fileNameMovesPath).split(',')
             self.lineEditMovesPath.setText(selectedFileNameMovesPath[0])
+
+    # function used for MySQL executable
+    def getfilesMysqlBin(self):
+        fileNameMysqlBin = QFileDialog.getExistingDirectory(self, "Browse")
+        if fileNameMysqlBin != "":
+            selectedFileNameMysqlBin = str(fileNameMysqlBin).split(',')
+            self.lineEditMysqlBin.setText(selectedFileNameMysqlBin[0])
+
+    # function used for MySQL dump executable
+    def getfilesMysqlDumpBin(self):
+        fileNameMysqlDumpBin = QFileDialog.getExistingDirectory(self, "Browse")
+        if fileNameMysqlDumpBin != "":
+            selectedFileNameMysqlDumpBin = str(fileNameMysqlDumpBin).split(',')
+            self.lineEditMysqlDumpBin.setText(selectedFileNameMysqlDumpBin[0])
 
     # Functions used for Truck Capacity
 
@@ -3071,8 +3131,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbName.setText("movesdb20180517")
         self.lineEditDbPwd.setText("root")
         self.lineEditOutDb.setText('moves_output_db')
-        self.lineEditDatafiles.setText("C:\MOVESdata")
-        self.lineEditMovesPath.setText("C:\MOVES2014b")
+        self.lineEditDatafiles.setText("C:/MOVESdata")
+        self.lineEditMovesPath.setText("C:/MOVES2014b")
+        self.lineEditMysqlBin.setText("C:/Program Files/MySQL/MySQL Server 5.7/bin/mysql.exe")
+        self.lineEditMysqlDumpBin.setText("C:/Program Files/MySQL/MySQL Server 5.7/bin/mysqldump.exe")
         self.lineEditTruckCapa.setText("../data/inputs/truck_capacity.csv")
         self.lineEditAVFT.setText("../data/inputs/avft.csv")
         self.lineEditFips.setText("../data/inputs/region_fips_map.csv")
@@ -3279,6 +3341,14 @@ class AlltabsModule(QtWidgets.QWidget):
             changedDatafilesMovesPath = self.lineEditDatafiles.text().strip()
             if changedDatafilesMovesPath:
                 self.attributeValueObj.movesDatafilesPath = changedDatafilesMovesPath
+
+            changedMysqlBinPath = self.lineEditMysqlBin.text().strip()
+            if changedMysqlBinPath:
+                self.attributeValueObj.mysqlBinPath = changedMysqlBinPath
+
+            changedMysqlDumpBinPath = self.lineEditMysqlDumpBinBin.text().strip()
+            if changedMysqlDumpBinPathBinPath:
+                self.attributeValueObj.mysqlDumpBinPath = changedMysqlDumpBinPath
 
             changedRuralRes = self.lineEditRuralRes.text().strip()
             if changedRuralRes:
