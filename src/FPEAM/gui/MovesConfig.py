@@ -26,10 +26,10 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
     pop_short_haul = {no_of_trucks_used}
     
     ## vehicle category: combination trucks
-    hpmsv_type_id = 60
+    hpmsv_type_id = {hpmsv_type_id}
     
     ## specific vehicle type: short-haul combination truck
-    source_type_id = 61
+    source_type_id = {source_type_id}
 
     ## start year (equipment year #1)
     year = {year}
@@ -101,6 +101,8 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
                                                use_cached_results=attributeValueObj.cachedResults,
                                                feedstock_measure_type=attributeValueObj.feedstockMeasureTypeMoves,
                                                no_of_trucks_used=attributeValueObj.noOfTrucksUsed,
+                                               hpmsv_type_id=attributeValueObj.hpmsvTypeId,
+                                               source_type_id=attributeValueObj.sourceTypeId,
                                                year=attributeValueObj.yearMoves,
                                                moves_path=attributeValueObj.movesPath,
                                                mysql_bin_path=attributeValueObj.mysqlBinPath,

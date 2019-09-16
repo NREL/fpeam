@@ -980,7 +980,7 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 6, 0, 1, 5)
 
-        # create UI element for mysql executable @todo
+        # create UI element for mysql executable
         self.MysqlBinLab = self.createLabelSmall(text="MySQL Exe")
         self.MysqlBinLab.setStyleSheet(" border: 1px solid #000000; ")
         self.MysqlBinLab.setObjectName("allLabels")
@@ -1558,6 +1558,49 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 3)
+
+        # Created UI element HPMSV type ID @todo
+        self.labelHPMSVtypeId = self.createLabelBig(text="HPMSV ID")
+        self.labelHPMSVtypeId.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelHPMSVtypeId.setObjectName("allLabels")
+        self.labelHPMSVtypeId.setToolTip("Enter Highway Performance Monitoring System Vehicle ID. Default indicates a generic combination truck.")
+        self.spinBoxHPMSVtypeId = QSpinBox()
+        self.spinBoxHPMSVtypeId.setStyleSheet(" border: 1px solid #000000; ")
+        self.spinBoxHPMSVtypeId.setFixedWidth(116)
+        self.spinBoxHPMSVtypeId.setFixedHeight(30)
+        self.spinBoxHPMSVtypeId.setMinimum(1)
+        self.spinBoxHPMSVtypeId.setValue(60)
+        self.leditHPMSVtypeId = self.spinBoxHPMSVtypeId.lineEdit()
+        self.leditHPMSVtypeId.setAlignment(QtCore.Qt.AlignCenter)
+        self.leditHPMSVtypeId = self.spinBoxHPMSVtypeId.lineEdit()
+        self.leditHPMSVtypeId.setReadOnly(True)
+        self.advOptionsMOVESGridLayout.addWidget(self.labelHPMSVtypeId, 3, 0)
+        self.advOptionsMOVESGridLayout.addWidget(self.spinBoxHPMSVtypeId, 3, 1)
+
+        # Add horizontal space between elements
+        self.emptyPlainText3 = QLabel()
+        self.emptyPlainText3.setStyleSheet("border-color: white;")
+        self.emptyPlainText3.setFixedWidth(55)
+        self.emptyPlainText3.setFixedHeight(30)
+        self.advOptionsMOVESGridLayout.addWidget(self.emptyPlainText3, 3, 2)
+
+        # Created UI element Source type ID
+        self.labelSourceTypeId = self.createLabelBig(text="Source Type ID")
+        self.labelSourceTypeId.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelSourceTypeId.setObjectName("allLabels")
+        self.labelSourceTypeId.setToolTip("Enter source type ID. Default indicates a short-haul combination truck.")
+        self.spinBoxSourceTypeId = QSpinBox()
+        self.spinBoxSourceTypeId.setStyleSheet(" border: 1px solid #000000; ")
+        self.spinBoxSourceTypeId.setFixedWidth(116)
+        self.spinBoxSourceTypeId.setFixedHeight(30)
+        self.spinBoxSourceTypeId.setMinimum(1)
+        self.spinBoxSourceTypeId.setValue(61)
+        self.leditSourceTypeId = self.spinBoxSourceTypeId.lineEdit()
+        self.leditSourceTypeId.setAlignment(QtCore.Qt.AlignCenter)
+        self.leditSourceTypeId = self.spinBoxSourceTypeId.lineEdit()
+        self.leditSourceTypeId.setReadOnly(True)
+        self.advOptionsMOVESGridLayout.addWidget(self.labelSourceTypeId, 3, 3)
+        self.advOptionsMOVESGridLayout.addWidget(self.spinBoxSourceTypeId, 3, 4)
 
     # CHeck for consistent input for year
     def handleItemPressedMoves(self, index):
@@ -3124,6 +3167,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxCachedResUse.setCurrentIndex(self.index)
         self.lineEditFeedMeasureType.setText("production")
         self.spinBoxNoofTruck.setValue(1)
+        self.leditHPMSVtypeId.setValue(60)
+        self.leditSourceTypeId.setValue(61)
         self.index = self.comboBoxYear.findText("2017")
         self.comboBoxYear.setCurrentIndex(self.index)
         self.lineEditDbHost.setText("localhost")
@@ -3284,6 +3329,14 @@ class AlltabsModule(QtWidgets.QWidget):
             changedNoOfTrucksUsed = self.spinBoxNoofTruck.text()
             if changedNoOfTrucksUsed:
                 self.attributeValueObj.noOfTrucksUsed = changedNoOfTrucksUsed
+
+            changedHPMSVTypeId = self.leditHPMSVtypeId.text()
+            if changedHPMSVTypeId:
+                self.attributeValueObj.hpmsvTypeId = changedHPMSVTypeId
+
+            changedSourceTypeId = self.leditSourceTypeId.text()
+            if changedSourceTypeId:
+                self.attributeValueObj.sourceTypeId = changedSourceTypeId
 
             changedYearMoves = self.comboBoxYear.currentText()
             if changedYearMoves:
