@@ -16,6 +16,9 @@ modules = {modules}
 ## logging verbosity level (CRITICAL, ERROR, WARNING, INFO, DEBUG, UNSET)
 logger_level = {logger_level}
 
+## use the router engine to calculate vmt by county
+use_router_engine = {use_router_engine}
+
 ## data paths
 equipment = '{equipment}'
 production = '{production}'
@@ -33,11 +36,12 @@ vmt_short_haul = {VMT_per_truck}
 ## truck capacities for feedstock transportation
 truck_capacity = '{truck_capacity}'
 
+## graph node locations
+node_locations = ""
+
 ## data backfill flag
 backfill = {backfill}
-
-## use the router engine to calculate vmt by county
-use_router_engine = {use_router_engine} """
+ """
 
     my_ini_config = ini_template_string.format(scenario_name=attributeValueObj.scenarioName,
                                                project_path=attributeValueObj.projectPath,
