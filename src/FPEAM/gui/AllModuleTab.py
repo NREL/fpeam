@@ -349,6 +349,29 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 8, 0, 1, 5)
 
+        # Node locations - HOME
+        self.labelNodeLocs = self.createLabelSmall(text="Node Locations")
+        self.labelNodeLocs.setObjectName("allLabels")
+        self.labelNodeLocs.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelNodeLocs.setToolTip("Select node locations dataset")
+        self.browseBtnNodeLocs = self.createButton(text="Browse")
+        self.browseBtnNodeLocs.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnNodeLocs.clicked.connect(self.getfilesNodeLocs)
+        self.lineEditNodeLocs = QLineEdit(self)
+        self.lineEditNodeLocs.setText("data/inputs/node_locations.csv")
+        self.lineEditNodeLocs.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditNodeLocs.setFixedHeight(30)
+        self.lineEditNodeLocs.setStyleSheet(" border: 1px solid #000000; ")
+        self.customDatafileFPEAMGridLayout.addWidget(self.labelNodeLocs, 9, 0)
+        self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnNodeLocs, 9, 1)
+        self.customDatafileFPEAMGridLayout.addWidget(self.lineEditNodeLocs, 9, 2, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(15)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 10, 0, 1, 5)
+
         # Truck Capacity - HOME
         self.labelTruckCapacity = self.createLabelSmall(text="Truck Capacity")
         self.labelTruckCapacity.setObjectName("allLabels")
@@ -363,15 +386,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditTruckCapa.setText("data/inputs/truck_capacity.csv")
         self.lineEditTruckCapa.setAlignment(QtCore.Qt.AlignLeft)
         self.lineEditTruckCapa.setFixedHeight(30)
-        self.customDatafileFPEAMGridLayout.addWidget(self.labelTruckCapacity, 9, 0)
-        self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnTruckCapa, 9, 1)
-        self.customDatafileFPEAMGridLayout.addWidget(self.lineEditTruckCapa, 9, 2, 1, 3)
+        self.customDatafileFPEAMGridLayout.addWidget(self.labelTruckCapacity, 11, 0)
+        self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnTruckCapa, 11, 1)
+        self.customDatafileFPEAMGridLayout.addWidget(self.lineEditTruckCapa, 11, 2, 1, 3)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(15)
         emptyLabelE.setStyleSheet("border: white")
-        self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 10, 0, 1, 5)
+        self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 12, 0, 1, 5)
 
         # Advanced Options Label - HOME
         self.advOptionsLabel = QLabel()
@@ -671,6 +694,14 @@ class AlltabsModule(QtWidgets.QWidget):
         if fileNameTransGr[0] != "":
             selectedFileNameTransGr = fileNameTransGr[0].split("FPEAM/")
             self.lineEditTransGraph.setText(selectedFileNameTransGr[1])
+
+    # Node locations
+    def getfilesNodeLocs(self):
+        fileNameNodeLocs = QFileDialog.getOpenFileName(self, 'Browse', "",
+                                                      "CSV files (*.csv)")
+        if fileNameNodeLocs[0] != "":
+            selectedFileNameNodeLocs = fileNameNodeLocs[0].split("FPEAM/")
+            self.lineEditNodeLocs.setText(selectedFileNameNodeLocs[1])
 
         ###########################################################################################################################################################################
 
@@ -2934,6 +2965,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditProd.setText("data/production/production_2015_bc1060.csv")
         self.lineEditFedLossFact.setText("data/inputs/feedstock_loss_factors.csv")
         self.lineEditTransGraph.setText("data/inputs/transportation_graph.csv")
+        self.lineEditNodeLocs.setText("data/inputs/node_locations.csv")
         self.index = self.comboBoxBF.findText("Yes")
         self.comboBoxBF.setCurrentIndex(self.index)
         self.index = self.comboBoxRE.findText("Yes")
@@ -3103,6 +3135,10 @@ class AlltabsModule(QtWidgets.QWidget):
             changedTranGraphPath = self.lineEditTransGraph.text().strip()
             if changedTranGraphPath:
                 self.attributeValueObj.transportationGraph = changedTranGraphPath
+
+            changedNodeLocsPath = self.lineEditNodeLocs.text().strip()
+            if changedNodeLocsPath:
+                self.attributeValueObj.nodeLocations = changedNodeLocsPath
 
             changedTruckCapacityPath = self.lineEditTruckCapa.text().strip()
             if changedTruckCapacityPath:

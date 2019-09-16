@@ -37,7 +37,7 @@ vmt_short_haul = {VMT_per_truck}
 truck_capacity = '{truck_capacity}'
 
 ## graph node locations
-node_locations = ""
+node_locations = '{node_locations}'
 
 ## data backfill flag
 backfill = {backfill}
@@ -54,6 +54,7 @@ backfill = {backfill}
                                                transportation_graph = attributeValueObj.transportationGraph,
                                                VMT_per_truck=attributeValueObj.vMTPerTruck,
                                                truck_capacity=attributeValueObj.truckCapacity,
+                                               node_locations=attributeValueObj.nodeLocations,
                                                backfill = attributeValueObj.backfill,
                                                use_router_engine = attributeValueObj.useRouterEngine)
 
