@@ -3572,7 +3572,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
             changeddieselHydrotoVOC = self.lineEditHydro.text().strip()
             if changeddieselHydrotoVOC:
-                self.attributeValueObj.tempMean = changeddieselHydrotoVOC
+                self.attributeValueObj.dieselThcVocConversion = changeddieselHydrotoVOC
 
             changedPMConversionFact = self.lineEditPM10.text().strip()
             if changedPMConversionFact:
