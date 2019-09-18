@@ -2336,7 +2336,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditLowHeat.setFixedWidth(125)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditLowHeat.setValidator(self.onlyFlaot)
-        self.lineEditLowHeat.setText("0.012845")
+        self.lineEditLowHeat.setText("0.12845")
         self.convFactorsNONROADGridLayout.addWidget(self.labelLowHeat, 1, 0)
         self.convFactorsNONROADGridLayout.addWidget(self.lineEditLowHeat, 1, 1)
 
