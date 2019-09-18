@@ -1474,7 +1474,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditUrbanUnres.setAlignment(QtCore.Qt.AlignCenter)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditUrbanUnres.setValidator(self.onlyFlaot)
-        self.lineEditUrbanUnres.setText("0.28")
+        self.lineEditUrbanUnres.setText("0.21")
         self.vmtGridLayout.addWidget(self.labelUrbanUnres, 3, 3)
         self.vmtGridLayout.addWidget(self.lineEditUrbanUnres, 3, 4)
 
