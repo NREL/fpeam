@@ -547,7 +547,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.regex = QtCore.QRegExp("[a-z-A-Z_,]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditForestryNamesNon.setValidator(validator)
-        self.lineEditForestryNamesNon.setText("forest whole tree, forest residues")
+        self.lineEditForestryNamesNon.setText("'forest whole tree', 'forest residues'")
         self.advOptionsFPEAMGridLayout.addWidget(self.labelForestryNamesNon, 4, 0)
         self.advOptionsFPEAMGridLayout.addWidget(self.lineEditForestryNamesNon, 4, 1, 1, 3)
 
@@ -3210,7 +3210,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbPwdN.setText("root")
         self.lineEditFeedMeasureTypeNon.setText("harvested")
         self.lineEditTimeResNamesNon.setText("time")
-        self.lineEditForestryNamesNon.setText('forest whole tree, forest residues')
+        self.lineEditForestryNamesNon.setText("'forest whole tree', 'forest residues'")
         self.lineEditFipsNon.setText("../data/inputs/region_fips_map.csv")
         self.lineEditDatafilesNon.setText("C:/Nonroad")
         self.lineEditNonExePath.setText("C:/MOVES2014b/NONROAD/NR08a")
@@ -3333,14 +3333,8 @@ class AlltabsModule(QtWidgets.QWidget):
                 self.attributeValueObj.useRouterEngine = changedRouterEngine
 
             changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
-            # convert the forestry feedstock name input into a list
             if changedForestryFeedNames:
-                if changedForestryFeedNames.__contains__(','):
-                    self.attributeValueObj.forestryFeedstockNames = [i.strip() for i in changedForestryFeedNames.split(',')]
-                elif changedForestryFeedNames.__contains__(';'):
-                    self.attributeValueObj.forestryFeedstockNames = [i.strip() for i in changedForestryFeedNames.split(';')]
-                else:
-                    self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
+                self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
 
             changedVMTPerTruck = self.lineEditVMTperTruck.text().strip()
             if changedVMTPerTruck:
