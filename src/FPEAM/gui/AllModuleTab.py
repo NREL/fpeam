@@ -227,7 +227,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelCustomDatafileFPEAMExpand.setFixedHeight(30)
         self.labelCustomDatafileFPEAMExpand.setFixedWidth(30)
         self.labelCustomDatafileFPEAMExpand.setObjectName("expandCollapseIcon")
-        self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelCustomDatafileFPEAMExpand, 10, 5)
 
@@ -242,11 +242,11 @@ class AlltabsModule(QtWidgets.QWidget):
         def labelCustomDatafileFPEAMOnClickEvent():
             if self.customDatafileFPEAMexpandWidget.isVisible():
                 self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
-                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
                 self.customDatafileFPEAMexpandWidget.setVisible(False)
             else:
                 self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('minus.png'))
-                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
                 self.customDatafileFPEAMexpandWidget.setVisible(True)
 
         self.labelCustomDatafileFPEAMExpand.clicked.connect(labelCustomDatafileFPEAMOnClickEvent)
@@ -417,7 +417,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsFPEAMExpand.setFixedHeight(30)
         self.labelAdvOptionsFPEAMExpand.setFixedWidth(30)
         self.labelAdvOptionsFPEAMExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsFPEAMExpand, 18, 5)
 
@@ -431,11 +431,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsFPEAMOnClickEvent():
             if self.advOptionsFPEAMexpandWidget.isVisible():
-                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.advOptionsFPEAMexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.advOptionsFPEAMexpandWidget.setVisible(True)
 
@@ -842,7 +842,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labeldbConnectionsMOVESExpand.setFixedHeight(30)
         self.labeldbConnectionsMOVESExpand.setFixedWidth(30)
         self.labeldbConnectionsMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
         self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labeldbConnectionsMOVESExpand, 7, 4)
 
@@ -857,11 +857,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelDbConnectionsMOVESOnClickEvent():
             if self.dbConnectionsMOVESexpandWidget.isVisible():
-                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.dbConnectionsMOVESexpandWidget.setVisible(False)
             else:
-                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.dbConnectionsMOVESexpandWidget.setVisible(True)
 
@@ -1047,7 +1047,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTimeframeMOVESExpand.setFixedHeight(30)
         self.labelTimeframeMOVESExpand.setFixedWidth(30)
         self.labelTimeframeMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelTimeframeMOVESExpand, 11, 4)
 
@@ -1061,11 +1061,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelTimeframeMOVESOnClickEvent():
             if self.timeframeMOVESexpandWidget.isVisible():
-                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.timeframeMOVESexpandWidget.setVisible(False)
             else:
-                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.timeframeMOVESexpandWidget.setVisible(True)
 
@@ -1269,7 +1269,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelCustomDatafileMOVESExpand.setFixedHeight(30)
         self.labelCustomDatafileMOVESExpand.setFixedWidth(30)
         self.labelCustomDatafileMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelCustomDatafileMOVESExpand, 17, 4)
 
@@ -1283,11 +1283,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileMOVESOnClickEvent():
             if self.customDatafileMOVESexpandWidget.isVisible():
-                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileMOVESexpandWidget.setVisible(False)
             else:
-                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileMOVESexpandWidget.setVisible(True)
 
@@ -1367,7 +1367,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelVMTFractionExpand.setFixedHeight(30)
         self.labelVMTFractionExpand.setFixedWidth(30)
         self.labelVMTFractionExpand.setObjectName("expandCollapseIcon")
-        self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labelVMTFractionExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelVMTFractionExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelVMTFractionExpand, 22, 4)
 
@@ -1381,11 +1381,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelVMTFractionOnClickEvent():
             if self.vmtexpandWidget.isVisible():
-                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelVMTFractionExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.vmtexpandWidget.setVisible(False)
             else:
-                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelVMTFractionExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.vmtexpandWidget.setVisible(True)
 
@@ -1505,7 +1505,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsMOVESExpand.setFixedHeight(30)
         self.labelAdvOptionsMOVESExpand.setFixedWidth(30)
         self.labelAdvOptionsMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsMOVESExpand, 27, 4)
 
@@ -1519,11 +1519,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsMOVESOnClickEvent():
             if self.advOptionsMOVESexpandWidget.isVisible():
-                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.advOptionsMOVESexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.advOptionsMOVESexpandWidget.setVisible(True)
 
@@ -1559,7 +1559,7 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 3)
 
-        # Created UI element HPMSV type ID @todo
+        # Created UI element HPMSV type ID
         self.labelHPMSVtypeId = self.createLabelBig(text="HPMSV ID")
         self.labelHPMSVtypeId.setStyleSheet(" border: 1px solid #000000; ")
         self.labelHPMSVtypeId.setObjectName("allLabels")
@@ -1774,7 +1774,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labeldbConnectionsNONROADExpand.setFixedHeight(30)
         self.labeldbConnectionsNONROADExpand.setFixedWidth(30)
         self.labeldbConnectionsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
         self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labeldbConnectionsNONROADExpand, 5, 4)
 
@@ -1788,11 +1788,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelDbConnectionsNONROADOnClickEvent():
             if self.dbConnectionsNONROADexpandWidget.isVisible():
-                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.dbConnectionsNONROADexpandWidget.setVisible(False)
             else:
-                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.dbConnectionsNONROADexpandWidget.setVisible(True)
 
@@ -1912,7 +1912,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelDataLabelsNONROADExpand.setFixedHeight(30)
         self.labelDataLabelsNONROADExpand.setFixedWidth(30)
         self.labelDataLabelsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelDataLabelsNONROADExpand, 8, 4)
 
@@ -1926,11 +1926,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelDataLabelsNONROADOnClickEvent():
             if self.dataLabelsNONROADexpandWidget.isVisible():
-                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.dataLabelsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.dataLabelsNONROADexpandWidget.setVisible(True)
 
@@ -2059,7 +2059,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileNONROADExpand.setFixedHeight(30)
         self.labelcustomDatafileNONROADExpand.setFixedWidth(30)
         self.labelcustomDatafileNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileNONROADExpand, 13, 4)
 
@@ -2073,11 +2073,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileNONROADOnClickEvent():
             if self.customDatafileNONROADexpandWidget.isVisible():
-                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileNONROADexpandWidget.setVisible(False)
             else:
-                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileNONROADexpandWidget.setVisible(True)
 
@@ -2179,7 +2179,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTempNONROADExpand.setFixedHeight(30)
         self.labelTempNONROADExpand.setFixedWidth(30)
         self.labelTempNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelTempNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labelTempNONROADExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelTempNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelTempNONROADExpand, 17, 4)
 
@@ -2193,11 +2193,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelTempNONROADOnClickEvent():
             if self.tempNONROADexpandWidget.isVisible():
-                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelTempNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.tempNONROADexpandWidget.setVisible(False)
             else:
-                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelTempNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.tempNONROADexpandWidget.setVisible(True)
 
@@ -2294,7 +2294,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelConvFactorsNONROADExpand.setFixedHeight(30)
         self.labelConvFactorsNONROADExpand.setFixedWidth(30)
         self.labelConvFactorsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelConvFactorsNONROADExpand, 21, 4)
 
@@ -2308,11 +2308,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelConvFactorsNONROADOnClickEvent():
             if self.convFactorsNONROADexpandWidget.isVisible():
-                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.convFactorsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.convFactorsNONROADexpandWidget.setVisible(True)
 
@@ -2436,7 +2436,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsNONROADExpand.setFixedHeight(30)
         self.labelAdvOptionsNONROADExpand.setFixedWidth(30)
         self.labelAdvOptionsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+        self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsNONROADExpand, 25, 4)
 
@@ -2450,11 +2450,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsNONROADOnClickEvent():
             if self.advOptionsNONROADexpandWidget.isVisible():
-                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.advOptionsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(25, 25))
+                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.advOptionsNONROADexpandWidget.setVisible(True)
 
@@ -2680,7 +2680,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileEFExpand.setFixedHeight(30)
         self.labelcustomDatafileEFExpand.setFixedWidth(30)
         self.labelcustomDatafileEFExpand.setObjectName("expandCollapseIcon")
-        self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileEFExpand, 4, 4)
 
@@ -2694,11 +2694,11 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileEFOnClickEvent():
             if self.customDatafileEFexpandWidget.isVisible():
-                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileEFexpandWidget.setVisible(False)
             else:
-                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileEFexpandWidget.setVisible(True)
 
@@ -2900,32 +2900,52 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
-        # Created UI element Feedstock Measure Type - Fugitive Dust
-        self.labelFeedMeasureTypeFD = self.createLabelBig(text="Feedstock Measure" + "\n" + " Type")
-        self.labelFeedMeasureTypeFD.setObjectName("allLabels")
-        self.labelFeedMeasureTypeFD.setToolTip("Production table feedstock identifier")
-        self.lineEditFeedMeasureTypeFD = QLineEdit(self)
-        self.lineEditFeedMeasureTypeFD.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditFeedMeasureTypeFD.setFixedWidth(116)
-        self.lineEditFeedMeasureTypeFD.setFixedHeight(40)
+        # Created UI element on-farm Feedstock Measure Type - Fugitive Dust
+        self.labelOnfarmFeedMeasureTypeFD = self.createLabelBig(text="On-Farm Feedstock" + "\n" + "Measure Type")
+        self.labelOnfarmFeedMeasureTypeFD.setObjectName("allLabels")
+        self.labelOnfarmFeedMeasureTypeFD.setToolTip("Enter feedstock measure type used in on-farm fugitive dust calculations")
+        self.lineEditOnfarmFeedMeasureTypeFD = QLineEdit(self)
+        self.lineEditOnfarmFeedMeasureTypeFD.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditOnfarmFeedMeasureTypeFD.setFixedWidth(116)
+        self.lineEditOnfarmFeedMeasureTypeFD.setFixedHeight(40)
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
-        self.lineEditFeedMeasureTypeFD.setValidator(validator)
-        self.lineEditFeedMeasureTypeFD.setText("harvested")
-        self.windowLayout.addWidget(self.labelFeedMeasureTypeFD, 2, 0)
-        self.windowLayout.addWidget(self.lineEditFeedMeasureTypeFD, 2, 1)
+        self.lineEditOnfarmFeedMeasureTypeFD.setValidator(validator)
+        self.lineEditOnfarmFeedMeasureTypeFD.setText("harvested")
+        self.windowLayout.addWidget(self.labelOnfarmFeedMeasureTypeFD, 1, 0)
+        self.windowLayout.addWidget(self.lineEditOnfarmFeedMeasureTypeFD, 1, 1)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(20)
-        self.windowLayout.addWidget(emptyLabelE, 3, 0, 1, 5)
+        self.windowLayout.addWidget(emptyLabelE, 2, 0, 1, 5)
+
+        # Created UI element on-road Feedstock Measure Type - Fugitive Dust
+        self.labelOnroadFeedMeasureTypeFD = self.createLabelBig(text="On-Road Feedstock" + "\n" + "Measure Type")
+        self.labelOnroadFeedMeasureTypeFD.setObjectName("allLabels")
+        self.labelOnroadFeedMeasureTypeFD.setToolTip("Enter feedstock measure type used in on-road fugitive dust calculations")
+        self.lineEditOnroadFeedMeasureTypeFD = QLineEdit(self)
+        self.lineEditOnroadFeedMeasureTypeFD.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditOnroadFeedMeasureTypeFD.setFixedWidth(116)
+        self.lineEditOnroadFeedMeasureTypeFD.setFixedHeight(40)
+        regex = QtCore.QRegExp("[a-z-A-Z_]+")
+        validator = QtGui.QRegExpValidator(regex)
+        self.lineEditOnroadFeedMeasureTypeFD.setValidator(validator)
+        self.lineEditOnroadFeedMeasureTypeFD.setText("production")
+        self.windowLayout.addWidget(self.labelOnroadFeedMeasureTypeFD, 3, 0)
+        self.windowLayout.addWidget(self.lineEditOnroadFeedMeasureTypeFD, 3, 1)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(20)
+        self.windowLayout.addWidget(emptyLabelE, 4, 0, 1, 5)
 
         # Custom Data Filepaths Label FD
         self.customDataFilepathLabelFD = QLabel()
         self.customDataFilepathLabelFD.setText("Custom Data Filepaths")
         self.customDataFilepathLabelFD.setFixedHeight(30)
         self.customDataFilepathLabelFD.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.customDataFilepathLabelFD, 4, 0, 1, 4)
+        self.windowLayout.addWidget(self.customDataFilepathLabelFD, 5, 0, 1, 4)
 
         # Created UI element - Custom Datafiles below Line
         self.labelCustomDatafilsLine = QLabel()
@@ -2933,7 +2953,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1 = pixmapLine1.scaledToHeight(15)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
-        self.windowLayout.addWidget(self.labelCustomDatafilsLine, 5, 0, 1, 5)
+        self.windowLayout.addWidget(self.labelCustomDatafilsLine, 6, 0, 1, 5)
 
         # Expand/Collapse code
         # Created UI element Custom Datafiles FD
@@ -2941,9 +2961,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileFDExpand.setFixedHeight(30)
         self.labelcustomDatafileFDExpand.setFixedWidth(30)
         self.labelcustomDatafileFDExpand.setObjectName("expandCollapseIcon")
-        self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(30, 30))
+        self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('plus.png'))
-        self.windowLayout.addWidget(self.labelcustomDatafileFDExpand, 4, 4)
+        self.windowLayout.addWidget(self.labelcustomDatafileFDExpand, 5, 4)
 
         self.customDatafileFDexpandWidget = QtWidgets.QWidget()
         self.customDatafileFDexpandWidget.setStyleSheet(
@@ -2951,15 +2971,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFDGridLayout = QtWidgets.QGridLayout()
         self.customDatafileFDexpandWidget.setLayout(self.customDatafileFDGridLayout)
         self.customDatafileFDexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.customDatafileFDexpandWidget, 6, 0, 1, 4)
+        self.windowLayout.addWidget(self.customDatafileFDexpandWidget, 7, 0, 1, 4)
 
         def labelCustomDatafileFDOnClickEvent():
             if self.customDatafileFDexpandWidget.isVisible():
-                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileFDexpandWidget.setVisible(False)
             else:
-                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(28, 28))
                 self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileFDexpandWidget.setVisible(True)
 
@@ -2972,10 +2992,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFDGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Emission Factors - Fugitive Dust
-        self.labelEmiFactFD = self.createLabelSmall(text="Emission Factors")
+        self.labelEmiFactFD = self.createLabelSmall(text="On-Farm Factors")
         self.labelEmiFactFD.setObjectName("allLabels")
         self.labelEmiFactFD.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelEmiFactFD.setToolTip("Pollutant emission factors for resources")
+        self.labelEmiFactFD.setToolTip("Select dataset of PM10 and PM2.5 emission rates by acre")
         self.browseBtnEmiFactFD = self.createButton(text="Browse")
         self.browseBtnEmiFactFD.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnEmiFactFD.clicked.connect(self.getfilesEmiFactFD)
@@ -2994,21 +3014,51 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFDGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
-        # Add Empty PlainText
-        self.emptyPlainText2 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText2, 7, 0)
+        # Created UI element onroad constants - Fugitive Dust
+        self.labelOnrConst = self.createLabelSmall(text="On-Road Constants")
+        self.labelOnrConst.setObjectName("allLabels")
+        self.labelOnrConst.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelOnrConst.setToolTip("Select dataset of constants for calculating on-road PM10 and PM2.5")
+        self.browseBtnOnrConst = self.createButton(text="Browse")
+        self.browseBtnOnrConst.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnOnrConst.clicked.connect(self.getfilesOnrConst)
+        self.lineEditOnrConst = QLineEdit(self)
+        self.lineEditOnrConst.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditOnrConst.setText("data/inputs/fugitive_dust_onroad_constants.csv")
+        self.lineEditOnrConst.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditOnrConst.setFixedHeight(30)
+        self.customDatafileFDGridLayout.addWidget(self.labelOnrConst, 3, 0)
+        self.customDatafileFDGridLayout.addWidget(self.browseBtnOnrConst, 3, 1)
+        self.customDatafileFDGridLayout.addWidget(self.lineEditOnrConst, 3, 2, 1, 3)
 
-        # Add Empty PlainText
-        self.emptyPlainText = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText, 8, 0)
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileFDGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
 
-        # Add Empty PlainText
-        self.emptyPlainText1 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText1, 9, 0)
+        # Created UI element silt content
+        self.labelSiltCont = self.createLabelSmall(text="Road Silt Content")
+        self.labelSiltCont.setObjectName("allLabels")
+        self.labelSiltCont.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelSiltCont.setToolTip("Select dataset of on-road silt content by state")
+        self.browseBtnSiltCont = self.createButton(text="Browse")
+        self.browseBtnSiltCont.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnSiltCont.clicked.connect(self.getfilesSiltCont)
+        self.lineEditSiltCont = QLineEdit(self)
+        self.lineEditSiltCont.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditSiltCont.setText("data/inputs/fugitive_dust_silt_content.csv")
+        self.lineEditSiltCont.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditSiltCont.setFixedHeight(30)
+        self.customDatafileFDGridLayout.addWidget(self.labelSiltCont, 5, 0)
+        self.customDatafileFDGridLayout.addWidget(self.browseBtnSiltCont, 5, 1)
+        self.customDatafileFDGridLayout.addWidget(self.lineEditSiltCont, 5, 2, 1, 3)
 
-        # Add Empty PlainText
-        self.emptyPlainText3 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText3, 10, 0)
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileFDGridLayout.addWidget(emptyLabelE, 6, 0, 1, 4)
 
         # Add Empty PlainText
         self.emptyPlainText2 = QLabel()
@@ -3092,10 +3142,24 @@ class AlltabsModule(QtWidgets.QWidget):
 
     # Functions used for Fugitive Dust - EMission factor
     def getfilesEmiFactFD(self):
-        fileNameTruckCapaFD = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        if fileNameTruckCapaFD[0] != "":
-            selectedFileNameTruckCapaFD = fileNameTruckCapaFD[0].split("FPEAM/")
-            self.lineEditEmiFactFD.setText(selectedFileNameTruckCapaFD[1])
+        fileNameEmiFactFD = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
+        if fileNameEmiFactFD[0] != "":
+            selectedFileNameEmiFactFD = fileNameEmiFactFD[0].split("FPEAM/")
+            self.lineEditEmiFactFD.setText(selectedFileNameEmiFactFD[1])
+
+    # Functions used for onroad constants for Fugitive Dust
+    def getfilesOnrConst(self):
+        fileNameOnrConst = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
+        if fileNameOnrConst[0] != "":
+            selectedFileNameOnrConst = fileNameOnrConst[0].split("FPEAM/")
+            self.lineEditOnrConst.setText(selectedFileNameOnrConst[1])
+
+    # Functions used for fugitive dust silt content
+    def getfilesSiltCont(self):
+        fileNameSiltCont = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
+        if fileNameSiltCont[0] != "":
+            selectedFileNameSiltCont = fileNameSiltCont[0].split("FPEAM/")
+            self.lineEditSiltCont.setText(selectedFileNameSiltCont[1])
 
     # Reset Button Code
     def resetFields(self):
@@ -3126,8 +3190,11 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditVMTperTruck.setText("20")
 
         # Fugitive Dust module - Attribute Initialization
-        self.lineEditFeedMeasureTypeFD.setText("harvested")
+        self.lineEditOnfarmFeedMeasureTypeFD.setText("harvested")
+        self.lineEditOnroadFeedMeasureTypeFD.setText("production")
         self.lineEditEmiFactFD.setText("../data/inputs/fugitive_dust_emission_factors.csv")
+        self.lineEditOnrConst.setText("../data/inputs/fugitive_dust_onroad_constants.csv")
+        self.lineEditSiltCont.setText("../data/inputs/fugitive_dust_silt_content.csv")
 
         # Emission Factors Module - Attribute Initialization
         self.lineEditFeedMeasureTypeEF.setText("harvested")
@@ -3531,13 +3598,25 @@ class AlltabsModule(QtWidgets.QWidget):
 
             # Fugititve Dust attributes value initialization
 
-            changedFeedMeasureTypeFD = self.lineEditFeedMeasureTypeFD.text().strip()
-            if changedFeedMeasureTypeFD:
-                self.attributeValueObj.feedMeasureTypeFD = changedFeedMeasureTypeFD
+            changedOnfarmFeedMeasureTypeFD = self.lineEditOnfarmFeedMeasureTypeFD.text().strip()
+            if changedOnfarmFeedMeasureTypeFD:
+                self.attributeValueObj.OnfarmFeedMeasureTypeFD = changedOnfarmFeedMeasureTypeFD
+
+            changedOnroadFeedMeasureTypeFD = self.lineEditOnroadFeedMeasureTypeFD.text().strip()
+            if changedOnroadFeedMeasureTypeFD:
+                self.attributeValueObj.OnroadFeedMeasureTypeFD = changedOnroadFeedMeasureTypeFD
 
             changedEmissionFactFDPath = self.lineEditEmiFactFD.text().strip()
             if changedEmissionFactFDPath:
                 self.attributeValueObj.emissionFactorsFD = changedEmissionFactFDPath
+
+            changedOnrConstPath = self.lineEditOnrConst.text().strip()
+            if changedOnrConstPath:
+                self.attributeValueObj.onroadConstants = changedOnrConstPath
+
+            changedSiltContPath = self.lineEditSiltCont.text().strip()
+            if changedSiltContPath:
+                self.attributeValueObj.siltContent = changedSiltContPath
 
             ###############################################################################################################
 
