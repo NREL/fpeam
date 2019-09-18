@@ -3336,9 +3336,9 @@ class AlltabsModule(QtWidgets.QWidget):
             # convert the forestry feedstock name input into a list
             if changedForestryFeedNames:
                 if changedForestryFeedNames.__contains__(','):
-                    self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames.split(',')
+                    self.attributeValueObj.forestryFeedstockNames = [i.strip() for i in changedForestryFeedNames.split(',')]
                 elif changedForestryFeedNames.__contains__(';'):
-                    self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames.split(';')
+                    self.attributeValueObj.forestryFeedstockNames = [i.strip() for i in changedForestryFeedNames.split(';')]
                 else:
                     self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
 
