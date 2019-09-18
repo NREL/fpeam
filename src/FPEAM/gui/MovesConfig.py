@@ -79,7 +79,7 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
     ## timespan(s)
     [moves_timespan]
     month = {month}
-    day = {date}
+    day = {day_type}
     beginning_hour = {beginning_hour}
     ending_hour = {ending_hour}
     
