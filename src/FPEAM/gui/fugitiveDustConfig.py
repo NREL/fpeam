@@ -16,7 +16,7 @@ silt_content = '{silt_content}'
 
 ## constants for calculating onroad fugitive dust
 fugitive_dust_onroad_constants = '{fugitive_dust_onroad_constants}'
-'"""
+"""
 
 
     my_ini_config = ini_template_string.format(onfarm_feedstock_measure_type=attributeValueObj.OnfarmFeedMeasureTypeFD,
