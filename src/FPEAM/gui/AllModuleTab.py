@@ -3466,8 +3466,8 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedMysqlBinPath:
                 self.attributeValueObj.mysqlBinPath = changedMysqlBinPath
 
-            changedMysqlDumpBinPath = self.lineEditMysqlDumpBinBin.text().strip()
-            if changedMysqlDumpBinPathBinPath:
+            changedMysqlDumpBinPath = self.lineEditMysqlDumpBin.text().strip()
+            if changedMysqlDumpBinPath:
                 self.attributeValueObj.mysqlDumpBinPath = changedMysqlDumpBinPath
 
             changedRuralRes = self.lineEditRuralRes.text().strip()
