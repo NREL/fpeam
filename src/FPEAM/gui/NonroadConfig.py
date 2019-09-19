@@ -29,7 +29,7 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
     time_resource_name = '{time_resource_name}'
     
     ## list of irrigated feedstocks
-    irrigated_feedstock_names = '{irrigated_feedstock_names}'
+    irrigated_feedstock_names = '{irrigated_feedstock_names}',
     
     ### input data files
       
