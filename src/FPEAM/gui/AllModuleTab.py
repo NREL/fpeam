@@ -215,7 +215,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Custom Datafiles below Line - HOME PAge
         self.labelCustomDatafilsLine = QLabel()
-        pixmapLine1 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(15)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
@@ -227,8 +227,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelCustomDatafileFPEAMExpand.setFixedHeight(30)
         self.labelCustomDatafileFPEAMExpand.setFixedWidth(30)
         self.labelCustomDatafileFPEAMExpand.setObjectName("expandCollapseIcon")
-        self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelCustomDatafileFPEAMExpand, 10, 5)
 
         self.customDatafileFPEAMexpandWidget = QtWidgets.QWidget()
@@ -241,12 +241,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileFPEAMOnClickEvent():
             if self.customDatafileFPEAMexpandWidget.isVisible():
-                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
-                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
+                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
                 self.customDatafileFPEAMexpandWidget.setVisible(False)
             else:
-                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
-                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(30, 30))
+                self.labelCustomDatafileFPEAMExpand.setIcon(QtGui.QIcon('minus.png'))
+                self.labelCustomDatafileFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
                 self.customDatafileFPEAMexpandWidget.setVisible(True)
 
         self.labelCustomDatafileFPEAMExpand.clicked.connect(labelCustomDatafileFPEAMOnClickEvent)
@@ -258,7 +258,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 0, 0, 1, 5)
 
         # UI element - Equipment - HOME
-        self.labelEq = self.createLabelSmall(text="Farm Equipment")
+        self.labelEq = self.createLabelSmall(text="Equipment Use")
         self.labelEq.setObjectName("allLabels")
         self.labelEq.setStyleSheet(" border: 1px solid #000000; ")
         self.labelEq.setToolTip("Select equipment input dataset")
@@ -289,7 +289,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.browseBtnProd.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnProd.clicked.connect(self.getfilesProd)
         self.lineEditProd = QLineEdit(self)
-        self.lineEditProd.setText("data/production/production_2015_bc1060.csv")
+        self.lineEditProd.setText("data/production/production_2017_bc1060.csv")
         self.lineEditProd.setAlignment(QtCore.Qt.AlignLeft)
         self.lineEditProd.setFixedHeight(30)
         self.lineEditProd.setStyleSheet(" border: 1px solid #000000; ")
@@ -349,6 +349,52 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 8, 0, 1, 5)
 
+        # Node locations - HOME
+        self.labelNodeLocs = self.createLabelSmall(text="Node Locations")
+        self.labelNodeLocs.setObjectName("allLabels")
+        self.labelNodeLocs.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelNodeLocs.setToolTip("Select node locations dataset")
+        self.browseBtnNodeLocs = self.createButton(text="Browse")
+        self.browseBtnNodeLocs.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnNodeLocs.clicked.connect(self.getfilesNodeLocs)
+        self.lineEditNodeLocs = QLineEdit(self)
+        self.lineEditNodeLocs.setText("data/inputs/node_locations.csv")
+        self.lineEditNodeLocs.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditNodeLocs.setFixedHeight(30)
+        self.lineEditNodeLocs.setStyleSheet(" border: 1px solid #000000; ")
+        self.customDatafileFPEAMGridLayout.addWidget(self.labelNodeLocs, 9, 0)
+        self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnNodeLocs, 9, 1)
+        self.customDatafileFPEAMGridLayout.addWidget(self.lineEditNodeLocs, 9, 2, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(15)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 10, 0, 1, 5)
+
+        # Truck Capacity - HOME
+        self.labelTruckCapacity = self.createLabelSmall(text="Truck Capacity")
+        self.labelTruckCapacity.setObjectName("allLabels")
+        self.labelTruckCapacity.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelTruckCapacity.setToolTip("Select truck capacity dataset")
+        self.browseBtnTruckCapa = self.createButton(text="Browse")
+        self.browseBtnTruckCapa.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnTruckCapa.clicked.connect(self.getfilesTruckCapa)
+        self.lineEditTruckCapa = QLineEdit(self)
+        self.lineEditTruckCapa.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditTruckCapa.setText("data/inputs/truck_capacity.csv")
+        self.lineEditTruckCapa.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditTruckCapa.setFixedHeight(30)
+        self.customDatafileFPEAMGridLayout.addWidget(self.labelTruckCapacity, 11, 0)
+        self.customDatafileFPEAMGridLayout.addWidget(self.browseBtnTruckCapa, 11, 1)
+        self.customDatafileFPEAMGridLayout.addWidget(self.lineEditTruckCapa, 11, 2, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(15)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileFPEAMGridLayout.addWidget(emptyLabelE, 12, 0, 1, 5)
+
         # Advanced Options Label - HOME
         self.advOptionsLabel = QLabel()
         self.advOptionsLabel.setText("Advanced Options")
@@ -358,7 +404,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Advanced Options below Line
         self.labelAdvOptionsLine = QLabel()
-        pixmapLine2 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine2 = QPixmap('line.png')
         pixmap2 = pixmapLine2.scaledToHeight(15)
         self.labelAdvOptionsLine.setPixmap(pixmap2)
         self.resize(pixmap2.width(), pixmap2.height())
@@ -371,8 +417,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsFPEAMExpand.setFixedHeight(30)
         self.labelAdvOptionsFPEAMExpand.setFixedWidth(30)
         self.labelAdvOptionsFPEAMExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(29, 29))
-        self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsFPEAMExpand, 18, 5)
 
         self.advOptionsFPEAMexpandWidget = QtWidgets.QWidget()
@@ -385,12 +431,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsFPEAMOnClickEvent():
             if self.advOptionsFPEAMexpandWidget.isVisible():
-                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.advOptionsFPEAMexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelAdvOptionsFPEAMExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelAdvOptionsFPEAMExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.advOptionsFPEAMexpandWidget.setVisible(True)
 
         self.labelAdvOptionsFPEAMExpand.clicked.connect(labelAdvOptionsFPEAMOnClickEvent)
@@ -485,9 +531,53 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(15)
+        emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.advOptionsFPEAMGridLayout.addWidget(emptyLabelE, 3, 0, 1, 5)
+
+        # Created UI element Forestry Feedstock Names
+        self.labelForestryNamesNon = self.createLabelBig(text="Forestry Feedstock" + "\n" + " Names")
+        self.labelForestryNamesNon.setObjectName("allLabels")
+        self.labelForestryNamesNon.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelForestryNamesNon.setToolTip("List of forestry feedstocks in production dataset")
+        self.lineEditForestryNamesNon = QLineEdit(self)
+        self.lineEditForestryNamesNon.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditForestryNamesNon.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditForestryNamesNon.setFixedHeight(40)
+        self.regex = QtCore.QRegExp("[a-z-A-Z_,]+")
+        validator = QtGui.QRegExpValidator(self.regex)
+        self.lineEditForestryNamesNon.setValidator(validator)
+        self.lineEditForestryNamesNon.setText("'forest whole tree', 'forest residues'")
+        self.advOptionsFPEAMGridLayout.addWidget(self.labelForestryNamesNon, 4, 0)
+        self.advOptionsFPEAMGridLayout.addWidget(self.lineEditForestryNamesNon, 4, 1, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.advOptionsFPEAMGridLayout.addWidget(emptyLabelE, 5, 0, 1, 5)
+
+        # Created UI element VMT per Truck
+        self.labelVMTperTruck = self.createLabelBig(text="VMT Per Truck")
+        self.labelVMTperTruck.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelVMTperTruck.setObjectName("allLabels")
+        self.labelVMTperTruck.setToolTip("Default vehicle miles traveled (VMT) per truck. Only used if the router engine is turned off.")
+        self.lineEditVMTperTruck = QLineEdit(self)
+        self.lineEditVMTperTruck.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditVMTperTruck.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditVMTperTruck.setFixedWidth(75)
+        self.lineEditVMTperTruck.setFixedHeight(40)
+        self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
+        self.lineEditVMTperTruck.setValidator(self.onlyFlaot)
+        self.lineEditVMTperTruck.setText("20")
+        self.advOptionsFPEAMGridLayout.addWidget(self.labelVMTperTruck, 6, 0)
+        self.advOptionsFPEAMGridLayout.addWidget(self.lineEditVMTperTruck, 6, 1)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.advOptionsFPEAMGridLayout.addWidget(emptyLabelE, 7, 0, 1, 5)
 
         # Add space to adjust position of the elements
         # Add Empty PlainText
@@ -604,6 +694,14 @@ class AlltabsModule(QtWidgets.QWidget):
             selectedFileNameTransGr = fileNameTransGr[0].split("FPEAM/")
             self.lineEditTransGraph.setText(selectedFileNameTransGr[1])
 
+    # Node locations
+    def getfilesNodeLocs(self):
+        fileNameNodeLocs = QFileDialog.getOpenFileName(self, 'Browse', "",
+                                                      "CSV files (*.csv)")
+        if fileNameNodeLocs[0] != "":
+            selectedFileNameNodeLocs = fileNameNodeLocs[0].split("FPEAM/")
+            self.lineEditNodeLocs.setText(selectedFileNameNodeLocs[1])
+
         ###########################################################################################################################################################################
 
     def setupUIMoves(self):
@@ -645,8 +743,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxAggLevel.addItem("By State")
         self.comboBoxAggLevel.addItem("By County")
         self.comboBoxAggLevel.addItem("By State-Feedstock")
-        self.comboBoxAggLevel.setCurrentText("By County")
-        self.index = self.comboBoxAggLevel.findText("By County")
+        self.comboBoxAggLevel.setCurrentText("By State")
+        self.index = self.comboBoxAggLevel.findText("By State")
         self.comboBoxAggLevel.setCurrentIndex(self.index)
         self.comboBoxAggLevel.setEditable(True)
         self.leditAggLevel = self.comboBoxAggLevel.lineEdit()
@@ -657,15 +755,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.comboBoxAggLevel, 2, 1)
 
         # Created UI element Cached Result usage
-        self.labelCachedResUse = self.createLabelBig(text="Use Previous Results")
+        self.labelCachedResUse = self.createLabelBig(text="Use Cached Results")
         self.labelCachedResUse.setObjectName("allLabels")
         self.labelCachedResUse.setToolTip("Use existing results in MOVES output database")
         self.comboBoxCachedResUse = QComboBox(self)
         self.comboBoxCachedResUse.setFixedWidth(116)
         self.comboBoxCachedResUse.setFixedHeight(40)
-        self.comboBoxCachedResUse.addItem("Yes")
-        self.comboBoxCachedResUse.addItem("No")
-        self.index = self.comboBoxCachedResUse.findText("Yes")
+        self.comboBoxCachedResUse.addItem("True")
+        self.comboBoxCachedResUse.addItem("False")
+        self.index = self.comboBoxCachedResUse.findText("True")
         self.comboBoxCachedResUse.setCurrentIndex(self.index)
         self.comboBoxCachedResUse.setEditable(True)
         self.leditCachedRes = self.comboBoxCachedResUse.lineEdit()
@@ -732,7 +830,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Database Connection Parameters below Line
         self.dbConnectionParaLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.dbConnectionParaLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -744,8 +842,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labeldbConnectionsMOVESExpand.setFixedHeight(30)
         self.labeldbConnectionsMOVESExpand.setFixedWidth(30)
         self.labeldbConnectionsMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labeldbConnectionsMOVESExpand, 7, 4)
 
 
@@ -759,12 +857,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelDbConnectionsMOVESOnClickEvent():
             if self.dbConnectionsMOVESexpandWidget.isVisible():
-                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.dbConnectionsMOVESexpandWidget.setVisible(False)
             else:
-                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labeldbConnectionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labeldbConnectionsMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.dbConnectionsMOVESexpandWidget.setVisible(True)
 
         self.labeldbConnectionsMOVESExpand.clicked.connect(labelDbConnectionsMOVESOnClickEvent)
@@ -820,16 +918,16 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
         # Created UI element Database Name
-        self.labelDbName = self.createLabelSmall(text="Database Name")
+        self.labelDbName = self.createLabelSmall(text="MOVES Database")
         self.labelDbName.setStyleSheet(" border: 1px solid #000000; ")
         self.labelDbName.setObjectName("allLabels")
-        self.labelDbName.setToolTip("Database name")
+        self.labelDbName.setToolTip("Name of default MOVES database")
         self.lineEditDbName = QLineEdit(self)
         self.lineEditDbName.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditDbName.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditDbName.setFixedHeight(30)
         self.lineEditDbName.setFixedWidth(125)
-        self.lineEditDbName.setText("movesdb20151028")
+        self.lineEditDbName.setText("movesdb20180517")
         self.dbConnectionsMOVESGridLayout.addWidget(self.labelDbName, 3, 0)
         self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditDbName, 3, 1)
 
@@ -862,6 +960,72 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 4, 0, 1, 5)
 
+        # Created UI element Output database
+        self.labelOutDb = self.createLabelSmall(text="Output Database")
+        self.labelOutDb.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelOutDb.setObjectName("allLabels")
+        self.labelOutDb.setToolTip("Name of database where MOVES results are stored")
+        self.lineEditOutDb = QLineEdit(self)
+        self.lineEditOutDb.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditOutDb.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditOutDb.setFixedHeight(30)
+        self.lineEditOutDb.setFixedWidth(125)
+        self.lineEditOutDb.setText('moves_output_db')
+        self.dbConnectionsMOVESGridLayout.addWidget(self.labelOutDb, 5, 0)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditOutDb, 5, 1)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 6, 0, 1, 5)
+
+        # create UI element for mysql executable
+        self.MysqlBinLab = self.createLabelSmall(text="MySQL Exe")
+        self.MysqlBinLab.setStyleSheet(" border: 1px solid #000000; ")
+        self.MysqlBinLab.setObjectName("allLabels")
+        self.MysqlBinLab.setToolTip("Select path where MySQL executable file is located")
+        self.browseBtnMysqlBin = self.createButton(text="Browse", width=125, height=30)
+        self.browseBtnMysqlBin.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnMysqlBin.clicked.connect(self.getfilesMysqlBin)
+        self.lineEditMysqlBin = QLineEdit(self)
+        self.lineEditMysqlBin.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditMysqlBin.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditMysqlBin.setFixedHeight(30)
+        self.lineEditMysqlBin.setText("C:\Program Files\MySQL\MySQL Server 5.7\\bin\mysql.exe")
+        self.dbConnectionsMOVESGridLayout.addWidget(self.MysqlBinLab, 7, 0)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.browseBtnMysqlBin, 7, 1)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditMysqlBin, 7, 2, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 8, 0, 1, 5)
+
+        # create UI element for mysql dump executable
+        self.MysqlDumpBinLab = self.createLabelSmall(text="MySQL Dump Exe")
+        self.MysqlDumpBinLab.setStyleSheet(" border: 1px solid #000000; ")
+        self.MysqlDumpBinLab.setObjectName("allLabels")
+        self.MysqlDumpBinLab.setToolTip("Select path where MySQL dump executable file is located")
+        self.browseBtnMysqlDumpBin = self.createButton(text="Browse", width=125, height=30)
+        self.browseBtnMysqlDumpBin.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnMysqlDumpBin.clicked.connect(self.getfilesMysqlDumpBin)
+        self.lineEditMysqlDumpBin = QLineEdit(self)
+        self.lineEditMysqlDumpBin.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditMysqlDumpBin.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditMysqlDumpBin.setFixedHeight(30)
+        self.lineEditMysqlDumpBin.setText("C:\Program Files\MySQL\MySQL Server 5.7\\bin\mysqldump.exe")
+        self.dbConnectionsMOVESGridLayout.addWidget(self.MysqlDumpBinLab, 9, 0)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.browseBtnMysqlDumpBin, 9, 1)
+        self.dbConnectionsMOVESGridLayout.addWidget(self.lineEditMysqlDumpBin, 9, 2, 1, 3)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.dbConnectionsMOVESGridLayout.addWidget(emptyLabelE, 10, 0, 1, 5)
+
         # Execution Timeframe Label
         self.executionTimeLabel = QLabel()
         self.executionTimeLabel.setText("Execution Timeframe")
@@ -871,7 +1035,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Execution Timeframe below Line
         self.executionTimeLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.executionTimeLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -883,8 +1047,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTimeframeMOVESExpand.setFixedHeight(30)
         self.labelTimeframeMOVESExpand.setFixedWidth(30)
         self.labelTimeframeMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelTimeframeMOVESExpand, 11, 4)
 
         self.timeframeMOVESexpandWidget = QtWidgets.QWidget()
@@ -897,12 +1061,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelTimeframeMOVESOnClickEvent():
             if self.timeframeMOVESexpandWidget.isVisible():
-                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.timeframeMOVESexpandWidget.setVisible(False)
             else:
-                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelTimeframeMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelTimeframeMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.timeframeMOVESexpandWidget.setVisible(True)
 
         self.labelTimeframeMOVESExpand.clicked.connect(labelTimeframeMOVESOnClickEvent)
@@ -1093,7 +1257,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Custom Dtatfiles below Line MOVES
         self.labelCustomDatafilsLineM = QLabel()
-        pixmapLine2 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine2 = QPixmap('line.png')
         pixmap2 = pixmapLine2.scaledToHeight(15)
         self.labelCustomDatafilsLineM.setPixmap(pixmap2)
         self.resize(pixmap2.width(), pixmap2.height())
@@ -1105,8 +1269,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelCustomDatafileMOVESExpand.setFixedHeight(30)
         self.labelCustomDatafileMOVESExpand.setFixedWidth(30)
         self.labelCustomDatafileMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelCustomDatafileMOVESExpand, 17, 4)
 
         self.customDatafileMOVESexpandWidget = QtWidgets.QWidget()
@@ -1119,12 +1283,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileMOVESOnClickEvent():
             if self.customDatafileMOVESexpandWidget.isVisible():
-                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileMOVESexpandWidget.setVisible(False)
             else:
-                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelCustomDatafileMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelCustomDatafileMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileMOVESexpandWidget.setVisible(True)
 
         self.labelCustomDatafileMOVESExpand.clicked.connect(labelCustomDatafileMOVESOnClickEvent)
@@ -1134,30 +1298,6 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileMOVESGridLayout.addWidget(emptyLabelE, 0, 0, 1, 3)
-
-        # Created UI element Truck Capacity
-        self.labelTruckCapacity = self.createLabelSmall(text="Truck Capacity")
-        self.labelTruckCapacity.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelTruckCapacity.setObjectName("allLabels")
-        self.labelTruckCapacity.setToolTip(
-            "Select truck capacity (truck capacities for feedstock transportation) dataset")
-        self.browseBtnTruckCapa = self.createButton(text="Browse")
-        self.browseBtnTruckCapa.setStyleSheet(" border: 1px solid #000000; ")
-        self.browseBtnTruckCapa.clicked.connect(self.getfilesTruckCapa)
-        self.lineEditTruckCapa = QLineEdit(self)
-        self.lineEditTruckCapa.setStyleSheet(" border: 1px solid #000000; ")
-        self.lineEditTruckCapa.setText("data/inputs/truck_capacity.csv")
-        self.lineEditTruckCapa.setAlignment(QtCore.Qt.AlignLeft)
-        self.lineEditTruckCapa.setFixedHeight(30)
-        self.customDatafileMOVESGridLayout.addWidget(self.labelTruckCapacity, 1, 0)
-        self.customDatafileMOVESGridLayout.addWidget(self.browseBtnTruckCapa, 1, 1)
-        self.customDatafileMOVESGridLayout.addWidget(self.lineEditTruckCapa, 1, 2, 1, 3)
-
-        # Add Vertical Space between the elements
-        emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(10)
-        emptyLabelE.setStyleSheet("border: white")
-        self.customDatafileMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 3)
 
         # Created UI element AVFT
         self.labelAVFT = self.createLabelSmall(text="AVFT")
@@ -1205,119 +1345,21 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileMOVESGridLayout.addWidget(emptyLabelE, 6, 0, 1, 3)
 
-        # Advanced Options Label MOVES
-        self.advOptionsLabelM = QLabel()
-        self.advOptionsLabelM.setText("Advanced Options")
-        self.advOptionsLabelM.setFixedHeight(30)
-        self.advOptionsLabelM.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.advOptionsLabelM, 22, 0, 1, 4)
-
-        # Created UI element - Advanced Optiones below Line
-        self.labelAdvOptionsLineM = QLabel()
-        pixmapLine2 = QPixmap('src/FPEAM/gui/line.png')
-        pixmap2 = pixmapLine2.scaledToHeight(15)
-        self.labelAdvOptionsLineM.setPixmap(pixmap2)
-        self.resize(pixmap2.width(), pixmap2.height())
-        self.windowLayout.addWidget(self.labelAdvOptionsLineM, 23, 0, 1, 5)
-
-        # Expand/Collapse code
-        # Created UI element Advanced Options MOVES
-        self.labelAdvOptionsMOVESExpand = QPushButton()
-        self.labelAdvOptionsMOVESExpand.setFixedHeight(30)
-        self.labelAdvOptionsMOVESExpand.setFixedWidth(30)
-        self.labelAdvOptionsMOVESExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(29, 29))
-        self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
-        self.windowLayout.addWidget(self.labelAdvOptionsMOVESExpand, 22, 4)
-
-        self.advOptionsMOVESexpandWidget = QtWidgets.QWidget()
-        self.advOptionsMOVESexpandWidget.setStyleSheet(
-            "border-color: #028ACC; border-style: outset; border-width: 3px;border-radius: 5px;")
-        self.advOptionsMOVESGridLayout = QtWidgets.QGridLayout()
-        self.advOptionsMOVESexpandWidget.setLayout(self.advOptionsMOVESGridLayout)
-        self.advOptionsMOVESexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.advOptionsMOVESexpandWidget, 26, 0, 1, 4)
-
-        def labelAdvOptionsMOVESOnClickEvent():
-            if self.advOptionsMOVESexpandWidget.isVisible():
-                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
-                self.advOptionsMOVESexpandWidget.setVisible(False)
-            else:
-                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
-                self.advOptionsMOVESexpandWidget.setVisible(True)
-
-        self.labelAdvOptionsMOVESExpand.clicked.connect(labelAdvOptionsMOVESOnClickEvent)
-
-        # Add Vertical Space between the elements
-        emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(10)
-        emptyLabelE.setStyleSheet("border: white")
-        self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 0, 0, 1, 3)
-
-        # Created UI element No of Trucks used
-        self.labelNoofTruck = self.createLabelBig(text="Number Of Trucks" + "\n" + " Used")
-        self.labelNoofTruck.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelNoofTruck.setObjectName("allLabels")
-        self.labelNoofTruck.setToolTip("Number of trucks used to transport feedstock")
-        self.spinBoxNoofTruck = QSpinBox()
-        self.spinBoxNoofTruck.setStyleSheet(" border: 1px solid #000000; ")
-        self.spinBoxNoofTruck.setFixedWidth(116)
-        self.spinBoxNoofTruck.setFixedHeight(30)
-        self.spinBoxNoofTruck.setMinimum(1)
-        self.spinBoxNoofTruck.setValue(1)
-        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
-        self.leditNofTrucksUsed.setAlignment(QtCore.Qt.AlignCenter)
-        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
-        self.leditNofTrucksUsed.setReadOnly(True)
-        self.advOptionsMOVESGridLayout.addWidget(self.labelNoofTruck, 1, 0)
-        self.advOptionsMOVESGridLayout.addWidget(self.spinBoxNoofTruck, 1, 1)
-
-        # Add Empty PlainText - adjust horizontal space
-        self.emptyPlainText2 = QLabel()
-        self.emptyPlainText2.setStyleSheet("border-color: white;")
-        self.emptyPlainText2.setFixedWidth(55)
-        self.emptyPlainText2.setFixedHeight(30)
-        self.advOptionsMOVESGridLayout.addWidget(self.emptyPlainText2, 1, 2)
-
-        # Created UI element VMT per Truck
-        self.labelVMTperTruck = self.createLabelBig(text="VMT Per Truck")
-        self.labelVMTperTruck.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelVMTperTruck.setObjectName("allLabels")
-        self.labelVMTperTruck.setToolTip("Vehicle miles traveled (VMT) calculated per truck")
-        self.lineEditVMTperTruck = QLineEdit(self)
-        self.lineEditVMTperTruck.setStyleSheet(" border: 1px solid #000000; ")
-        self.lineEditVMTperTruck.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditVMTperTruck.setFixedWidth(116)
-        self.lineEditVMTperTruck.setFixedHeight(30)
-        self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
-        self.lineEditVMTperTruck.setValidator(self.onlyFlaot)
-        self.lineEditVMTperTruck.setText("20")
-        self.advOptionsMOVESGridLayout.addWidget(self.labelVMTperTruck, 1, 3)
-        self.advOptionsMOVESGridLayout.addWidget(self.lineEditVMTperTruck, 1, 4)
-
-        # Add Vertical Space between the elements
-        emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(10)
-        emptyLabelE.setStyleSheet("border: white")
-        self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 3)
-
         # Created UI element VMT Fractions
         self.labelVMTFraction = QLabel()
         self.labelVMTFraction.setText("VMT Fractions")
         self.labelVMTFraction.setToolTip("Fraction of vehicle miles traveled (VMT) by road type (must sum to 1)")
         self.labelVMTFraction.setFixedHeight(30)
         self.labelVMTFraction.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.labelVMTFraction, 27, 0, 1, 4)
+        self.windowLayout.addWidget(self.labelVMTFraction, 22, 0, 1, 4)
 
         # Created UI element - VMT Fractions below Line MOVES
         self.vMTFractionLine = QLabel()
-        pixmapLine3 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine3 = QPixmap('line.png')
         pixmap3 = pixmapLine3.scaledToHeight(15)
         self.vMTFractionLine.setPixmap(pixmap2)
         self.resize(pixmap3.width(), pixmap3.height())
-        self.windowLayout.addWidget(self.vMTFractionLine, 28, 0, 1, 5)
+        self.windowLayout.addWidget(self.vMTFractionLine, 23, 0, 1, 5)
 
         # Expand/Collapse code
         # Created UI element VMT Fractions
@@ -1325,9 +1367,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelVMTFractionExpand.setFixedHeight(30)
         self.labelVMTFractionExpand.setFixedWidth(30)
         self.labelVMTFractionExpand.setObjectName("expandCollapseIcon")
-        self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelVMTFractionExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
-        self.windowLayout.addWidget(self.labelVMTFractionExpand, 27, 4)
+        self.labelVMTFractionExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelVMTFractionExpand.setIcon(QtGui.QIcon('plus.png'))
+        self.windowLayout.addWidget(self.labelVMTFractionExpand, 22, 4)
 
         self.vmtexpandWidget = QtWidgets.QWidget()
         self.vmtexpandWidget.setStyleSheet(
@@ -1335,16 +1377,16 @@ class AlltabsModule(QtWidgets.QWidget):
         self.vmtGridLayout = QtWidgets.QGridLayout()
         self.vmtexpandWidget.setLayout(self.vmtGridLayout)
         self.vmtexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.vmtexpandWidget, 31, 0, 1, 4)
+        self.windowLayout.addWidget(self.vmtexpandWidget, 26, 0, 1, 4)
 
         def labelVMTFractionOnClickEvent():
             if self.vmtexpandWidget.isVisible():
-                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.vmtexpandWidget.setVisible(False)
             else:
-                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelVMTFractionExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelVMTFractionExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.vmtexpandWidget.setVisible(True)
 
         self.labelVMTFractionExpand.clicked.connect(labelVMTFractionOnClickEvent)
@@ -1432,7 +1474,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditUrbanUnres.setAlignment(QtCore.Qt.AlignCenter)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 4)
         self.lineEditUrbanUnres.setValidator(self.onlyFlaot)
-        self.lineEditUrbanUnres.setText("0.28")
+        self.lineEditUrbanUnres.setText("0.21")
         self.vmtGridLayout.addWidget(self.labelUrbanUnres, 3, 3)
         self.vmtGridLayout.addWidget(self.lineEditUrbanUnres, 3, 4)
 
@@ -1441,6 +1483,124 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
         self.vmtGridLayout.addWidget(emptyLabelE, 4, 0, 1, 3)
+
+        # Advanced Options Label MOVES
+        self.advOptionsLabelM = QLabel()
+        self.advOptionsLabelM.setText("Advanced Options")
+        self.advOptionsLabelM.setFixedHeight(30)
+        self.advOptionsLabelM.setObjectName("subTitleLabels")
+        self.windowLayout.addWidget(self.advOptionsLabelM, 27, 0, 1, 4)
+
+        # Created UI element - Advanced Optiones below Line
+        self.labelAdvOptionsLineM = QLabel()
+        pixmapLine2 = QPixmap('line.png')
+        pixmap2 = pixmapLine2.scaledToHeight(15)
+        self.labelAdvOptionsLineM.setPixmap(pixmap2)
+        self.resize(pixmap2.width(), pixmap2.height())
+        self.windowLayout.addWidget(self.labelAdvOptionsLineM, 28, 0, 1, 5)
+
+        # Expand/Collapse code
+        # Created UI element Advanced Options MOVES
+        self.labelAdvOptionsMOVESExpand = QPushButton()
+        self.labelAdvOptionsMOVESExpand.setFixedHeight(30)
+        self.labelAdvOptionsMOVESExpand.setFixedWidth(30)
+        self.labelAdvOptionsMOVESExpand.setObjectName("expandCollapseIcon")
+        self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
+        self.windowLayout.addWidget(self.labelAdvOptionsMOVESExpand, 27, 4)
+
+        self.advOptionsMOVESexpandWidget = QtWidgets.QWidget()
+        self.advOptionsMOVESexpandWidget.setStyleSheet(
+            "border-color: #028ACC; border-style: outset; border-width: 3px;border-radius: 5px;")
+        self.advOptionsMOVESGridLayout = QtWidgets.QGridLayout()
+        self.advOptionsMOVESexpandWidget.setLayout(self.advOptionsMOVESGridLayout)
+        self.advOptionsMOVESexpandWidget.setVisible(False)
+        self.windowLayout.addWidget(self.advOptionsMOVESexpandWidget, 31, 0, 1, 4)
+
+        def labelAdvOptionsMOVESOnClickEvent():
+            if self.advOptionsMOVESexpandWidget.isVisible():
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('plus.png'))
+                self.advOptionsMOVESexpandWidget.setVisible(False)
+            else:
+                self.labelAdvOptionsMOVESExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelAdvOptionsMOVESExpand.setIcon(QtGui.QIcon('minus.png'))
+                self.advOptionsMOVESexpandWidget.setVisible(True)
+
+        self.labelAdvOptionsMOVESExpand.clicked.connect(labelAdvOptionsMOVESOnClickEvent)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 0, 0, 1, 3)
+
+        # Created UI element No of Trucks used
+        self.labelNoofTruck = self.createLabelBig(text="Number Of Trucks" + "\n" + " Used")
+        self.labelNoofTruck.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelNoofTruck.setObjectName("allLabels")
+        self.labelNoofTruck.setToolTip("Number of trucks used to transport feedstock")
+        self.spinBoxNoofTruck = QSpinBox()
+        self.spinBoxNoofTruck.setStyleSheet(" border: 1px solid #000000; ")
+        self.spinBoxNoofTruck.setFixedWidth(116)
+        self.spinBoxNoofTruck.setFixedHeight(30)
+        self.spinBoxNoofTruck.setMinimum(1)
+        self.spinBoxNoofTruck.setValue(1)
+        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
+        self.leditNofTrucksUsed.setAlignment(QtCore.Qt.AlignCenter)
+        self.leditNofTrucksUsed = self.spinBoxNoofTruck.lineEdit()
+        self.leditNofTrucksUsed.setReadOnly(True)
+        self.advOptionsMOVESGridLayout.addWidget(self.labelNoofTruck, 1, 0)
+        self.advOptionsMOVESGridLayout.addWidget(self.spinBoxNoofTruck, 1, 1)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.advOptionsMOVESGridLayout.addWidget(emptyLabelE, 2, 0, 1, 3)
+
+        # Created UI element HPMSV type ID
+        self.labelHPMSVtypeId = self.createLabelBig(text="HPMSV ID")
+        self.labelHPMSVtypeId.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelHPMSVtypeId.setObjectName("allLabels")
+        self.labelHPMSVtypeId.setToolTip("Enter Highway Performance Monitoring System Vehicle ID. Default indicates a generic combination truck.")
+        self.spinBoxHPMSVtypeId = QSpinBox()
+        self.spinBoxHPMSVtypeId.setStyleSheet(" border: 1px solid #000000; ")
+        self.spinBoxHPMSVtypeId.setFixedWidth(116)
+        self.spinBoxHPMSVtypeId.setFixedHeight(30)
+        self.spinBoxHPMSVtypeId.setMinimum(1)
+        self.spinBoxHPMSVtypeId.setValue(60)
+        self.leditHPMSVtypeId = self.spinBoxHPMSVtypeId.lineEdit()
+        self.leditHPMSVtypeId.setAlignment(QtCore.Qt.AlignCenter)
+        self.leditHPMSVtypeId = self.spinBoxHPMSVtypeId.lineEdit()
+        self.leditHPMSVtypeId.setReadOnly(True)
+        self.advOptionsMOVESGridLayout.addWidget(self.labelHPMSVtypeId, 3, 0)
+        self.advOptionsMOVESGridLayout.addWidget(self.spinBoxHPMSVtypeId, 3, 1)
+
+        # Add horizontal space between elements
+        self.emptyPlainText3 = QLabel()
+        self.emptyPlainText3.setStyleSheet("border-color: white;")
+        self.emptyPlainText3.setFixedWidth(55)
+        self.emptyPlainText3.setFixedHeight(30)
+        self.advOptionsMOVESGridLayout.addWidget(self.emptyPlainText3, 3, 2)
+
+        # Created UI element Source type ID
+        self.labelSourceTypeId = self.createLabelBig(text="Source Type ID")
+        self.labelSourceTypeId.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelSourceTypeId.setObjectName("allLabels")
+        self.labelSourceTypeId.setToolTip("Enter source type ID. Default indicates a short-haul combination truck.")
+        self.spinBoxSourceTypeId = QSpinBox()
+        self.spinBoxSourceTypeId.setStyleSheet(" border: 1px solid #000000; ")
+        self.spinBoxSourceTypeId.setFixedWidth(116)
+        self.spinBoxSourceTypeId.setFixedHeight(30)
+        self.spinBoxSourceTypeId.setMinimum(1)
+        self.spinBoxSourceTypeId.setValue(61)
+        self.leditSourceTypeId = self.spinBoxSourceTypeId.lineEdit()
+        self.leditSourceTypeId.setAlignment(QtCore.Qt.AlignCenter)
+        self.leditSourceTypeId = self.spinBoxSourceTypeId.lineEdit()
+        self.leditSourceTypeId.setReadOnly(True)
+        self.advOptionsMOVESGridLayout.addWidget(self.labelSourceTypeId, 3, 3)
+        self.advOptionsMOVESGridLayout.addWidget(self.spinBoxSourceTypeId, 3, 4)
 
     # CHeck for consistent input for year
     def handleItemPressedMoves(self, index):
@@ -1455,6 +1615,20 @@ class AlltabsModule(QtWidgets.QWidget):
         if fileNameMovesPath != "":
             selectedFileNameMovesPath = str(fileNameMovesPath).split(',')
             self.lineEditMovesPath.setText(selectedFileNameMovesPath[0])
+
+    # function used for MySQL executable
+    def getfilesMysqlBin(self):
+        fileNameMysqlBin = QFileDialog.getExistingDirectory(self, "Browse")
+        if fileNameMysqlBin != "":
+            selectedFileNameMysqlBin = str(fileNameMysqlBin).split(',')
+            self.lineEditMysqlBin.setText(selectedFileNameMysqlBin[0])
+
+    # function used for MySQL dump executable
+    def getfilesMysqlDumpBin(self):
+        fileNameMysqlDumpBin = QFileDialog.getExistingDirectory(self, "Browse")
+        if fileNameMysqlDumpBin != "":
+            selectedFileNameMysqlDumpBin = str(fileNameMysqlDumpBin).split(',')
+            self.lineEditMysqlDumpBin.setText(selectedFileNameMysqlDumpBin[0])
 
     # Functions used for Truck Capacity
 
@@ -1525,9 +1699,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
         # Created UI element NONROAD Datafiles
-        self.labelDatafilesNon = self.createLabelSmall(text="Executable Path")
+        self.labelDatafilesNon = self.createLabelSmall(text="Data Folder")
         self.labelDatafilesNon.setObjectName("allLabels")
-        self.labelDatafilesNon.setToolTip("Select NONROAD output folder")
+        self.labelDatafilesNon.setToolTip("Select path where NONROAD input and output output data files will be saved")
         self.browseBtnDatafilesNon = self.createButton(text="Browse")
         self.browseBtnDatafilesNon.clicked.connect(self.getfilesDatafilesNon)
         self.lineEditDatafilesNon = QLineEdit(self)
@@ -1537,6 +1711,20 @@ class AlltabsModule(QtWidgets.QWidget):
         self.windowLayout.addWidget(self.labelDatafilesNon, 2, 0)
         self.windowLayout.addWidget(self.browseBtnDatafilesNon, 2, 1)
         self.windowLayout.addWidget(self.lineEditDatafilesNon, 2, 2, 1, 3)
+
+        # Created UI element Nonroad executable path
+        self.labelNonExePath = self.createLabelSmall(text="Path to EXE")
+        self.labelNonExePath.setObjectName("allLabels")
+        self.labelNonExePath.setToolTip("Select path where NONROAD executable is located")
+        self.browseBtnNonExePath = self.createButton(text="Browse")
+        self.browseBtnNonExePath.clicked.connect(self.getfilesNonExePath)
+        self.lineEditNonExePath = QLineEdit(self)
+        self.lineEditNonExePath.setText("C:/MOVES2014b/NONROAD/NR08a")
+        self.lineEditNonExePath.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditNonExePath.setFixedHeight(30)
+        self.windowLayout.addWidget(self.labelNonExePath, 3, 0)
+        self.windowLayout.addWidget(self.browseBtnNonExePath, 3, 1)
+        self.windowLayout.addWidget(self.lineEditNonExePath, 3, 2, 1, 3)
 
         # Created UI element Year - NONROAD
         self.labelYearNon = self.createLabelSmall(text="Analysis Year")
@@ -1559,9 +1747,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelYearNonErrorMsg.setFixedHeight(30)
         self.labelYearNonErrorMsg.setText("")
         self.labelYearNonErrorMsg.setStyleSheet("border: 1px solid white;")
-        self.windowLayout.addWidget(self.labelYearNon, 3, 0)
-        self.windowLayout.addWidget(self.comboBoxYearNon, 3, 1)
-        self.windowLayout.addWidget(self.labelYearNonErrorMsg, 3, 2, 1, 3)
+        self.windowLayout.addWidget(self.labelYearNon, 4, 0)
+        self.windowLayout.addWidget(self.comboBoxYearNon, 4, 1)
+        self.windowLayout.addWidget(self.labelYearNonErrorMsg, 4, 2, 1, 3)
         # Check whether Moves year matches with Nonroad year
         self.comboBoxYearNon.currentIndexChanged.connect(self.handleItemPressed)
 
@@ -1570,15 +1758,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionParaLabelN.setText("Database Connection Parameters")
         self.dbConnectionParaLabelN.setFixedHeight(30)
         self.dbConnectionParaLabelN.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.dbConnectionParaLabelN, 4, 0, 1, 4)
+        self.windowLayout.addWidget(self.dbConnectionParaLabelN, 5, 0, 1, 4)
 
         # Created UI element - Advanced Optiones below Line NONROAD
         self.dbConnectionParaLineN = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.dbConnectionParaLineN.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
-        self.windowLayout.addWidget(self.dbConnectionParaLineN, 5, 0, 1, 5)
+        self.windowLayout.addWidget(self.dbConnectionParaLineN, 6, 0, 1, 5)
 
         # Expand/Collapse code
         # Created UI element Database Connection Parameters NONROAD
@@ -1586,9 +1774,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labeldbConnectionsNONROADExpand.setFixedHeight(30)
         self.labeldbConnectionsNONROADExpand.setFixedWidth(30)
         self.labeldbConnectionsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-        self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
-        self.windowLayout.addWidget(self.labeldbConnectionsNONROADExpand, 4, 4)
+        self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
+        self.windowLayout.addWidget(self.labeldbConnectionsNONROADExpand, 5, 4)
 
         self.dbConnectionsNONROADexpandWidget = QtWidgets.QWidget()
         self.dbConnectionsNONROADexpandWidget.setStyleSheet(
@@ -1596,16 +1784,16 @@ class AlltabsModule(QtWidgets.QWidget):
         self.dbConnectionsNONROADGridLayout = QtWidgets.QGridLayout()
         self.dbConnectionsNONROADexpandWidget.setLayout(self.dbConnectionsNONROADGridLayout)
         self.dbConnectionsNONROADexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.dbConnectionsNONROADexpandWidget, 6, 0, 1, 4)
+        self.windowLayout.addWidget(self.dbConnectionsNONROADexpandWidget, 7, 0, 1, 4)
 
         def labelDbConnectionsNONROADOnClickEvent():
             if self.dbConnectionsNONROADexpandWidget.isVisible():
-                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.dbConnectionsNONROADexpandWidget.setVisible(False)
             else:
-                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labeldbConnectionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labeldbConnectionsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.dbConnectionsNONROADexpandWidget.setVisible(True)
 
         self.labeldbConnectionsNONROADExpand.clicked.connect(labelDbConnectionsNONROADOnClickEvent)
@@ -1670,7 +1858,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditDbNameN.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditDbNameN.setFixedHeight(30)
         self.lineEditDbNameN.setFixedWidth(125)
-        self.lineEditDbNameN.setText("movesdb20151028")
+        self.lineEditDbNameN.setText("movesdb20180517")
         self.dbConnectionsNONROADGridLayout.addWidget(self.labelDbNameN, 3, 0)
         self.dbConnectionsNONROADGridLayout.addWidget(self.lineEditDbNameN, 3, 1)
 
@@ -1712,7 +1900,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Data Labels Line
         self.dataLabelLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.dataLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1724,8 +1912,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelDataLabelsNONROADExpand.setFixedHeight(30)
         self.labelDataLabelsNONROADExpand.setFixedWidth(30)
         self.labelDataLabelsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelDataLabelsNONROADExpand, 8, 4)
 
         self.dataLabelsNONROADexpandWidget = QtWidgets.QWidget()
@@ -1738,12 +1926,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelDataLabelsNONROADOnClickEvent():
             if self.dataLabelsNONROADexpandWidget.isVisible():
-                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.dataLabelsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelDataLabelsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelDataLabelsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.dataLabelsNONROADexpandWidget.setVisible(True)
 
         self.labelDataLabelsNONROADExpand.clicked.connect(labelDataLabelsNONROADOnClickEvent)
@@ -1779,22 +1967,22 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText2.setFixedHeight(30)
         self.dtaLabelsNONROADGridLayout.addWidget(self.emptyPlainText2, 1, 2)
 
-        # Created UI element Forestry Feedstock Names
-        self.labelForestryNamesNon = self.createLabelBig(text="Forestry Feedstock" + "\n" + " Name")
-        self.labelForestryNamesNon.setObjectName("allLabels")
-        self.labelForestryNamesNon.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelForestryNamesNon.setToolTip("Allocation factors for forest feedstocks")
-        self.lineEditForestryNamesNon = QLineEdit(self)
-        self.lineEditForestryNamesNon.setStyleSheet(" border: 1px solid #000000; ")
-        self.lineEditForestryNamesNon.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditForestryNamesNon.setFixedHeight(40)
-        self.lineEditForestryNamesNon.setFixedWidth(125)
-        self.regex = QtCore.QRegExp("[a-z-A-Z_,]+")
+        # Created UI element Time Resource Name
+        self.labelTimeResNamesNon = self.createLabelBig(text="Time Resource Name")
+        self.labelTimeResNamesNon.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelTimeResNamesNon.setObjectName("allLabels")
+        self.labelTimeResNamesNon.setToolTip("Equipment table row identifier")
+        self.lineEditTimeResNamesNon = QLineEdit()
+        self.lineEditTimeResNamesNon.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditTimeResNamesNon.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditTimeResNamesNon.setFixedHeight(40)
+        self.lineEditTimeResNamesNon.setFixedWidth(125)
+        self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
-        self.lineEditForestryNamesNon.setValidator(validator)
-        self.lineEditForestryNamesNon.setText("forest whole tree")
-        self.dtaLabelsNONROADGridLayout.addWidget(self.labelForestryNamesNon, 1, 3)
-        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditForestryNamesNon, 1, 4)
+        self.lineEditTimeResNamesNon.setValidator(validator)
+        self.lineEditTimeResNamesNon.setText("time")
+        self.dtaLabelsNONROADGridLayout.addWidget(self.labelTimeResNamesNon, 1, 3)
+        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditTimeResNamesNon, 1, 4)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
@@ -1827,29 +2015,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText2.setFixedHeight(30)
         self.dtaLabelsNONROADGridLayout.addWidget(self.emptyPlainText2, 3, 2)
 
-        # Created UI element Time Resource Name
-        self.labelTimeResNamesNon = self.createLabelBig(text="Time Resource Name")
-        self.labelTimeResNamesNon.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelTimeResNamesNon.setObjectName("allLabels")
-        self.labelTimeResNamesNon.setToolTip("Equipment table row identifier")
-        self.lineEditTimeResNamesNon = QLineEdit()
-        self.lineEditTimeResNamesNon.setStyleSheet(" border: 1px solid #000000; ")
-        self.lineEditTimeResNamesNon.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditTimeResNamesNon.setFixedHeight(40)
-        self.lineEditTimeResNamesNon.setFixedWidth(125)
-        self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
-        validator = QtGui.QRegExpValidator(self.regex)
-        self.lineEditTimeResNamesNon.setValidator(validator)
-        self.lineEditTimeResNamesNon.setText("time")
-        self.dtaLabelsNONROADGridLayout.addWidget(self.labelTimeResNamesNon, 3, 3)
-        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditTimeResNamesNon, 3, 4)
-
-        # Add Vertical Space between the elements
-        emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(10)
-        emptyLabelE.setStyleSheet("border: white")
-        self.dtaLabelsNONROADGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
-
         # Created UI element Irrigation Feedstock Names
         self.labelIrrigationFeedNamesNon = self.createLabelBig(text="Irrigation Feedstock" + "\n" + "Name")
         self.labelIrrigationFeedNamesNon.setStyleSheet(" border: 1px solid #000000; ")
@@ -1863,15 +2028,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(self.regex)
         self.lineEditFeedIrrigNamesNon.setValidator(validator)
-        self.lineEditFeedIrrigNamesNon.setText("corn garin")
-        self.dtaLabelsNONROADGridLayout.addWidget(self.labelIrrigationFeedNamesNon, 5, 0)
-        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditFeedIrrigNamesNon, 5, 1)
+        self.lineEditFeedIrrigNamesNon.setText("corn grain")
+        self.dtaLabelsNONROADGridLayout.addWidget(self.labelIrrigationFeedNamesNon, 3, 3)
+        self.dtaLabelsNONROADGridLayout.addWidget(self.lineEditFeedIrrigNamesNon, 3, 4)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
-        self.dtaLabelsNONROADGridLayout.addWidget(emptyLabelE, 6, 0, 1, 4)
+        self.dtaLabelsNONROADGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
 
         # Custom Data Filepaths Label
         self.cusromDatafileLabel = QLabel()
@@ -1882,20 +2047,20 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Custom Data Filepaths Label Line
         self.customDatafileLabelLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.customDatafileLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
         self.windowLayout.addWidget(self.customDatafileLabelLine, 14, 0, 1, 5)
 
         # Expand/Collapse code
-        # Created UI element Custom Dtatfiles NONROAD
+        # Created UI element Custom Datafiles NONROAD
         self.labelcustomDatafileNONROADExpand = QPushButton()
         self.labelcustomDatafileNONROADExpand.setFixedHeight(30)
         self.labelcustomDatafileNONROADExpand.setFixedWidth(30)
         self.labelcustomDatafileNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileNONROADExpand, 13, 4)
 
         self.customDatafileNONROADexpandWidget = QtWidgets.QWidget()
@@ -1908,12 +2073,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileNONROADOnClickEvent():
             if self.customDatafileNONROADexpandWidget.isVisible():
-                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileNONROADexpandWidget.setVisible(False)
             else:
-                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelcustomDatafileNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelcustomDatafileNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileNONROADexpandWidget.setVisible(True)
 
         self.labelcustomDatafileNONROADExpand.clicked.connect(labelCustomDatafileNONROADOnClickEvent)
@@ -1925,7 +2090,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Region Nonroad Irrigation
-        self.labelNonIrrig = self.createLabelBig(text="Irrigation")
+        self.labelNonIrrig = self.createLabelBig(text="Irrigation Activity")
         self.labelNonIrrig.setObjectName("allLabels")
         self.labelNonIrrig.setStyleSheet(" border: 1px solid #000000; ")
         self.labelNonIrrig.setToolTip("Select irrigation dataset")
@@ -1947,6 +2112,29 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
+        # Created UI element NONROAD Equipment
+        self.labelNonEquip = self.createLabelBig(text="Equipment Specs")
+        self.labelNonEquip.setObjectName("allLabels")
+        self.labelNonEquip.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelNonEquip.setToolTip("Select NONROAD equipment specifications dataset")
+        self.browseBtnNonEquip = self.createButton(text="Browse", height=40)
+        self.browseBtnNonEquip.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnNonEquip.clicked.connect(self.getfilesNonEquip)
+        self.lineEditNonEquip = QLineEdit(self)
+        self.lineEditNonEquip.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditNonEquip.setText("data/inputs/nonroad_equipment.csv")
+        self.lineEditNonEquip.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditNonEquip.setFixedHeight(40)
+        self.customDatafileNONROADGridLayout.addWidget(self.labelNonEquip, 3, 0)
+        self.customDatafileNONROADGridLayout.addWidget(self.browseBtnNonEquip, 3, 1)
+        self.customDatafileNONROADGridLayout.addWidget(self.lineEditNonEquip, 3, 2, 1, 5)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
+
         # Created UI element Region FIPs Map Nonroad
         self.labelFipsNon = self.createLabelBig(text="Region to FIPS Map")
         self.labelFipsNon.setObjectName("allLabels")
@@ -1960,15 +2148,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFipsNon.setText("data/inputs/region_fips_map.csv")
         self.lineEditFipsNon.setAlignment(QtCore.Qt.AlignLeft)
         self.lineEditFipsNon.setFixedHeight(40)
-        self.customDatafileNONROADGridLayout.addWidget(self.labelFipsNon, 3, 0)
-        self.customDatafileNONROADGridLayout.addWidget(self.browseBtnFipsNon, 3, 1)
-        self.customDatafileNONROADGridLayout.addWidget(self.lineEditFipsNon, 3, 2, 1, 5)
+        self.customDatafileNONROADGridLayout.addWidget(self.labelFipsNon, 5, 0)
+        self.customDatafileNONROADGridLayout.addWidget(self.browseBtnFipsNon, 5, 1)
+        self.customDatafileNONROADGridLayout.addWidget(self.lineEditFipsNon, 5, 2, 1, 5)
 
         # Empty label
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
-        self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
+        self.customDatafileNONROADGridLayout.addWidget(emptyLabelE, 6, 0, 1, 4)
 
         # Operating Temperature Label
         self.opTempLabel = QLabel()
@@ -1979,7 +2167,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Operating Temperature Label Line
         self.opTempLabelLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.opTempLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -1991,8 +2179,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelTempNONROADExpand.setFixedHeight(30)
         self.labelTempNONROADExpand.setFixedWidth(30)
         self.labelTempNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelTempNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelTempNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelTempNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelTempNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelTempNONROADExpand, 17, 4)
 
         self.tempNONROADexpandWidget = QtWidgets.QWidget()
@@ -2005,12 +2193,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelTempNONROADOnClickEvent():
             if self.tempNONROADexpandWidget.isVisible():
-                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.tempNONROADexpandWidget.setVisible(False)
             else:
-                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelTempNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelTempNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.tempNONROADexpandWidget.setVisible(True)
 
         self.labelTempNONROADExpand.clicked.connect(labelTempNONROADOnClickEvent)
@@ -2022,7 +2210,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.tempNONROADGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Minimum Temperature
-        self.labelMinTemp = self.createLabelSmall(text="Minimum")
+        self.labelMinTemp = self.createLabelSmall(text="Minimum Temp (" + "\N{DEGREE SIGN}" + "F)")
         self.labelMinTemp.setObjectName("allLabels")
         self.labelMinTemp.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditMinTemp = QLineEdit(self)
@@ -2044,7 +2232,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.tempNONROADGridLayout.addWidget(self.emptyPlainText2, 1, 2)
 
         # Created UI element Average Temperature
-        self.labelMeanTemp = self.createLabelSmall(text="Average")
+        self.labelMeanTemp = self.createLabelSmall(text="Average Temp (" + "\N{DEGREE SIGN}" + "F)")
         self.labelMeanTemp.setObjectName("allLabels")
         self.labelMeanTemp.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditMeanTemp = QLineEdit(self)
@@ -2065,7 +2253,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.tempNONROADGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
         # Created UI element Maximum Temperature
-        self.labelMaxTemp = self.createLabelSmall(text="Maximum")
+        self.labelMaxTemp = self.createLabelSmall(text="Maximum Temp (" + "\N{DEGREE SIGN}" + "F)")
         self.labelMaxTemp.setObjectName("allLabels")
         self.labelMaxTemp.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditMaxTemp = QLineEdit()
@@ -2094,7 +2282,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #  Conversion Factors Label Line
         self.convFactorsLabelLine = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.convFactorsLabelLine.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -2106,8 +2294,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelConvFactorsNONROADExpand.setFixedHeight(30)
         self.labelConvFactorsNONROADExpand.setFixedWidth(30)
         self.labelConvFactorsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelConvFactorsNONROADExpand, 21, 4)
 
         self.convFactorsNONROADexpandWidget = QtWidgets.QWidget()
@@ -2120,12 +2308,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelConvFactorsNONROADOnClickEvent():
             if self.convFactorsNONROADexpandWidget.isVisible():
-                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.convFactorsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelConvFactorsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelConvFactorsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.convFactorsNONROADexpandWidget.setVisible(True)
 
         self.labelConvFactorsNONROADExpand.clicked.connect(labelConvFactorsNONROADOnClickEvent)
@@ -2137,7 +2325,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Low Heating Value
-        self.labelLowHeat = self.createLabelBig(text="Diesel Low Heating" + "\n" + " Value")
+        self.labelLowHeat = self.createLabelBig(text="Diesel Low Heating" + "\n" + " Value (mmBTU/gal)")
         self.labelLowHeat.setStyleSheet(" border: 1px solid #000000; ")
         self.labelLowHeat.setObjectName("allLabels")
         self.labelLowHeat.setToolTip("Lower heating value for diesel fuel")
@@ -2148,7 +2336,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditLowHeat.setFixedWidth(125)
         self.onlyFlaot = QDoubleValidator(0.0, 9.0, 6)
         self.lineEditLowHeat.setValidator(self.onlyFlaot)
-        self.lineEditLowHeat.setText("0.012845")
+        self.lineEditLowHeat.setText("0.12845")
         self.convFactorsNONROADGridLayout.addWidget(self.labelLowHeat, 1, 0)
         self.convFactorsNONROADGridLayout.addWidget(self.lineEditLowHeat, 1, 1)
 
@@ -2160,10 +2348,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(self.emptyPlainText2, 1, 2)
 
         # Created UI element Hydrocarbon to VOC Conversion Factor
-        self.labelHydeo = self.createLabelBig(text="Hydrocarbon to VOC")
+        self.labelHydeo = self.createLabelBig(text="Hydrocarbon to VOC"+ "\n" + "Conversion Factor")
         self.labelHydeo.setObjectName("allLabels")
         self.labelHydeo.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelHydeo.setToolTip("VOC vonversion fFactor for hydrocarbon emission components")
+        self.labelHydeo.setToolTip("Conversion between total hydrocarbons and VOCs (unitless)")
         self.lineEditHydro = QLineEdit()
         self.lineEditHydro.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditHydro.setAlignment(QtCore.Qt.AlignCenter)
@@ -2182,7 +2370,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
         # Created UI element NH3 Emission Factor
-        self.labelNH3 = self.createLabelBig(text="NH3 Emission Factor")
+        self.labelNH3 = self.createLabelBig(text="NH3 Emission Factor" + "\n" + "(g NH3/mmBTU diesel)")
         self.labelNH3.setObjectName("allLabels")
         self.labelNH3.setStyleSheet(" border: 1px solid #000000; ")
         self.labelNH3.setToolTip("NH3 emission factor for diesel fuel")
@@ -2205,10 +2393,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.convFactorsNONROADGridLayout.addWidget(self.emptyPlainText2, 3, 2)
 
         # Created UI element PM10 to PM2.5 Conversion Factor
-        self.labelPM10 = self.createLabelBig(text="PM10 to PM2.5")
+        self.labelPM10 = self.createLabelBig(text="PM10 to PM2.5"+ "\n" + "Conversion Factor")
         self.labelPM10.setObjectName("allLabels")
         self.labelPM10.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelPM10.setToolTip("PM10 to PM2.5 conversion factor")
+        self.labelPM10.setToolTip("Ratio of PM10 to PM2.5 (unitless)")
         self.lineEditPM10 = QLineEdit(self)
         self.lineEditPM10.setStyleSheet(" border: 1px solid #000000; ")
         self.lineEditPM10.setAlignment(QtCore.Qt.AlignCenter)
@@ -2235,7 +2423,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #  Advanced Options Label Line
         self.labelAdvOptionsLineN = QLabel()
-        pixmapLine1M = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1M = QPixmap('line.png')
         pixmap1M = pixmapLine1M.scaledToHeight(15)
         self.labelAdvOptionsLineN.setPixmap(pixmap1M)
         self.resize(pixmap1M.width(), pixmap1M.height())
@@ -2248,8 +2436,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelAdvOptionsNONROADExpand.setFixedHeight(30)
         self.labelAdvOptionsNONROADExpand.setFixedWidth(30)
         self.labelAdvOptionsNONROADExpand.setObjectName("expandCollapseIcon")
-        self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-        self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelAdvOptionsNONROADExpand, 25, 4)
 
         self.advOptionsNONROADexpandWidget = QtWidgets.QWidget()
@@ -2262,12 +2450,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelAdvOptionsNONROADOnClickEvent():
             if self.advOptionsNONROADexpandWidget.isVisible():
-                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.advOptionsNONROADexpandWidget.setVisible(False)
             else:
-                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(29, 29))
-                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelAdvOptionsNONROADExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelAdvOptionsNONROADExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.advOptionsNONROADexpandWidget.setVisible(True)
 
         self.labelAdvOptionsNONROADExpand.clicked.connect(labelAdvOptionsNONROADOnClickEvent)
@@ -2287,9 +2475,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxEncodeNames.setStyleSheet(" border: 1px solid #000000; ")
         self.comboBoxEncodeNames.setFixedWidth(150)
         self.comboBoxEncodeNames.setFixedHeight(30)
-        self.comboBoxEncodeNames.addItem("Yes")
-        self.comboBoxEncodeNames.addItem("No")
-        self.comboBoxEncodeNames.setCurrentText("Yes")
+        self.comboBoxEncodeNames.addItem("True")
+        self.comboBoxEncodeNames.addItem("False")
+        self.comboBoxEncodeNames.setCurrentText("True")
         self.comboBoxEncodeNames.setEditable(True)
         self.leditEncodeName = self.comboBoxEncodeNames.lineEdit()
         self.leditEncodeName.setAlignment(QtCore.Qt.AlignCenter)
@@ -2389,6 +2577,12 @@ class AlltabsModule(QtWidgets.QWidget):
             selectedFileName = str(fileName).split(',')
             self.lineEditDatafilesNon.setText(selectedFileName[0])
 
+    def getfilesNonExePath(self):
+        fileName = QFileDialog.getExistingDirectory(self, "Browse")
+        if fileName != "":
+            selectedFileName = str(fileName).split(',')
+            self.lineEditNonExePath.setText(selectedFileName[0])
+
     # Functions used for Fips Nonroad
 
     def getfilesFipsNon(self):
@@ -2404,6 +2598,14 @@ class AlltabsModule(QtWidgets.QWidget):
         if fileNameNonEq[0] != "":
             selectedFileNameNonEq = fileNameNonEq[0].split("FPEAM/")
             self.lineEditNonIrrig.setText(selectedFileNameNonEq[1])
+
+    # Functions used for Nonroad equipment
+
+    def getfilesNonEquip(self):
+        fileNameNonEquip = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
+        if fileNameNonEquip[0] != "":
+            selectedFileNameNonEquip = fileNameNonEquip[0].split("FPEAM/")
+            self.lineEditNonEquip.setText(selectedFileNameNonEquip[1])
 
     ###########################################################################################################################################################
 
@@ -2466,7 +2668,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element - Custom Dtatfiles below Line
         self.labelCustomDatafilsLine = QLabel()
-        pixmapLine1 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(15)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
@@ -2478,8 +2680,8 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileEFExpand.setFixedHeight(30)
         self.labelcustomDatafileEFExpand.setFixedWidth(30)
         self.labelcustomDatafileEFExpand.setObjectName("expandCollapseIcon")
-        self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+        self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('plus.png'))
         self.windowLayout.addWidget(self.labelcustomDatafileEFExpand, 4, 4)
 
         self.customDatafileEFexpandWidget = QtWidgets.QWidget()
@@ -2492,12 +2694,12 @@ class AlltabsModule(QtWidgets.QWidget):
 
         def labelCustomDatafileEFOnClickEvent():
             if self.customDatafileEFexpandWidget.isVisible():
-                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileEFexpandWidget.setVisible(False)
             else:
-                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelcustomDatafileEFExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelcustomDatafileEFExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileEFexpandWidget.setVisible(True)
 
         self.labelcustomDatafileEFExpand.clicked.connect(labelCustomDatafileEFOnClickEvent)
@@ -2698,40 +2900,60 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
-        # Created UI element Feedstock Measure Type - Fugitive Dust
-        self.labelFeedMeasureTypeFD = self.createLabelBig(text="Feedstock Measure" + "\n" + " Type")
-        self.labelFeedMeasureTypeFD.setObjectName("allLabels")
-        self.labelFeedMeasureTypeFD.setToolTip("Production table feedstock identifier")
-        self.lineEditFeedMeasureTypeFD = QLineEdit(self)
-        self.lineEditFeedMeasureTypeFD.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditFeedMeasureTypeFD.setFixedWidth(116)
-        self.lineEditFeedMeasureTypeFD.setFixedHeight(40)
+        # Created UI element on-farm Feedstock Measure Type - Fugitive Dust
+        self.labelOnfarmFeedMeasureTypeFD = self.createLabelBig(text="On-Farm Feedstock" + "\n" + "Measure Type")
+        self.labelOnfarmFeedMeasureTypeFD.setObjectName("allLabels")
+        self.labelOnfarmFeedMeasureTypeFD.setToolTip("Enter feedstock measure type used in on-farm fugitive dust calculations")
+        self.lineEditOnfarmFeedMeasureTypeFD = QLineEdit(self)
+        self.lineEditOnfarmFeedMeasureTypeFD.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditOnfarmFeedMeasureTypeFD.setFixedWidth(116)
+        self.lineEditOnfarmFeedMeasureTypeFD.setFixedHeight(40)
         regex = QtCore.QRegExp("[a-z-A-Z_]+")
         validator = QtGui.QRegExpValidator(regex)
-        self.lineEditFeedMeasureTypeFD.setValidator(validator)
-        self.lineEditFeedMeasureTypeFD.setText("harvested")
-        self.windowLayout.addWidget(self.labelFeedMeasureTypeFD, 2, 0)
-        self.windowLayout.addWidget(self.lineEditFeedMeasureTypeFD, 2, 1)
+        self.lineEditOnfarmFeedMeasureTypeFD.setValidator(validator)
+        self.lineEditOnfarmFeedMeasureTypeFD.setText("harvested")
+        self.windowLayout.addWidget(self.labelOnfarmFeedMeasureTypeFD, 1, 0)
+        self.windowLayout.addWidget(self.lineEditOnfarmFeedMeasureTypeFD, 1, 1)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(20)
-        self.windowLayout.addWidget(emptyLabelE, 3, 0, 1, 5)
+        self.windowLayout.addWidget(emptyLabelE, 2, 0, 1, 5)
+
+        # Created UI element on-road Feedstock Measure Type - Fugitive Dust
+        self.labelOnroadFeedMeasureTypeFD = self.createLabelBig(text="On-Road Feedstock" + "\n" + "Measure Type")
+        self.labelOnroadFeedMeasureTypeFD.setObjectName("allLabels")
+        self.labelOnroadFeedMeasureTypeFD.setToolTip("Enter feedstock measure type used in on-road fugitive dust calculations")
+        self.lineEditOnroadFeedMeasureTypeFD = QLineEdit(self)
+        self.lineEditOnroadFeedMeasureTypeFD.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditOnroadFeedMeasureTypeFD.setFixedWidth(116)
+        self.lineEditOnroadFeedMeasureTypeFD.setFixedHeight(40)
+        regex = QtCore.QRegExp("[a-z-A-Z_]+")
+        validator = QtGui.QRegExpValidator(regex)
+        self.lineEditOnroadFeedMeasureTypeFD.setValidator(validator)
+        self.lineEditOnroadFeedMeasureTypeFD.setText("production")
+        self.windowLayout.addWidget(self.labelOnroadFeedMeasureTypeFD, 3, 0)
+        self.windowLayout.addWidget(self.lineEditOnroadFeedMeasureTypeFD, 3, 1)
+
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(20)
+        self.windowLayout.addWidget(emptyLabelE, 4, 0, 1, 5)
 
         # Custom Data Filepaths Label FD
         self.customDataFilepathLabelFD = QLabel()
         self.customDataFilepathLabelFD.setText("Custom Data Filepaths")
         self.customDataFilepathLabelFD.setFixedHeight(30)
         self.customDataFilepathLabelFD.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.customDataFilepathLabelFD, 4, 0, 1, 4)
+        self.windowLayout.addWidget(self.customDataFilepathLabelFD, 5, 0, 1, 4)
 
         # Created UI element - Custom Datafiles below Line
         self.labelCustomDatafilsLine = QLabel()
-        pixmapLine1 = QPixmap('src/FPEAM/gui/line.png')
+        pixmapLine1 = QPixmap('line.png')
         pixmap1 = pixmapLine1.scaledToHeight(15)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
-        self.windowLayout.addWidget(self.labelCustomDatafilsLine, 5, 0, 1, 5)
+        self.windowLayout.addWidget(self.labelCustomDatafilsLine, 6, 0, 1, 5)
 
         # Expand/Collapse code
         # Created UI element Custom Datafiles FD
@@ -2739,9 +2961,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileFDExpand.setFixedHeight(30)
         self.labelcustomDatafileFDExpand.setFixedWidth(30)
         self.labelcustomDatafileFDExpand.setObjectName("expandCollapseIcon")
-        self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(30, 30))
-        self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
-        self.windowLayout.addWidget(self.labelcustomDatafileFDExpand, 4, 4)
+        self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(28, 28))
+        self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('plus.png'))
+        self.windowLayout.addWidget(self.labelcustomDatafileFDExpand, 5, 4)
 
         self.customDatafileFDexpandWidget = QtWidgets.QWidget()
         self.customDatafileFDexpandWidget.setStyleSheet(
@@ -2749,16 +2971,16 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFDGridLayout = QtWidgets.QGridLayout()
         self.customDatafileFDexpandWidget.setLayout(self.customDatafileFDGridLayout)
         self.customDatafileFDexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.customDatafileFDexpandWidget, 6, 0, 1, 4)
+        self.windowLayout.addWidget(self.customDatafileFDexpandWidget, 7, 0, 1, 4)
 
         def labelCustomDatafileFDOnClickEvent():
             if self.customDatafileFDexpandWidget.isVisible():
-                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/plus.png'))
+                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('plus.png'))
                 self.customDatafileFDexpandWidget.setVisible(False)
             else:
-                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(30, 30))
-                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('src/FPEAM/gui/minus.png'))
+                self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(28, 28))
+                self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('minus.png'))
                 self.customDatafileFDexpandWidget.setVisible(True)
 
         self.labelcustomDatafileFDExpand.clicked.connect(labelCustomDatafileFDOnClickEvent)
@@ -2770,10 +2992,10 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFDGridLayout.addWidget(emptyLabelE, 0, 0, 1, 4)
 
         # Created UI element Emission Factors - Fugitive Dust
-        self.labelEmiFactFD = self.createLabelSmall(text="Emission Factors")
+        self.labelEmiFactFD = self.createLabelSmall(text="On-Farm Factors")
         self.labelEmiFactFD.setObjectName("allLabels")
         self.labelEmiFactFD.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelEmiFactFD.setToolTip("Pollutant emission factors for resources")
+        self.labelEmiFactFD.setToolTip("Select dataset of PM10 and PM2.5 emission rates by acre")
         self.browseBtnEmiFactFD = self.createButton(text="Browse")
         self.browseBtnEmiFactFD.setStyleSheet(" border: 1px solid #000000; ")
         self.browseBtnEmiFactFD.clicked.connect(self.getfilesEmiFactFD)
@@ -2792,21 +3014,51 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelE.setStyleSheet("border: white")
         self.customDatafileFDGridLayout.addWidget(emptyLabelE, 2, 0, 1, 4)
 
-        # Add Empty PlainText
-        self.emptyPlainText2 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText2, 7, 0)
+        # Created UI element onroad constants - Fugitive Dust
+        self.labelOnrConst = self.createLabelSmall(text="On-Road Constants")
+        self.labelOnrConst.setObjectName("allLabels")
+        self.labelOnrConst.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelOnrConst.setToolTip("Select dataset of constants for calculating on-road PM10 and PM2.5")
+        self.browseBtnOnrConst = self.createButton(text="Browse")
+        self.browseBtnOnrConst.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnOnrConst.clicked.connect(self.getfilesOnrConst)
+        self.lineEditOnrConst = QLineEdit(self)
+        self.lineEditOnrConst.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditOnrConst.setText("data/inputs/fugitive_dust_onroad_constants.csv")
+        self.lineEditOnrConst.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditOnrConst.setFixedHeight(30)
+        self.customDatafileFDGridLayout.addWidget(self.labelOnrConst, 3, 0)
+        self.customDatafileFDGridLayout.addWidget(self.browseBtnOnrConst, 3, 1)
+        self.customDatafileFDGridLayout.addWidget(self.lineEditOnrConst, 3, 2, 1, 3)
 
-        # Add Empty PlainText
-        self.emptyPlainText = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText, 8, 0)
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileFDGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
 
-        # Add Empty PlainText
-        self.emptyPlainText1 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText1, 9, 0)
+        # Created UI element silt content
+        self.labelSiltCont = self.createLabelSmall(text="Road Silt Content")
+        self.labelSiltCont.setObjectName("allLabels")
+        self.labelSiltCont.setStyleSheet(" border: 1px solid #000000; ")
+        self.labelSiltCont.setToolTip("Select dataset of on-road silt content by state")
+        self.browseBtnSiltCont = self.createButton(text="Browse")
+        self.browseBtnSiltCont.setStyleSheet(" border: 1px solid #000000; ")
+        self.browseBtnSiltCont.clicked.connect(self.getfilesSiltCont)
+        self.lineEditSiltCont = QLineEdit(self)
+        self.lineEditSiltCont.setStyleSheet(" border: 1px solid #000000; ")
+        self.lineEditSiltCont.setText("data/inputs/fugitive_dust_silt_content.csv")
+        self.lineEditSiltCont.setAlignment(QtCore.Qt.AlignLeft)
+        self.lineEditSiltCont.setFixedHeight(30)
+        self.customDatafileFDGridLayout.addWidget(self.labelSiltCont, 5, 0)
+        self.customDatafileFDGridLayout.addWidget(self.browseBtnSiltCont, 5, 1)
+        self.customDatafileFDGridLayout.addWidget(self.lineEditSiltCont, 5, 2, 1, 3)
 
-        # Add Empty PlainText
-        self.emptyPlainText3 = QLabel()
-        self.windowLayout.addWidget(self.emptyPlainText3, 10, 0)
+        # Add Vertical Space between the elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(10)
+        emptyLabelE.setStyleSheet("border: white")
+        self.customDatafileFDGridLayout.addWidget(emptyLabelE, 6, 0, 1, 4)
 
         # Add Empty PlainText
         self.emptyPlainText2 = QLabel()
@@ -2890,10 +3142,24 @@ class AlltabsModule(QtWidgets.QWidget):
 
     # Functions used for Fugitive Dust - EMission factor
     def getfilesEmiFactFD(self):
-        fileNameTruckCapaFD = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
-        if fileNameTruckCapaFD[0] != "":
-            selectedFileNameTruckCapaFD = fileNameTruckCapaFD[0].split("FPEAM/")
-            self.lineEditEmiFactFD.setText(selectedFileNameTruckCapaFD[1])
+        fileNameEmiFactFD = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
+        if fileNameEmiFactFD[0] != "":
+            selectedFileNameEmiFactFD = fileNameEmiFactFD[0].split("FPEAM/")
+            self.lineEditEmiFactFD.setText(selectedFileNameEmiFactFD[1])
+
+    # Functions used for onroad constants for Fugitive Dust
+    def getfilesOnrConst(self):
+        fileNameOnrConst = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
+        if fileNameOnrConst[0] != "":
+            selectedFileNameOnrConst = fileNameOnrConst[0].split("FPEAM/")
+            self.lineEditOnrConst.setText(selectedFileNameOnrConst[1])
+
+    # Functions used for fugitive dust silt content
+    def getfilesSiltCont(self):
+        fileNameSiltCont = QFileDialog.getOpenFileName(self, 'Browse', "", "CSV files (*.csv)")
+        if fileNameSiltCont[0] != "":
+            selectedFileNameSiltCont = fileNameSiltCont[0].split("FPEAM/")
+            self.lineEditSiltCont.setText(selectedFileNameSiltCont[1])
 
     # Reset Button Code
     def resetFields(self):
@@ -2913,17 +3179,22 @@ class AlltabsModule(QtWidgets.QWidget):
         self.index = self.comboBoxVerbosityLevel.findText("DEBUG")
         self.comboBoxVerbosityLevel.setCurrentIndex(self.index)
         self.lineEditEq.setText("data/equipment/bts16_equipment.csv")
-        self.lineEditProd.setText("data/production/production_2015_bc1060.csv")
+        self.lineEditProd.setText("data/production/production_2017_bc1060.csv")
         self.lineEditFedLossFact.setText("data/inputs/feedstock_loss_factors.csv")
         self.lineEditTransGraph.setText("data/inputs/transportation_graph.csv")
+        self.lineEditNodeLocs.setText("data/inputs/node_locations.csv")
         self.index = self.comboBoxBF.findText("Yes")
         self.comboBoxBF.setCurrentIndex(self.index)
         self.index = self.comboBoxRE.findText("Yes")
         self.comboBoxRE.setCurrentIndex(self.index)
+        self.lineEditVMTperTruck.setText("20")
 
         # Fugitive Dust module - Attribute Initialization
-        self.lineEditFeedMeasureTypeFD.setText("harvested")
+        self.lineEditOnfarmFeedMeasureTypeFD.setText("harvested")
+        self.lineEditOnroadFeedMeasureTypeFD.setText("production")
         self.lineEditEmiFactFD.setText("../data/inputs/fugitive_dust_emission_factors.csv")
+        self.lineEditOnrConst.setText("../data/inputs/fugitive_dust_onroad_constants.csv")
+        self.lineEditSiltCont.setText("../data/inputs/fugitive_dust_silt_content.csv")
 
         # Emission Factors Module - Attribute Initialization
         self.lineEditFeedMeasureTypeEF.setText("harvested")
@@ -2935,13 +3206,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxYearNon.setCurrentIndex(self.index)
         self.lineEditDbHostN.setText("localhost")
         self.lineEditDbUsernameN.setText("root")
-        self.lineEditDbNameN.setText("movesdb20151028")
+        self.lineEditDbNameN.setText("movesdb20180517")
         self.lineEditDbPwdN.setText("root")
         self.lineEditFeedMeasureTypeNon.setText("harvested")
         self.lineEditTimeResNamesNon.setText("time")
-        self.lineEditForestryNamesNon.setText('forest whole tree')
+        self.lineEditForestryNamesNon.setText("'forest whole tree', 'forest residues'")
         self.lineEditFipsNon.setText("../data/inputs/region_fips_map.csv")
         self.lineEditDatafilesNon.setText("C:/Nonroad")
+        self.lineEditNonExePath.setText("C:/MOVES2014b/NONROAD/NR08a")
         self.lineEditMinTemp.setText("50.0")
         self.lineEditMaxTemp.setText("68.8")
         self.lineEditMeanTemp.setText("60.0")
@@ -2952,24 +3224,29 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFeedMeasureTypeIrrigNon.setText("planted")
         self.lineEditFeedIrrigNamesNon.setText("corn grain")
         self.lineEditNonIrrig.setText("../data/inputs/irrigation.csv")
-        self.comboBoxEncodeNames.setCurrentText("Yes")
+        self.lineEditNonEquip.setText("../data/inputs/nonroad_equipment.csv")
+        self.comboBoxEncodeNames.setCurrentText("True")
 
         # Moves Module - Attribute Initialization
-        self.index = self.comboBoxAggLevel.findText("By County")
+        self.index = self.comboBoxAggLevel.findText("By State")
         self.comboBoxAggLevel.setCurrentIndex(self.index)
-        self.index = self.comboBoxCachedResUse.findText("Yes")
+        self.index = self.comboBoxCachedResUse.findText("True")
         self.comboBoxCachedResUse.setCurrentIndex(self.index)
         self.lineEditFeedMeasureType.setText("production")
-        self.lineEditVMTperTruck.setText("20")
         self.spinBoxNoofTruck.setValue(1)
+        self.leditHPMSVtypeId.setValue(60)
+        self.leditSourceTypeId.setValue(61)
         self.index = self.comboBoxYear.findText("2017")
         self.comboBoxYear.setCurrentIndex(self.index)
         self.lineEditDbHost.setText("localhost")
         self.lineEditDbUsername.setText("root")
-        self.lineEditDbName.setText("movesdb20151028")
+        self.lineEditDbName.setText("movesdb20180517")
         self.lineEditDbPwd.setText("root")
-        self.lineEditDatafiles.setText("C:\MOVESdata")
-        self.lineEditMovesPath.setText("C:\MOVES2014b")
+        self.lineEditOutDb.setText('moves_output_db')
+        self.lineEditDatafiles.setText("C:/MOVESdata")
+        self.lineEditMovesPath.setText("C:/MOVES2014b")
+        self.lineEditMysqlBin.setText("C:/Program Files/MySQL/MySQL Server 5.7/bin/mysql.exe")
+        self.lineEditMysqlDumpBin.setText("C:/Program Files/MySQL/MySQL Server 5.7/bin/mysqldump.exe")
         self.lineEditTruckCapa.setText("../data/inputs/truck_capacity.csv")
         self.lineEditAVFT.setText("../data/inputs/avft.csv")
         self.lineEditFips.setText("../data/inputs/region_fips_map.csv")
@@ -3055,6 +3332,14 @@ class AlltabsModule(QtWidgets.QWidget):
                     changedRouterEngine = True
                 self.attributeValueObj.useRouterEngine = changedRouterEngine
 
+            changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
+            if changedForestryFeedNames:
+                self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
+
+            changedVMTPerTruck = self.lineEditVMTperTruck.text().strip()
+            if changedVMTPerTruck:
+                self.attributeValueObj.vMTPerTruck = changedVMTPerTruck
+
             changedEqPath = self.lineEditEq.text().strip()
             if changedEqPath:
                 self.attributeValueObj.equipment = changedEqPath
@@ -3071,13 +3356,28 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedTranGraphPath:
                 self.attributeValueObj.transportationGraph = changedTranGraphPath
 
+            changedNodeLocsPath = self.lineEditNodeLocs.text().strip()
+            if changedNodeLocsPath:
+                self.attributeValueObj.nodeLocations = changedNodeLocsPath
+
+            changedTruckCapacityPath = self.lineEditTruckCapa.text().strip()
+            if changedTruckCapacityPath:
+                self.attributeValueObj.truckCapacity = changedTruckCapacityPath
+
             ###############################################################################################################
 
             # Moves attributes value initialization
-
             changedAggLevel = self.comboBoxAggLevel.currentText()
-            if changedAggLevel:
-                self.attributeValueObj.aggegationLevel = changedAggLevel
+            # reformat the aggregation level input into two Booleans
+            if changedAggLevel == 'By State':
+                self.attributeValueObj.aggregation_level_state = True
+                self.attributeValueObj.aggregation_level_state_feedstock = False
+            elif changedAggLevel == 'By State-Feedstock':
+                self.attributeValueObj.aggregation_level_state = False
+                self.attributeValueObj.aggregation_level_state_feedstock = True
+            else:
+                self.attributeValueObj.aggregation_level_state = False
+                self.attributeValueObj.aggregation_level_state_feedstock = False
 
             changedcachedResults = self.comboBoxCachedResUse.currentText()
             if changedcachedResults:
@@ -3087,13 +3387,17 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedFeedstockMeasureTypeMoves:
                 self.attributeValueObj.feedstockMeasureTypeMoves = changedFeedstockMeasureTypeMoves
 
-            changedVMTPerTruck = self.lineEditVMTperTruck.text().strip()
-            if changedVMTPerTruck:
-                self.attributeValueObj.vMTPerTruck = changedVMTPerTruck
-
             changedNoOfTrucksUsed = self.spinBoxNoofTruck.text()
             if changedNoOfTrucksUsed:
                 self.attributeValueObj.noOfTrucksUsed = changedNoOfTrucksUsed
+
+            changedHPMSVTypeId = self.leditHPMSVtypeId.text()
+            if changedHPMSVTypeId:
+                self.attributeValueObj.hpmsvTypeId = changedHPMSVTypeId
+
+            changedSourceTypeId = self.leditSourceTypeId.text()
+            if changedSourceTypeId:
+                self.attributeValueObj.sourceTypeId = changedSourceTypeId
 
             changedYearMoves = self.comboBoxYear.currentText()
             if changedYearMoves:
@@ -3119,6 +3423,10 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedDbPwd:
                 self.attributeValueObj.dbPwd = changedDbPwd
 
+            changedOutDb = self.lineEditOutDb.text().strip()
+            if changedOutDb:
+                self.attributeValueObj.outDb = changedOutDb
+
             changedDate = self.comboBoxDate.currentText()
             if changedDate:
                 self.attributeValueObj.date = changedDate
@@ -3136,10 +3444,6 @@ class AlltabsModule(QtWidgets.QWidget):
             else:
                 self.attributeValueObj.dayType = "2"
 
-            changedTruckCapacityPath = self.lineEditTruckCapa.text().strip()
-            if changedTruckCapacityPath:
-                self.attributeValueObj.truckCapacity = changedTruckCapacityPath
-
             changedAvftPath = self.lineEditAVFT.text().strip()
             if changedAvftPath:
                 self.attributeValueObj.avft = changedAvftPath
@@ -3151,6 +3455,14 @@ class AlltabsModule(QtWidgets.QWidget):
             changedDatafilesMovesPath = self.lineEditDatafiles.text().strip()
             if changedDatafilesMovesPath:
                 self.attributeValueObj.movesDatafilesPath = changedDatafilesMovesPath
+
+            changedMysqlBinPath = self.lineEditMysqlBin.text().strip()
+            if changedMysqlBinPath:
+                self.attributeValueObj.mysqlBinPath = changedMysqlBinPath
+
+            changedMysqlDumpBinPath = self.lineEditMysqlDumpBin.text().strip()
+            if changedMysqlDumpBinPath:
+                self.attributeValueObj.mysqlDumpBinPath = changedMysqlDumpBinPath
 
             changedRuralRes = self.lineEditRuralRes.text().strip()
             if changedRuralRes:
@@ -3200,9 +3512,17 @@ class AlltabsModule(QtWidgets.QWidget):
             if changedDatafilesNon:
                 self.attributeValueObj.nonroadDatafilesPath = changedDatafilesNon
 
+            changedNonExePath = self.lineEditNonExePath.text().strip()
+            if changedNonExePath:
+                self.attributeValueObj.nonroadExePath = changedNonExePath
+
             changedIrrigNon = self.lineEditNonIrrig.text().strip()
             if changedIrrigNon:
                 self.attributeValueObj.irrigation = changedIrrigNon
+
+            changedNonEquip = self.lineEditNonEquip.text().strip()
+            if changedNonEquip:
+                self.attributeValueObj.nonroad_equipment = changedNonEquip
 
             changedEncodeName = self.comboBoxEncodeNames.currentText()
             if changedEncodeName:
@@ -3223,10 +3543,6 @@ class AlltabsModule(QtWidgets.QWidget):
             changedTimeResName = self.lineEditTimeResNamesNon.text().strip()
             if changedTimeResName:
                 self.attributeValueObj.timeResourceNameNon = changedTimeResName
-
-            changedForestryFeedNames = self.lineEditForestryNamesNon.text().strip()
-            if changedForestryFeedNames:
-                self.attributeValueObj.forestryFeedstockNames = changedForestryFeedNames
 
             changedTempMin = self.lineEditMinTemp.text().strip()
             if changedTempMin:
@@ -3250,7 +3566,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
             changeddieselHydrotoVOC = self.lineEditHydro.text().strip()
             if changeddieselHydrotoVOC:
-                self.attributeValueObj.tempMean = changeddieselHydrotoVOC
+                self.attributeValueObj.dieselThcVocConversion = changeddieselHydrotoVOC
 
             changedPMConversionFact = self.lineEditPM10.text().strip()
             if changedPMConversionFact:
@@ -3276,17 +3592,30 @@ class AlltabsModule(QtWidgets.QWidget):
 
             # Fugititve Dust attributes value initialization
 
-            changedFeedMeasureTypeFD = self.lineEditFeedMeasureTypeFD.text().strip()
-            if changedFeedMeasureTypeFD:
-                self.attributeValueObj.feedMeasureTypeFD = changedFeedMeasureTypeFD
+            changedOnfarmFeedMeasureTypeFD = self.lineEditOnfarmFeedMeasureTypeFD.text().strip()
+            if changedOnfarmFeedMeasureTypeFD:
+                self.attributeValueObj.OnfarmFeedMeasureTypeFD = changedOnfarmFeedMeasureTypeFD
+
+            changedOnroadFeedMeasureTypeFD = self.lineEditOnroadFeedMeasureTypeFD.text().strip()
+            if changedOnroadFeedMeasureTypeFD:
+                self.attributeValueObj.OnroadFeedMeasureTypeFD = changedOnroadFeedMeasureTypeFD
 
             changedEmissionFactFDPath = self.lineEditEmiFactFD.text().strip()
             if changedEmissionFactFDPath:
                 self.attributeValueObj.emissionFactorsFD = changedEmissionFactFDPath
 
+            changedOnrConstPath = self.lineEditOnrConst.text().strip()
+            if changedOnrConstPath:
+                self.attributeValueObj.onroadConstants = changedOnrConstPath
+
+            changedSiltContPath = self.lineEditSiltCont.text().strip()
+            if changedSiltContPath:
+                self.attributeValueObj.siltContent = changedSiltContPath
+
             ###############################################################################################################
 
-            runConfigObj = runConfigCreation(tmpFolder, self.attributeValueObj)
+            runConfigObj = runConfigCreation(os.path.realpath('../configs'),
+                                             self.attributeValueObj)
 
             # Display logs in result tab after completion of running the respective module
             self.centralwidget.setCurrentWidget(self.tabResult)
@@ -3332,28 +3661,28 @@ class AlltabsModule(QtWidgets.QWidget):
             # Check for MOVES tab
             if self.centralwidget.isTabEnabled(1):
                 self.centralwidget.setTabEnabled(1, False)
-                movesConfigCreationObj = movesConfigCreation(tmpFolder, self.attributeValueObj)
+                movesConfigCreationObj = movesConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
                 threadMOVES = threading.Thread(target=runCommand, args=(
                     runConfigObj, movesConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
             # Check for NONROAD tab
             if self.centralwidget.isTabEnabled(2):
                 self.centralwidget.setTabEnabled(2, False)
-                nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder, self.attributeValueObj)
+                nonroadConfigCreationObj = nonroadConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
                 threadNONROAD = threading.Thread(target=runCommand, args=(
                     runConfigObj, nonroadConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
             # Check for Emission Factors tab
             if self.centralwidget.isTabEnabled(3):
                 self.centralwidget.setTabEnabled(3, False)
-                emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(tmpFolder, self.attributeValueObj)
+                emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
                 threadEF = threading.Thread(target=runCommand, args=(
                     runConfigObj, emissionFactorsConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
             # Check for Fugitive Dust tab
             if self.centralwidget.isTabEnabled(4):
                 self.centralwidget.setTabEnabled(4, False)
-                fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder, self.attributeValueObj)
+                fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
                 threadFD = threading.Thread(target=runCommand, args=(
                     runConfigObj, fugitiveDustConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
@@ -3901,7 +4230,7 @@ if __name__ == "__main__":
 
     # Header Code
     headerlabel = QLabel(mainWindow)
-    pixmapLine = QPixmap('src/FPEAM/gui/header.png')
+    pixmapLine = QPixmap('header.png')
     pixmap = pixmapLine.scaledToHeight(80)
     headerlabel.setPixmap(pixmap)
     headerlabel.setFixedHeight(55)
@@ -3917,7 +4246,7 @@ if __name__ == "__main__":
     # Footer Code
     footerlabel = QLabel(mainWindow)
     footerlabel.setFixedHeight(105)
-    pixmapLine = QPixmap('src/FPEAM/gui/footer.png')
+    pixmapLine = QPixmap('footer.png')
     pixmap = pixmapLine.scaledToHeight(80)
     footerlabel.setPixmap(pixmap)
 
