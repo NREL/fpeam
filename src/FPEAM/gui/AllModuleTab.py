@@ -2475,9 +2475,9 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxEncodeNames.setStyleSheet(" border: 1px solid #000000; ")
         self.comboBoxEncodeNames.setFixedWidth(150)
         self.comboBoxEncodeNames.setFixedHeight(30)
-        self.comboBoxEncodeNames.addItem("Yes")
-        self.comboBoxEncodeNames.addItem("No")
-        self.comboBoxEncodeNames.setCurrentText("Yes")
+        self.comboBoxEncodeNames.addItem("True")
+        self.comboBoxEncodeNames.addItem("False")
+        self.comboBoxEncodeNames.setCurrentText("True")
         self.comboBoxEncodeNames.setEditable(True)
         self.leditEncodeName = self.comboBoxEncodeNames.lineEdit()
         self.leditEncodeName.setAlignment(QtCore.Qt.AlignCenter)
@@ -3225,7 +3225,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.lineEditFeedIrrigNamesNon.setText("corn grain")
         self.lineEditNonIrrig.setText("../data/inputs/irrigation.csv")
         self.lineEditNonEquip.setText("../data/inputs/nonroad_equipment.csv")
-        self.comboBoxEncodeNames.setCurrentText("Yes")
+        self.comboBoxEncodeNames.setCurrentText("True")
 
         # Moves Module - Attribute Initialization
         self.index = self.comboBoxAggLevel.findText("By State")
@@ -3614,7 +3614,8 @@ class AlltabsModule(QtWidgets.QWidget):
 
             ###############################################################################################################
 
-            runConfigObj = runConfigCreation(tmpFolder, self.attributeValueObj)
+            runConfigObj = runConfigCreation(os.path.realpath('../configs'),
+                                             self.attributeValueObj)
 
             # Display logs in result tab after completion of running the respective module
             self.centralwidget.setCurrentWidget(self.tabResult)
@@ -3660,28 +3661,28 @@ class AlltabsModule(QtWidgets.QWidget):
             # Check for MOVES tab
             if self.centralwidget.isTabEnabled(1):
                 self.centralwidget.setTabEnabled(1, False)
-                movesConfigCreationObj = movesConfigCreation(tmpFolder, self.attributeValueObj)
+                movesConfigCreationObj = movesConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
                 threadMOVES = threading.Thread(target=runCommand, args=(
                     runConfigObj, movesConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
             # Check for NONROAD tab
             if self.centralwidget.isTabEnabled(2):
                 self.centralwidget.setTabEnabled(2, False)
-                nonroadConfigCreationObj = nonroadConfigCreation(tmpFolder, self.attributeValueObj)
+                nonroadConfigCreationObj = nonroadConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
                 threadNONROAD = threading.Thread(target=runCommand, args=(
                     runConfigObj, nonroadConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
             # Check for Emission Factors tab
             if self.centralwidget.isTabEnabled(3):
                 self.centralwidget.setTabEnabled(3, False)
-                emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(tmpFolder, self.attributeValueObj)
+                emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
                 threadEF = threading.Thread(target=runCommand, args=(
                     runConfigObj, emissionFactorsConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
             # Check for Fugitive Dust tab
             if self.centralwidget.isTabEnabled(4):
                 self.centralwidget.setTabEnabled(4, False)
-                fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(tmpFolder, self.attributeValueObj)
+                fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
                 threadFD = threading.Thread(target=runCommand, args=(
                     runConfigObj, fugitiveDustConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
