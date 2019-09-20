@@ -334,7 +334,6 @@ class FPEAM(object):
                                                              'region_production',
                                                              'feedstock_amount',
                                                              'feedstock_unit_numerator',
-                                                             'feedstock_unit_denominator',
                                                              'pollutant',
                                                              'unit_numerator',
                                                              'normalized_pollutant_unit_numerator',
