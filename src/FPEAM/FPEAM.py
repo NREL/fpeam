@@ -49,6 +49,7 @@ class FPEAM(object):
         self.memory = Memory(location=self._temp_dir)
 
         self.results = None
+        self.summaries = {}
 
         # @TODO: load and validate fpeam.ini; currently only run_config gets checked and loaded
         self.config = run_config
@@ -226,9 +227,9 @@ class FPEAM(object):
         # rename the feedstock production units columns to avoid confusion
         # with the pollutant units columns in the results
         _prod.rename(index=str, columns={'unit_numerator':
-                                             'feedstock_unit_numerator',
+                                         'feedstock_unit_numerator',
                                          'unit_denominator':
-                                             'feedstock_unit_denominator'},
+                                         'feedstock_unit_denominator'},
                      inplace=True)
 
         _prod_filtered = _prod[_prod_row_filter]
@@ -309,9 +310,18 @@ class FPEAM(object):
                                          'unit_denominator']].to_csv(
             os.path.join(self.config.get('project_path'),
                          '%s' %
-                         self.config.get('scenario_name') +\
+                         self.config.get('scenario_name') +
                          '_total_emissions_by_production_region.csv'),
             index=False)
+
+        # cache for results tab graphics
+        self.summaries['by_region_production'] = _summarize_by_region_production[['feedstock',
+                                                                                  'tillage_type',
+                                                                                  'region_production',
+                                                                                  'pollutant',
+                                                                                  'pollutant_amount',
+                                                                                  'unit_numerator',
+                                                                                  'unit_denominator']]
 
         # feedstock-tillage type-region_production
         _results_to_normalize = self.results
@@ -339,6 +349,8 @@ class FPEAM(object):
                                                              'normalized_pollutant_unit_numerator',
                                                              'normalized_pollutant_unit_denominator'],
                                                             as_index=False).sum()
+        # cache for results tab graphics
+        self.summaries['normalized'] = _results_normalized
 
         # save to csv
         _results_normalized.to_csv(os.path.join(self.config.get('project_path'),
@@ -357,6 +369,8 @@ class FPEAM(object):
             _summarize_by_region_transportation['unit_numerator'] = 'lb pollutant'
             _summarize_by_region_transportation['unit_denominator'] = 'transportation county-year'
 
+            self.summaries['by_region_transportation'] = _summarize_by_region_transportation
+
             _summarize_by_region_transportation[['feedstock', 'tillage_type',
                                                  'region_transportation',
                                                  'pollutant',
@@ -367,9 +381,6 @@ class FPEAM(object):
                              '_transportation_emissions_by_region.csv'),
                 index=False)
 
-        else:
-            LOGGER.info('could not summarize by transportation region')
-
         # feedstock-tillage type-module
         _summarize_by_module = self.results.groupby(['feedstock',
                                                      'tillage_type',
@@ -379,6 +390,8 @@ class FPEAM(object):
 
         _summarize_by_module['unit_numerator'] = 'lb pollutant'
         _summarize_by_module['unit_denominator'] = 'county-year'
+
+        self.summaries['by_module'] = _summarize_by_module
 
         _fpath_summary = os.path.join(self.config.get('project_path'),
                                       '%s_total_emissions_by_module.csv'

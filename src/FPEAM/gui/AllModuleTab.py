@@ -3651,133 +3651,145 @@ class AlltabsModule(QtWidgets.QWidget):
             t.daemon = True
             t.start()
 
-            # Creation of all threads
-            threadMOVES = None
-            threadNONROAD = None
-            threadEF = None
-            threadFD = None
             self.centralwidget.setTabEnabled(0, False)
+
+            movesConfigCreationObj = None
+            nonroadConfigCreationObj = None
+            emissionFactorsConfigCreationObj = None
+            fugitiveDustConfigCreationObj = None
+
+            _moves_tab_enabled = False
+            _nonroad_tab_enabled = False
+            _ef_tab_enabled = False
+            _fug_dust_tab_enabled = False
 
             # Check for MOVES tab
             if self.centralwidget.isTabEnabled(1):
+                _moves_tab_enabled = True
                 self.centralwidget.setTabEnabled(1, False)
                 movesConfigCreationObj = movesConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
-                threadMOVES = threading.Thread(target=runCommand, args=(
-                    runConfigObj, movesConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
             # Check for NONROAD tab
             if self.centralwidget.isTabEnabled(2):
+                _nonroad_tab_enabled = True
                 self.centralwidget.setTabEnabled(2, False)
                 nonroadConfigCreationObj = nonroadConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
-                threadNONROAD = threading.Thread(target=runCommand, args=(
-                    runConfigObj, nonroadConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
             # Check for Emission Factors tab
             if self.centralwidget.isTabEnabled(3):
+                _ef_tab_enabled = True
                 self.centralwidget.setTabEnabled(3, False)
                 emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
-                threadEF = threading.Thread(target=runCommand, args=(
-                    runConfigObj, emissionFactorsConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
 
             # Check for Fugitive Dust tab
             if self.centralwidget.isTabEnabled(4):
+                _fug_dust_tab_enabled = True
                 self.centralwidget.setTabEnabled(4, False)
                 fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
-                threadFD = threading.Thread(target=runCommand, args=(
-                    runConfigObj, fugitiveDustConfigCreationObj, self.attributeValueObj, self.plainTextLog,))
+
+            _configs = []
+            for _config in [runConfigObj, movesConfigCreationObj, nonroadConfigCreationObj, emissionFactorsConfigCreationObj, fugitiveDustConfigCreationObj]:
+                if _config is not None:
+                    _configs.append(_config)
+
+            import queue
+
+            que = queue.Queue()
+
+            t = threading.Thread(target=lambda q, arg: q.put(self.runCommand(arg)), args=(que, _configs))
+
+            # self.runCommand(_configs)
 
             # Check which module thread is alive
             self.progressBar.setVisible(True)
             self.plainTextLog.setVisible(True)
             self.progressBar.setRange(0, 0)
 
-            threadList = [threadMOVES, threadNONROAD, threadEF, threadFD]
+            # threadList = [threadMOVES, threadNONROAD, threadEF, threadFD]
 
-            for t in threadList:
-                if t:
-                    t.start()
-                    while t.is_alive():
-                        loop = QEventLoop()
-                        QTimer.singleShot(10, loop.quit)
-                        loop.exec_()
+            # for t in threadList:
+            #     if t:
+            t.start()
+            while t.is_alive():
+                loop = QEventLoop()
+                QTimer.singleShot(10, loop.quit)
+                loop.exec_()
+
+            result = que.get()
 
             self.progressBar.setVisible(False)
 
-            doRun = False
-
-            if threadMOVES:
-                threadMOVES.join()
-                self.centralwidget.setTabEnabled(1, True)
-            if threadNONROAD:
-                threadNONROAD.join()
-                self.centralwidget.setTabEnabled(2, True)
-            if threadEF:
-                threadEF.join()
-                self.centralwidget.setTabEnabled(3, True)
-            if threadFD:
-                threadFD.join()
-                self.centralwidget.setTabEnabled(4, True)
+            self.centralwidget.setTabEnabled(1, _moves_tab_enabled)
+            self.centralwidget.setTabEnabled(2, _nonroad_tab_enabled)
+            self.centralwidget.setTabEnabled(3, _ef_tab_enabled)
+            self.centralwidget.setTabEnabled(4, _fug_dust_tab_enabled)
             self.centralwidget.setTabEnabled(0, True)
 
-            resultImagePath = self.generateGraphs("ef_fd_mv_nr_normalized_total_emissions_by_production_region.csv",tmpFolder)
+            resultImagePaths = self.generateGraphs(result, tmpFolder)
 
-            # set image in UI
-            self.pixmap = QtGui.QPixmap(resultImagePath)
-            self.labelResultGraph.resize(self.width(), self.height())
-            self.labelResultGraph.setPixmap(self.pixmap.scaled(self.labelResultGraph.size(), QtCore.Qt.IgnoreAspectRatio))
+            print(resultImagePaths)
 
-    #########################################################################################################################
+            for k, _path in resultImagePaths.items():
+                print(_path)
+                _pixmap = QtGui.QPixmap(_path)
+                self.labelResultGraph.resize(self.width(), self.height())
+                self.labelResultGraph.setPixmap(_pixmap.scaled(self.labelResultGraph.size(), QtCore.Qt.IgnoreAspectRatio))
 
     # Generate graph
-    def generateGraphs(self, csv_file, tempFolder):
-        # ef_fd_mv_nr_normalized_total_emissions_by_production_region.csv
-        df = pd.read_csv(csv_file)[
-            ['feedstock', 'feedstock_measure', 'tillage_type', 'region_production', 'feedstock_amount', 'pollutant',
-             'normalized_pollutant_amount']]
+    def generateGraphs(self, summaries, tempFolder):
 
-        df_subset = df.loc[
-            (df.feedstock_measure == 'production')
-            & (df.tillage_type == 'conventional tillage')
-            #     & (df.pollutant == 'co')
-            #     & (df.feedstock == 'corn stover')
-            & (df.normalized_pollutant_amount != np.inf)
-            #    & (df.region_production != 51019)
-            ]
+        _fpaths = {}
 
-        df_subset['pollutant_label'] = df_subset.pollutant.str.upper()
-        _order = df_subset.feedstock.unique()
-        _names = [_.upper() for _ in df_subset.pollutant.unique()]
-        sns.set_context("talk", font_scale=1.5)
+        if 'normalized' in summaries:
 
-        g = sns.catplot(x="feedstock",
-                        y="normalized_pollutant_amount",
-                        #                 hue="pollutant",
-                        col="pollutant_label",
-                        data=df_subset,
-                        kind="box",
-                        height=8,
-                        aspect=.8,
-                        color='red',
-                        sharex=True,
-                        sharey=False,
-                        margin_titles=False,
-                        col_wrap=4,
-                        order=_order,
-                        saturation=0.6,
-                        dodge=False,
-                        #                 whis=0.9
-                        )
-        (g.set_axis_labels("", "Emissions (lb/acre)")
-         .set_xticklabels([_.title() for _ in _order], rotation=90)
-         .set_titles("{col_name}")
-         .set(yscale='log')
-         )
-        resultPath  = os.path.join(tempFolder, "result.png")
-        plt.savefig(resultPath)
+            df = summaries['normalized'][['feedstock', 'feedstock_measure',
+                                          'tillage_type', 'region_production',
+                                          'feedstock_amount', 'pollutant',
+                                          'normalized_pollutant_amount']]
 
-        return resultPath
+            df_subset = df.loc[
+                (df.feedstock_measure == 'production')
+                & (df.tillage_type == 'conventional tillage')
+                & (df.normalized_pollutant_amount != np.inf)
+                ].copy()
 
-    #############################################################################################################
+            df_subset['pollutant_label'] = df_subset.pollutant.str.upper()
+            _order = df_subset.feedstock.unique()
+            _names = [_.upper() for _ in df_subset.pollutant.unique()]
+            sns.set_context("talk", font_scale=1.5)
+
+            g = sns.catplot(x="feedstock",
+                            y="normalized_pollutant_amount",
+                            #                 hue="pollutant",
+                            col="pollutant_label",
+                            data=df_subset,
+                            kind="box",
+                            height=8,
+                            aspect=.8,
+                            color='red',
+                            sharex=True,
+                            sharey=False,
+                            margin_titles=False,
+                            col_wrap=4,
+                            order=_order,
+                            saturation=0.6,
+                            dodge=False,
+                            #                 whis=0.9
+                            )
+            (g.set_axis_labels("", "Emissions (lb/acre)")
+             .set_xticklabels([_.title() for _ in _order], rotation=90)
+             .set_titles("{col_name}")
+             .set(yscale='log')
+             )
+
+            resultPath = os.path.join(tempFolder, "normalized.png")
+            plt.savefig(resultPath, format='png', bbox_inches='tight', quality=95, dpi=120)
+
+            _fpaths['by_region_production'] = resultPath
+
+        return _fpaths
+
+    #################################################################################################
 
     # Result Tab Code
     def setupUIResult(self):
@@ -3857,6 +3869,32 @@ class AlltabsModule(QtWidgets.QWidget):
 
         #############################################################################################################################
 
+    def runCommand(self, configs):
+
+        # load config options
+        _config = IO.load_configs(*configs)
+
+        with FPEAM(run_config=_config) as _fpeam:
+
+            _fpeam.run()
+
+            # save the raw results to the project path folder specified in run_config
+            _fpath = os.path.join(_fpeam.config['project_path'],
+                                  '%s_raw.csv' % _fpeam.config['scenario_name'])
+            _fpeam.results.to_csv(_fpath, index=False)
+
+            # save several summarized results files to the project folder
+            _fpeam.summarize()
+
+            # print(_fpeam.summaries)
+
+            # self.results = _fpeam.results
+            # self.summaries = _fpeam.summaries
+
+            return _fpeam.summaries
+
+            # print("Done")
+
 
 # Display logs in Result tab
 def logsPrinter(textField, loggerOutputFilePath, doRun):
@@ -3877,25 +3915,6 @@ def logsPrinter(textField, loggerOutputFilePath, doRun):
             time.sleep(1)
 
 
-# Run the selected module and categorized logs based on logger level
-def runCommand(runConfigObj, configCreationObj, attributeValueStorageObj, textFieldLog):
-
-    # load config options
-    _config = IO.load_configs(configCreationObj, runConfigObj)
-
-    with FPEAM(run_config=_config) as _fpeam:
-
-        # count no of record based on how many counties are running
-        _fpeam.run()
-
-        # save the raw results to the project path folder specified in run_config
-        _fpath = os.path.join(_fpeam.config['project_path'],
-                              '%s_raw.csv' % _fpeam.config['scenario_name'])
-        _fpeam.results.to_csv(_fpath, index=False)
-
-        # save several summarized results files to the project folder
-        _fpeam.summarize()
-        print("Done")
 
 
 ##############################################################################################
