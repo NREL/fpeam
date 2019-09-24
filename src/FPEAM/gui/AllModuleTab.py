@@ -84,6 +84,10 @@ class AlltabsModule(QtWidgets.QWidget):
         button.setFixedHeight(height)
         return button
 
+    def createHeadingLink(self, url, text):
+        _link = "<a style='text-decoration:none;' href=\"{address}\"> <font face=Roboto color=#028ACC> {display}</font> </a>"
+        return _link.format(address=url, display=text)
+
     # Function to set UI for HOME Page
     def setupUIHomePage(self):
         # Home Page tab created
@@ -208,8 +212,8 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Custom Data Filepaths Label - HOME Page
         self.customDataFilepathsLabel = QLabel()
-        _home_datafilepaths_link = "<a style='text-decoration:none;' href=\"https://github.com/NREL/fpeam/tree/dev#custom-data-filepaths\"> <font face=Roboto color=#028ACC> Custom Data Filepaths</font> </a>"
-        self.customDataFilepathsLabel.setText(_home_datafilepaths_link)
+        self.customDataFilepathsLabel.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#custom-data-filepaths",
+                                                                     "Custom Data Filepaths"))
         self.customDataFilepathsLabel.setOpenExternalLinks(True)
         self.customDataFilepathsLabel.setFixedHeight(30)
         self.customDataFilepathsLabel.setObjectName("subTitleLabels")
