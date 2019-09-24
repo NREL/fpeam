@@ -208,7 +208,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Custom Data Filepaths Label - HOME Page
         self.customDataFilepathsLabel = QLabel()
-        self.customDataFilepathsLabel.setText("Custom Data Filepaths")
+        _home_datafilepaths_link = "<a style='text-decoration:none;' href=\"https://github.com/NREL/fpeam/tree/dev#custom-data-filepaths\"> <font face=Roboto color=#028ACC> Custom Data Filepaths</font> </a>"
+        self.customDataFilepathsLabel.setText(_home_datafilepaths_link)
+        self.customDataFilepathsLabel.setOpenExternalLinks(True)
         self.customDataFilepathsLabel.setFixedHeight(30)
         self.customDataFilepathsLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.customDataFilepathsLabel, 10, 0, 1, 6)
@@ -3923,7 +3925,7 @@ def logsPrinter(textField, loggerOutputFilePath, doRun):
 if __name__ == "__main__":
     # CSS Code
     styleSheet = """
-
+    
     QWidget {
         background-color: #ffffff;
     }
@@ -4125,7 +4127,7 @@ if __name__ == "__main__":
         background: #028ACC;
         color: #ffffff
     }
-
+    
     @font-face {
     font-family: 'Roboto';
     src: url('Roboto-Regular-webfont.eot');
