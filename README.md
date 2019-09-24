@@ -2,15 +2,11 @@
 
 The Feedstock Production Emissions to Air Model (FPEAM) calculates spatially explicit inventories of criteria air pollutants and precursors generated from agricultural and transportation activities associated with the production and supply of biomass feedstocks for renewable energy generation. FPEAM was originally developed to calculate air pollutants as part of the 2016 update to the Billion Ton Study (BTS). For this version of FPEAM, the code base has been substantially refactored and streamlined to provide increased flexibility around biomass production scenario definitions, including what activities and pollutants are included in the calculations and at what spatial scale. This document describes the FPEAM code base and default input files bundled with the beta model release.
 
-FPEAM calculations are organized into semi-independent modules, listed in the second table below along with the activities and pollutants included by default in each module. The EmissionFactors module is unique in that it can be used to calculate any pollutant from any activity, if sufficient input data is provided. In particular, users have the option of using the EmissionFactors module to replace the MOVES and/or NONROAD modules with emissions factors for agricultural equipment and on-road vehicle use. The EmissionFactors module can also be used to calculate pollutants from additional activities, such as non-nitrogen fertilizer application.
-
-A full list of the default pollutants calculated by FPEAM is listed in the first table below. Additional pollutants may also be calculated from user-provided input data using the EmissionFactors module. At this stage of development calculating additional pollutants from either the NONROAD or MOVES modules is not allowed for in the model but this functionality can be added in the future if there is demand.
-
-The structure and function of each module, and the module-specific input data required to run each module, is described further in subsequent sections.
+A full list of the default pollutants calculated by FPEAM is given in the first table below. FPEAM calculations are organized into independent modules listed in the second table below along with the pollutants and pollutant-generating activities and processes included by default in each module. The EmissionFactors module is unique in that it can be used to calculate any pollutant from any activity, if sufficient input data is provided. In particular, users have the option of using the EmissionFactors module to replace the MOVES and/or NONROAD modules with emissions factors for agricultural equipment use and on-road biomass transportation. The EmissionFactors module can also be used to calculate pollutants from additional activities, such as non-nitrogen fertilizer application. At this stage of development calculating additional pollutants from either the NONROAD or MOVES modules is not allowed for in the model but this functionality can be added in the future if there is demand.
 
 TABLE: Default list of pollutants calculated by FPEAM.
 
-| Pollutant name | Description |
+| Pollutant | Description |
 | :------------: | :---------- |
 | CO | Criteria air pollutant |
 | NH<sub>3</sub> | Criteria air pollutant precursor|
@@ -22,7 +18,7 @@ TABLE: Default list of pollutants calculated by FPEAM.
 
 TABLE: Available FPEAM modules.
 
-| Module | Default pollutants calculated | Default activities included |
+| Module | Default pollutants | Default activities |
 | :----- | :-------------------: | :------------------ |
 | MOVES | All | Off-farm, on-road transportation of biomass to biorefineries |
 | NONROAD | All | On-farm use of agricultural equipment |
@@ -49,7 +45,7 @@ The FPEAM GUI was developed to be relatively self-explanatory with an easy to fo
 
 Inputs for each module are entered on the module's tab. All tabs are pre-populated with default values such that users should need to enter custom values for relatively few inputs. Users may work through the tabs in any order before returning to the Home tab and clicking the Run button to generate results. The Reset button, also on the Home tab, will return all inputs to their default values.
 
-While running FPEAM, a log is displayed on the Results tab with status messages that can be used to confirm FPEAM is running correctly or to debug a scenario. After the run completes, several basic visualizations are displayed on the same tab. These visualizations are intended to confirm that FPEAM ran correctly and results are approximately correct. For more advanced visualizations, users should use the output CSV files saved in the project path directory.
+While running FPEAM, a log is displayed on the Results tab with status messages that can be used to confirm FPEAM is running correctly or to debug a scenario. After the run completes, several basic visualizations are displayed on the same tab. These visualizations are intended to confirm that FPEAM ran correctly and returned results from all modules that were run. For more advanced visualizations, users should use the output CSV files saved in the project path directory.
 
 ## Command line interface
 
@@ -78,7 +74,7 @@ FPEAM is written in Python 3 and requires Python 3.5 or above to be installed. F
 * lxml
 * numpy
 * matplotlib
-* PyQt5
+* qtpy
 
 The most up-to-date version available of each package should be installed.
 
@@ -92,7 +88,7 @@ MOVES itself has several dependencies including MySQL, installation instructions
 
 ### MySQL Setup
 
-When installing MySQL for the first time, users will need to create a username and password for accessing the local database. This username and password will need to be used by FPEAM to read from the MOVES default database and write results from MOVES; users should make note of the username and password for later use, or set them to `root` / `root` to use the default FPEAM values.
+When installing MySQL for the first time, users will need to create a username and password for accessing the local database. FPEAM will use this username and password to read from the MOVES default database and write results from MOVES; users should make note of the username and password for later use, or set them to `root` / `root` to use the default FPEAM values.
 
 MySQL may also require the [Microsoft Visual C++ 2015 Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685) which can be downloaded and installed at the link.
 
@@ -106,7 +102,7 @@ After all dependencies are installed, download the FPEAM repository from GitHub.
 
 `pip install -e .`
 
-This will install FPEAM, the default datasets, and the GUI on your computer as a Python module. From this point you may run FPEAM using the GUI or via the command line.
+*Please note* that FPEAM cannot be installed using `conda`, only `pip`. The above command will install FPEAM, the default datasets, and the GUI on your computer as a Python module. From this point you may run FPEAM using the GUI or via the command line.
 
 # Graphical User Interface
 
@@ -118,19 +114,19 @@ Each sub-section goes over one of the GUI tabs.
 
 The Home tab contains the only required inputs for running a scenario, which are the scenario name and the project path. All other inputs are pre-populated with default values, such that FPEAM can quickly be run for a basic, nationwide feedstock production scenario.
 
-The scenario name is used in several places to identify inputs, outputs and final results for this scenario. Using unique scenario names for every FPEAM run is strongly recommended, even if FPEAM is run several times for the same scenario.
+The **Scenario Name** is used in several places to identify inputs, outputs and final results for this scenario. Using unique scenario names for every FPEAM run is strongly recommended, even if FPEAM is run several times for the same scenario or set of input data.
 
-The project path is where FPEAM will save the final results in the form of CSV files. It is not necessary to create a new directory for every scenario or FPEAM run, as the scenario names are used in the results filenames to distinguish the results of various runs.
+The **Project Path** is where FPEAM will save the final results in the form of CSV files. It is not necessary to create a new directory for every scenario or FPEAM run, as the scenario names are used in the results filenames to distinguish the results of various runs.
 
-Modules to include or exclude in a scenario are indicated with checkboxes. By default, all modules are checked. Any modules that are unchecked - indicating that the module will not be run for the current FPEAM scenario - will have the corresponding tab greyed out and inaccessible to indicate that inputs for that modules are not necessary.
+Modules to include or exclude in a scenario are indicated with checkboxes. By default, all modules are included in a scenario thus all boxes are checked. For any modules that are deselected - indicating that the module will not be run for the current FPEAM scenario - the corresponding tab will be greyed out and inaccessible to indicate that inputs for that module are not necessary.
 
-The Reset button will return all inputs, on all tabs, to their default values, while the Run button will execute FPEAM. If a scenario name and project path have not been defined, or if there are key errors in the inputs (which are indicated by messages within the GUI), then the Run button cannot be clicked.
+The **Reset** button will return all inputs, on all tabs, to their default values, while the **Run** button will execute FPEAM. If a scenario name and project path have not been defined, or if there are key errors in the inputs (which are indicated by messages within the GUI), then the Run button cannot be clicked.
 
 All other inputs on the Home tab are parameter values and input datasets that are used in multiple modules. Any datasets, parameters and other inputs used by only a single module are located on that module's specific tab.
 
 ### Custom Data Filepaths
 
-**Equipment use**. The equipment dataset defines the agricultural activities involved in feedstock production; columns in this dataset are defined in the table below. The equipment dataset defines the equipment used for each agricultural activity (in the default equipment dataset, activities consist of establishment, maintenance, harvest and loading, but additional or alternate activities may be specified as needed) as well as the resources consumed, such as fuel, time, fertilizer, and other agricultural chemicals. Resource rate (amount) units in the equipment dataset must correspond with the units in the feedstock production dataset discussed below, or an error will be given when the data is read into FPEAM. For each activity that involves agricultural equipment, the equipment name must be provided. These are user-defined names that can be matched to NONROAD equipment types with a provided CSV file discussed further in the NONROAD module section.
+**Equipment use**. The equipment dataset defines the agricultural activities involved in feedstock production. Columns and data types in this dataset are defined in the table below. The equipment dataset defines the equipment used for each agricultural activity (in the default equipment dataset, activities consist of establishment, maintenance, harvest and loading, but additional or alternate activities may be specified as needed) as well as the resources consumed, such as fuel, time, fertilizer, and other agricultural chemicals. Resource rate (amount) units in the equipment dataset must correspond with the units in the feedstock production dataset discussed below, or an error will be given when the data is read into FPEAM. For each activity that involves agricultural equipment, the equipment name must be provided. These are user-defined names that are matched to NONROAD equipment types with the `nonroad_equipment` file discussed further in the NONROAD module section.
 
 TABLE: List of columns and data types in equipment dataset.
 
@@ -148,7 +144,7 @@ TABLE: List of columns and data types in equipment dataset.
 | unit_numerator | string | Numerator of resource rate unit |
 | unit_denominator | string | Denominator of resource rate unit |
 
-Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered, albeit with the numbers stored as characters rather than integers, and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset (discussed in the next section), to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset; any equipment data without matching feedstock production data or vice versa will be excluded from FPEAM calculations.
+Equipment data must be specified at a regional level of resolution, but the exact bounds of each region can be user-defined and at any scale. In the default equipment data, some region identifiers are numbered, albeit with the numbers stored as characters rather than integers, and some are named. Numbered regions correspond to U.S. Farm Resource Regions (FRRs), while named regions correspond to forestry regions. Regions in the equipment dataset must correspond with the regions defined in the feedstock production dataset discussed below to allow feedstock production data to be merged with the equipment data. Feedstocks and tillage types in the equipment dataset must also match those in the feedstock production dataset. Any equipment data without matching feedstock production data or vice versa will be excluded from FPEAM calculations.
 
 The `rotation_year` column in the equipment dataset refers to the year in a multi-year crop rotation such as a switchgrass cropping system. `rotation_year` should not contain calendar years but rather integers greater than or equal to 1. The calendar year in which the rotation begins is specified for each scenario within the FPEAM GUI. This `year` parameter specifies the calendar year in which biomass is first grown, harvested and transported in a scenario.
 
@@ -160,9 +156,9 @@ Equipment data for whole trees and forest residues was obtained from the Forest 
 
 > the Forest Sustainable and Economic Analysis Model (ForSEAM) was originally constructed to estimate forest land production over time and its ability to produce not only traditional forest products, but also products to meet biomass feedstock demands through a cost minimization algorithm (He et al., 2014). The model has three components. The supply component includes general forest production activities for 305 production regions based on USDA’s agricultural supply districts. Each region has a set of production activities defined by the USFS. The Forest Product Demand Component is based on six USFS Scenarios with estimates developed by the US Forest Products Model. The sustainability component ensures that harvest in each region does not exceed annual growth, forest tracts are located within one-half mile of existing roads, and that current year forest attributes reflect previous years’ harvests and fuel removals. The model incorporates dynamic tracking of forest growth.
 
-The default equipment dataset did not originally include loading equipment; rates for this equipment were incorporated into the dataset separately and are shown in the table below.
+The default equipment dataset did not originally include loading equipment. Rates for this equipment were incorporated into the dataset separately and are shown in the table below.
 
-TABLE: Loading equipment information source from BTS 2016. This data was added to the default equipment dataset packaged with the FPEAM code.
+TABLE: Loading equipment information source from the [2016 Update to the Billion Ton Study, Volume 2](https://www.energy.gov/eere/bioenergy/downloads/2016-billion-ton-report-volume-2-environmental-sustainability-effects) (BTS 2016).
  
 | feedstock | equipment type | equipment horsepower | resource | rate | unit |
 | :-------- | :------------: | :------------------: | :------: | :--- | :--- |
@@ -173,11 +169,11 @@ TABLE: Loading equipment information source from BTS 2016. This data was added t
 | corn grain | tractor | 143 | time | 0.017361 | hour/dry short ton |
 | miscanthus | tractor | 143 | time | 0.017361 | hour/dry short ton |
 
-**Feedstock production**. The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by which agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, `equipment_group` (values must match those in the equipment dataset) and `region_production`, that indicate where feedstocks were produced. `region_production` values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the `region_production` column are not FIPS codes, an additional input file giving the mapping of the `region_production` values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
+**Feedstock production**. The feedstock production dataset defines what feedstocks were produced where, in what amounts, and by which agricultural practices. Columns and data within this dataset are described in the table below. This dataset contains two region identifiers, `equipment_group` (these values must match those in the equipment dataset) and `region_production`, that indicate more precisely where feedstocks were produced. `region_production` values in the default feedstock production dataset correspond to the [Federal Information Processing Standards](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/national/home/?cid=nrcs143_013697) (FIPS) codes which identify U.S. counties. If values in the `region_production` column are not FIPS codes, an additional input file giving the mapping of the `region_production` values to FIPS values must be provided in order for MOVES and NONROAD to run successfully; this file is discussed further in the Additional input datasets section.
 
-Latitude and longitude values are also specified for feedstock production and destination locations. These values are used in the router engine. If precise latitude and longitude values are not available for any production or destination locations, these columns can be left blank in the production dataset. Instead, the FIPS for the production and destination locations can be specified, and a lookup table included in the default input data will be used to find the latitude-longitude pairs for the county centroids. 
+Latitude and longitude values are also specified for feedstock production and destination locations. These values are used in the router engine which calculates minimum-distance routes for on-road biomass transportation between farms or forestry locations and biorefineries. If precise latitude and longitude values are not available for any production or destination locations, these columns can be left blank in the production dataset. Instead, the FIPS for the production and destination locations can be specified, and a lookup table included in the default input data will be used to find the latitude-longitude pairs for the county centroids. 
 
-The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the FPEAM GUI.
+The feedstock production dataset, like the equipment dataset, does not contain the calendar year in which feedstock production took place. This is specified using the **Analysis Year** input in the GUI.
 
 TABLE: List of columns in feedstock production data set with data types and descriptions
 
@@ -197,7 +193,7 @@ TABLE: List of columns in feedstock production data set with data types and desc
 | destination_lon | float | Longitude of feedstock destination location |
 | destination_lat | float | Latitude of feedstock destination location |
 
-**Feedstock Loss Factors**. Feedstock dry matter loss is accounted for using loss factors that represent the losses incurred during specific activities and at several key points along the feedstock supply chain. These loss factors were obtained from GREET 2018, from the Herbaceous Feedstock 2018 State of Technology Report prepared by Idaho National Lab, and from values reported in the 2016 Billion Ton Report, Volume 1. Factors for the farm gate supply chain stage represent
+**Feedstock Loss Factors**. Feedstock dry matter loss is accounted for using loss factors that represent the losses incurred during specific activities and at several key points along the feedstock supply chain. These loss factors were obtained from [GREET 2018](https://greet.es.anl.gov/), from the Herbaceous Feedstock 2018 State of Technology Report prepared by Idaho National Laboratory [1.], and from values reported in the [2016 Update to the Billion Ton Study, Volume 1](https://www.energy.gov/sites/prod/files/2016/12/f34/2016_billion_ton_report_12.2.16_0.pdf). Factors for the farm gate supply chain stage represent on-field covered storage and biorefinery gate factors represent dry matter lost during on-road transportation.
 
 TABLE: Dry matter loss factors by feedstock and supply chain stage.
 
@@ -215,13 +211,15 @@ TABLE: Dry matter loss factors by feedstock and supply chain stage.
 | whole trees | biorefinery gate | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
 | forest residues | biorefinery gate | 0.10 | 2016 Billion Ton Report, Vol 1, Table 2.7 (derived value) |
 
-**Transportation Graph**.
+[1.] Roni, M., Thompson, D., Hartley, D., Griffel, M., Hu, H., Nguyen, Q., Cai, H. Herbaceous Feedstock 2018 State of Technology Report. INL/EXT-18-51654. Idaho National Laboratory, September 30, 2018.
+
+**Transportation Graph**. To obtain on-road routes for biomass transportation, the router engine uses a graph of all known, publicly accessible roads in the contiguous U.S., obtained from the [Global Roads Open Access Data Sets](http://sedac.ciesin.columbia.edu/data/set/groads-global-roads-open-access-v1) (gROADS) v1. This graph does not contain transportation pathways such as rivers, canals and train tracks, and therefore limits the transportation modes that can be used in FPEAM to on-road vehicles.
 
 **Node Locations**.
 
-**Truck Capacity**. 
+**Truck Capacity**. This dataset defines the biomass carrying capacity of one truck in mass units by feedstock. 
 
-TABLE: Default truck capacities by feedstock. Source: Billion Ton Study 2016.
+TABLE: Default truck capacities by feedstock. Source: BTS 2016.
 
 | Feedstock | Truck capacity (dry short tons/load) |
 | :-------: | :----------------------------: |
@@ -231,7 +229,7 @@ TABLE: Default truck capacities by feedstock. Source: Billion Ton Study 2016.
 | corn grain | 17.28 |
 | sorghum stubble | 21.10 |
 | forest residues | 16.68 |
-| whole trees | 16.68 |
+| forest whole trees | 16.68 |
 | poplar | 16.68 |
 | willow | 16.68 |
 
@@ -239,11 +237,9 @@ The truck capacity value for forest residues was also used as a proxy value for 
 
 ### Advanced Options
 
-**Logging Level**. Select the level of log messages to be displayed in the Results tab as FPEAM runs.
+**Logging Level**. Select the level of log messages to be displayed in the Results tab and written to a log file as FPEAM runs.
 
-**Use Router Engine**. The router engine locates minimum-distance routes between feedstock production and destination locations and calculates the vehicle miles traveled in each county for each route. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the Router engine is only used internally to FPEAM, there are no user options for running the router.
-
-Currently the Router uses a graph of all known, publicly accessible roads in the contiguous U.S., obtained from the [Global Roads Open Access Data Sets](http://sedac.ciesin.columbia.edu/data/set/groads-global-roads-open-access-v1) (gROADS) v1. This graph does not contain transportation pathways such as rivers, canals and train tracks, and therefore limits the transportation modes that can be used in FPEAM to on-road vehicles such as trucks. Future FPEAM development will expand the available routes to include multiple route types and transportation modes. Dijkstra's algorithm is applied to find the shortest path from the biomass production region to the destination region (both mapped to FIPS as discussed previously), and the shortest path is used to obtain a list of FIPS through which the biomass is transported as well as the vehicle miles traveled within each FIPS.
+**Use Router Engine**. The router engine locates minimum-distance on-road routes between feedstock production and destination locations and calculates the vehicle miles traveled (VMT) in each county for each route. Dijkstra's algorithm is applied to find the shortest path from the biomass production location to the destination, and the shortest path is used to obtain a list of FIPS through which the biomass is transported as well as the vehicle miles traveled within each FIPS. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the router engine is only used internally to FPEAM, there are no user options for running the router.
 
 **Backfill Missing Data**. Users have the option of backfilling any missing numeric data in the input datasets with the default value of 0 or a value of their choice. This option prevents FPEAM from excluding from the results any counties, feedstocks etc. that did not have complete input data for one or more pollutant processes. Instead, the pollutant inventories resulting from incomplete input data will appear in the results as 0. There is no option to backfill categorical and identifier variables (feedstock name, for instance) - if there are missing values in these variables, then the pollutant inventories for those variable values will not be included in the FPEAM results.
 
@@ -356,7 +352,7 @@ These temperatures in degrees Fahrenheit give the minimum, maximum and mean expe
 
 ### Conversion Factors
 
-NONROAD does not directly calculate NH3 emissions or volatile organic carbon (VOC) emissions or PM10 emissions, thus these factors are necessary to calculate NH3 emissions from total diesel consumption, VOC from total hydrocarbon emissions, and PM2.5 emissions from PM10 emissions. The NH3 emission factor is sourced from the [COBRA Screening Model](https://www.epa.gov/statelocalclimate/co-benefits-risk-assessment-cobra-screening-model.) developed by the U.S. EPA, and the total hydrocarbon to VOC conversion factor is sourced from EPA NONROAD Conversion Factors for Hydrocarbon Emission Components. 
+NONROAD does not directly calculate NH3 emissions or volatile organic carbon (VOC) emissions or PM<sub>10</sub> emissions, thus these factors are necessary to calculate NH3 emissions from total diesel consumption, VOC from total hydrocarbon emissions, and PM<sub>2.5</sub>emissions from PM<sub>10</sub> emissions. The NH3 emission factor is sourced from the [COBRA Screening Model](https://www.epa.gov/statelocalclimate/co-benefits-risk-assessment-cobra-screening-model.) developed by the U.S. EPA, and the total hydrocarbon to VOC conversion factor is sourced from EPA NONROAD Conversion Factors for Hydrocarbon Emission Components. 
 
 ### Advanced Options
 
@@ -420,7 +416,7 @@ TABLE: List of columns and data types in fugitive dust emissions factors dataset
 | :---------- | :-------: | :---------- |
 | feedstock	| string | Feedstock being grown |
 | tillage_type | string | Type of tillage practice | 
-| pollutant | string | Identifies if the rate is for PM10 or PM2.5 |
+| pollutant | string | Identifies if the rate is for PM<sub>10</sub> or PM<sub>2.5</sub>|
 | rate | float | Amount of fugitive dust generated per acre for the feedstock specified in an average year |
 | unit_numerator | string | Numerator of rate unit |
 | unit_denominator | string | Denominator of rate unit |
