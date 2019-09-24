@@ -1172,33 +1172,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.emptyPlainText2.setFixedHeight(30)
         self.timeframeMOVESGridLayout.addWidget(self.emptyPlainText2, 3, 2)
 
-        # Created UI element Timestamp - Date
-        self.labelDate = self.createLabelSmall(text="Day of Month")
-        self.labelDate.setStyleSheet(" border: 1px solid #000000; ")
-        self.labelDate.setObjectName("allLabels")
-        self.comboBoxDate = QComboBox(self)
-        self.comboBoxDate.setStyleSheet(" border: 1px solid #000000; ")
-        self.comboBoxDate.setFixedWidth(125)
-        self.comboBoxDate.setFixedHeight(30)
-        for i in range(1, 32):
-            self.number = i
-            self.comboBoxDate.addItem(str(i))
-        self.index = self.comboBoxDate.findText("5")
-        self.comboBoxDate.setCurrentIndex(self.index)
-        self.comboBoxDate.setEditable(True)
-        self.leditDate = self.comboBoxDate.lineEdit()
-        self.leditDate.setAlignment(QtCore.Qt.AlignCenter)
-        self.leditDate = self.comboBoxDate.lineEdit()
-        self.leditDate.setReadOnly(True)
-        self.timeframeMOVESGridLayout.addWidget(self.labelDate, 3, 3)
-        self.timeframeMOVESGridLayout.addWidget(self.comboBoxDate, 3, 4)
-
-        # Add Vertical Space between the elements
-        emptyLabelE = QLabel()
-        emptyLabelE.setFixedHeight(10)
-        emptyLabelE.setStyleSheet("border: white")
-        self.timeframeMOVESGridLayout.addWidget(emptyLabelE, 4, 0, 1, 4)
-
         # Created UI element Timestamp - Beginning Hour
         self.labelBegHr = self.createLabelSmall(text="Beginning Hour")
         self.labelBegHr.setStyleSheet(" border: 1px solid #000000; ")
@@ -1217,15 +1190,15 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditBeghr.setAlignment(QtCore.Qt.AlignCenter)
         self.leditBeghr = self.comboBoxBegHr.lineEdit()
         self.leditBeghr.setReadOnly(True)
-        self.timeframeMOVESGridLayout.addWidget(self.labelBegHr, 5, 0)
-        self.timeframeMOVESGridLayout.addWidget(self.comboBoxBegHr, 5, 1)
+        self.timeframeMOVESGridLayout.addWidget(self.labelBegHr, 4, 0)
+        self.timeframeMOVESGridLayout.addWidget(self.comboBoxBegHr, 4, 1)
 
         # Add Empty PlainText - adjust horizontal space
         self.emptyPlainText2 = QLabel()
         self.emptyPlainText2.setStyleSheet("border-color: white;")
         self.emptyPlainText2.setFixedWidth(55)
         self.emptyPlainText2.setFixedHeight(30)
-        self.timeframeMOVESGridLayout.addWidget(self.emptyPlainText2, 5, 2)
+        self.timeframeMOVESGridLayout.addWidget(self.emptyPlainText2, 4, 2)
 
         # Created UI element Timestamp - Ending Hour
         self.labelEndHr = self.createLabelSmall(text="Ending Hour")
@@ -1245,14 +1218,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditEndhr.setAlignment(QtCore.Qt.AlignCenter)
         self.leditEndhr = self.comboBoxEndHr.lineEdit()
         self.leditEndhr.setReadOnly(True)
-        self.timeframeMOVESGridLayout.addWidget(self.labelEndHr, 5, 3)
-        self.timeframeMOVESGridLayout.addWidget(self.comboBoxEndHr, 5, 4)
+        self.timeframeMOVESGridLayout.addWidget(self.labelEndHr, 4, 3)
+        self.timeframeMOVESGridLayout.addWidget(self.comboBoxEndHr, 4, 4)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
-        self.timeframeMOVESGridLayout.addWidget(emptyLabelE, 6, 0, 1, 4)
+        self.timeframeMOVESGridLayout.addWidget(emptyLabelE, 5, 0, 1, 4)
 
         # Created UI element Timestamp - Day Type
         self.labelDayType = self.createLabelSmall(text="Day Type")
@@ -1271,14 +1244,14 @@ class AlltabsModule(QtWidgets.QWidget):
         self.leditDayType.setAlignment(QtCore.Qt.AlignCenter)
         self.leditDayType = self.comboBoxDayType.lineEdit()
         self.leditDayType.setReadOnly(True)
-        self.timeframeMOVESGridLayout.addWidget(self.labelDayType, 7, 0)
-        self.timeframeMOVESGridLayout.addWidget(self.comboBoxDayType, 7, 1)
+        self.timeframeMOVESGridLayout.addWidget(self.labelDayType, 6, 0)
+        self.timeframeMOVESGridLayout.addWidget(self.comboBoxDayType, 6, 1)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(10)
         emptyLabelE.setStyleSheet("border: white")
-        self.timeframeMOVESGridLayout.addWidget(emptyLabelE, 8, 0, 1, 4)
+        self.timeframeMOVESGridLayout.addWidget(emptyLabelE, 7, 0, 1, 4)
 
         # Custom Data Filepaths Label MOVES
         self.customDataFilepathsLabelM = QLabel()
