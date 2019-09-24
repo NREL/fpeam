@@ -126,6 +126,8 @@ All other inputs on the Home tab are parameter values and input datasets that ar
 
 ### Custom Data Filepaths
 
+![Screenshot of the Custom Data Filepaths section on the Home tab](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/home-customdatafilepaths.PNG)
+
 **Equipment use**. The equipment dataset defines the agricultural activities involved in feedstock production. Columns and data types in this dataset are defined in the table below. The equipment dataset defines the equipment used for each agricultural activity (in the default equipment dataset, activities consist of establishment, maintenance, harvest and loading, but additional or alternate activities may be specified as needed) as well as the resources consumed, such as fuel, time, fertilizer, and other agricultural chemicals. Resource rate (amount) units in the equipment dataset must correspond with the units in the feedstock production dataset discussed below, or an error will be given when the data is read into FPEAM. For each activity that involves agricultural equipment, the equipment name must be provided. These are user-defined names that are matched to NONROAD equipment types with the `nonroad_equipment` file discussed further in the NONROAD module section.
 
 TABLE: List of columns and data types in equipment dataset.
@@ -237,6 +239,8 @@ The truck capacity value for forest residues was also used as a proxy value for 
 
 ### Advanced Options
 
+![Screenshot of the Advanced Options section on the Home Tab](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/home-advancedoptions.PNG)
+
 **Logging Level**. Select the level of log messages to be displayed in the Results tab and written to a log file as FPEAM runs.
 
 **Use Router Engine**. The router engine locates minimum-distance on-road routes between feedstock production and destination locations and calculates the vehicle miles traveled (VMT) in each county for each route. Dijkstra's algorithm is applied to find the shortest path from the biomass production location to the destination, and the shortest path is used to obtain a list of FIPS through which the biomass is transported as well as the vehicle miles traveled within each FIPS. This information is used with the emission factors obtained from MOVES to calculate emissions within each FIPS where biomass is produced, transported and delivered. Due to MOVES' long run time, emission factors are not obtained for every FIPS through which biomass is transported; however, this functionality can be added in the future if there is demand. Because the router engine is only used internally to FPEAM, there are no user options for running the router.
@@ -249,13 +253,25 @@ The truck capacity value for forest residues was also used as a proxy value for 
 
 ## MOVES
 
-Emissions from feedstock transportation are by default calculated using version 2014a of the EPA's Motor Vehicle Emission Simulator (MOVES) model. FPEAM creates all required input files and runs MOVES in batch mode, using a set of parameters listed below to determine at what level of detail MOVES is run. Following the MOVES run(s), emission rates for vehicle operation and start and hotelling are postprocessed with feedstock production data, truck capacity data and feedstock transportation routes to calculate total pollutant amounts.
+![Screenshot of the top of the MOVES tab](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/moves-top.PNG)
 
-Currently the FPEAM MOVES module can only run MOVES at the FIPS (county) level, although development is planned to allow users to run MOVES on a project level, where a project may encompass part of a county or parts of several counties. The FIPS for which MOVES is run are determined from region_production values in the feedstock production set, which are mapped to FIPS using the user-provided region-to-FIPS map discussed in the previous section.
+Emissions from feedstock transportation are by default calculated using version 2014b of the EPA's MOtor Vehicle Emission Simulator (MOVES) model. FPEAM creates all required input files and runs MOVES in batch mode, using a set of parameters listed below to determine at what level of detail MOVES is run. Following the MOVES run(s), emission rates for vehicle operation and start and hotelling are postprocessed with feedstock production data, truck capacity data and feedstock transportation routes to calculate total pollutant amounts.
 
-MOVES can be run for all FIPS for which a mapping from region_production to FIPS was provided, or at two levels of aggregation: one FIPS per state based on which FIPS had the highest total feedstock production, or multiple FIPS per states based on which FIPS had the highest production of each feedstock. By default, MOVES is run once per state with FIPS selected based on highest total feedstock production. This aggregation is done by default to keep FPEAM run times reasonable; MOVES requires between 10 and 15 minutes to run each FIPS and can easily extend model run times into days.
+Currently the FPEAM MOVES module can only run MOVES at the FIPS (county) level. The FIPS for which MOVES is run are determined from `region_production` values in the feedstock production set, which are mapped to FIPS using the region-to-FIPS map discussed below under Custom Data Filepaths.
+
+**Aggregation Level**. MOVES can be run for all FIPS for which a mapping from `region_production` to FIPS was provided, or at two levels of aggregation: one FIPS per state based on which FIPS had the highest total feedstock production ("By State"), or multiple FIPS per states based on which FIPS had the highest production of each feedstock ("By State-Feedstock"). By default, MOVES is run once per state with FIPS selected based on highest total feedstock production. This aggregation is done by default to keep FPEAM run times reasonable; MOVES requires between 10 and 15 minutes to run each FIPS and can easily extend model run times into days. Users can also select the "By County" aggregation level to run MOVES for every region in which feedstock is produced.
+
+**Use Cached Results**. When True is selected, any MOVES results already saved to the MOVES output database (specified under Database Connection Parameters on this tab) for the FIPS being analyzed will be used instead of running MOVES again.
+
+**Executable Path**. This is the directory where MOVES is installed. Use this input to select between MOVES 2014a and 2014b, if necessary.
+
+**MOVES Datafiles**. This directory is where the batch and other input files created for the current scenario are saved.
+
+**Feedstock Measure Type**. The feedstock production dataset has several feedstock measure types. For MOVES, specify the measure type that has mass units (dry short tons, in the case of the default dataset). The feedstock mass produced in each county will then be used to calculate the number of farm-to-biorefinery trips required.
 
 ### Database Connection Parameters
+
+![Screenshot of the Database Connection Parameters section of the MOVES tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/moves-databaseconnectionparams.PNG)
 
 **Database Host**. The Host is the machine on which the MOVES databases are installed. For users running FPEAM locally, the database host should always be left as the default.
 
@@ -269,6 +285,8 @@ MOVES can be run for all FIPS for which a mapping from region_production to FIPS
 
 ### Execution Timeframe
 
+![Screenshot of the Execution Timeframe section of the MOVES tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/moves-executiontimeframe.PNG)
+
 **Analysis Year**. The year in which feedstock is grown and harvested. This value must match the analysis year defined on the NONROAD tab, and should correspond to the year of the feedstock production dataset being used. If the MOVES and NONROAD years do not match, then FPEAM cannot be run.
 
 **Month**. The month in which the transportation takes place. The default value of 10 indicates October.
@@ -281,11 +299,15 @@ This execution timeframe represents a typical post-harvest day for most feedstoc
 
 ### Custom Data Filepaths
 
+![Screenshot of the Custom Data Filepaths section of the MOVES tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/moves-customdatafilepaths.PNG)
+
 **AVFT**. This dataset ("Alternative Vehicle and Fuels Technology") defines the vehicle fleet  in use during the execution timeframe. Custom AVFT files can be generated using MOVES itself; however, the default file should suffice for present-day and near-future scenarios.
 
 **Region to FIPS Map**. The region to FIPS map provides a mapping of region identifiers to FIPS. In the case that the input datasets are based on FIPS, this dataset can be ignored.
 
 ### VMT Fractions
+
+![Screenshot of the VMT Fractions section of the MOVES tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/moves-vmtfractions.PNG)
 
 **Restricted** roads are accessed by entrance and exit ramps, including highways. **Unrestricted** roads are all other roads. 
 
@@ -302,6 +324,8 @@ TABLE: Default VMT fraction values.
 | 5 | Urban unrestricted | 0.21 |
 
 ### Advanced Options
+
+![Screenshot of the Advanced Options section of the MOVES tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/moves-advancedoptions.PNG)
 
 **Number of Trucks Used**. The number of trucks used for feedstock transportation. If this number is increased then emissions per vehicle and per vehicle start/stop will increase but emissions for vehicle miles traveled will remain the same. Changing this parameter is unlikely to have a significant impact on the overall pollutant inventory.
 
