@@ -503,16 +503,23 @@ TABLE: Sample values for silt content (s<sub>st</sub>). The complete list can be
 | Alaska  | 3.8            |
 | Arizona | 3.0            |
 
-
 ## Results
 
-
+There are no input options on the Results tab, which appears blank when the GUI is first opened and before a scenario is run. While FPEAM is running, log outputs will appear on this tab. After a scenario has completed, basic visualizations will be shown.
 
 # Module Calculations and Assumptions
 
-
-
 ## MOVES
+
+The MOVES module performs all functions necessary to run MOVES for a single FPEAM scenario, including creating input data files, creating XML files for importing data and defining MOVES runs, executing MOVES, calling the router engine to find transportation routes, and postprocessing raw MOVES results into pollutant amounts by FIPS. 
+
+MOVES requires two types of input files: national files, which are used for all FIPS, and county files which vary by FIPS. The methods `_create_national_data` and `_create_county_data` create the national and county input files using data pulled from the default MOVES database and user input data and parameters. `_create_national_data` is run only once per FPEAM scenario (the files will change based on the scenario year and vehicle selection) while `_create_county_data` is run for every relevant FIPS. Both types of input files are saved to the MOVES data directory and currently are overwritten if a different data directory is not specified for each FPEAM scenario. National input files are named according to their contents, and county input files are further identified by the corresponding FIPS.
+
+The files that MOVES uses to find input data and execute runs are both XML files. One file controls the input data import and is created in the `_create_xml_import` method; the other file ("runspec") controls the MOVES run specifications and is created in the `_create_xml_runspec` method. Both methods are run once for every FIPS in an FPEAM scenario. The import and runspec file are saved in the MOVES data directory and named according to the corresponding FIPS and scenario year. Runspec and import files are overwritten if multiple FPEAM scenarios with the same FIPS and scenario year are run.
+
+After MOVES is run, the `postprocess` method is used to extract raw MOVES output from the MOVES output database and calculate emission rates per vehicle (for start and hotelling emissions) and per vehicle-mile (for transportation emissions). `postprocess` also calls the Router module to obtain vehicle miles traveled through each FIPS involved in a transportation routes. Output of the Router module is used with the emission rates per vehicle-mile to calculate total pollutants in every FIPS through which biomass is transported. The `postprocess` method is called only once per FPEAM scenario, and creates a data table of pollutants that is combined with the output from other modules to create the overall FPEAM results.
+
+Each of these methods is called by the `run` method, which also preprocesses a copy of the feedstock production dataset to determine for which FIPS MOVES should be run. User input parameters determine if MOVES is run once per state, several times per state, or for every FIPS in the input database, and are combined with the feedstock production dataset to pull out a list of FIPS to run MOVES on. `run` also calls the `_get_cached_results` method which checks the MOVES output database to determine if raw MOVES results already exist for any of the FIPS and years involved in an FPEAM scenario. Users can opt to use these cached results with the use_cached_results parameter or run MOVES for every FIPS regardless of whether results already exist.
 
 ## NONROAD
 
@@ -530,18 +537,17 @@ The `run` method calls all other methods including the `postprocess` method. Pos
 
 The EmissionFactors module was developed from a module in the previous version of FPEAM that calculated NO<sub>x</sub> and NH<sub>3</sub> emissions from nitrogen fertilizer application and VOC emissions from herbicide and insecticide application. Rather than limit the module functionality to these pollutants and pollutant causes, the EmissionFactors module was written to calculate any pollutant from any pollutant process if sufficient input data is provided. This flexibility allows users to model pollutants from other fertilizers and agricultural chemicals, and could allow EmissionFactors to replace MOVES and NONROAD in the calculation of agricultural equipment and transportation vehicle emissions, albeit with a loss in spatial detail.
 
-VOC emission factors from application of herbicides and insecticides were calculated from the following equation: (Zhang et al., 2015):
+VOC emission factors from application of herbicides and insecticides were calculated from the following equation: ([Zhang et al., 2015](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620)):
 
 VOC (lb/acre/year) = R * I * ER * C<sub>VOC</sub>
 
-where R is the pesticide or herbicide application rate (lb/harvested acre/year), I is the amount of active ingredient per pound of pesticide or herbicide (lb active ingredient/lb chemical, assumed to be 1), ER is the evaporation rate (assumed to be 0.9 per EPA recommendations from emissions inventory improvement program guidance) and C<sub>VOC</sub> is the VOC content in the active ingredient (lb VOC/lb active ingredient, assumed to be 0.835 per Huntley 2015 revision of 2011 NEI technical support document).
+where R is the pesticide or herbicide application rate (lb/harvested acre/year), I is the amount of active ingredient per pound of pesticide or herbicide (lb active ingredient/lb chemical, assumed to be 1), ER is the evaporation rate (assumed to be 0.9 per EPA recommendations from emissions inventory improvement program guidance) and C<sub>VOC</sub> is the VOC content in the active ingredient (lb VOC/lb active ingredient, assumed to be 0.835) ( [Huntley 2015](https://www.epa.gov/air-emissions-inventories/2011-national-emissions-inventory-nei-technical-support-document) ).
 
 ## Fugitive Dust
 
 The fugitive dust module calculates PM<sub>2.5</sub> and PM<sub>10</sub> emissions from on-farm (harvest and non-harvest) activities and on-road feedstock transportation over paved and unpaved roads.
 
-On-road PM<sub>10</sub> and PM<sub>2.5</sub> emissions are calculated using empirical functions, parameters and data from EPA
- ([2006](https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf), [2011](https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0201.pdf)), [INL 2016](https://inldigitallibrary.inl.gov/sti/6038147.pdf) and [DOE 2016](http://energy.gov/sites/prod/files/2016/07/f33/2016_billion_ton_report_0.pdf). Additional information is available in the Appendix to Chapter 9 of the Billion Ton Study 2016 Update.
+On-road PM<sub>10</sub> and PM<sub>2.5</sub> emissions are calculated using empirical functions, parameters and data from ([EPA 2006](https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0202.pdf), [EPA 2011](https://www3.epa.gov/ttn/chief/ap42/ch13/final/c13s0201.pdf)), [INL 2016](https://inldigitallibrary.inl.gov/sti/6038147.pdf) and [DOE 2016](http://energy.gov/sites/prod/files/2016/07/f33/2016_billion_ton_report_0.pdf). Additional information is available in the Appendix to Chapter 9 of the Billion Ton Study 2016 Update.
 
 EQUATION: On-paved-road particulate matter (*P = {PM<sub>10</sub>, PM<sub>2.5</sub>}*) in lb per vehicle mile traveled over paved roads. Values for parameters <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;k_P,&space;s_L,&space;a_P,&space;W" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;k_P,&space;s_L,&space;a_P,&space;W" title="k_P, s_L, a_P, W" /></a> and <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;b_P" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;b_P" title="b_P" /></a> are given in the table following.
 
