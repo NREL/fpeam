@@ -2968,6 +2968,14 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
+        # link to readme section
+        self.fugdusthelplink = QLabel()
+        self.fugdusthelplink.setText(self.createLink("https://github.com/NREL/fpeam/tree/dev#fugitive-dust",
+                                                     "Readme"))
+        self.fugdusthelplink.setOpenExternalLinks(True)
+        self.fugdusthelplink.setFixedHeight(30)
+        self.windowLayout.addWidget(self.fugdusthelplink, 1, 0, 1, 4)
+
         # Created UI element on-farm Feedstock Measure Type - Fugitive Dust
         self.labelOnfarmFeedMeasureTypeFD = self.createLabelBig(text="On-Farm Feedstock" + "\n" + "Measure Type")
         self.labelOnfarmFeedMeasureTypeFD.setObjectName("allLabels")
@@ -2980,13 +2988,13 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditOnfarmFeedMeasureTypeFD.setValidator(validator)
         self.lineEditOnfarmFeedMeasureTypeFD.setText("harvested")
-        self.windowLayout.addWidget(self.labelOnfarmFeedMeasureTypeFD, 1, 0)
-        self.windowLayout.addWidget(self.lineEditOnfarmFeedMeasureTypeFD, 1, 1)
+        self.windowLayout.addWidget(self.labelOnfarmFeedMeasureTypeFD, 2, 0)
+        self.windowLayout.addWidget(self.lineEditOnfarmFeedMeasureTypeFD, 2, 1)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(20)
-        self.windowLayout.addWidget(emptyLabelE, 2, 0, 1, 5)
+        self.windowLayout.addWidget(emptyLabelE, 3, 0, 1, 5)
 
         # Created UI element on-road Feedstock Measure Type - Fugitive Dust
         self.labelOnroadFeedMeasureTypeFD = self.createLabelBig(text="On-Road Feedstock" + "\n" + "Measure Type")
@@ -3000,20 +3008,22 @@ class AlltabsModule(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(regex)
         self.lineEditOnroadFeedMeasureTypeFD.setValidator(validator)
         self.lineEditOnroadFeedMeasureTypeFD.setText("production")
-        self.windowLayout.addWidget(self.labelOnroadFeedMeasureTypeFD, 3, 0)
-        self.windowLayout.addWidget(self.lineEditOnroadFeedMeasureTypeFD, 3, 1)
+        self.windowLayout.addWidget(self.labelOnroadFeedMeasureTypeFD, 4, 0)
+        self.windowLayout.addWidget(self.lineEditOnroadFeedMeasureTypeFD, 4, 1)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(20)
-        self.windowLayout.addWidget(emptyLabelE, 4, 0, 1, 5)
+        self.windowLayout.addWidget(emptyLabelE, 5, 0, 1, 5)
 
         # Custom Data Filepaths Label FD
         self.customDataFilepathLabelFD = QLabel()
-        self.customDataFilepathLabelFD.setText("Custom Data Filepaths")
+        self.customDataFilepathLabelFD.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#custom-data-filepaths-4",
+                                                                      "Custom Data Filepaths"))
+        self.customDataFilepathLabelFD.setOpenExternalLinks(True)
         self.customDataFilepathLabelFD.setFixedHeight(30)
         self.customDataFilepathLabelFD.setObjectName("subTitleLabels")
-        self.windowLayout.addWidget(self.customDataFilepathLabelFD, 5, 0, 1, 4)
+        self.windowLayout.addWidget(self.customDataFilepathLabelFD, 6, 0, 1, 4)
 
         # Created UI element - Custom Datafiles below Line
         self.labelCustomDatafilsLine = QLabel()
@@ -3021,7 +3031,7 @@ class AlltabsModule(QtWidgets.QWidget):
         pixmap1 = pixmapLine1.scaledToHeight(15)
         self.labelCustomDatafilsLine.setPixmap(pixmap1)
         self.resize(pixmap1.width(), pixmap1.height())
-        self.windowLayout.addWidget(self.labelCustomDatafilsLine, 6, 0, 1, 5)
+        self.windowLayout.addWidget(self.labelCustomDatafilsLine, 7, 0, 1, 5)
 
         # Expand/Collapse code
         # Created UI element Custom Datafiles FD
@@ -3031,7 +3041,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.labelcustomDatafileFDExpand.setObjectName("expandCollapseIcon")
         self.labelcustomDatafileFDExpand.setIconSize(QtCore.QSize(28, 28))
         self.labelcustomDatafileFDExpand.setIcon(QtGui.QIcon('plus.png'))
-        self.windowLayout.addWidget(self.labelcustomDatafileFDExpand, 5, 4)
+        self.windowLayout.addWidget(self.labelcustomDatafileFDExpand, 6, 4)
 
         self.customDatafileFDexpandWidget = QtWidgets.QWidget()
         self.customDatafileFDexpandWidget.setStyleSheet(
@@ -3039,7 +3049,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.customDatafileFDGridLayout = QtWidgets.QGridLayout()
         self.customDatafileFDexpandWidget.setLayout(self.customDatafileFDGridLayout)
         self.customDatafileFDexpandWidget.setVisible(False)
-        self.windowLayout.addWidget(self.customDatafileFDexpandWidget, 7, 0, 1, 4)
+        self.windowLayout.addWidget(self.customDatafileFDexpandWidget, 8, 0, 1, 4)
 
         def labelCustomDatafileFDOnClickEvent():
             if self.customDatafileFDexpandWidget.isVisible():
