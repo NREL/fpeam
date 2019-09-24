@@ -748,10 +748,18 @@ class AlltabsModule(QtWidgets.QWidget):
         self.scrollAreaMOVES.setWidget(self.innerWidgetMOVES)
         self.innerWidgetMOVES.setLayout(self.windowLayout)
 
-        # Add Vertical space at the top
+        # Add Vertical space at the top @todo
         emptyLabelTop = QLabel()
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
+
+        # add link to readme in upper-left-hand corner of tab
+        self.moveshelplink = QLabel()
+        self.moveshelplink.setText(self.createLink("https://github.com/NREL/fpeam/tree/dev#moves",
+                                                   "Readme"))
+        self.moveshelplink.setOpenExternalLinks(True)
+        self.moveshelplink.setFixedHeight(30)
+        self.windowLayout.addWidget(self.moveshelplink, 1, 0, 1, 4)
 
         # Created UI element Aggregation Level - MOVES
         self.labelAggLevel = self.createLabelBig(text="Aggregation Level")
@@ -843,7 +851,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Database Connection Parameters Label
         self.dbConnectionParaLabel = QLabel()
-        self.dbConnectionParaLabel.setText("Database Connection Parameters")
+        self.dbConnectionParaLabel.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#database-connection-parameters",
+                                                                  "Database Connection Parameters"))
+        self.dbConnectionParaLabel.setOpenExternalLinks(True)
         self.dbConnectionParaLabel.setFixedHeight(30)
         self.dbConnectionParaLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.dbConnectionParaLabel, 7, 0, 1, 4)
@@ -1048,7 +1058,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Execution Timeframe Label
         self.executionTimeLabel = QLabel()
-        self.executionTimeLabel.setText("Execution Timeframe")
+        self.executionTimeLabel.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#execution-timeframe",
+                                                               "Execution Timeframe"))
+        self.executionTimeLabel.setOpenExternalLinks(True)
         self.executionTimeLabel.setFixedHeight(30)
         self.executionTimeLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.executionTimeLabel, 11, 0, 1, 4)
@@ -1270,7 +1282,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Custom Data Filepaths Label MOVES
         self.customDataFilepathsLabelM = QLabel()
-        self.customDataFilepathsLabelM.setText("Custom Data Filepaths")
+        self.customDataFilepathsLabelM.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#custom-data-filepaths-1",
+                                                                      "Custom Data Filepaths"))
+        self.customDataFilepathsLabelM.setOpenExternalLinks(True)
         self.customDataFilepathsLabelM.setFixedHeight(30)
         self.customDataFilepathsLabelM.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.customDataFilepathsLabelM, 17, 0, 1, 4)
@@ -1367,7 +1381,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Created UI element VMT Fractions
         self.labelVMTFraction = QLabel()
-        self.labelVMTFraction.setText("VMT Fractions")
+        self.labelVMTFraction.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#vmt-fractions",
+                                                             "VMT Fractions"))
+        self.labelVMTFraction.setOpenExternalLinks(True)
         self.labelVMTFraction.setToolTip("Fraction of vehicle miles traveled (VMT) by road type (must sum to 1)")
         self.labelVMTFraction.setFixedHeight(30)
         self.labelVMTFraction.setObjectName("subTitleLabels")
@@ -1506,7 +1522,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Advanced Options Label MOVES
         self.advOptionsLabelM = QLabel()
-        self.advOptionsLabelM.setText("Advanced Options")
+        self.advOptionsLabelM.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#advanced-options-1",
+                                                             "Advanced Options"))
+        self.advOptionsLabelM.setOpenExternalLinks(True)
         self.advOptionsLabelM.setFixedHeight(30)
         self.advOptionsLabelM.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.advOptionsLabelM, 27, 0, 1, 4)
