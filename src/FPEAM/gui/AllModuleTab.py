@@ -2697,6 +2697,14 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
+        # link to readme in upper left corner
+        self.emfactorhelplink = QLabel()
+        self.emfactorhelplink.setText(self.createLink("https://github.com/NREL/fpeam/tree/dev#emission-factors",
+                                                      "Readme"))
+        self.emfactorhelplink.setOpenExternalLinks(True)
+        self.emfactorhelplink.setFixedHeight(30)
+        self.windowLayout.addWidget(self.emfactorhelplink, 1, 0, 1, 4)
+
         # Created UI element Feedstock Measure Type Emission Factors
         self.labelFeedMeasureTypeEF = self.createLabelBig(text="Feedstock Measure" + "\n" + " Type")
         self.labelFeedMeasureTypeEF.setObjectName("allLabels")
@@ -2719,7 +2727,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Custom Data Filepaths Label EF
         self.customDataFilepathLabelEF = QLabel()
-        self.customDataFilepathLabelEF.setText("Custom Data Filepaths")
+        self.customDataFilepathLabelEF.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#custom-data-filepaths-3",
+                                                                      "Custom Data Filepaths"))
+        self.customDataFilepathLabelEF.setOpenExternalLinks(True)
         self.customDataFilepathLabelEF.setFixedHeight(30)
         self.customDataFilepathLabelEF.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.customDataFilepathLabelEF, 4, 0, 1, 4)
