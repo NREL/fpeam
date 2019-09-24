@@ -1736,6 +1736,14 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
 
+        # add link to readme in upper-left-hand corner of tab
+        self.nonroadhelplink = QLabel()
+        self.nonroadhelplink.setText(self.createLink("https://github.com/NREL/fpeam/tree/dev#nonroad",
+                                                   "Readme"))
+        self.nonroadhelplink.setOpenExternalLinks(True)
+        self.nonroadhelplink.setFixedHeight(30)
+        self.windowLayout.addWidget(self.nonroadhelplink, 1, 0, 1, 4)
+
         # Created UI element NONROAD Datafiles
         self.labelDatafilesNon = self.createLabelSmall(text="Data Folder")
         self.labelDatafilesNon.setObjectName("allLabels")
@@ -1793,7 +1801,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Database Connection Parameters Label NONROAD
         self.dbConnectionParaLabelN = QLabel()
-        self.dbConnectionParaLabelN.setText("Database Connection Parameters")
+        self.dbConnectionParaLabelN.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#database-connection-parameters-1",
+                                                                   "Database Connection Parameters"))
+        self.dbConnectionParaLabelN.setOpenExternalLinks(True)
         self.dbConnectionParaLabelN.setFixedHeight(30)
         self.dbConnectionParaLabelN.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.dbConnectionParaLabelN, 5, 0, 1, 4)
@@ -1931,7 +1941,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Data Label
         self.dataLabel = QLabel()
-        self.dataLabel.setText("Data Labels")
+        self.dataLabel.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#data-labels",
+                                                      "Data Labels"))
+        self.dataLabel.setOpenExternalLinks(True)
         self.dataLabel.setFixedHeight(30)
         self.dataLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.dataLabel, 8, 0, 1, 4)
@@ -2078,7 +2090,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Custom Data Filepaths Label
         self.cusromDatafileLabel = QLabel()
-        self.cusromDatafileLabel.setText("Custom Data Filepaths")
+        self.cusromDatafileLabel.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#custom-data-filepaths-2",
+                                                                "Custom Data Filepaths"))
+        self.cusromDatafileLabel.setOpenExternalLinks(True)
         self.cusromDatafileLabel.setFixedHeight(30)
         self.cusromDatafileLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.cusromDatafileLabel, 13, 0, 1, 4)
@@ -2198,7 +2212,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Operating Temperature Label
         self.opTempLabel = QLabel()
-        self.opTempLabel.setText("Operating Temperature")
+        self.opTempLabel.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#operating-temperature",
+                                                        "Operating Temperature"))
+        self.opTempLabel.setOpenExternalLinks(True)
         self.opTempLabel.setFixedHeight(30)
         self.opTempLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.opTempLabel, 17, 0, 1, 4)
@@ -2313,7 +2329,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Conversion Factors Label
         self.convFactorsLabel = QLabel()
-        self.convFactorsLabel.setText("Conversion Factors")
+        self.convFactorsLabel.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#conversion-factors",
+                                                             "Conversion Factors"))
+        self.convFactorsLabel.setOpenExternalLinks(True)
         self.convFactorsLabel.setFixedHeight(30)
         self.convFactorsLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.convFactorsLabel, 21, 0, 1, 4)
@@ -2454,7 +2472,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Advanced Options Label
         self.advOptionsLabelN = QLabel()
-        self.advOptionsLabelN.setText("Advanced Options")
+        self.advOptionsLabelN.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#advanced-options-2",
+                                                             "Advanced Options"))
+        self.advOptionsLabelN.setOpenExternalLinks(True)
         self.advOptionsLabelN.setFixedHeight(30)
         self.advOptionsLabelN.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.advOptionsLabelN, 25, 0, 1, 4)
