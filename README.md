@@ -55,7 +55,7 @@ After defining the necessary config files, the following syntax is used to run a
 
 `fpeam --[module name]_config [module config file name].ini [run config file name]`
 
-where there is one `--[module_name]_config [module config file name].ini` combination for each module being run.
+where there is one `--[module_name]_config [module config file name].ini` combination for each module being run and the square-bracketed phrases should be replaced with module names and config file names.
 
 Users can also enter `fpeam --help` to see additional command line syntax.
 
@@ -76,13 +76,13 @@ FPEAM is written in Python 3 and requires Python 3.5 or above to be installed. F
 * matplotlib
 * qtpy
 
-The most up-to-date version available of each package should be installed.
+The most up-to-date version available of each package should be installed. Using `conda install` for any new packages is strongly recommended, if Python was installed with Anaconda.
 
 ## MOVES and NONROAD
 
 FPEAM calls the U.S. Environmental Protection Agency's (EPA) MOtor Vehicle Emission Simulator (MOVES) model to calculate pollutants generated during on-road feedstock transportation. NONROAD, a similar model for off-road vehicles including agricultural and forestry equipment, is packaged with MOVES. The latest version of MOVES can be downloaded from the [EPA website](https://www.epa.gov/moves/latest-version-motor-vehicle-emission-simulator-moves) and installed using the built-in installation helper.
 
-MOVES should not be installed to the default directory recommended by the installer. Instead, create a directory called MOVES2014b or a similar, brief name directly under the C:\ drive and install MOVES to that location. It is necessary to keep filepaths associated with NONROAD (packaged with MOVES) under 30 characters, or else NONROAD will not process the complete filepath. Installing MOVES to this C:\MOVES2014b directory will make running NONROAD through FPEAM possible.
+**MOVES should not be installed to the default directory recommended by the installer.** Instead, create a directory called MOVES2014b or a similar, brief name directly under the C:\ drive and install MOVES to that location. It is necessary to keep filepaths associated with NONROAD (packaged with MOVES) under 30 characters, or else NONROAD will not process the complete filepath. Installing MOVES to this C:\MOVES2014b directory will make running NONROAD through FPEAM possible.
 
 MOVES itself has several dependencies including MySQL, installation instructions for which will be provided during the MOVES installation process. 
 
