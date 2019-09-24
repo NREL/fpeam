@@ -398,9 +398,15 @@ NONROAD does not directly calculate NH<sub>3</sub> emissions or volatile organic
 
 ## Emission Factors
 
+![Screenshot of the top of the Emission Factors tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/emissionfactors-top.PNG)
+
+**Feedstock Measure Type**. As seen previously, the Emission Factors calculation runs off a specific measure of feedstock, in this case `harvested` which is in units of acres. Acres are required because the emission factors calculation also uses resource rates from the equipment dataset, which are in units of mass per acre. An alternative to using `harvested` would be `planted`, although in the default feedstock production datasets the `planted` amounts tend to be higher than `harvested` (that is, more acreage is planted than is harvested) which may over-estimate some pollutants.
+
 ### Custom Data Filepaths
 
-**Emission Factors**. Default emission factors themselves are provided for each relevant combination of resource subtype and pollutant, as demonstrated in the table below. The unit denominator (both unit columns refer to the emission factor) must match the resource unit from the equipment use dataset. For instance, if insecticide use is quantified as gallons per dry short ton of feedstock, the emission factor here must be in pounds of pollutant per gallon of insecticide. The activity column specifies which supply chain activity causes the resource use and thus the pollutant emissions.
+![Screenshot of the Custom Data Filepaths section of the Emission Factors tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/emissionfactors-customdatafilepaths.PNG)
+
+**Emission Factors**. Default emission factors are provided for each relevant combination of resource subtype and pollutant, as demonstrated in the table below. The unit denominator (both unit columns refer to the emission factor) must match the resource unit from the equipment use dataset. For instance, if insecticide use is quantified as gallons per dry short ton of feedstock, the emission factor here must be in pounds of pollutant per gallon of insecticide. The activity column specifies which supply chain activity causes the resource use and thus the pollutant emissions.
 
 TABLE: Default emissions factors for NO (used as a proxy for NO<sub>x</sub>) and NH<sub>3</sub> from nitrogen fertilizers and VOC from herbicides and insecticides. NO emission factors were obtained from FOA (2001) and GREET (ANL 2010). NH<sub>3</sub> factors were obtained from Goebes et al. 2003, Davidson et al. 2004 and the 17/14 ratio of NH<sub>3</sub> to N. See [Zhang et al. (2015)](https://onlinelibrary.wiley.com/doi/full/10.1002/bbb.1620) for additional information. Note that as of July 2, 2018 the Davidson et al. reference, the CMU Ammonia Model, Version 3.6 from The Environmental Institute at Carnegie Mellon University was not available online and source data could not be verified. 
  
@@ -440,13 +446,15 @@ TABLE: The default resource subtype distribution data file defines the nitrogen 
 
 ## Fugitive Dust
 
-**On-Farm Feedstock Measure Type**.
+![Screenshot of the top of the Fugitive Dust tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/fugitivedust-top.PNG)
 
-**On-Road Feedstock Measure Type**.
+**On-Farm Feedstock Measure Type** and **On-Road Feedstock Measure Type**. Fugitive dust generated on the farm is calculated from PM<sub>10</sub> and PM<sub>2.5</sub> rates per acre, while on-road fugitive dust is calculated from the number of trips required to transport the feedstock. Thus the on-farm fugitive dust is calculated from `harvested` feedstock (units of acres) while on-road fugitive dust is calculated from `production` (units of dry short tons).
 
 ### Custom Data Filepaths
 
-**On-Farm Factors**.
+![Screenshot of the Custom Data Filepaths section of the Fugitive Dust tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/fugitivedust-customdatafilepaths.PNG)
+
+**On-Farm Factors**. On-farm fugitive dust is calculated from PM<sub>10</sub> and PM<sub>2.5</ub> emission factors given in this dataset.
 
 TABLE: List of columns and data types in fugitive dust emissions factors dataset.
 
@@ -459,7 +467,7 @@ TABLE: List of columns and data types in fugitive dust emissions factors dataset
 | unit_numerator | string | Numerator of rate unit |
 | unit_denominator | string | Denominator of rate unit |
 
-TABLE: Example rows in the fugitive dust emissions factors dataset.
+TABLE: Example rows in the fugitive dust emissions factors dataset. Source: BTS 2016.
 
 | feedstock | tillage_type | pollutant | rate | unit_numerator | unit_denominator |
 | :-------- | :----------- | :-------: | :--: | :--------- | :--------- |
@@ -468,16 +476,16 @@ TABLE: Example rows in the fugitive dust emissions factors dataset.
 | sorghum stubble | conventional tillage | PM<sub>10</sub> | 0 | pound | acre |
 | sorghum stubble | conventional tillage | PM<sub>25</sub> | 0 | pound | acre |
 
-**On-Road Constants**.
+**On-Road Constants**. The on-road fugitive dust calculation is more involved and requires empirical constants defined in this dataset. For details on the equations used, see the Fugitive Dust subsection of Module Calculations and Assumptions below.
 
-TABLE: Parameter values for calculating particulate matter from feedstock transportation over paved roads.
+TABLE: Parameter values for calculating particulate matter from feedstock transportation over paved roads. Source: BTS 2016.
 
 |    P             | k<sub>P</sub> (lb/VMT) | a<sub>P</sub> | b<sub>P</sub> | s<sub>L</sub> (g/m<sup>2</sup>) |  W (short tons) |
 | :--------------: | :-------------------:  | :-----------: | :-----------: | :-----------------------------: | :-------------: |
 | PM<sub>10</sub>  | 0.0022                 | 0.91          | 1.02          | 0.045                           | 3.2             |
 | PM<sub>2.5</sub> | 0.00054                | 0.91          | 1.02          | 0.045                           | 3.2             |
 
-TABLE: Parameter values for calculating particulate matter from feedstock transportation over unpaved roads.
+TABLE: Parameter values for calculating particulate matter from feedstock transportation over unpaved roads. Source: BTS 2016.
 
 |   P              | k<sub>P</sub> (lb/VMT) | a<sub>P</sub> | b<sub>P</sub> |
 | :-------------:  | :-:                    | :-:           | :-:           |
@@ -485,9 +493,9 @@ TABLE: Parameter values for calculating particulate matter from feedstock transp
 | PM<sub>2.5</sub> | 0.15                   | 0.9           | 0.45          |
 
 
-**Road Silt Content**.
+**Road Silt Content**. Silt content of primary roads by state is another dataset required to calculate on-road fugitive dust.
 
-TABLE: Sample values for s<sub>st</sub>. The complete list can be found in the fugitive_dust_silt_content.csv file packaged with the default input data set.
+TABLE: Sample values for silt content (s<sub>st</sub>). The complete list can be found in the `fugitive_dust_silt_content` CSV file in the default input data set. Source: BTS 2016.
 
 | st      | s<sub>st</sub> |
 | :------ | :------------: |
