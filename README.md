@@ -110,7 +110,7 @@ Each sub-section goes over one of the GUI tabs.
 
 ## Home 
 
-![Screenshot of the Home tab on the GUI, with all sections expanded and all inputs as they appear when the GUI is first opened.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/home-top.PNG)
+![Screenshot of the Home tab on the GUI, with all sections expanded and all inputs as they appear when the GUI is first opened.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/home-top.PNG)
 
 The Home tab contains the only required inputs for running a scenario, which are the scenario name and the project path. All other inputs are pre-populated with default values, such that FPEAM can quickly be run for a basic, nationwide feedstock production scenario.
 
