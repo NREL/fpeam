@@ -335,17 +335,23 @@ TABLE: Default VMT fraction values.
 
 ## NONROAD
 
-Data folder
+![Screenshot of the top of the NONROAD tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/nonroad-top.PNG)
+
+**Data Folder**. This directory is where the input and output files associated with NONROAD will be saved. Because NONROAD cannot parse filepaths longer than 30 characters, it is strongly recommended to create the `C:/Nonroad` directory rather than using a Documents or other directory.
 
 **Path to EXE** (executable). Because NONROAD is installed as part of MOVES, this directory will always be a subdirectory of wherever MOVES was installed. If MOVES was installed to the pre-selected directory rather than the C:\MOVES2014b directory recommended above, then this filepath will need to be changed. *Please note* that if MOVES was not installed into C:\MOVES2014b or a similarly named directory, NONROAD will not be able to process filepaths for any input data because the filepaths will be longer than 30 characters.
 
-**Analysis Year**. The analysis years defined on this tab and on the MOVES tab need to match each other; if the years do not match, FPEAM cannot be run. The years should also match the year for which the feedstock production dataset is valid.
+**Analysis Year**. The analysis years defined on this tab and on the MOVES tab need to match each other; if the years do not match, FPEAM cannot be run and an error will be displayed on the GUI. The two analysis year inputs should also match the year for which the feedstock production dataset is valid.
 
 ### Database Connection Parameters
+
+![Screenshot of the Database Connection Parameters section of the NONROAD tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/nonroad-databaseconnectionparams.PNG)
 
 These values should be identical to the same parameters under the MOVES tab. The **Database Name** refers to the default MOVES database, not the MOVES output database. NONROAD writes results to individual files rather than an output database, and so no output database needs to be specified.
 
 ### Data Labels
+
+![Screenshot of the Data Labels section of the NONROAD tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/nonroad-datalabels.PNG)
 
 **Feedstock Measure Type** and **Irrigation Feedstock Measure Type**. In the default equipment use dataset, many activities are defined by resource consumption per feedstock measure. The feedstock measure type parameters here define which measure should be used to scale up these activities to calculate total pollutants generated. In the default feedstock production datasets "harvested" is in units of acres, so this feedstock measure type is used to scale activities including fertilizer application, herbicide application, and plowing which are all given per acre in the equipment use dataset. For irrigation, we assume that the entire planted acreage is irrigated (where irrigation is used) and so the feedstock measure type used to scale irrigation activities is "planted". The units are still acres.
 
@@ -354,6 +360,8 @@ These values should be identical to the same parameters under the MOVES tab. The
 **Time Resource Name**. NONROAD calculates pollutants based on how many hours equipment is being operated. This parameter specifies which rows in the equipment use dataset give the hours per acre that each piece of equipment is operated. If the value specified for this parameter does not match the actual time resource name in the equipment use dataset, then NONROAD may not return any results because no data was selected.
 
 ### Custom Data Filepaths
+
+![Screenshot of the Custom Data Filepaths section of the NONROAD tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/nonroad-customdatafilepaths.PNG)
 
 **Irrigation Activity**. This is the dataset derived from the 2012 Farm and Ranch Irrigation Survey, and gives pump use in hours per acre for irrigated corn grain, as well as pump specifications such as horsepower. 
 
@@ -368,17 +376,23 @@ TABLE: Sample entries from the nonroad_equipment input dataset. Equipment descri
 | combine (2wd) | Dsl - Combines | 2270005020 |
 | tractor 2wd 150 hp | Dsl - Agricultural Tractors | 2270005015 |
 
-**Region to FIPS Map**. The region to FIPS map provides a mapping of region identifiers to FIPS. In the case that the input datasets are based on FIPS, this dataset can be ignored.
+**Region to FIPS Map**. The region to FIPS map provides a mapping of region identifiers (`region_production` and `region_destination`) to FIPS. In the case that the input datasets are based on FIPS, this dataset can be ignored.
 
 ### Operating Temperature
+
+![Screenshot of the Operating Temperature section of the NONROAD tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/nonroad-operatingtemperature.PNG)
 
 These temperatures in degrees Fahrenheit give the minimum, maximum and mean expected ambient (outdoor) temperatures for operation of all agricultural and forestry equipment.
 
 ### Conversion Factors
 
-NONROAD does not directly calculate NH3 emissions or volatile organic carbon (VOC) emissions or PM<sub>10</sub> emissions, thus these factors are necessary to calculate NH3 emissions from total diesel consumption, VOC from total hydrocarbon emissions, and PM<sub>2.5</sub>emissions from PM<sub>10</sub> emissions. The NH3 emission factor is sourced from the [COBRA Screening Model](https://www.epa.gov/statelocalclimate/co-benefits-risk-assessment-cobra-screening-model.) developed by the U.S. EPA, and the total hydrocarbon to VOC conversion factor is sourced from EPA NONROAD Conversion Factors for Hydrocarbon Emission Components. 
+![Screenshot of the Conversion Factors section of the NONROAD tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/nonroad-conversionfactors.PNG)
+
+NONROAD does not directly calculate NH<sub>3</sub> emissions or volatile organic carbon (VOC) emissions or PM<sub>10</sub> emissions, thus these factors are necessary to calculate NH<sub>3</sub> emissions from total diesel consumption, VOC from total hydrocarbon emissions, and PM<sub>2.5</sub>emissions from PM<sub>10</sub> emissions. The NH<sub>3</sub> emission factor is sourced from the [COBRA Screening Model](https://www.epa.gov/statelocalclimate/co-benefits-risk-assessment-cobra-screening-model.) developed by the U.S. EPA, and the total hydrocarbon to VOC conversion factor is sourced from EPA NONROAD Conversion Factors for Hydrocarbon Emission Components. 
 
 ### Advanced Options
+
+![Screenshot of the Advanced Options section of the NONROAD tab.](https://github.com/NREL/fpeam/blob/dev/src/FPEAM/gui/screenshots/nonroad-advancedoptions.PNG)
 
 **Encode Names**. NONROAD generates, reads and writes a great many input and output files as it runs. Because NONROAD cannot process filenames longer than 30 characters, the option to encode names converts longer filenames to abbreviated versions. If this option is set to False, NONROAD may not execute properly or may not return all of the expected results.
 
