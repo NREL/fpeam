@@ -88,6 +88,10 @@ class AlltabsModule(QtWidgets.QWidget):
         _link = "<a style='text-decoration:none;' href=\"{address}\"> <font face=Roboto color=#028ACC> {display}</font> </a>"
         return _link.format(address=url, display=text)
 
+    def createLink(self, url, text):
+        _link = "<a href=\"{address}\"> <font face=Roboto font size='4' color=#028ACC> {display}</font></a>"
+        return _link.format(address=url, display=text)
+
     # Function to set UI for HOME Page
     def setupUIHomePage(self):
         # Home Page tab created
@@ -116,6 +120,14 @@ class AlltabsModule(QtWidgets.QWidget):
         emptyLabelTop = QLabel()
         emptyLabelTop.setFixedHeight(30)
         self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 5)
+
+        # add README link to top left of tab
+        self.homeHelpLink = QLabel()
+        self.homeHelpLink.setText(self.createLink("https://github.com/NREL/fpeam/tree/dev#home",
+                                                  "Readme"))
+        self.homeHelpLink.setOpenExternalLinks(True)
+        self.homeHelpLink.setFixedHeight(30)
+        self.windowLayout.addWidget(self.homeHelpLink, 1, 0, 1, 1)
 
         # Create UI element Scenario Name HOME Page
         self.labelScenaName = self.createLabelSmall(text="Scenario Name")
@@ -403,7 +415,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
         # Advanced Options Label - HOME
         self.advOptionsLabel = QLabel()
-        self.advOptionsLabel.setText("Advanced Options")
+        self.advOptionsLabel.setText(self.createHeadingLink("https://github.com/NREL/fpeam/tree/dev#advanced-options",
+                                                            "Advanced Options"))
+        self.advOptionsLabel.setOpenExternalLinks(True)
         self.advOptionsLabel.setFixedHeight(30)
         self.advOptionsLabel.setObjectName("subTitleLabels")
         self.windowLayout.addWidget(self.advOptionsLabel, 18, 0, 1, 6)
