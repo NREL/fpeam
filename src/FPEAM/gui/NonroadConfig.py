@@ -1,7 +1,8 @@
-import os, tempfile
+import os
 
-#Create NONROAD config file
-def nonroadConfigCreation(tmpFolder, attributeValueObj):
+
+# Create NONROAD config file
+def nonroadConfigCreation(tmpFolder, attributeValueObj, scenario_name):
 
     ini_template_string = """ [nonroad]
     
@@ -73,32 +74,32 @@ def nonroadConfigCreation(tmpFolder, attributeValueObj):
     diesel_pm10topm25 ={diesel_pm10topm25}
     """
 
-    my_ini_config = ini_template_string.format(scenario_name = attributeValueObj.scenarioName,
-                                               year = attributeValueObj.yearNonroad,
+    my_ini_config = ini_template_string.format(scenario_name=attributeValueObj.scenarioName,
+                                               year=attributeValueObj.yearNonroad,
                                                nonroad_datafiles_path=attributeValueObj.nonroadDatafilesPath,
-                                               encode_names = attributeValueObj.encodeNames,
-                                               feedstock_measure_type = attributeValueObj.feedMeasureTypeEF,
+                                               encode_names=attributeValueObj.encodeNames,
+                                               feedstock_measure_type=attributeValueObj.feedMeasureTypeEF,
                                                irrigation_feedstock_measure_type=attributeValueObj.irrigationFeedstockMeasureType,
-                                               time_resource_name = attributeValueObj.timeResourceNameNon,
+                                               time_resource_name=attributeValueObj.timeResourceNameNon,
                                                irrigated_feedstock_names=attributeValueObj.irrigatedFeedstockNames,
                                                region_fips_map=attributeValueObj.regionFipsMapNonroad,
                                                nonroad_equipment=attributeValueObj.nonroad_equipment,
                                                irrigation_file=attributeValueObj.irrigation,
-                                               nonroad_database = attributeValueObj.dbNameN,
-                                               nonroad_db_user = attributeValueObj.dbUsernameN,
-                                               nonroad_db_pass = attributeValueObj.dbPwdN,
-                                               nonroad_db_host = attributeValueObj.dbHostN,
+                                               nonroad_database=attributeValueObj.dbNameN,
+                                               nonroad_db_user=attributeValueObj.dbUsernameN,
+                                               nonroad_db_pass=attributeValueObj.dbPwdN,
+                                               nonroad_db_host=attributeValueObj.dbHostN,
                                                nonroad_exe_path=attributeValueObj.nonroadExePath,
-                                               nonroad_temp_min = attributeValueObj.tempMin,
-                                               nonroad_temp_max = attributeValueObj.tempMax,
-                                               nonroad_temp_mean = attributeValueObj.tempMean,
-                                               diesel_lhv = attributeValueObj.dieselLHV,
-                                               diesel_nh3_ef = attributeValueObj.dieselNh3Ef,
-                                               diesel_thc_voc_conversion = attributeValueObj.dieselThcVocConversion,
-                                               diesel_pm10topm25 = attributeValueObj.dieselPm10topm25)
+                                               nonroad_temp_min=attributeValueObj.tempMin,
+                                               nonroad_temp_max=attributeValueObj.tempMax,
+                                               nonroad_temp_mean=attributeValueObj.tempMean,
+                                               diesel_lhv=attributeValueObj.dieselLHV,
+                                               diesel_nh3_ef=attributeValueObj.dieselNh3Ef,
+                                               diesel_thc_voc_conversion=attributeValueObj.dieselThcVocConversion,
+                                               diesel_pm10topm25=attributeValueObj.dieselPm10topm25)
 
+    my_ini_file_path = os.path.join(tmpFolder, f"{scenario_name}_nonroad.ini")
 
-    my_ini_file_path = os.path.join(tmpFolder, "nonroad.ini")
     with open(my_ini_file_path, 'w') as f:
         f.write(my_ini_config)
 

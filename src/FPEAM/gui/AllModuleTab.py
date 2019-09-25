@@ -3659,8 +3659,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
             ###############################################################################################################
 
-            runConfigObj = runConfigCreation(os.path.realpath('../configs'),
-                                             self.attributeValueObj)
+            runConfigObj = runConfigCreation(self.attributeValueObj.projectPath,
+                                             self.attributeValueObj,
+                                             self.attributeValueObj.scenarioName)
 
             # Display logs in result tab after completion of running the respective module
             self.centralwidget.setCurrentWidget(self.tabResult)
@@ -3712,30 +3713,41 @@ class AlltabsModule(QtWidgets.QWidget):
             if self.centralwidget.isTabEnabled(1):
                 _moves_tab_enabled = True
                 self.centralwidget.setTabEnabled(1, False)
-                movesConfigCreationObj = movesConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
+                movesConfigCreationObj = movesConfigCreation(self.attributeValueObj.projectPath,
+                                                             self.attributeValueObj,
+                                                             self.attributeValueObj.scenarioName)
 
             # Check for NONROAD tab
             if self.centralwidget.isTabEnabled(2):
                 _nonroad_tab_enabled = True
                 self.centralwidget.setTabEnabled(2, False)
-                nonroadConfigCreationObj = nonroadConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
+                nonroadConfigCreationObj = nonroadConfigCreation(self.attributeValueObj.projectPath,
+                                                                 self.attributeValueObj,
+                                                                 self.attributeValueObj.scenarioName)
 
             # Check for Emission Factors tab
             if self.centralwidget.isTabEnabled(3):
                 _ef_tab_enabled = True
                 self.centralwidget.setTabEnabled(3, False)
-                emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
+                emissionFactorsConfigCreationObj = emissionFactorsConfigCreation(self.attributeValueObj.projectPath,
+                                                                                 self.attributeValueObj,
+                                                                                 self.attributeValueObj.scenarioName)
 
             # Check for Fugitive Dust tab
             if self.centralwidget.isTabEnabled(4):
                 _fug_dust_tab_enabled = True
                 self.centralwidget.setTabEnabled(4, False)
-                fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(os.path.realpath('../configs'), self.attributeValueObj)
+                fugitiveDustConfigCreationObj = fugitiveDustConfigCreation(self.attributeValueObj.projectPath,
+                                                                           self.attributeValueObj,
+                                                                           self.attributeValueObj.scenarioName)
 
             _configs = []
-            for _config in [runConfigObj, movesConfigCreationObj, nonroadConfigCreationObj, emissionFactorsConfigCreationObj, fugitiveDustConfigCreationObj]:
+            for _config in [runConfigObj, movesConfigCreationObj, nonroadConfigCreationObj,
+                            emissionFactorsConfigCreationObj, fugitiveDustConfigCreationObj]:
                 if _config is not None:
                     _configs.append(_config)
+
+            # self.runCommand(configs=_configs)
 
             import queue
 
@@ -3956,10 +3968,8 @@ def logsPrinter(textField, loggerOutputFilePath, doRun):
             print("Trying again")
             time.sleep(1)
 
+# #############################################################################################
 
-
-
-##############################################################################################
 
 # Main function
 if __name__ == "__main__":

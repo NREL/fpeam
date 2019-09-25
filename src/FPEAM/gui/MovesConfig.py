@@ -1,7 +1,8 @@
-import os, tempfile
+import os
 
-#Create MOVES config file
-def movesConfigCreation(tmpFolder, attributeValueObj):
+
+# Create MOVES config file
+def movesConfigCreation(tmpFolder, attributeValueObj, scenario_name):
 
     ini_template_string = """[moves]
     # run identifier
@@ -94,7 +95,6 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
     VOC = 87
     """
 
-
     my_ini_config = ini_template_string.format(scenario_name=attributeValueObj.scenarioName,
                                                aggregation_level_state=attributeValueObj.aggregation_level_state,
                                                aggregation_level_state_feedstock=attributeValueObj.aggregation_level_state_feedstock,
@@ -108,10 +108,10 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
                                                mysql_bin_path=attributeValueObj.mysqlBinPath,
                                                mysqldump_bin_path=attributeValueObj.mysqlDumpBinPath,
                                                moves_datafiles_path=attributeValueObj.movesDatafilesPath,
-                                               moves_db_host = attributeValueObj.dbHost,
-                                               moves_db_user = attributeValueObj.dbUsername,
-                                               moves_db_pass = attributeValueObj.dbPwd,
-                                               moves_database = attributeValueObj.dbName,
+                                               moves_db_host=attributeValueObj.dbHost,
+                                               moves_db_user=attributeValueObj.dbUsername,
+                                               moves_db_pass=attributeValueObj.dbPwd,
+                                               moves_database=attributeValueObj.dbName,
                                                moves_output_db=attributeValueObj.outDb,
                                                avft=attributeValueObj.avft,
                                                region_fips_map=attributeValueObj.regionFipsMapMoves,
@@ -124,8 +124,8 @@ def movesConfigCreation(tmpFolder, attributeValueObj):
                                                ending_hour=attributeValueObj.endingHr,
                                                day_type=attributeValueObj.dayType)
 
+    my_ini_file_path = os.path.join(tmpFolder, f"{scenario_name}_moves.ini")
 
-    my_ini_file_path = os.path.join(tmpFolder, "moves.ini")
     with open(my_ini_file_path, 'w') as f:
         f.write(my_ini_config)
 

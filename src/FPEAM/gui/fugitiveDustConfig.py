@@ -1,7 +1,8 @@
-import os, tempfile
+import os
 
-#Create Fugitve Dust config file
-def fugitiveDustConfigCreation(tmpFolder, attributeValueObj):
+
+# Create Fugitve Dust config file
+def fugitiveDustConfigCreation(tmpFolder, attributeValueObj, scenario_name):
     ini_template_string = """[fugitivedust]
 
 ## production table identifier (feedstock_measure in production data)
@@ -25,8 +26,8 @@ fugitive_dust_onroad_constants = '{fugitive_dust_onroad_constants}'
                                                silt_content=attributeValueObj.siltContent,
                                                fugitive_dust_onroad_constants=attributeValueObj.onroadConstants)
 
+    my_ini_file_path = os.path.join(tmpFolder, f"{scenario_name}_fugitivedust.ini")
 
-    my_ini_file_path = os.path.join(tmpFolder, "fugitivedust.ini")
     with open(my_ini_file_path, 'w') as f:
         f.write(my_ini_config)
 
