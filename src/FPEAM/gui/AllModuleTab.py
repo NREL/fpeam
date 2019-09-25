@@ -3772,10 +3772,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
             resultImagePaths = self.generateGraphs(result, tmpFolder)
 
-            print(resultImagePaths)
-
             for k, _path in resultImagePaths.items():
-                print(_path)
                 _pixmap = QtGui.QPixmap(_path)
                 self.labelResultGraph.resize(self.width(), self.height())
                 self.labelResultGraph.setPixmap(_pixmap.scaled(self.labelResultGraph.size(), QtCore.Qt.IgnoreAspectRatio))
