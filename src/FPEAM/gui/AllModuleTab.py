@@ -6,6 +6,7 @@ import sys
 import tempfile
 import threading
 import time
+import datetime
 
 import numpy as np
 import pandas as pd
@@ -3667,12 +3668,11 @@ class AlltabsModule(QtWidgets.QWidget):
             self.centralwidget.setCurrentWidget(self.tabResult)
 
             # Generate Logs
-            loggerOutputFilePath = time.strftime("%Y%m%d-%H%M%S") + ''.join(
-                random.choice(string.ascii_letters) for _ in range(10)) + ".log"
-            # tempfile.gettempdir()
-            loggerOutputFilePath = os.path.join(tempfile.gettempdir(), loggerOutputFilePath)
+            _log_fname = f"{self.attributeValueObj.scenarioName}_%Y%m%d_%H%M%S.log"
+            loggerOutputFilePath = time.strftime(os.path.join(self.attributeValueObj.projectPath, _log_fname))
+            # loggerOutputFilePath = os.path.join(tempfile.gettempdir(), loggerOutputFilePath)
 
-            logging.basicConfig(level='DEBUG', format='%(asctime)s, %(levelname)-8s'
+            logging.basicConfig(level=self.attributeValueObj.loggerLevel, format='%(asctime)s, %(levelname)-8s'
                                                       ' [%(filename)s:%(module)s.'
                                                       '%(funcName)s.%(lineno)d] %(message)s',
                                 filename=loggerOutputFilePath)
