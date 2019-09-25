@@ -3309,8 +3309,6 @@ class AlltabsModule(QtWidgets.QWidget):
         self.comboBoxMonth.setCurrentIndex(self.index)
         self.index = self.comboBoxBegHr.findText("7")
         self.comboBoxBegHr.setCurrentIndex(self.index)
-        self.index = self.comboBoxDate.findText("5")
-        self.comboBoxDate.setCurrentIndex(self.index)
         self.index = self.comboBoxEndHr.findText("18")
         self.comboBoxEndHr.setCurrentIndex(self.index)
         self.index = self.comboBoxDayType.findText("Weekday")
@@ -3477,10 +3475,6 @@ class AlltabsModule(QtWidgets.QWidget):
             changedOutDb = self.lineEditOutDb.text().strip()
             if changedOutDb:
                 self.attributeValueObj.outDb = changedOutDb
-
-            changedDate = self.comboBoxDate.currentText()
-            if changedDate:
-                self.attributeValueObj.date = changedDate
 
             changedBegHr = self.comboBoxBegHr.currentText()
             if changedBegHr:
