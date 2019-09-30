@@ -24,7 +24,7 @@ def read(*names, **kwargs):
 
 setup(
     name='FPEAM',
-    version='2.3.0-beta',
+    version='2.4.0',
     license='BSD 2-Clause License',
     description='Feedstock Production Emissions to Air Model',
     long_description='%s\n%s' % (
@@ -73,7 +73,10 @@ setup(
         'pymysql',
         'lxml',
         'joblib',
-        'scipy'
+        'scipy',
+        'matplotlib',
+        'seaborn',
+        'PyQt5'
     ],
     entry_points={
         'console_scripts': [

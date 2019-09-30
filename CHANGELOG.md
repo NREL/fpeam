@@ -1,3 +1,12 @@
+2019-09-31 (v2.4.0)
+-------------------
+* add GUI
+* update documentation
+* route from lat/lon
+* corrects trips calculation to prevent negative pollutant values
+* add secondary roads to transportation network
+
+
 2019-05-01 (v2.3.0-beta)
 ------------------------
 * make routing engine available to all modules
