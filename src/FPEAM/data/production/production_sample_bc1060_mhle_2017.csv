@@ -1,41 +1,41 @@
-feedstock,tillage_type,region_production,region_destination,equipment_group,feedstock_measure,feedstock_amount,unit_numerator,unit_denominator,source_lon,source_lat,destination_lon,destination_lat
-forest residues,no tillage,51101,42041,south,harvested,1371.50000,acre,,-77.11864,37.71390,-77.31878,40.13643
-forest residues,no tillage,51101,42041,south,production,10434.60000,dry short ton,,-77.11864,37.71390,-77.31878,40.13643
-forest whole tree,no tillage,51101,42041,south,harvested,1490.00000,acre,,-77.11864,37.71390,-77.31878,40.13643
-forest whole tree,no tillage,51101,42041,south,production,25674.30000,dry short ton,,-77.11864,37.71390,-77.31878,40.13643
-forest residues,no tillage,51107,42041,south,harvested,970.00000,acre,,-77.66452,39.08548,-77.31878,40.13643
-forest residues,no tillage,51107,42041,south,production,3393.00000,dry short ton,,-77.66452,39.08548,-77.31878,40.13643
-forest whole tree,no tillage,51107,42041,south,harvested,69.50000,acre,,-77.66452,39.08548,-77.31878,40.13643
-forest whole tree,no tillage,51107,42041,south,production,1271.70000,dry short ton,,-77.66452,39.08548,-77.31878,40.13643
-corn grain,reduced tillage,51101,42041,3,yield,3.30414,dry short ton,acre,-77.11864,37.71390,-77.31878,40.13643
-corn grain,reduced tillage,51101,42041,3,harvested,1808.31300,acre,,-77.11864,37.71390,-77.31878,40.13643
-corn grain,conventional tillage,51101,42041,3,planted,660.82640,acre,,-77.11864,37.71390,-77.31878,40.13643
-corn grain,no tillage,51101,42041,3,planted,14388.87790,acre,,-77.11864,37.71390,-77.31878,40.13643
-corn grain,conventional tillage,51101,42041,3,yield,3.21971,dry short ton,acre,-77.11864,37.71390,-77.31878,40.13643
-corn grain,no tillage,51101,42041,3,yield,3.30977,dry short ton,acre,-77.11864,37.71390,-77.31878,40.13643
-corn grain,conventional tillage,51101,42041,3,production,1947.99876,dry short ton,,-77.11864,37.71390,-77.31878,40.13643
-corn grain,no tillage,51101,42041,3,production,43602.31400,dry short ton,,-77.11864,37.71390,-77.31878,40.13643
-corn grain,reduced tillage,51101,42041,3,production,5974.92232,dry short ton,,-77.11864,37.71390,-77.31878,40.13643
-corn grain,reduced tillage,51101,42041,3,planted,1975.09890,acre,,-77.11864,37.71390,-77.31878,40.13643
-corn grain,no tillage,51101,42041,3,harvested,13173.81840,acre,,-77.11864,37.71390,-77.31878,40.13643
-corn grain,conventional tillage,51101,42041,3,harvested,605.02330,acre,,-77.11864,37.71390,-77.31878,40.13643
-corn stover,no tillage,51101,42041,3,harvested,13173.81800,acre,,-77.11864,37.71390,-77.31878,40.13643
-corn stover,no tillage,51101,42041,3,planted,14388.87790,acre,,-77.11864,37.71390,-77.31878,40.13643
-corn stover,no tillage,51101,42041,3,production,22135.98400,dry short ton,,-77.11864,37.71390,-77.31878,40.13643
-corn stover,no tillage,51101,42041,3,yield,1.68000,dry short ton,acre,-77.11864,37.71390,-77.31878,40.13643
-corn grain,reduced tillage,51107,42041,3,yield,3.22252,dry short ton,acre,-77.66452,39.08548,-77.31878,40.13643
-corn grain,reduced tillage,51107,42041,3,harvested,2674.93160,acre,,-77.66452,39.08548,-77.31878,40.13643
-corn grain,conventional tillage,51107,42041,3,planted,763.14110,acre,,-77.66452,39.08548,-77.31878,40.13643
-corn grain,no tillage,51107,42041,3,planted,4956.52050,acre,,-77.66452,39.08548,-77.31878,40.13643
-corn grain,conventional tillage,51107,42041,3,yield,3.13809,dry short ton,acre,-77.66452,39.08548,-77.31878,40.13643
-corn grain,no tillage,51107,42041,3,yield,3.22815,dry short ton,acre,-77.66452,39.08548,-77.31878,40.13643
-corn grain,conventional tillage,51107,42041,3,production,2192.57779,dry short ton,,-77.66452,39.08548,-77.31878,40.13643
-corn grain,no tillage,51107,42041,3,production,14649.25700,dry short ton,,-77.66452,39.08548,-77.31878,40.13643
-corn grain,reduced tillage,51107,42041,3,production,8620.02903,dry short ton,,-77.66452,39.08548,-77.31878,40.13643
-corn grain,reduced tillage,51107,42041,3,planted,2921.64820,acre,,-77.66452,39.08548,-77.31878,40.13643
-corn grain,no tillage,51107,42041,3,harvested,4537.97020,acre,,-77.66452,39.08548,-77.31878,40.13643
-corn grain,conventional tillage,51107,42041,3,harvested,698.69820,acre,,-77.66452,39.08548,-77.31878,40.13643
-corn stover,no tillage,51107,42041,3,harvested,4537.97000,acre,,-77.66452,39.08548,-77.31878,40.13643
-corn stover,no tillage,51107,42041,3,planted,4956.52050,acre,,-77.66452,39.08548,-77.31878,40.13643
-corn stover,no tillage,51107,42041,3,production,7504.35700,dry short ton,,-77.66452,39.08548,-77.31878,40.13643
-corn stover,no tillage,51107,42041,3,yield,1.65400,dry short ton,acre,-77.66452,39.08548,-77.31878,40.13643
+feedstock,tillage_type,region_production,region_destination,equipment_group,feedstock_measure,unit_numerator,feedstock_amount,unit_denominator,source_lon,source_lat,destination_lon,destination_lat
+corn grain,conventional tillage,51101,42041,3,harvested,acre,605.02330,,-77.11864,37.71390,-77.31878,40.13643
+corn grain,conventional tillage,51101,42041,3,planted,acre,660.82640,,-77.11864,37.71390,-77.31878,40.13643
+corn grain,conventional tillage,51101,42041,3,production,dry short ton,1947.99876,,-77.11864,37.71390,-77.31878,40.13643
+corn grain,conventional tillage,51101,42041,3,yield,dry short ton,3.21971,acre,-77.11864,37.71390,-77.31878,40.13643
+corn grain,conventional tillage,51107,42041,3,harvested,acre,698.69820,,-77.66452,39.08548,-77.31878,40.13643
+corn grain,conventional tillage,51107,42041,3,planted,acre,763.14110,,-77.66452,39.08548,-77.31878,40.13643
+corn grain,conventional tillage,51107,42041,3,production,dry short ton,2192.57779,,-77.66452,39.08548,-77.31878,40.13643
+corn grain,conventional tillage,51107,42041,3,yield,dry short ton,3.13809,acre,-77.66452,39.08548,-77.31878,40.13643
+corn grain,no tillage,51101,42041,3,harvested,acre,13173.81840,,-77.11864,37.71390,-77.31878,40.13643
+corn grain,no tillage,51101,42041,3,planted,acre,14388.87790,,-77.11864,37.71390,-77.31878,40.13643
+corn grain,no tillage,51101,42041,3,production,dry short ton,43602.31400,,-77.11864,37.71390,-77.31878,40.13643
+corn grain,no tillage,51101,42041,3,yield,dry short ton,3.30977,acre,-77.11864,37.71390,-77.31878,40.13643
+corn grain,no tillage,51107,42041,3,harvested,acre,4537.97020,,-77.66452,39.08548,-77.31878,40.13643
+corn grain,no tillage,51107,42041,3,planted,acre,4956.52050,,-77.66452,39.08548,-77.31878,40.13643
+corn grain,no tillage,51107,42041,3,production,dry short ton,14649.25700,,-77.66452,39.08548,-77.31878,40.13643
+corn grain,no tillage,51107,42041,3,yield,dry short ton,3.22815,acre,-77.66452,39.08548,-77.31878,40.13643
+corn grain,reduced tillage,51101,42041,3,harvested,acre,1808.31300,,-77.11864,37.71390,-77.31878,40.13643
+corn grain,reduced tillage,51101,42041,3,planted,acre,1975.09890,,-77.11864,37.71390,-77.31878,40.13643
+corn grain,reduced tillage,51101,42041,3,production,dry short ton,5974.92232,,-77.11864,37.71390,-77.31878,40.13643
+corn grain,reduced tillage,51101,42041,3,yield,dry short ton,3.30414,acre,-77.11864,37.71390,-77.31878,40.13643
+corn grain,reduced tillage,51107,42041,3,harvested,acre,2674.93160,,-77.66452,39.08548,-77.31878,40.13643
+corn grain,reduced tillage,51107,42041,3,planted,acre,2921.64820,,-77.66452,39.08548,-77.31878,40.13643
+corn grain,reduced tillage,51107,42041,3,production,dry short ton,8620.02903,,-77.66452,39.08548,-77.31878,40.13643
+corn grain,reduced tillage,51107,42041,3,yield,dry short ton,3.22252,acre,-77.66452,39.08548,-77.31878,40.13643
+corn stover,no tillage,51101,42041,3,harvested,acre,13173.81800,,-77.11864,37.71390,-77.31878,40.13643
+corn stover,no tillage,51101,42041,3,planted,acre,14388.87790,,-77.11864,37.71390,-77.31878,40.13643
+corn stover,no tillage,51101,42041,3,production,dry short ton,22135.98400,,-77.11864,37.71390,-77.31878,40.13643
+corn stover,no tillage,51101,42041,3,yield,dry short ton,1.68000,acre,-77.11864,37.71390,-77.31878,40.13643
+corn stover,no tillage,51107,42041,3,harvested,acre,4537.97000,,-77.66452,39.08548,-77.31878,40.13643
+corn stover,no tillage,51107,42041,3,planted,acre,4956.52050,,-77.66452,39.08548,-77.31878,40.13643
+corn stover,no tillage,51107,42041,3,production,dry short ton,7504.35700,,-77.66452,39.08548,-77.31878,40.13643
+corn stover,no tillage,51107,42041,3,yield,dry short ton,1.65400,acre,-77.66452,39.08548,-77.31878,40.13643
+forest residues,no tillage,51101,42041,south,harvested,acre,1371.50000,,-77.11864,37.71390,-77.31878,40.13643
+forest residues,no tillage,51101,42041,south,production,dry short ton,10434.60000,,-77.11864,37.71390,-77.31878,40.13643
+forest residues,no tillage,51107,42041,south,harvested,acre,970.00000,,-77.66452,39.08548,-77.31878,40.13643
+forest residues,no tillage,51107,42041,south,production,dry short ton,3393.00000,,-77.66452,39.08548,-77.31878,40.13643
+forest whole tree,no tillage,51101,42041,south,harvested,acre,1490.00000,,-77.11864,37.71390,-77.31878,40.13643
+forest whole tree,no tillage,51101,42041,south,production,dry short ton,25674.30000,,-77.11864,37.71390,-77.31878,40.13643
+forest whole tree,no tillage,51107,42041,south,harvested,acre,69.50000,,-77.66452,39.08548,-77.31878,40.13643
+forest whole tree,no tillage,51107,42041,south,production,dry short ton,1271.70000,,-77.66452,39.08548,-77.31878,40.13643

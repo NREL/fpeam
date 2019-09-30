@@ -1,34 +1,28 @@
-import os, tempfile
-
-#Create Emission Fcators config file
-def emissionFactorsConfigCreation(tmpFolder, attributeValueObj):
+import os
 
 
-    my_ini_config = "[emissionfactors] \n"
+# Create Emission Fcators config file
+def emissionFactorsConfigCreation(tmpFolder, attributeValueObj, scenario_name):
 
-    if attributeValueObj.feedMeasureTypeEF:
+    ini_template_string = """[emissionfactors]
+    # production table identifier (feedstock_measure in production data)
+    feedstock_measure_type = '{feedstock_measure_type}'
+    
+    # emission factors as lb pollutant per lb resource subtype
+    emission_factors = '{emission_factors}'
+    
+    # resource subtype distribution for all resources
+    resource_distribution = '{resource_distribution}'
+    
+    """
 
-        temp_string = "## production table identifier (feedstock_measure in production data) \n" \
-                        + "feedstock_measure_type = '{feedstock_measure_type}' \n"
-        my_ini_config += temp_string.format(feedstock_measure_type=attributeValueObj.feedMeasureTypeEF)
+    my_ini_config = ini_template_string.format(feedstock_measure_type=attributeValueObj.feedMeasureTypeEF,
+                                               emission_factors=attributeValueObj.emissionFactorsEF,
+                                               resource_distribution=attributeValueObj.resourceDistributionEF)
 
-    if attributeValueObj.emissionFactorsEF:
+    my_ini_file_path = os.path.join(tmpFolder, f"{scenario_name}_emissionfactors.ini")
 
-        temp_string = "## emission factors as lb pollutant per lb resource subtype \n" \
-                        + "emission_factors = '{emission_factors}' \n"
-
-        my_ini_config += temp_string.format(emission_factors = attributeValueObj.emissionFactorsEF)
-
-    if attributeValueObj.resourceDistributionEF:
-
-        temp_string = "## resource subtype distribution for all resources \n" \
-                + "resource_distribution = '{resource_distribution}' \n"
-
-        my_ini_config += temp_string.format(resource_distribution = attributeValueObj.resourceDistributionEF)
-
-    my_ini_file_path = os.path.join(tmpFolder,"emissionfactors.ini")
     with open(my_ini_file_path, 'w') as f:
         f.write(my_ini_config)
 
     return my_ini_file_path
-

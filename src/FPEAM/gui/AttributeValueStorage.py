@@ -19,6 +19,7 @@ class AttributeValueStorage:
         self.production = 'data/production/production_2015_bc1060.csv'
         self.feedstockLossFactors = 'data/inputs/feedstock_loss_factors.csv'
         self.transportationGraph = 'data/inputs/transportation_graph.csv'
+        self.vMTPerTruck = 20
         self.backfill = True
         self.useRouterEngine = True
 
@@ -37,9 +38,9 @@ class AttributeValueStorage:
         self.timeResourceNameNon = "time"
         self.dbHostN = "localhost"
         self.dbUsernameN = "root"
-        self.dbNameN = "movesdb20151028"
+        self.dbNameN = "movesdb20180517"
         self.dbPwdN = "root"
-        self.forestryFeedstockNames = 'forest whole tree'
+        self.forestryFeedstockNames = 'forest whole tree', 'forest residues'
         self.regionFipsMapNonroad = "data/inputs/region_fips_map.csv"
         self.nonroadDatafilesPath = "C:/Nonroad"
         self.tempMin = 50.0
@@ -55,15 +56,14 @@ class AttributeValueStorage:
         self.encodeNames = True
 
         # Moves Module - Attribute Initialization
-        self.aggegationLevel = "By County"
+        self.aggregationLevel = "By County"
         self.cachedResults = "Yes"
         self.feedstockMeasureType = "production"
-        self.vMTPerTruck = 20
         self.noOfTrucksUsed = 1
         self.yearMoves = 2017
         self.dbHost = "localhost"
         self.dbUsername = "root"
-        self.dbName = "movesdb20151028"
+        self.dbName = "movesdb20180517"
         self.dbPwd = "root"
         self.movesDatafilesPath = "C:\MOVESdatb"
         self.movesPath = "C:\MOVES2014b"
