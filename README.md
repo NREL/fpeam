@@ -41,6 +41,8 @@ FPEAM scenarios can be defined and run either through the graphical user interfa
 
 ## Graphical user interface
 
+To open the GUI, first install FPEAM according to the instructions below. After installing, there are two options for running the GUI. Option one is to open the file `AllModuleTab.py`, located in `fpeam/src/FPEAM/gui` in PyCharm, Spyder or another Python integrated developement environment (IDE) and run the file from the IDE. Option two is to open a command prompt or Anaconda prompt (recommended) in the same directory, and execute `python AllModuleTab.py`. Either option will open the GUI and allow scenarios to be run.
+
 The FPEAM GUI was developed to be relatively self-explanatory with an easy to follow workflow. Upon opening the GUI, users will need to specify a scenario name (it is recommended to use unique scenario names for every FPEAM run), a project path where output files are saved, and which modules to run.
 
 Inputs for each module are entered on the module's tab. All tabs are pre-populated with default values such that users should need to enter custom values for relatively few inputs. Users may work through the tabs in any order before returning to the Home tab and clicking the Run button to generate results. The Reset button, also on the Home tab, will return all inputs to their default values.
