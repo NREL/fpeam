@@ -32,8 +32,8 @@ class StoppableThread(threading.Thread):
     original code source: https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread?rq=1
     """
 
-    def __init__(self):
-        super(StoppableThread, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(StoppableThread, self).__init__(*args, **kwargs)
         self._stop_event = threading.Event()
 
     def stop(self):
@@ -3705,7 +3705,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
             # Displays the logs of the respective running module simultaneously.
             doRun = True
-            logt = threading.Thread(target=logsPrinter, args=(self.plainTextLog, loggerOutputFilePath, doRun,))
+            logt = StoppableThread(target=logsPrinter, args=(self.plainTextLog, loggerOutputFilePath, doRun,))
             logt.daemon = True
             logt.start()
 
@@ -3765,7 +3765,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
             que = queue.Queue()
 
-            runt = threading.Thread(target=lambda q, arg: q.put(self.runCommand(arg)), args=(que, _configs))
+            runt = StoppableThread(target=lambda q, arg: q.put(self.runCommand(arg)), args=(que, _configs))
 
             # self.runCommand(_configs)
 
