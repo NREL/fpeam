@@ -25,6 +25,22 @@ from run_config import runConfigCreation
 WIDTH = 890
 HEIGHT = 650
 
+class StoppableThread(threading.Thread):
+    """
+    thread class with a stop() method used by the cancel button. the thread
+    regularly checks for the stopped() condition.
+    original code source: https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread?rq=1
+    """
+
+    def __init__(self):
+        super(StoppableThread, self).__init__()
+        self._stop_event = threading.Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
 
 # Provides resize event to mainWindow
 class Window(QtWidgets.QMainWindow):
