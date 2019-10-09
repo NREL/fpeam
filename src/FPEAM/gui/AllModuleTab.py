@@ -3705,9 +3705,9 @@ class AlltabsModule(QtWidgets.QWidget):
 
             # Displays the logs of the respective running module simultaneously.
             doRun = True
-            t = threading.Thread(target=logsPrinter, args=(self.plainTextLog, loggerOutputFilePath, doRun,))
-            t.daemon = True
-            t.start()
+            logt = threading.Thread(target=logsPrinter, args=(self.plainTextLog, loggerOutputFilePath, doRun,))
+            logt.daemon = True
+            logt.start()
 
             self.centralwidget.setTabEnabled(0, False)
 
@@ -3765,7 +3765,7 @@ class AlltabsModule(QtWidgets.QWidget):
 
             que = queue.Queue()
 
-            t = threading.Thread(target=lambda q, arg: q.put(self.runCommand(arg)), args=(que, _configs))
+            runt = threading.Thread(target=lambda q, arg: q.put(self.runCommand(arg)), args=(que, _configs))
 
             # self.runCommand(_configs)
 
@@ -3778,8 +3778,8 @@ class AlltabsModule(QtWidgets.QWidget):
 
             # for t in threadList:
             #     if t:
-            t.start()
-            while t.is_alive():
+            runt.start()
+            while runt.is_alive():
                 loop = QEventLoop()
                 QTimer.singleShot(10, loop.quit)
                 loop.exec_()
