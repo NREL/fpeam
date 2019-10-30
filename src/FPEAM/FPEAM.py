@@ -1,14 +1,15 @@
-import os
+  import os
 import shutil
 import tempfile
 from collections import Iterable
 
 import geopandas
 import pandas as pd
+from FPEAM import EngineModules
 from joblib import Memory
 from pkg_resources import resource_filename
+from shapely.geometry import MultiPolygon
 
-from FPEAM import EngineModules
 from . import Data
 from . import utils
 from .IO import (CONFIG_FOLDER, load_configs)
@@ -326,7 +327,7 @@ class FPEAM(object):
         if self.config.get('save_inmap_output', True) is True:
             # save InMAP output
             _shp_fpath_in = resource_filename('FPEAM', 'data/inputs/tl_2019_us_county/tl_2019_us_county.shp')
-            _df = geopandas.read_file(_shp_fpath_in)[['STATEFP', 'COUNTYFP', 'NAME', 'geometry']]
+            _df = geopandas.read_file(_shp_fpath_in, dtype={'STATEFP': str, 'COUNTYFP': str, 'geometry': MultiPolygon})[['STATEFP', 'COUNTYFP', 'NAME', 'geometry']]
             _df['region_production'] = _df.STATEFP + _df.COUNTYFP
 
             _grp_df = _summarize_by_region_production[['region_production', 'pollutant', 'pollutant_amount']].groupby(['region_production', 'pollutant'], as_index=False).sum()
@@ -344,9 +345,9 @@ class FPEAM(object):
                                       'so2': 'SO2',
                                       'voc': 'VOC'}, inplace=True)
 
-            _shp_fname_out = '%s_total_emissions_by_production_region_inmap.shp' % self.config.get('scenario_name')
+            _shp_fname_out = '%s_county_inmap.shp' % self.config.get('scenario_name')
             _shp_fpath_out = os.path.join(self.config.get('project_path'), _shp_fname_out)
-            _gdf_join.to_file(_shp_fpath_out)
+            _gdf_join.head().to_file(_shp_fpath_out)
 
         # feedstock-tillage type-region_production
         _results_to_normalize = self.results
