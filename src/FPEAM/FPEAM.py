@@ -347,7 +347,7 @@ class FPEAM(object):
 
             _shp_fname_out = '%s_county_inmap.shp' % self.config.get('scenario_name')
             _shp_fpath_out = os.path.join(self.config.get('project_path'), _shp_fname_out)
-            _gdf_join.head().to_file(_shp_fpath_out)
+            _gdf_join.to_file(_shp_fpath_out)
 
         # feedstock-tillage type-region_production
         _results_to_normalize = self.results
