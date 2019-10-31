@@ -53,7 +53,6 @@ class FPEAM(object):
         self.results = None
         self.summaries = {}
 
-        # @TODO: load and validate fpeam.ini; currently only run_config gets checked and loaded
         self.config = run_config
 
         # validate module names
@@ -139,10 +138,11 @@ class FPEAM(object):
         _spec = resource_filename('FPEAM', '%s/run_config.spec' % (CONFIG_FOLDER, ))
         _config = utils.validate_config(config=value['run_config'], spec=_spec)
 
-        _config['config']['fpeam'] = _fpeam_config
+        _config['config']['fpeam'] = _fpeam_config['config']
 
         if _config['extras']:
             LOGGER.warning('extra values: %s' % (_config['extras'], ))
+
         try:
             assert not _config['missing'] and not _config['errors']
         except AssertionError:
@@ -324,8 +324,8 @@ class FPEAM(object):
                                                                                   'pollutant_amount',
                                                                                   'unit_numerator',
                                                                                   'unit_denominator']]
-        if self.config.get('save_inmap_output', True) is True:
-            # save InMAP output
+        if self.config['fpeam'].get('inmap_county_export', False) is True:
+            # save InMAP county-level output
             _shp_fpath_in = resource_filename('FPEAM', 'data/inputs/tl_2019_us_county/tl_2019_us_county.shp')
             _df = geopandas.read_file(_shp_fpath_in, dtype={'STATEFP': str, 'COUNTYFP': str, 'geometry': MultiPolygon})[['STATEFP', 'COUNTYFP', 'NAME', 'geometry']]
             _df['region_production'] = _df.STATEFP + _df.COUNTYFP
