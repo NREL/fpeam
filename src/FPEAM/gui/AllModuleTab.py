@@ -38,6 +38,7 @@ class StoppableThread(threading.Thread):
 
     def stop(self):
         self._stop_event.set()
+        self.is_alive = False
 
     def stopped(self):
         return self._stop_event.is_set()
@@ -3327,6 +3328,7 @@ class AlltabsModule(QtWidgets.QWidget):
         self.index = self.comboBoxDayType.findText("Weekday")
         self.comboBoxDayType.setCurrentIndex(self.index)
 
+
     ###################################################################
 
     # Run Button Code
@@ -3859,16 +3861,18 @@ class AlltabsModule(QtWidgets.QWidget):
 
     # Result Tab Code
     def setupUIResult(self):
+
+        # Result tab code started
+        self.windowLayoutResult = QGridLayout()
+        self.windowLayoutResult.setSpacing(15)
+        self.windowLayoutResult.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
+        self.windowLayoutResult.setColumnStretch(6, 1)
+
         # Result tab created
         self.tabResult = QtWidgets.QWidget()
         self.tabResult.resize(WIDTH, HEIGHT - 200)
         # Result tab added
         self.centralwidget.addTab(self.tabResult, self.getSpacedNames("Results"))
-
-        # Result tab code started
-        windowLayoutResult = QGridLayout()
-        windowLayoutResult.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
-        #windowLayoutResult.setColumnStretch(6, 1)
 
         # Add scrollbar to Result tab
         self.scrollAreaResult = QScrollArea(self.tabResult)
@@ -3879,39 +3883,53 @@ class AlltabsModule(QtWidgets.QWidget):
         self.innerWidgetResult = QtWidgets.QWidget()
         self.innerWidgetResult.resize(WIDTH, HEIGHT)
         self.scrollAreaResult.setWidget(self.innerWidgetResult)
-        self.innerWidgetResult.setLayout(windowLayoutResult)
+        self.innerWidgetResult.setLayout(self.windowLayoutResult)
 
         # Add vertical space at the top
         emptyLabelTop = QLabel()
         emptyLabelTop.setFixedHeight(30)
-        self.windowLayout.addWidget(emptyLabelTop, 0, 0, 1, 1)
+        self.windowLayoutResult.addWidget(emptyLabelTop, 0, 0, 1, 1)
 
         # Create UI element - Display Logs
         self.plainTextLog = QPlainTextEdit()
-        self.plainTextLog.setVisible(False)
+        self.plainTextLog.setVisible(True)
         self.plainTextLog.setPlainText("")
         self.plainTextLog.setReadOnly(True)
         self.plainTextLog.setFixedHeight(250)
         self.plainTextLog.setFixedWidth(WIDTH - 36)
-        windowLayoutResult.addWidget(self.plainTextLog, 1, 0, 1, 1)
+        self.windowLayoutResult.addWidget(self.plainTextLog, 1, 0, 1, 1)
 
         # Add Vertical Space between the elements
         emptyLabelE = QLabel()
         emptyLabelE.setFixedHeight(20)
-        windowLayoutResult.addWidget(emptyLabelE, 2, 0, 1, 1)
+        self.windowLayoutResult.addWidget(emptyLabelE, 2, 0, 1, 1)
+
+        # add cancel button
+        self.cancelButton = QPushButton("Stop Run", self)
+        self.cancelButton.setFixedHeight(40)
+        self.cancelButton.setFixedWidth(152)
+        self.cancelButton.setObjectName("cancelButton")
+        # @todo implement stop method, call here
+        #self.cancelButton.clicked.connect(self.resetFields())
+        self.windowLayoutResult.addWidget(self.cancelButton, 3, 0)
+
+        # add vertical space between elements
+        emptyLabelE = QLabel()
+        emptyLabelE.setFixedHeight(20)
+        self.windowLayoutResult.addWidget(emptyLabelE, 4, 0, 1, 1)
 
         # Created UI element - Display result
         self.labelResultGraph = QLabel()
         self.labelResultGraph.setFixedHeight(500)
         self.labelResultGraph.setFixedWidth(WIDTH)
-        windowLayoutResult.addWidget(self.labelResultGraph, 3, 0, 1, 1)
+        self.windowLayoutResult.addWidget(self.labelResultGraph, 5, 0, 1, 1)
 
         # Created UI element - Progress bar
         self.progressBar = QProgressBar()
         self.progressBar.setVisible(False)
         self.progressBar.setStyleSheet("")
         self.progressBar.setFixedWidth(WIDTH)
-        windowLayoutResult.addWidget(self.progressBar, 2, 0, 1, 1)
+        self.windowLayoutResult.addWidget(self.progressBar, 2, 0, 1, 1)
 
         #########################################################################################################################
 
