@@ -83,6 +83,7 @@ ending_hour = integer(1, 24, default=18)
 [pollutant_dict]
 NH3 = integer(default=30)
 CO = integer(default=2)
+CO2 = integer(default=98)
 NOX = integer(default=3)
 PM10 = integer(default=100)
 PM25 = integer(default=110)

@@ -191,15 +191,19 @@ class MOVES(Module):
         # converted to user inputs to allow for more or fewer pollutant
         # calculations dictionary of pollutant shorthand to MOVES name
         self.polname = {"NH3": "Ammonia (NH3)",
+                        "CO2atm": "Atmospheric CO2",
+                        "CO2eq": "CO2 Equivalent",
                         "CO": "Carbon Monoxide (CO)",
                         "ECPM": "Composite - NonECPM",
                         "Carbon": "Elemental Carbon",
                         "H20": "H20 (aerosol)",
+                        "CH4": "Methane (CH4)",
+                        "N2O": "Nitrous Oxide (N2O)",
                         "NMHC": "Non-Methane Hydrocarbons",
                         "NOX": "Oxides of Nitrogen",
                         "PM10": "Primary Exhaust PM10  - Total",
                         "PM25": "Primary Exhaust PM2.5 - Total",
-                        "Spar": "Sulfur Particulate",
+                        "Spar": "Sulfate Particulate",
                         "SO2": "Sulfur Dioxide (SO2)",
                         "TEC": "Total Energy Consumption",
                         "THC": "Total Gaseous Hydrocarbons",
@@ -207,10 +211,14 @@ class MOVES(Module):
 
         # dictionary of pollutant shorthand to MOVES pollutantid
         self.polkey = {"NH3": "30",
+                       "CO2atm": "90",
+                       "CO2eq": "98",
                        "CO": "2",
                        "ECPM": "118",
                        "Carbon": "112",
                        "H20": "119",
+                       "CH4": "5",
+                       "N2O": "6",
                        "NMHC": "79",
                        "NOX": "3",
                        "PM10": "100",
@@ -239,10 +247,14 @@ class MOVES(Module):
         # dictionary of shorthand pollutant names to applicable MOVES
         # pollutant process numbers
         self.prockey = {"NH3": ["1", "2", "15", "16", "17", "90", "91"],
+                        "CO2atm": ["1", "2", "90", "91"],
+                        "CO2eq": ["1", "2", "90", "91"],
                         "CO": ["1", "2", "15", "16", "17", "90", "91"],
                         "ECPM": ["1", "2", "90", "91"],
                         "Carbon": ["1", "2", "90", "91"],
                         "H20": ["1", "2", "90", "91"],
+                        "CH4": ["1", "2", "15", "16", "17", "90", "91"],
+                        "N2O": ["1", "2", "15", "16"],
                         "NMHC": ["1", "2", "11", "12", "13", "18", "19", "90", "91"],
                         "NOX": ["1", "2", "15", "16", "17", "90", "91"],
                         "PM10": ["1", "2", "15", "16", "17", "90", "91"],
@@ -263,6 +275,7 @@ class MOVES(Module):
 
         # create data frame for renaming pollutants during postprocessing
         self.pollutant_names = pd.DataFrame({'pollutant': ['NH3',
+                                                           'CO2eq',
                                                            'CO',
                                                            'NOX',
                                                            'PM10',
@@ -270,6 +283,7 @@ class MOVES(Module):
                                                            'SO2',
                                                            'VOC'],
                                              'pollutantID': [30,
+                                                             98,
                                                              2,
                                                              3,
                                                              100,
@@ -1464,7 +1478,7 @@ class MOVES(Module):
                 LOGGER.info('Adding fips column to {t}'.format(t=_table))
                 _moves_cursor.execute(_add_fips_sql)
 
-            except pymysql.err.InternalError:
+            except pymysql.err.OperationalError:
                 pass
 
             LOGGER.info('Updating fips column to {t}'.format(t=_table))
@@ -1714,8 +1728,7 @@ class MOVES(Module):
         _avgRateVeh = _ratepervehicle.groupby(['fips', 'state', 'yearID',
                                                'monthID', 'dayID',
                                                'pollutantID'],
-                                              as_index=False).sum(
-                inplace=True)[['fips', 'state', 'pollutantID', 'ratePerVehicle']]
+                                              as_index=False).sum()[['fips', 'state', 'pollutantID', 'ratePerVehicle']]
 
         _avgRateVeh = _avgRateVeh.merge(self.pollutant_names, how='inner',
                                         on='pollutantID')
