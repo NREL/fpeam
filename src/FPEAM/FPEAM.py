@@ -1,7 +1,12 @@
 import os
 import shutil
+import sys
 import tempfile
-from collections import Iterable
+
+if system.version_info[1] >= 10:
+    from collections.abc import Iterable
+else:
+    from collections import Iterable
 
 import geopandas
 import pandas as pd
