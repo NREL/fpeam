@@ -3,7 +3,7 @@ import shutil
 import sys
 import tempfile
 
-if system.version_info[1] >= 10:
+if sys.version_info[1] >= 10:
     from collections.abc import Iterable
 else:
     from collections import Iterable
