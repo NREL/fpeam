@@ -75,6 +75,7 @@ class MOVES(Module):
         self.conn = pymysql.connect(host=self.config.get('moves_db_host'),
                                     user=self.config.get('moves_db_user'),
                                     password=self.config.get('moves_db_pass'),
+                                    port=self.config.get('moves_db_port'),
                                     db=self.config.get('moves_database'),
                                     local_infile=True)
 

@@ -31,6 +31,7 @@ year = integer(default='2017')
 
 ### MOVES database connection options
 moves_db_host = string(default='localhost')
+moves_db_port = integer(default=3306)
 moves_db_user = string(default='root')
 moves_db_pass = string(default='root')
 moves_database = string(default='movesdb2220802')

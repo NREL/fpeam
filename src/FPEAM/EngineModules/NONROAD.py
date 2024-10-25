@@ -59,6 +59,7 @@ class NONROAD(Module):
 
         # open connection to NONROAD database for input/output
         self._conn = pymysql.connect(host=self.config.get('nonroad_db_host'),
+                                     port=self.config.get('nonroad_db_port'),
                                      user=self.config.get('nonroad_db_user'),
                                      password=self.config.get('nonroad_db_pass'),
                                      db=self.config.get('nonroad_database'),
