@@ -74,11 +74,10 @@ urban_unrestricted = float(min=0, max=1, default=0.21)
 
 ## timespan(s)
 [moves_timespan]
-month = integer(1, 12, default=10)
+month = int_list(min=1, max=12, default=list(1, 4, 7, 10))
 day = integer(1, 31, default=5)
-beginning_hour = integer(1, 24, default=7)
-ending_hour = integer(1, 24, default=18)
-
+beginning_hour = integer(1, 24, default=8)
+ending_hour = integer(1, 24, default=20)
 # MOVES pollutant dictionary (pollutant name to pollutant ID)
 [pollutant_dict]
 NH3 = integer(default=30)
