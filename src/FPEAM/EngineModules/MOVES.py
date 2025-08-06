@@ -1,4 +1,3 @@
-import pdb
 import os
 
 import numpy as np
@@ -163,7 +162,7 @@ class MOVES(Module):
         # 20 is conventional diesel and 21 is biodiesel
         # @NOTE possibly add to GUI as user input in the future
         # can select additional fuel subtypes in list form
-        self.fuel_subtype_id = (20, 21)
+        self.fuel_subtype_id = (10, 11, 12, 13, 14, 15, 18, 20, 21)
 
         # selection of fuel supply type
         # NOT sure what this means
@@ -987,7 +986,7 @@ class MOVES(Module):
         # ends up in tables in the MOVES output database
         self.scenid = "{fips}_{year}_{month}_{day}".format(fips=fips,
                                                            day=self.day,
-                                                           month=self.month,
+                                                           month='_'.join([str(_) for _ in self.month]),
                                                            year=self.year)
 
         # Create XML element tree for geographic selection
@@ -1005,8 +1004,9 @@ class MOVES(Module):
         # set year
         etree.SubElement(timespan, "year", key=self.year.__str__())
 
-        # set month
-        etree.SubElement(timespan, "month", id=self.month.__str__())
+        # set months
+        for _month in self.month:
+            etree.SubElement(timespan, "month", id=str(_month))
 
         # loop through days (2 = weekend; 5 = weekday)
         etree.SubElement(timespan, "day", id=self.day.__str__())
@@ -1199,7 +1199,7 @@ class MOVES(Module):
         # scenario ID for MOVES runs
         _scenid = "{fips}_{year}_{month}_{day}".format(fips=fips,
                                                        day=self.day,
-                                                       month=self.month,
+                                                       month='_'.join([str(_) for _ in self.month]),
                                                        year=self.year)
 
         # Create XML element tree for elements with MOVES inputs with CDATA
@@ -1285,7 +1285,8 @@ class MOVES(Module):
         etree.SubElement(timespan, "year", key=self.year.__str__())
 
         # loop through months
-        etree.SubElement(timespan, "month", id=self.month.__str__())
+        for _month in self.month:
+            etree.SubElement(timespan, "month", id=str(_month))
 
         # loop through days (2 = weekend; 5 = weekday)
         etree.SubElement(timespan, "day", id=self.day.__str__())
@@ -1412,7 +1413,7 @@ class MOVES(Module):
         kvals = dict()
         kvals['moves_output_db'] = self.moves_output_db
         kvals['year'] = self.year
-        kvals['month'] = self.month
+        kvals['month'] = ', '.join([str(_) for _ in self.month])
         kvals['day'] = self.day
 
         # determine if the rateperdistance table exists and contains the fips
@@ -1461,7 +1462,7 @@ class MOVES(Module):
                                       AND dist.fips = q.fips) runid_filter
                         ON dist_table.MOVESRunID =
                         runid_filter.MOVESRunID
-                  WHERE dist_table.yearID = {year} AND dist_table.monthID = {month}
+                  WHERE dist_table.yearID = {year} AND dist_table.monthID IN ({month})
                    AND dist_table.dayID = {day};""".format(**kvals)
 
             # read in the table and get the list of unique FIPS for which
@@ -1491,7 +1492,7 @@ class MOVES(Module):
         kvals['moves_output_db'] = self.moves_output_db
         kvals['source_type_id'] = self.source_type_id
         kvals['year'] = self.year
-        kvals['month'] = self.month
+        kvals['month'] = ', '.join([str(_) for _ in self.month])
         kvals['day'] = self.day
 
         # some minor changes to the SQL tables in _moves_table_list
@@ -1555,7 +1556,7 @@ class MOVES(Module):
                                   AND dist.fips = q.fips) runid_filter
                     ON dist_table.MOVESRunID =
                     runid_filter.MOVESRunID
-              WHERE dist_table.yearID = {year} AND dist_table.monthID = {month}
+              WHERE dist_table.yearID = {year} AND dist_table.monthID IN ({month})
                AND dist_table.dayID = {day};""".format(**kvals)
 
         # read in all possibly relevant entries from the rate per distance
@@ -1597,7 +1598,7 @@ class MOVES(Module):
                     ON veh.MOVESRunID = q.max_id
                         AND veh.fips = q.fips) runid_filter
                 ON veh_table.MOVESRunID = runid_filter.MOVESRunID
-              WHERE veh_table.yearID = {year} AND veh_table.monthID = {month} 
+              WHERE veh_table.yearID = {year} AND veh_table.monthID IN ({month}) 
               AND veh_table.dayID = {day};""".format(**kvals)
 
         _ratepervehicle_all = pd.read_sql(_ratepervehicle_table_sql, self.conn)
@@ -1645,10 +1646,27 @@ class MOVES(Module):
                                                        'dayID',
                                                        'hourID'))
 
+        # get dayvmtfraction
+        _dayvmtfraction_sql = """SELECT monthID,
+                                        roadTypeID,
+                                        dayID,
+                                        dayVMTFraction
+                                 FROM
+                                 {moves_database}.dayvmtfraction
+                                 WHERE sourceTypeID = {source_type_id}
+                                 AND monthID IN ({month});""".format(**kvals)
+
+        _dayvmtfraction = pd.read_sql(_dayvmtfraction_sql, self.conn)
+
+        _join_dist_avgspd = _join_dist_avgspd.merge(_dayvmtfraction,
+                                                    on=('monthID',
+                                                        'dayID',
+                                                        'roadTypeID'))
+
         # calculate non-summed rate per distance
         _join_dist_avgspd.eval('averageRatePerDistance = ratePerDistance * '
-                               'avgSpeedFraction * '
-                               'roadTypeVMTFraction', inplace=True)
+                               'avgSpeedFraction * roadTypeVMTFraction *'
+                               'dayVMTFraction', inplace=True)
 
         # calculate final pollutant rates per distance by grouping and
         # summing rates per distance over pollutant processes, hours,
@@ -1660,15 +1678,26 @@ class MOVES(Module):
                                                   'monthID',
                                                   'dayID',
                                                   'pollutantID'],
-                                                 as_index=False).sum()[['fips',
+                                                 as_index=False).sum()[[
+                                                                        'fips',
                                                                         'state',
                                                                         'pollutantID',
                                                                         'averageRatePerDistance']]
+
+        # @TODO: not sure the combination and weighting above is correct. See IRA queries.
+        # average over all times
+        #_avgRateDist = _avgRateDist.groupby(['fips', 'state', 'pollutantID'], as_index=False).mean()
 
         # merge with the pollutant names dataframe
         _avgRateDist = _avgRateDist.merge(self.pollutant_names, how='inner',
                                           on='pollutantID')
 
+        _save_rates = False
+        if _save_rates:
+            _fips = _avgRateDist.fips.unique()[0]
+            _rates_fname = f'rate_per_distance_{_fips}.csv'
+            _rates_fpath = os.path.join(self.config.get('project_path'), _rates_fname)
+            _avgRateDist.to_csv(_rates_fpath, index=False)
         # merge the truck capacity numbers with the rate per distance merge
         # to prep for calculating number of trips
         _run_emissions = _avgRateDist.merge(self.prod_moves_runs[['MOVES_run_fips',
@@ -1997,6 +2026,7 @@ class MOVES(Module):
             # run all fips regardless of whether cached results exist or not
             _run_fips = list(self.moves_run_list.MOVES_run_fips)
 
+
         # only go through the setup and run steps if there are fips that
         # need to be run
         if _run_fips.__len__() > 0:
@@ -2025,6 +2055,7 @@ class MOVES(Module):
                 # import data and log output
                 command = 'cd {moves_path} & setenv.bat & ' \
                           'java -Xmx512M ' \
+                          '-cp "jre\bin;ant\bin;libs;libs\poi;libs\poi\commons-codec-1.5.jar;libs\commons-lang-2.2.jar;libs\commons-io-2.11.0.jar;libs\mysql-connector-java-5.1.17-bin.jar;libs\abbot;%PATH%" ' \
                           'gov.epa.otaq.moves.master.commandline.MOVESCommandLine' \
                           ' -i {import_file}' \
                           ''.format(moves_path=self.moves_path,
@@ -2037,6 +2068,7 @@ class MOVES(Module):
 
                 command = 'cd {moves_folder} & setenv.bat & ' \
                           'java -Xmx512M ' \
+                          '-cp "jre\bin;ant\bin;libs;libs\poi;libs\poi\commons-codec-1.5.jar;libs\commons-lang-2.2.jar;libs\commons-io-2.11.0.jar;libs\mysql-connector-java-5.1.17-bin.jar;libs\abbot;%PATH%" ' \
                           'gov.epa.otaq.moves.master.commandline.MOVESCommandLine ' \
                           '-r {run_moves}'.format(moves_folder=self.moves_path,
                                                   run_moves=self.runspec_filename)
