@@ -101,6 +101,8 @@ class FPEAM(object):
                                    )[_module.lower()]
             _config['scenario_name'] = _config.get('scenario_name', '').strip() or self.config.get('scenario_name')
 
+            _config['project_path'] = self.config['project_path']
+
             try:
                 self.__setattr__(_module,
                                  FPEAM.MODULES[_module](config=_config,
