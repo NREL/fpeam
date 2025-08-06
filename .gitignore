@@ -70,3 +70,10 @@ target/
 # irrigation .py files
 IrrigationAcres.py
 LoadIrrigationData.py
+
+*.swp
+.*~
+*.py~
+*.spec~
+*.csv~
+*.whl
