@@ -940,7 +940,7 @@ class MOVES(Module):
         _hour_vmt_filename = os.path.join(self.save_path_nationalinputs, 'hourvmtfraction.csv')
 
         # create XML for elements with CDATA
-        # @TODO: verify this is still necessary
+        # @TODO: verify this is still necessary; not in import file so check runspec
         self.internalcontrol = etree.XML(
                 '<internalcontrolstrategy classname="gov.epa.otaq.moves.master.implementation.'
                 'ghg.internalcontrolstrategies.rateofprogress.RateOfProgressStrategy">'
@@ -1032,6 +1032,7 @@ class MOVES(Module):
         # XML for vehicle type selections
         # combination short-haul truck
         # @TODO convert all of these to user inputs pulled from config
+        # @TODO: add support for multiple fuel types (1, 2, 3, and 9) (should be defined in self.fuel_supply_fuel_type_ids
         vehicle_selection = etree.Element("onroadvehicleselection",
                                           fueltypeid=self.fuel_supply_fuel_type_id.__str__())
         vehicle_selection.set("fueltypedesc", "Diesel Fuel")
@@ -1113,10 +1114,12 @@ class MOVES(Module):
                                             E.FuelUsageFraction(self.fuelusagefile),
                                             E.AVFT(self.avftfile),
                                     )),
+                                    # @TODO: zoneMonthHour is no zonemonthhour and zonemonthhour is now zoneMonthHour
                             E.zoneMonthHour(
                                     etree.XML('<description><![CDATA[]]></description>',
                                               _parser),
                                     E.parts(E.zonemonthhour(self.metfile))),
+                            # @TODO: remove rampfraction; not in new MOVES5 import file
                             E.rampfraction(
                                     etree.XML('<description><![CDATA[]]></description>',
                                               _parser),
@@ -1133,10 +1136,13 @@ class MOVES(Module):
                                     etree.XML('<description><![CDATA[]]></description>',
                                               _parser),
                                     E.parts(
+                                            # @TODO: add startsPerDayPerVehicle (empty string)
                                             E.startsPerDay(E.filename("")),
                                             E.startsHourFraction(E.filename("")),
                                             E.startsSourceTypeFraction(E.filename("")),
                                             E.startsMonthAdjust(E.filename("")),
+                                            # @TODO: add startsAgeAdjustment (empty string)
+                                            # @TODO: rename importStartsOpModeDistribution to startsOpModeDistribution
                                             E.importStartsOpModeDistribution(E.filename("")),
                                             E.Starts(E.filename("")),
                                     )),
@@ -1153,8 +1159,10 @@ class MOVES(Module):
                                     etree.XML('<description><![CDATA[]]></description>',
                                               _parser),
                                     E.parts(
+                                            # @TODO: redo section. Needs "hotellingHoursPerDay", "hotellingHourFraction", hotellingAgeFraction", "hotellingMonthAdjust", "hotellingActivityDistribution" (all empty strings)
                                             E.hotellingActivityDistribution(E.filename("")),
                                             E.hotellingHours(E.filename("")))),
+                            # @TODO: add <idle> section: description, parts with totalIdleFraction, idelModelYearGrouping, idleMonthAdjust, idleDayAdjust
                             E.imcoverage(
                                     etree.XML('<description><![CDATA[]]></description>',
                                               _parser),
@@ -1166,6 +1174,7 @@ class MOVES(Module):
                             E.generic(
                                     etree.XML('<description><![CDATA[]]></description>',
                                               _parser),
+                                    # @TODO: anytable changed from "agecategory" to "activitytype"
                                     E.parts(E.anytable(E.tablename("agecategory"),
                                                        E.filename("")))),
                             mode="county")
