@@ -167,6 +167,8 @@ class MOVES(Module):
         # selection of fuel supply type
         # NOT sure what this means
         # @NOTE possibly add to GUI as user input in the future
+        # @TODO: add support for list of values: 1, 2, 3, 9
+        # set roadtype for example implementation in XML
         self.fuel_supply_fuel_type_id = '2'
 
         # user input - fraction of VMT on each road type (dictionary type)
@@ -247,6 +249,7 @@ class MOVES(Module):
 
         # dictionary of shorthand pollutant names to applicable MOVES
         # pollutant process numbers
+        # @TODO: update to include all necessary combinations. See MOVES5 validated runspe
         self.prockey = {"NH3": ["1", "2", "15", "16", "17", "90", "91"],
                         "CO2atm": ["1", "2", "90", "91"],
                         "CO2eq": ["1", "2", "90", "91"],
@@ -435,7 +438,9 @@ class MOVES(Module):
                 activityMean         FLOAT NULL DEFAULT NULL,
                 activitySigma        FLOAT NULL DEFAULT NULL
             ) ENGINE=MyISAM DEFAULT CHARSET=latin1 DELAY_KEY_WRITE=1;""".format(**kvals)
+        # @TODO: add elif self.moves_version.startswith('MOVES5'):
         else:
+            # @TODO: add warning that we're assuming MOVES2014b or remove this altogether
             _create_tables_dict['movesactivityoutput'] = """CREATE TABLE IF NOT EXISTS
                 {moves_output_db}.`movesactivityoutput` (
                 MOVESRunID           SMALLINT UNSIGNED NOT NULL,
@@ -935,6 +940,7 @@ class MOVES(Module):
         _hour_vmt_filename = os.path.join(self.save_path_nationalinputs, 'hourvmtfraction.csv')
 
         # create XML for elements with CDATA
+        # @TODO: verify this is still necessary
         self.internalcontrol = etree.XML(
                 '<internalcontrolstrategy classname="gov.epa.otaq.moves.master.implementation.'
                 'ghg.internalcontrolstrategies.rateofprogress.RateOfProgressStrategy">'
@@ -1218,6 +1224,7 @@ class MOVES(Module):
         # which specifies which outputs are included in MOVES analysis
         outputemissions = etree.Element("outputemissionsbreakdownselection")
         etree.SubElement(outputemissions, "modelyear", selected="false")
+        # @TODO: change fueltype selected to True
         etree.SubElement(outputemissions, "fueltype", selected="false")
         etree.SubElement(outputemissions, "fuelsubtype", selected="false")
         etree.SubElement(outputemissions, "emissionprocess", selected="true")
@@ -1384,6 +1391,7 @@ class MOVES(Module):
                     gendata,
                     etree.SubElement(gendata, "donotperformfinalaggregation", selected="false"),
                     lookupflag,
+                    # @TODO: add <skipdomaindatabasevalidation selected="false"/> element here
                     version=self.moves_version)
         )
 
